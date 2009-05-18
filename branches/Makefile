@@ -1,5 +1,5 @@
 
-releases: clean
+releases:
 	zsh build.zsh
 clean:
 	rm -f *.zip

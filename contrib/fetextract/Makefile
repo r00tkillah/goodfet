@@ -7,8 +7,22 @@
 
 CC=gcc -g
 
+
+PORT=/dev/ttyUSB0
+BSL=tos-bsl --invert-reset --invert-test -c $(PORT)
+
+app=MSP430FET.hex
+
+
 run: all
 all: MSP430FET.hex
+
+
+install: $(app)
+	$(BSL) -e -p $(app)
+	#$(BSL) -P $(app) -g 0x4000
+erase:
+	$(BSL) -e 
 
 MSP430FET.hex: fetextract MSP430.dll
 	./fetextract

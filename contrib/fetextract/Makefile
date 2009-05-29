@@ -20,7 +20,7 @@ all: MSP430FET.hex
 
 install: $(app)
 	$(BSL) -e -p $(app)
-	#$(BSL) -P $(app) -g 0x4000
+	$(BSL) -P $(app) -v $(app)
 erase:
 	$(BSL) -e 
 

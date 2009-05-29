@@ -9,7 +9,7 @@ GCCINC=-T ../../ldscripts/161x.x
 CC=msp430-gcc -g -mmcu=$(mcu) -DGCC $(GCCINC) -I ../../include
 
 
-app=blink
+app=echo
 
 install: $(app)
 	$(BSL) -e -p $(app) 

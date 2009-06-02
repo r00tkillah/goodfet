@@ -226,7 +226,7 @@ SECTIONS
   /* DWARF 3 */
   .debug_pubtypes 0 : { *(.debug_pubtypes) }
   .debug_ranges   0 : { *(.debug_ranges) }
-  PROVIDE (__stack = 0x3900) ;
+  PROVIDE (__stack = 0x2500) ;
   PROVIDE (__data_start_rom = _etext) ;
   PROVIDE (__data_end_rom   = _etext + SIZEOF (.data)) ;
   PROVIDE (__noinit_start_rom = _etext + SIZEOF (.data)) ;

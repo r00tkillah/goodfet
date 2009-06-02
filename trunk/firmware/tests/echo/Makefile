@@ -15,7 +15,6 @@ app=echo
 
 install: $(app)
 	$(BSL) -e -p $(app) 
-	#$(BSL) -P $(app) -g 0x2500
 	$(BSL) -P $(app) -r
 $(app): $(app).c $(libs)
 erase:

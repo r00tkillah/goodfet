@@ -20,16 +20,7 @@ void init(){
   PLEDDIR |= PLEDPIN;
   
   msp430_init_dco();
-  
   msp430_init_uart();
-  
-  while(1){
-    i = 10000;
-    while(i--);
-    
-    serial_tx(0x80);
-    PLEDOUT^=PLEDPIN;  // Blink
-  }
   
   //Enable Interrupts.
   //eint();
@@ -45,7 +36,7 @@ int main(void)
   PLEDOUT^=PLEDPIN;  // Blink
   
   //while(1) serial_tx(serial_rx());
-  while(1) serial_tx(0x80);
+  while(1) serial_tx(serial_rx());
   
   while(1){
     i = 10000;

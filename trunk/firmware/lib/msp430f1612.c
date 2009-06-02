@@ -16,8 +16,6 @@ unsigned char serial_rx(){
   IFG1&=~URXIFG0;
   U0TCTL &= ~URXSE;
   
-  PLEDOUT^=PLEDPIN;
-  
   return c;
 }
 //! Transmit a byte.
@@ -41,6 +39,7 @@ void msp430_init_uart(){
   UTCTL0 = SSEL1;                       /* UCLK = MCLK */
 
   //http://mspgcc.sourceforge.net/baudrate.html
+  //9600 baud
   UBR00=0x00; UBR10=0x01; UMCTL0=0x00;
   
   ME1 &= ~USPIE0;			/* USART1 SPI module disable */

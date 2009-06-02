@@ -1,4 +1,4 @@
-//GOODFET Echo test.
+//GOODFET Blink test.
 
 
 #include "platform.h"

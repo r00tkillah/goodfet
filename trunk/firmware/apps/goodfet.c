@@ -49,11 +49,11 @@ int main(void)
   
   init();
   
+  //Ready
+  txdata(MONITOR,OK,0);
+  
   //Command loop.  There's no end!
   while(1){
-    //Ready
-    txdata(MONITOR,OK,0);
-    
     //Magic 3
     app=serial_rx();
     verb=serial_rx();

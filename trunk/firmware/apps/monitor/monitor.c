@@ -10,6 +10,10 @@ void monitorhandle(unsigned char app,
     txdata(app,verb,1);
     break;
   case POKE:
+    //Todo, make word or byte.
+    memorybyte[cmddataword[0]]=cmddata[2];
+    cmddata[0]=memorybyte[cmddataword[0]];
+    txdata(app,verb,1);
     break;
   }
 }

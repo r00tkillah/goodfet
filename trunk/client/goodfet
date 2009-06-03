@@ -1,0 +1,97 @@
+#!/usr/bin/env python
+# GoodFET Client Application
+# 
+# (C) 2009 Travis Goodspeed <travis at radiantmachines.com>
+#
+# This code is ugly as sin, for bootstrapping the firmware only.
+# Rewrite cleanly as soon as is convenient.
+
+import sys, time, string, cStringIO, struct
+sys.path.append("/usr/lib/tinyos")
+import serial
+
+
+class Client:
+    def __init__(self, *args, **kargs):
+        print "inited\n";
+    def timeout(self):
+        print "timout\n";
+    def serInit(self, port):
+        """Open the serial port"""
+        self.serialport = serial.Serial(
+            port,
+            9600,
+            parity = serial.PARITY_NONE
+            )
+        #Drop DTR, which is !RST, low to begin the app.
+        self.serialport.setDTR(0);
+        self.serialport.flushInput()
+        self.serialport.flushOutput()
+        
+        #Read and handle the initial command.
+        client.readcmd();
+        client.handlecmd();
+        
+        time.sleep(1);
+    def writecmd(self, app, verb, count, data):
+        self.serialport.write(chr(app));
+        self.serialport.write(chr(verb));
+        self.serialport.write(chr(count));
+        print "count=%02x, len(data)=%04x" % (count,len(data));
+        for d in data:
+            self.serialport.write(chr(d));
+    def readcmd(self):
+        self.app=ord(self.serialport.read(1));
+        self.verb=ord(self.serialport.read(1));
+        self.count=ord(self.serialport.read(1));
+        if self.count>0:
+            self.data=self.serialport.read(self.count);
+        print "%02x %02x %02x" % (self.app, self.verb, self.count);
+    def handlemonitor(self):
+        if self.verb==0x7E:
+            print "Monitor: NOK";
+        if self.verb==0x7F:
+            print "Monitor: OK";
+    def handlecmd(self):
+        if self.app==0:
+            #print "Monitor command."
+            self.handlemonitor();
+        else:
+            print "Unknown application %02x." % self.app
+    
+    def peekbyte(self,address):
+        """Read a byte of memory from the monitor."""
+        self.data=[address&0xff,address>>8];
+        self.writecmd(0,0x02,2,self.data);
+        self.readcmd();
+        return ord(self.data[0]);
+    def peekword(self,address):
+        """Read a word of memory from the monitor."""
+        return self.peekbyte(address)+(self.peekbyte(address+1)<<8);
+    def pokebyte(self,address,value):
+        """Set a byte of memory by the monitor."""
+        self.data=[address&0xff,address>>8,value];
+        self.writecmd(0,0x03,3,self.data);
+        self.readcmd();
+        print "POKE returned %02x" % ord(self.data[0]);
+        return ord(self.data[0]);
+    
+    def monitortest(self):
+        """Self-test several functions through the monitor."""
+        print "Performing self-test.";
+        
+        if self.peekword(0x0c00)!=0x0c04:
+            print "ERROR Fetched wrong value from 0x0c04.";
+        self.pokebyte(0x0021,0); #Drop LED
+        if self.peekbyte(0x0021)!=0:
+            print "ERROR, P1OUT not cleared.";
+        
+        print "Self-test complete.";
+
+client=Client();
+client.serInit("/dev/ttyUSB0")
+
+
+
+client.monitortest();
+

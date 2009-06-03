@@ -37,7 +37,7 @@ class Client:
         self.serialport.write(chr(app));
         self.serialport.write(chr(verb));
         self.serialport.write(chr(count));
-        print "count=%02x, len(data)=%04x" % (count,len(data));
+        #print "count=%02x, len(data)=%04x" % (count,len(data));
         for d in data:
             self.serialport.write(chr(d));
     def readcmd(self):
@@ -46,7 +46,7 @@ class Client:
         self.count=ord(self.serialport.read(1));
         if self.count>0:
             self.data=self.serialport.read(self.count);
-        print "%02x %02x %02x" % (self.app, self.verb, self.count);
+        #print "%02x %02x %02x" % (self.app, self.verb, self.count);
     def handlemonitor(self):
         if self.verb==0x7E:
             print "Monitor: NOK";
@@ -73,7 +73,7 @@ class Client:
         self.data=[address&0xff,address>>8,value];
         self.writecmd(0,0x03,3,self.data);
         self.readcmd();
-        print "POKE returned %02x" % ord(self.data[0]);
+        #print "POKE returned %02x" % ord(self.data[0]);
         return ord(self.data[0]);
     
     def monitortest(self):
@@ -85,6 +85,7 @@ class Client:
         self.pokebyte(0x0021,0); #Drop LED
         if self.peekbyte(0x0021)!=0:
             print "ERROR, P1OUT not cleared.";
+        self.pokebyte(0x0021,1); #Light LED
         
         print "Self-test complete.";
 

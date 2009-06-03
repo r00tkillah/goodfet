@@ -10,7 +10,7 @@ GCCINC=-T ../ldscripts/161x.x
 
 CC=msp430-gcc -g -mmcu=$(mcu) -DGCC $(GCCINC) -I ../include
 
-apps= monitor/monitor.c
+apps= monitor/monitor.c spi/spi.c
 libs= ../lib/msp430f1612.c ../lib/command.c
 app=goodfet
 

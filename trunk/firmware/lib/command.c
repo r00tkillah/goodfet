@@ -2,7 +2,7 @@
 
 unsigned char cmddata[256];
 
-//!Transmit data.
+//! Transmit data.
 void txdata(unsigned char app,
 	    unsigned char verb,
 	    unsigned char len){
@@ -13,4 +13,11 @@ void txdata(unsigned char app,
   for(i=0;i<len;i++){
     serial_tx(cmddata[i]);
   }
+}
+
+
+//! Delay for a count.
+void delay(unsigned int count){
+  volatile unsigned int i=count;
+  while(i--);
 }

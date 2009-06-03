@@ -1,5 +1,5 @@
-//GOODFET Echo test.
-
+//GOODFET Main File
+//Includes several applications.
 
 #include "platform.h"
 #include "command.h"
@@ -36,6 +36,9 @@ void handle(unsigned char app,
   case MONITOR:
     monitorhandle(app,verb,len);
     break;
+  case SPI:
+    spihandle(app,verb,len);
+    break;
   default:
     txdata(app,NOK,0);
   }
@@ -63,16 +66,6 @@ int main(void)
       cmddata[i]=serial_rx();
     }
     handle(app,verb,len);
-  }
-    
-  //while(1) serial_tx(serial_rx());
-  while(1) serial_tx(serial_rx());
-  
-  while(1){
-    i = 10000;
-    while(i--);
-    
-    PLEDOUT^=PLEDPIN;  // Blink
   }
 }
 

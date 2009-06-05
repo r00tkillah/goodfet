@@ -11,6 +11,8 @@ extern unsigned char cmddata[256];
 #define PEEK  0x02
 #define POKE  0x03
 #define SETUP 0x10
+#define START 0x20
+#define STOP  0x21
 #define NOK   0x7E
 #define OK    0x7F
 

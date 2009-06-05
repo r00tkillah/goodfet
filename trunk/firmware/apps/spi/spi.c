@@ -78,8 +78,8 @@ void spihandle(unsigned char app,
     P5OUT&=~SS; //Drop !SS to begin transaction.
     for(i=0;i<len;i++)
       cmddata[i]=spitrans8(cmddata[i]);
-    txdata(app,verb,len);
     P5OUT|=SS;  //Raise !SS to end transaction.
+    txdata(app,verb,len);
     break;
   case SETUP:
     spisetup();

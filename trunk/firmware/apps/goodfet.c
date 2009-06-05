@@ -39,6 +39,9 @@ void handle(unsigned char app,
   case SPI:
     spihandle(app,verb,len);
     break;
+  case I2C:
+    i2chandle(app,verb,len);
+    break;
   default:
     txdata(app,NOK,0);
   }
@@ -61,6 +64,7 @@ int main(void)
     app=serial_rx();
     verb=serial_rx();
     len=serial_rx();
+    
     //Read data, if any
     for(i=0;i<len;i++){
       cmddata[i]=serial_rx();

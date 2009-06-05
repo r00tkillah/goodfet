@@ -30,7 +30,7 @@ class Client:
         
         #Read and handle the initial command.
         time.sleep(1);
-        client.readcmd();
+        client.readcmd(); #Read the first command.
         if(self.verb!=0x7F):
             print "Verb is wrong.  Incorrect firmware?";
         
@@ -44,7 +44,7 @@ class Client:
         if count!=0:
             for d in data:
                 self.serialport.write(chr(d));
-        #self.readcmd();  #Uncomment this later, to ensure a response.
+        self.readcmd();  #Uncomment this later, to ensure a response.
     def readcmd(self):
         """Read a reply from the GoodFET."""
         self.app=ord(self.serialport.read(1));
@@ -59,7 +59,7 @@ class Client:
         """Read a byte of memory from the monitor."""
         self.data=[address&0xff,address>>8];
         self.writecmd(0,0x02,2,self.data);
-        self.readcmd();
+        #self.readcmd();
         return ord(self.data[0]);
     def peekword(self,address):
         """Read a word of memory from the monitor."""
@@ -68,8 +68,6 @@ class Client:
         """Set a byte of memory by the monitor."""
         self.data=[address&0xff,address>>8,value];
         self.writecmd(0,0x03,3,self.data);
-        self.readcmd();
-        #print "POKE returned %02x" % ord(self.data[0]);
         return ord(self.data[0]);
     
     def monitortest(self):
@@ -89,12 +87,12 @@ class Client:
         """Moved the FET into the SPI application."""
         print "Initializing SPI.";
         self.writecmd(1,0x10,0,self.data); #SPI/SETUP
-        self.readcmd();
+        #self.readcmd();
     def spitrans8(self,byte):
         """Read and write 8 bits by SPI."""
         self.data=[byte];
         self.writecmd(1,0,1,self.data);    #SPI exchange
-        self.readcmd();
+        #self.readcmd();
         
         if self.app!=1 or self.verb!=0:
             print "Error in SPI transaction; app=%02x, verb=%02x" % (self.app, self.verb);

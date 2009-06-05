@@ -28,10 +28,13 @@
 #define CLRCLK P5OUT&=~SCK
 #define READMISO (P5IN&MISO?1:0)
 
+
+
 //! Set up the pins for SPI mode.
 unsigned char spisetup(){
   P5DIR|=MOSI+SCK+SS;
   P5DIR&=~MISO;
+  P5OUT|=SS;
 }
 
 //! Read and write an SPI bit.
@@ -39,7 +42,9 @@ unsigned char spitrans8(unsigned char byte){
   unsigned int bit;
   //This function came from the SPI Wikipedia article.
   //Minor alterations.
- 
+  
+  P5OUT&=~SS;
+  
   for (bit = 0; bit < 8; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (byte & 0x80)
@@ -59,6 +64,8 @@ unsigned char spitrans8(unsigned char byte){
     byte |= READMISO;
     CLRCLK;
   }
+  
+  P5OUT|=SS;
  
   return byte;
 }

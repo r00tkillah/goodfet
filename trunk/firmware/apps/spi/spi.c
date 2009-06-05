@@ -43,8 +43,6 @@ unsigned char spitrans8(unsigned char byte){
   //This function came from the SPI Wikipedia article.
   //Minor alterations.
   
-  P5OUT&=~SS;
-  
   for (bit = 0; bit < 8; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (byte & 0x80)
@@ -65,8 +63,6 @@ unsigned char spitrans8(unsigned char byte){
     CLRCLK;
   }
   
-  P5OUT|=SS;
- 
   return byte;
 }
 
@@ -74,12 +70,16 @@ unsigned char spitrans8(unsigned char byte){
 void spihandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned char len){
+  unsigned char i;
   switch(verb){
     //PEEK and POKE might come later.
   case READ:
   case WRITE:
-    cmddata[0]=spitrans8(cmddata[0]);
-    txdata(app,verb,1);
+    P5OUT&=~SS; //Drop !SS to begin transaction.
+    for(i=0;i<len;i++)
+      cmddata[i]=spitrans8(cmddata[i]);
+    txdata(app,verb,len);
+    P5OUT|=SS;  //Raise !SS to end transaction.
     break;
   case SETUP:
     spisetup();

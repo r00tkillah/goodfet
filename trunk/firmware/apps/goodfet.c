@@ -42,8 +42,15 @@ void handle(unsigned char app,
   case I2C:
     i2chandle(app,verb,len);
     break;
+  case CHIPCON:
+    cchandle(app,verb,len);
+    break;
+  case JTAG430:
+    //msphandle(app,verb,len);
+    break;
   default:
     txdata(app,NOK,0);
+    break;
   }
 }
 

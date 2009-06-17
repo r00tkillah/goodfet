@@ -45,8 +45,8 @@ void handle(unsigned char app,
   case CHIPCON:
     cchandle(app,verb,len);
     break;
-  case JTAG430:
-    //msphandle(app,verb,len);
+  case JTAG:
+    jtaghandle(app,verb,len);
     break;
   default:
     txdata(app,NOK,0);

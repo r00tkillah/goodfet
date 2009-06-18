@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# GoodFET Client Application
+# GoodFET Client Library
 # 
 # (C) 2009 Travis Goodspeed <travis at radiantmachines.com>
 #
@@ -11,9 +11,10 @@ sys.path.append("/usr/lib/tinyos")
 import serial
 
 
-class Client:
+class GoodFET:
     def __init__(self, *args, **kargs):
         print "inited\n";
+        self.data=[0];
     def timeout(self):
         print "timout\n";
     def serInit(self, port):
@@ -30,7 +31,7 @@ class Client:
         
         #Read and handle the initial command.
         time.sleep(1);
-        client.readcmd(); #Read the first command.
+        self.readcmd(); #Read the first command.
         if(self.verb!=0x7F):
             print "Verb is wrong.  Incorrect firmware?";
         
@@ -52,8 +53,8 @@ class Client:
         self.count=ord(self.serialport.read(1));
         if self.count>0:
             self.data=self.serialport.read(self.count);
-        #print "%02x %02x %02x" % (self.app, self.verb, self.count);
-    
+        #print "READ %02x %02x %02x " % (self.app, self.verb, self.count);
+        
     #Monitor stuff
     def peekbyte(self,address):
         """Read a byte of memory from the monitor."""
@@ -72,7 +73,7 @@ class Client:
     
     def monitortest(self):
         """Self-test several functions through the monitor."""
-        print "Performing self-test.";
+        print "Performing monitor self-test.";
         
         if self.peekword(0x0c00)!=0x0c04:
             print "ERROR Fetched wrong value from 0x0c04.";
@@ -97,13 +98,67 @@ class Client:
         if self.app!=1 or self.verb!=0:
             print "Error in SPI transaction; app=%02x, verb=%02x" % (self.app, self.verb);
         return ord(self.data[0]);
+    def MSP430setup(self):
+        """Move the FET into the MSP430 JTAG application."""
+        print "Initializing MSP430.";
+        self.writecmd(0x11,0x10,0,self.data);
+    def MSP430peek(self,adr):
+        """Read the contents of memory at an address."""
+        self.data=[adr&0xff, (adr&0xff00)>>8];
+        self.writecmd(0x11,0x02,2,self.data);
+        return ord(self.data[0])+(ord(self.data[1])<<8);
+    def MSP430poke(self,adr,val):
+        """Read the contents of memory at an address."""
+        self.data=[adr&0xff, (adr&0xff00)>>8, val&0xff, (val&0xff00)>>8];
+        self.writecmd(0x11,0x03,4,self.data);
+        return;# ord(self.data[0])+(ord(self.data[1])<<8);
+    
+    def MSP430start(self):
+        """Start debugging."""
+        self.writecmd(0x11,0x20,0,self.data);
+    def MSP430haltcpu(self):
+        """Halt the CPU."""
+        self.writecmd(0x11,0xA0,0,self.data);
+    def MSP430releasecpu(self):
+        """Resume the CPU."""
+        self.writecmd(0x11,0xA1,0,self.data);
 
-client=Client();
-client.serInit("/dev/ttyUSB0")
+    def MSP430shiftir8(self,ins):
+        """Shift the 8-bit Instruction Register."""
+        data=[ins];
+        self.writecmd(0x11,0x80,1,data);
+        return ord(self.data[0]);
+    def MSP430shiftdr16(self,dat):
+        """Shift the 16-bit Data Register."""
+        data=[dat&0xFF,(dat&0xFF00)>>8];
+        self.writecmd(0x11,0x81,2,data);
+        return ord(self.data[0])#+(ord(self.data[1])<<8);
+    def MSP430setinstrfetch(self):
+        """Set the instruction fetch mode."""
+        self.writecmd(0x11,0xC1,0,self.data);
+        return self.data[0];
+    def MSP430test(self):
+        """Test MSP430 JTAG.  Requires that a chip be attached."""
+        self.MSP430setup();
+        self.MSP430start();
+        self.MSP430haltcpu();
+        
+        ident=self.MSP430peek(0x0ff0);
+        print "Target identifies as %04x." % ident;
+        if ident==0xffff:
+            print "Is anything connected?";
+        print "Testing RAM.";
+        temp=self.MSP430peek(0x0200);
+        self.MSP430poke(0x0200,0xdead);
+        if(self.MSP430peek(0x0200)!=0xdead):
+            print "Poke of 0x0200 did not set to 0xDEAD properly.";
+            exit;
+        self.MSP430poke(0x0200,temp); #restore old value.
+        self.MSP430releasecpu();
+        
+    def MSP430dumpbsl(self):
+        i=0xC00;
+        while i<0x1000:
+            print "%04x %04x" % (i, self.MSP430peek(i));
+            i+=2;
 
-client.monitortest();
-
-client.spisetup();
-while 1:
-    print "%02x" % client.spitrans8(5);
-    time.sleep(0.1);

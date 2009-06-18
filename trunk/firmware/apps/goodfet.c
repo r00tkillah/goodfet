@@ -48,6 +48,9 @@ void handle(unsigned char app,
   case JTAG:
     jtaghandle(app,verb,len);
     break;
+  case JTAG430:
+    jtag430handle(app,verb,len);
+    break;
   default:
     txdata(app,NOK,0);
     break;

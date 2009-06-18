@@ -1,6 +1,6 @@
 
 PORT=/dev/ttyUSB0
-BSL=tos-bsl --invert-reset --invert-test -c $(PORT)
+BSL=tos-bsl --invert-reset --invert-test -c $(PORT) --speed=38400
 
 #mcu=msp430x1611
 mcu=msp430x1612
@@ -10,7 +10,7 @@ GCCINC=-T ../ldscripts/161x.x
 
 CC=msp430-gcc -g -mmcu=$(mcu) -DGCC $(GCCINC) -I ../include
 
-apps= monitor/monitor.c spi/spi.c i2c/i2c.c chipcon/chipcon.c jtag/jtag.c
+apps= monitor/monitor.c spi/spi.c i2c/i2c.c chipcon/chipcon.c jtag/jtag.c jtag/jtag430.c
 libs= ../lib/msp430f1612.c ../lib/command.c
 app=goodfet
 
@@ -18,10 +18,12 @@ all: $(app)
 
 goodfet.hex: goodfet
 
+run:
+	../../client/goodfet.msp430
 
 install: $(app)
-	$(BSL) -e -p $(app) 
-	$(BSL) -P $(app) -r
+	$(BSL) -e -p $(app).hex 
+	$(BSL) -P $(app).hex -r
 $(app): $(app).c $(libs) $(apps)
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex

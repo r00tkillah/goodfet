@@ -19,5 +19,5 @@ void txdata(unsigned char app,
 //! Delay for a count.
 void delay(unsigned int count){
   volatile unsigned int i=count;
-  while(i--);
+  while(i--) asm("nop");
 }

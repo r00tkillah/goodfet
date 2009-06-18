@@ -40,6 +40,21 @@ extern unsigned char cmddata[256];
 #define CC_MASS_ERASE_FLASH 0x97
 #define CC_PROGRAM_FLASH 0x98
 
+//JTAG commands
+#define JTAG_IR_SHIFT 0x80
+#define JTAG_DR_SHIFT 0x81
+#define JTAG_DR_SHIFT20 0x91
+
+//JTAG430 commands
+#define JTAG430_HALTCPU 0xA0
+#define JTAG430_RELEASECPU 0xA1
+#define JTAG430_SETINSTRFETCH 0xC1
+#define JTAG430_SETPC 0xC2
+#define JTAG430_WRITEMEM 0xE0
+#define JTAG430_WRITEFLASH 0xE1
+#define JTAG430_READMEM 0xE2
+
+
 //! Handle a command.  Defined in goodfet.c
 void handle(unsigned char app,
 	    unsigned char verb,

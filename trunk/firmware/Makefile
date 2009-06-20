@@ -10,8 +10,8 @@ GCCINC=-T ldscripts/161x.x
 
 CC=msp430-gcc -g -mmcu=$(mcu) -DGCC $(GCCINC) -I include
 
-apps= apps/monitor/monitor.c apps/spi/spi.c apps/i2c/i2c.c apps/chipcon/chipcon.c apps/jtag/jtag.c apps/jtag/jtag430.c
-libs= lib/msp430f1612.c lib/command.c
+apps= apps/monitor/monitor.o apps/spi/spi.o apps/i2c/i2c.o apps/chipcon/chipcon.o apps/jtag/jtag.o apps/jtag/jtag430.o
+libs= lib/msp430f1612.o lib/command.o
 app=goodfet
 
 all: $(app).hex
@@ -23,7 +23,7 @@ run:
 
 install: $(app).hex
 	$(BSL) -e -p $(app).hex 
-	$(BSL) -P $(app).hex -r
+	#$(BSL) -P $(app).hex -r
 $(app): $(app).c $(libs) $(apps)
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex
@@ -32,4 +32,4 @@ m4s: $(app).hex
 erase:
 	$(BSL) -e 
 clean:
-	rm -f $(app)
+	rm -f $(app) $(app).hex $(libs) $(apps)

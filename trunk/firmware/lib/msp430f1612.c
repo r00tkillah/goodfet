@@ -24,6 +24,28 @@ void serial_tx(unsigned char x){
   TXBUF0 = x;
 }
 
+//! Set the baud rate.
+void setbaud(unsigned char rate){
+  
+  //http://mspgcc.sourceforge.net/baudrate.html
+  switch(rate){
+  default:
+  case 0:
+  case 1://9600 baud
+    UBR00=0x00; UBR10=0x01; UMCTL0=0x00;
+    break;
+  case 2://19200 baud
+    UBR00=0x00; UBR10=0x02; UMCTL0=0x00;
+    break;
+  case 3://38400 baud
+    UBR00=0x40; UBR10=0x00; UMCTL0=0x00;
+    break;
+  //TODO
+  case 4://57600 baud
+  case 5://115200 baud
+    break;
+  }
+}
 
 void msp430_init_uart(){
   
@@ -32,15 +54,10 @@ void msp430_init_uart(){
   P3SEL |= BIT4|BIT5;                        // P3.4,5 = USART0 TXD/RXD
   P3DIR |= BIT4;
   
-  
   UCTL0 = SWRST | CHAR;                 /* 8-bit character, UART mode */
-  
-  
   UTCTL0 = SSEL1;                       /* UCLK = MCLK */
-
-  //http://mspgcc.sourceforge.net/baudrate.html
-  //9600 baud
-  UBR00=0x00; UBR10=0x01; UMCTL0=0x00;
+  
+  setbaud(0);
   
   ME1 &= ~USPIE0;			/* USART1 SPI module disable */
   ME1 |= (UTXE0 | URXE0);               /* Enable USART1 TXD/RXD */
@@ -49,7 +66,8 @@ void msp430_init_uart(){
 
   /* XXX Clear pending interrupts before enable!!! */
   U0TCTL |= URXSE;
-
+  
+  
   //IE1 |= URXIE1;                        /* Enable USART1 RX interrupt  */
 }
 

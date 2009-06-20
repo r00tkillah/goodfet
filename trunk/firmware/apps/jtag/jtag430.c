@@ -77,12 +77,108 @@ void jtag430_writemem(unsigned int adr, unsigned int data){
   jtag_ir_shift8(IR_DATA_TO_ADDR);
   jtag_dr_shift16(data);
   SETTCLK;
-  
 }
 
-//! Write data to address.
+//! Pulse TCLK at 350kHz +/- 100kHz
+void jtag430_tclk_flashpulses(unsigned int i){
+  //TODO check this on a scope.
+  
+  //At 2MHz, 350kHz is obtained with 5 clocks of delay
+  
+  /** Pondering:
+      What happens if the frequency is too low or to high?
+      Is there any risk of damaging the chip, or only of a poor write?
+  */
+  while(i--){
+    SETTCLK;
+    _NOP();
+    _NOP();
+    _NOP();
+    _NOP();
+    _NOP();
+    CLRTCLK;
+  }
+}
+
+//! Write data to flash memory.  Must be preconfigured.
+void jtag430_writeflashword(unsigned int adr, unsigned int data){
+  //jtag430_haltcpu();
+  /*
+  CLRTCLK;
+  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift16(0x2408);//word write
+  jtag_ir_shift8(IR_ADDR_16BIT);
+  jtag_dr_shift16(adr);
+  jtag_ir_shift8(IR_DATA_TO_ADDR);
+  jtag_dr_shift16(data);
+  SETTCLK;
+  
+  //Return to read mode.
+  CLRTCLK;
+  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift16(0x2409);
+  */
+  
+  jtag430_writemem(adr,data);
+  CLRTCLK;
+  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift16(0x2409);
+  
+  
+  //Pulse TCLK
+  jtag430_tclk_flashpulses(35);
+  //jtag430_releasecpu();
+}
+
+//! Configure flash, then write a word.
 void jtag430_writeflash(unsigned int adr, unsigned int data){
-  //TODO; this is complicated.
+  jtag430_haltcpu();
+  
+  //FCTL1=0xA540, enabling flash write
+  jtag430_writemem(0x0128, 0xA540);
+  //FCTL2=0xA540, selecting MCLK as source, DIV=1
+  jtag430_writemem(0x012A, 0xA540);
+  //FCTL3=0xA500, should be 0xA540 for Info Seg A on 2xx chips.
+  jtag430_writemem(0x012C, 0xA500);
+  
+  //Write the word itself.
+  jtag430_writeflashword(adr,data);
+  
+  //FCTL1=0xA500, disabling flash write
+  jtag430_writemem(0x0128, 0xA500);
+  
+  jtag430_releasecpu();
+}
+
+
+
+#define ERASE_GLOB 0xA50E
+#define ERASE_ALLMAIN 0xA50C
+#define ERASE_MASS 0xA506
+#define ERASE_MAIN 0xA504
+#define ERASE_SGMT 0xA502
+
+//! Configure flash, then write a word.
+void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count){
+  //FCTL1= erase mode
+  jtag430_writemem(0x0128, mode);
+  //FCTL2=0xA540, selecting MCLK as source, DIV=1
+  jtag430_writemem(0x012A, 0xA540);
+  //FCTL3=0xA500, should be 0xA540 for Info Seg A on 2xx chips.
+  jtag430_writemem(0x012C, 0xA500);
+  
+  //Write the erase word.
+  jtag430_writemem(adr, 0x55AA);
+  //Return to read mode.
+  CLRTCLK;
+  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift16(0x2409);
+  
+  //Send the pulses.
+  jtag430_tclk_flashpulses(count);
+  
+  //FCTL1=0xA500, disabling flash write
+  jtag430_writemem(0x0128, 0xA500);
 }
 
 
@@ -192,10 +288,16 @@ void jtag430handle(unsigned char app,
   case JTAG430_WRITEMEM:
   case POKE:
     jtag430_writemem(cmddataword[0],cmddataword[1]);
-    txdata(app,verb,0);
+    cmddataword[0]=jtag430_readmem(cmddataword[0]);
+    txdata(app,verb,2);
     break;
   case JTAG430_WRITEFLASH:
     jtag430_writeflash(cmddataword[0],cmddataword[1]);
+    cmddataword[0]=jtag430_readmem(cmddataword[0]);
+    txdata(app,verb,2);
+    break;
+  case JTAG430_ERASEFLASH:
+    jtag430_eraseflash(ERASE_MASS,0xFFFE,0xFFFF);
     txdata(app,verb,0);
     break;
   case JTAG430_SETPC:
@@ -205,5 +307,6 @@ void jtag430handle(unsigned char app,
   default:
     jtaghandle(app,verb,len);
   }
+  jtag430_resettap();
 }
 

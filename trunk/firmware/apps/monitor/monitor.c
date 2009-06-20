@@ -15,5 +15,10 @@ void monitorhandle(unsigned char app,
     cmddata[0]=memorybyte[cmddataword[0]];
     txdata(app,verb,1);
     break;
+  case MONITOR_CHANGE_BAUD:
+    //This command, and ONLY this command, does not reply.
+    setbaud(cmddata[0]);
+    //txdata(app,verb,0);
+    break;
   }
 }

@@ -4,6 +4,7 @@
 extern unsigned char cmddata[256];
 #define cmddataword ((unsigned int*) cmddata)
 #define memorybyte ((unsigned char*) 0)
+#define memoryword ((unsigned int*) 0)
 
 // Global Commands
 #define READ  0x00
@@ -15,6 +16,9 @@ extern unsigned char cmddata[256];
 #define STOP  0x21
 #define NOK   0x7E
 #define OK    0x7F
+
+// Monitor Commands
+#define MONITOR_CHANGE_BAUD 0x80
 
 //CHIPCON commands
 #define CC_CHIP_ERASE 0x80
@@ -53,7 +57,11 @@ extern unsigned char cmddata[256];
 #define JTAG430_WRITEMEM 0xE0
 #define JTAG430_WRITEFLASH 0xE1
 #define JTAG430_READMEM 0xE2
-
+#define JTAG430_ERASEFLASH 0xE3
+#define JTAG430_ERASECHECK 0xE4
+#define JTAG430_VERIFYMEM 0xE5
+#define JTAG430_BLOWFUSE 0xE6
+#define JTAG430_ISFUSEBLOWN 0xE7
 
 //! Handle a command.  Defined in goodfet.c
 void handle(unsigned char app,

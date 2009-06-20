@@ -34,7 +34,6 @@ class GoodFET:
         if(self.verb!=0x7F):
             print "Verb is wrong.  Incorrect firmware?";
         
-        
     def writecmd(self, app, verb, count, data):
         """Write a command and some data to the GoodFET."""
         self.serialport.write(chr(app));
@@ -69,7 +68,18 @@ class GoodFET:
         self.data=[address&0xff,address>>8,value];
         self.writecmd(0,0x03,3,self.data);
         return ord(self.data[0]);
-    
+    def setBaud(self,baud):
+        rates=[9600, 9600, 19200, 38400];
+        self.data=[baud];
+        print "Changing baud."
+        self.serialport.write(chr(0x00));
+        self.serialport.write(chr(0x80));
+        self.serialport.write(chr(1));
+        self.serialport.write(chr(baud));
+        
+        print "Changed baud."
+        self.serialport.setBaudrate(rates[baud]);
+        return;
     def monitortest(self):
         """Self-test several functions through the monitor."""
         print "Performing monitor self-test.";
@@ -114,6 +124,9 @@ class GoodFET:
     def MSP430start(self):
         """Start debugging."""
         self.writecmd(0x11,0x20,0,self.data);
+        ident=self.MSP430ident();
+        print "Target identifies as %04x." % ident;
+        
     def MSP430stop(self):
         """Stop debugging."""
         self.writecmd(0x11,0x21,0,self.data);
@@ -138,15 +151,13 @@ class GoodFET:
         """Set the instruction fetch mode."""
         self.writecmd(0x11,0xC1,0,self.data);
         return self.data[0];
+    def MSP430ident(self):
+        """Grab self-identification word from 0x0FF0 as big endian."""
+        i=self.MSP430peek(0x0ff0);
+        return ((i&0xFF00)>>8)+((i&0xFF)<<8)
     def MSP430test(self):
         """Test MSP430 JTAG.  Requires that a chip be attached."""
-        #self.MSP430setup();
-        #self.MSP430start();
-        self.MSP430haltcpu();
-        
-        ident=self.MSP430peek(0x0ff0);
-        print "Target identifies as %04x." % ident;
-        if ident==0xffff:
+        if self.MSP430ident()==0xffff:
             print "Is anything connected?";
         print "Testing RAM.";
         temp=self.MSP430peek(0x0200);
@@ -155,8 +166,25 @@ class GoodFET:
             print "Poke of 0x0200 did not set to 0xDEAD properly.";
             return;
         self.MSP430poke(0x0200,temp); #restore old value.
-        self.MSP430releasecpu();
-        
+    def MSP430flashtest(self):
+        self.MSP430masserase();
+        i=0x2500;
+        while(i<0x2600):
+            if(self.MSP430peek(i)!=0xFFFF):
+                print "ERROR: Unerased flash at %04x."%i;
+            self.MSP430writeflash(i,0x0000);
+            i+=2;
+    def MSP430masserase(self):
+        """Erase MSP430 flash memory."""
+        self.writecmd(0x11,0xE3,0,None);
+    def MSP430writeflash(self,adr,val):
+        """Write a word of flash memory."""
+        data=[adr&0xFF,(adr&0xFF00)>>8,val&0xFF,(val&0xFF00)>>8];
+        self.writecmd(0x11,0xE1,4,data);
+        rval=ord(self.data[0])+(ord(self.data[1])<<8);
+        if(val!=rval):
+            print "FLASH WRITE ERROR AT %04x.  Found %04x, wrote %04x." % (adr,rval,val);
+            sys.exit(1);
     def MSP430dumpbsl(self):
         self.MSP430dumpmem(0xC00,0xfff);
     def MSP430dumpallmem(self):

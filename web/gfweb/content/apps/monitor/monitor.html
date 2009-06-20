@@ -1,1 +1,47 @@
-Hi, I'm a new page!
+<h1>Monitor Application</h1>
+
+<p>This application manages local memory, providing access to peripherals
+and the GoodFET's global configuration.</p>
+
+<h2>Clients</h2>
+
+<p>All clients deal with the monitor.</p>
+
+<h2>Development</h2>
+
+<p>The monitor provides access to the local memory of the GoodFET device,
+and it ought to be used to 
+
+<h2>Verbs</h2>
+
+<p>The following verbs are supported.</p>
+
+<table border="1">
+<tr><th>Hex</th><th>#define</th><th>Description</th></tr>
+<tr><td>0x02</td><td>PEEK</td><td>Read word from memory at word[0].</td></tr>
+<tr><td>0x03</td><td>POKE</td><td>Write word[1] to memory at word[0]. (Not flash.)</td></tr>
+
+<tr><td>0x80</td><td>CHANGE_BAUD</td><td>Change the baud rate.</td></tr>
+</table>
+
+
+<h3>CHANGE_BAUD (0x80)</h3>
+
+<p>The GoodFET defaults to 9600 baud, but alternate baud rates are available by use of the
+CHANGE_BAUD (0x80) command of the Monitor application.  This takes a single byte, which
+specifies the baud rate as per the following table.</p>
+
+<p>This is the only command which does not generate a reply.</p>
+
+<table border="1">
+<tr><th>Byte</th><th>Value</th></tr>
+<tr><td>0x00</td><td>Default (9600)</tr>
+<tr><td>0x01</td><td>9600</tr>
+<!--
+<tr><td>0x02</td><td>19200</tr>
+<tr><td>0x03</td><td>38400</tr>
+
+<tr><td>0x04</td><td>57600</tr>
+<tr><td>0x05</td><td>115200</tr>
+-->
+</table>

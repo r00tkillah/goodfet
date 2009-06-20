@@ -1,17 +1,45 @@
 #!/usr/bin/env python
 
+import sys;
+import binascii;
+
 from GoodFET import GoodFET;
+from intelhex import IntelHex16bit;
 
 
 client=GoodFET();
 client.serInit("/dev/ttyUSB0")
 
-client.MSP430test();
-#client.MSP430dumpbsl();
+if(len(sys.argv)==1):
+    print "Usage: %s verb [objects]\n" % sys.argv[0];
+    print "%s test" % sys.argv[0];
+    print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    sys.exit();
 
-# client.MSP430setup();
-# client.MSP430start();
-# client.MSP430haltcpu();
-# ident=client.MSP430peek(0x0ff0);
-# print "Target identifies as %04x." % ident;
+#Connect to target
+client.MSP430setup();
+client.MSP430start();
 
+if(sys.argv[1]=="test"):
+    client.MSP430test();
+if(sys.argv[1]=="dump"):
+    f = sys.argv[2];
+    start=0x0200;
+    stop=0xFFFF;
+    if(len(sys.argv)>3):
+        start=int(sys.argv[3],16);
+    if(len(sys.argv)>4):
+        stop=int(sys.argv[4],16);
+    
+    print "Dumping from %04x to %04x as %s." % (start,stop,f);
+    h = IntelHex16bit(None);
+    i=start;
+    while i<stop:
+        #print "%04x %04x" % (i, client.MSP430peek(i));
+        h[i>>1]=client.MSP430peek(i);
+        if(i%0x100==0):
+            print "Dumped %04x."%i;
+        i+=2;
+    #h.dump();#(tofile=f);
+    h.write_hex_file(f);
+client.MSP430stop();

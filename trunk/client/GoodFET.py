@@ -13,7 +13,6 @@ import serial
 
 class GoodFET:
     def __init__(self, *args, **kargs):
-        print "inited\n";
         self.data=[0];
     def timeout(self):
         print "timout\n";
@@ -86,7 +85,6 @@ class GoodFET:
     
     def spisetup(self):
         """Moved the FET into the SPI application."""
-        print "Initializing SPI.";
         self.writecmd(1,0x10,0,self.data); #SPI/SETUP
         #self.readcmd();
     def spitrans8(self,byte):
@@ -116,6 +114,9 @@ class GoodFET:
     def MSP430start(self):
         """Start debugging."""
         self.writecmd(0x11,0x20,0,self.data);
+    def MSP430stop(self):
+        """Stop debugging."""
+        self.writecmd(0x11,0x21,0,self.data);
     def MSP430haltcpu(self):
         """Halt the CPU."""
         self.writecmd(0x11,0xA0,0,self.data);
@@ -139,8 +140,8 @@ class GoodFET:
         return self.data[0];
     def MSP430test(self):
         """Test MSP430 JTAG.  Requires that a chip be attached."""
-        self.MSP430setup();
-        self.MSP430start();
+        #self.MSP430setup();
+        #self.MSP430start();
         self.MSP430haltcpu();
         
         ident=self.MSP430peek(0x0ff0);
@@ -152,13 +153,17 @@ class GoodFET:
         self.MSP430poke(0x0200,0xdead);
         if(self.MSP430peek(0x0200)!=0xdead):
             print "Poke of 0x0200 did not set to 0xDEAD properly.";
-            exit;
+            return;
         self.MSP430poke(0x0200,temp); #restore old value.
         self.MSP430releasecpu();
         
     def MSP430dumpbsl(self):
-        i=0xC00;
-        while i<0x1000:
+        self.MSP430dumpmem(0xC00,0xfff);
+    def MSP430dumpallmem(self):
+        self.MSP430dumpmem(0x200,0xffff);
+    def MSP430dumpmem(self,begin,end):
+        i=begin;
+        while i<end:
             print "%04x %04x" % (i, self.MSP430peek(i));
             i+=2;
-
+    

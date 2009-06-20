@@ -79,30 +79,30 @@ void jtag430_writemem(unsigned int adr, unsigned int data){
   SETTCLK;
 }
 
-//! Pulse TCLK at 350kHz +/- 100kHz
-void jtag430_tclk_flashpulses(unsigned int i){
-  //TODO check this on a scope.
+//! Defined in jtag430asm.S
+void jtag430_tclk_flashpulses(int);
+/* //! Pulse TCLK at 350kHz +/- 100kHz */
+/* void jtag430_tclk_flashpulses(register i){ */
+/*   //TODO check this on a scope. */
+/*   register j=0; */
   
-  //At 2MHz, 350kHz is obtained with 5 clocks of delay
+/*   //At 2MHz, 350kHz is obtained with 5 clocks of delay */
   
-  /** Pondering:
-      What happens if the frequency is too low or to high?
-      Is there any risk of damaging the chip, or only of a poor write?
-  */
-  while(i--){
-    SETTCLK;
-    _NOP();
-    _NOP();
-    _NOP();
-    _NOP();
-    _NOP();
-    CLRTCLK;
-  }
-}
+/*   /\** Pondering: */
+/*       What happens if the frequency is too low or to high? */
+/*       Is there any risk of damaging the chip, or only of a poor write? */
+/*   *\/ */
+/*   while(j++!=i){ */
+/*     SETTCLK; */
+/*     _NOP(); */
+/*     _NOP(); */
+/*     _NOP(); */
+/*     CLRTCLK; */
+/*   } */
+/* } */
 
 //! Write data to flash memory.  Must be preconfigured.
 void jtag430_writeflashword(unsigned int adr, unsigned int data){
-  //jtag430_haltcpu();
   /*
   CLRTCLK;
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
@@ -124,10 +124,9 @@ void jtag430_writeflashword(unsigned int adr, unsigned int data){
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x2409);
   
-  
   //Pulse TCLK
-  jtag430_tclk_flashpulses(35);
-  //jtag430_releasecpu();
+  jtag430_tclk_flashpulses(35); //35 standard
+  
 }
 
 //! Configure flash, then write a word.
@@ -297,6 +296,8 @@ void jtag430handle(unsigned char app,
     txdata(app,verb,2);
     break;
   case JTAG430_ERASEFLASH:
+    jtag430_eraseflash(ERASE_MASS,0xFFFE,0xFFFF);
+    jtag430_eraseflash(ERASE_MASS,0xFFFE,0xFFFF);
     jtag430_eraseflash(ERASE_MASS,0xFFFE,0xFFFF);
     txdata(app,verb,0);
     break;

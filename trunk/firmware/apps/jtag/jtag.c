@@ -27,9 +27,9 @@ unsigned char jtagtrans8(unsigned char byte){
   for (bit = 0; bit < 8; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (byte & 0x80)
-      SETMOSI;
+      {SETMOSI;}
     else
-      CLRMOSI;
+      {CLRMOSI;}
     byte <<= 1;
     
     if(bit==7)
@@ -61,9 +61,9 @@ unsigned int jtagtrans16(unsigned int word){
   for (bit = 0; bit < 16; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (word & 0x8000)
-      SETMOSI;
+      {SETMOSI;}
     else
-      CLRMOSI;
+      {CLRMOSI;}
     word <<= 1;
     
     if(bit==15)

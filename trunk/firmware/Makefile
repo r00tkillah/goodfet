@@ -1,6 +1,6 @@
 
 PORT=/dev/ttyUSB0
-BSL=tos-bsl --invert-reset --invert-test -c $(PORT) --speed=38400
+BSL=msp430-bsl --invert-reset --invert-test -c $(PORT) --speed=38400
 
 #mcu=msp430x1611
 mcu=msp430x1612
@@ -19,7 +19,7 @@ all: $(app).hex
 goodfet.hex: goodfet
 
 run:
-	../../client/goodfet.msp430
+	../client/goodfet.msp430 test
 
 install: $(app).hex
 	$(BSL) -e -p $(app).hex 

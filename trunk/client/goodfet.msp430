@@ -20,13 +20,17 @@ if(len(sys.argv)==1):
 #Initailize FET and set baud rate
 client=GoodFET();
 client.serInit("/dev/ttyUSB0")
-#client.setBaud(1);
+
+
 
 #Connect to target
 client.MSP430setup();
 client.MSP430start();
 
+#client.setBaud(2);
 
+if(sys.argv[1]=="monitortest"):
+    client.monitortest();
 if(sys.argv[1]=="test"):
     client.MSP430test();
 if(sys.argv[1]=="dump"):
@@ -61,7 +65,6 @@ if(sys.argv[1]=="flash"):
         stop=int(sys.argv[4],16);
     
     h = IntelHex16bit(f);
-    
     
     client.MSP430masserase();
     for i in h._buf.keys():

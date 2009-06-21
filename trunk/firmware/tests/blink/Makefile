@@ -9,8 +9,13 @@ GCCINC=-T ../../ldscripts/161x.x
 CC=msp430-gcc -g -mmcu=$(mcu) -DGCC $(GCCINC) -I ../../include
 
 
+
+
 app=blink
 
+all: $(app).hex
+$(app).hex: $(app)
+	msp430-objcopy $(app) -O ihex $(app).hex
 install: $(app)
 	$(BSL) -e -p $(app) 
 	#$(BSL) -P $(app) -g 0x2500

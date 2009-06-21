@@ -29,20 +29,21 @@ void setbaud(unsigned char rate){
   
   //http://mspgcc.sourceforge.net/baudrate.html
   switch(rate){
-  default:
-  case 0:
   case 1://9600 baud
-    UBR00=0x00; UBR10=0x01; UMCTL0=0x00;
+    UBR00=0x7F; UBR10=0x01; UMCTL0=0x5B; /* uart0 3683400Hz 9599bps */
     break;
   case 2://19200 baud
-    UBR00=0x00; UBR10=0x02; UMCTL0=0x00;
+    UBR00=0xBF; UBR10=0x00; UMCTL0=0xF7; /* uart0 3683400Hz 19194bps */
     break;
   case 3://38400 baud
-    UBR00=0x40; UBR10=0x00; UMCTL0=0x00;
+    UBR00=0x5F; UBR10=0x00; UMCTL0=0xBF; /* uart0 3683400Hz 38408bps */
     break;
-  //TODO
   case 4://57600 baud
+    UBR00=0x40; UBR10=0x00; UMCTL0=0x00; /* uart0 3683400Hz 57553bps */
+    break;
+  default:
   case 5://115200 baud
+    UBR00=0x20; UBR10=0x00; UMCTL0=0x00; /* uart0 3683400Hz 115106bps */
     break;
   }
 }
@@ -74,19 +75,37 @@ void msp430_init_uart(){
 
 void msp430_init_dco() {
     /* This code taken from the FU Berlin sources and reformatted. */
-#define MSP430_CPU_SPEED 2457600UL
+  //
+
+//Works well.
+//#define MSP430_CPU_SPEED 2457600UL
+
+//Too fast for internal resistor.
+//#define MSP430_CPU_SPEED 4915200UL
+
+//Max speed.
+//#deefine MSP430_CPU_SPEED 4500000UL
+
+//baud rate speed
+#define MSP430_CPU_SPEED 3683400UL
 #define DELTA    ((MSP430_CPU_SPEED) / (32768 / 8))
   unsigned int compare, oldcapture = 0;
   unsigned int i;
   
   WDTCTL = WDTPW + WDTHOLD; //stop WDT
-
-  BCSCTL1 = 0xa4; /* ACLK is devided by 4. RSEL=6 no division for MCLK
+  
+  
+  DCOCTL=0xF0;
+  //a4
+  //1100
+  BCSCTL1 = 0xa8; /* ACLK is devided by 4. RSEL=6 no division for MCLK
 		     and SSMCLK. XT2 is off. */
 
   BCSCTL2 = 0x00; /* Init FLL to desired frequency using the 32762Hz
 		     crystal DCO frquenzy = 2,4576 MHz  */
-
+  
+  P1OUT|=1;
+  
   BCSCTL1 |= DIVA1 + DIVA0;             /* ACLK = LFXT1CLK/8 */
   for(i = 0xffff; i > 0; i--) {         /* Delay for XTAL to settle */
     asm("nop");
@@ -119,10 +138,12 @@ void msp430_init_dco() {
                                         /* -> Select next higher RSEL  */
     }
   }
-
+  
   CCTL2 = 0;                            /* Stop CCR2 function */
   TACTL = 0;                            /* Stop Timer_A */
 
   BCSCTL1 &= ~(DIVA1 + DIVA0);          /* remove /8 divisor from ACLK again */
+  
+  P1OUT=0;
 }
 

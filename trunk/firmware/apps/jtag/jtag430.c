@@ -149,6 +149,25 @@ void jtag430_writeflash(unsigned int adr, unsigned int data){
   jtag430_releasecpu();
 }
 
+//! Power-On Reset
+void jtag430_por(){
+  unsigned int jtagid;
+
+  // Perform Reset
+  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift16(0x2C01); // apply
+  jtag_dr_shift16(0x2401); // remove
+  CLRTCLK;
+  SETTCLK;
+  CLRTCLK;
+  SETTCLK;
+  CLRTCLK;
+  jtagid = jtag_ir_shift8(IR_ADDR_CAPTURE); // get JTAG identifier
+  SETTCLK;
+  
+  jtag430_writemem(0x0120, 0x5A80);   // Diabled Watchdog
+}
+
 
 
 #define ERASE_GLOB 0xA50E
@@ -159,6 +178,8 @@ void jtag430_writeflash(unsigned int adr, unsigned int data){
 
 //! Configure flash, then write a word.
 void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count){
+  jtag430_haltcpu();
+  
   //FCTL1= erase mode
   jtag430_writemem(0x0128, mode);
   //FCTL2=0xA540, selecting MCLK as source, DIV=1
@@ -178,6 +199,8 @@ void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count)
   
   //FCTL1=0xA500, disabling flash write
   jtag430_writemem(0x0128, 0xA500);
+  
+  jtag430_releasecpu();
 }
 
 
@@ -237,6 +260,9 @@ void jtag430_start(){
   SETRST;
   P5DIR&=~RST;
   delay(0xFFFF);
+  
+  //Perform a reset and disable watchdog.
+  jtag430_por();
 }
 
 //! Set CPU to Instruction Fetch

@@ -13,6 +13,7 @@ unsigned int jtag_dr_shift16(unsigned int);
 //! Stop JTAG, release pins
 void jtag_stop();
 
+void jtagsetup();
 
 // JTAG430 Commands
 

@@ -282,7 +282,6 @@ void jtag430_setinstrfetch(){
 void jtag430handle(unsigned char app,
 		   unsigned char verb,
 		   unsigned char len){
-  unsigned char i;
   switch(verb){
   case START:
     //Enter JTAG mode.

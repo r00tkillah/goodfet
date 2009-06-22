@@ -31,7 +31,7 @@
 
 
 //! Set up the pins for SPI mode.
-unsigned char spisetup(){
+void spisetup(){
   P5DIR|=MOSI+SCK+SS;
   P5DIR&=~MISO;
   P5OUT|=SS;

@@ -50,7 +50,7 @@
 #define CCREAD P5DIR&=~MISO
 
 //! Set up the pins for CC mode.  Does not init debugger.
-unsigned char ccsetup(){
+void ccsetup(){
   P5OUT|=MOSI+SCK+RST;
   P5DIR|=MOSI+SCK+RST;
   //P5DIR&=~MISO;  //MOSI is MISO
@@ -126,7 +126,6 @@ void ccread(unsigned char len){
 void cchandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned char len){
-  unsigned char i;
   switch(verb){
     //PEEK and POKE will come later.
   case READ:  //Write a command and return 1-byte reply.
@@ -255,7 +254,7 @@ unsigned short cc_get_chip_id(){
   
   //Return the word.
   toret=cmddata[1];
-  toret=toret<<8+cmddata[1];
+  toret=(toret<<8)+cmddata[1];
   return toret;
 }
 

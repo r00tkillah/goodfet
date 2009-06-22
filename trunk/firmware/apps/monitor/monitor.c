@@ -1,4 +1,5 @@
 #include "command.h"
+#include "platform.h"
 
 //! Handles a monitor command.
 void monitorhandle(unsigned char app,

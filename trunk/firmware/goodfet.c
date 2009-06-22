@@ -15,7 +15,6 @@
 
 //! Initialize registers and all that jazz.
 void init(){
-  volatile unsigned int i;
   WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
   
   //LED and TX OUT

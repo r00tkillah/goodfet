@@ -11,7 +11,7 @@
 
 
 //! Set up the pins for JTAG mode.
-unsigned char jtagsetup(){
+void jtagsetup(){
   P5DIR|=MOSI+SCK+TMS;
   P5DIR&=~MISO;
   P5OUT|=0xFFFF;

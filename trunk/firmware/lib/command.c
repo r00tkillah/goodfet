@@ -1,3 +1,7 @@
+#include "command.h"
+#include "platform.h"
+#include <string.h>
+
 //! Different command handling functions.
 
 unsigned char cmddata[256];

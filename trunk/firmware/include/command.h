@@ -72,6 +72,18 @@ void handle(unsigned char app,
 void txdata(unsigned char app,
 	    unsigned char verb,
 	    unsigned char len);
+//! Transmit a string.
+void txstring(unsigned char app,
+	      unsigned char verb,
+	      const char *str);
 
 //! Delay
 void delay(unsigned int count);
+
+
+void monitorhandle(unsigned char, unsigned char, unsigned char);
+void spihandle(unsigned char, unsigned char, unsigned char);
+void i2chandle(unsigned char, unsigned char, unsigned char);
+void cchandle(unsigned char, unsigned char, unsigned char);
+void jtaghandle(unsigned char, unsigned char, unsigned char);
+void jtag430handle(unsigned char, unsigned char, unsigned char);

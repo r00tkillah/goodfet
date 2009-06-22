@@ -8,7 +8,7 @@ mcu=msp430x1612
 #ldscript is wonky
 GCCINC=-T ldscripts/161x.x
 
-CC=msp430-gcc -g -mmcu=$(mcu) -DGCC $(GCCINC) -I include
+CC=msp430-gcc -Wall -g -mmcu=$(mcu) -DGCC $(GCCINC) -I include
 
 apps= apps/monitor/monitor.o apps/spi/spi.o apps/i2c/i2c.o apps/chipcon/chipcon.o apps/jtag/jtag.o apps/jtag/jtag430.o
 libs= lib/msp430f1612.o lib/command.o apps/jtag/jtag430asm.o

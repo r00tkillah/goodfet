@@ -139,12 +139,14 @@ void cchandle(unsigned char app,
     break;
   case START://enter debugger
     ccdebuginit();
+    txdata(app,verb,0);
     break;
   case STOP://exit debugger
     //Take RST low, then high.
     P5OUT&=~RST;
     CCDELAY(CCSPEED);
     P5OUT|=RST;
+    txdata(app,verb,0);
     break;
   case SETUP:
     ccsetup();

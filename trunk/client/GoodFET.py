@@ -116,6 +116,23 @@ class GoodFET:
         """Move the FET into the MSP430 JTAG application."""
         print "Initializing MSP430.";
         self.writecmd(0x11,0x10,0,self.data);
+    def CCsetup(self):
+        """Move the FET into the CC2430/CC2530 application."""
+        print "Initializing Chipcon.";
+        self.writecmd(0x30,0x10,0,self.data);
+    def CCrd_config(self):
+        """Read the config register of a Chipcon."""
+        self.writecmd(0x30,0x82,0,self.data);
+        return ord(self.data[0]);
+    def CCwr_config(self,config):
+        """Write the config register of a Chipcon."""
+        self.writecmd(0x30,0x81,1,[config&0xFF]);
+    def CCident(self):
+        """Get a chipcon's ID."""
+        self.writecmd(0x30,0x8B,0,None);
+        chip=ord(self.data[0]);
+        rev=ord(self.data[1]);
+        return (chip<<8)+rev;
     def MSP430peek(self,adr):
         """Read the contents of memory at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8];
@@ -132,6 +149,15 @@ class GoodFET:
         self.writecmd(0x11,0x20,0,self.data);
         ident=self.MSP430ident();
         print "Target identifies as %04x." % ident;
+    
+    def CCstart(self):
+        """Start debugging."""
+        self.writecmd(0x30,0x20,0,self.data);
+        ident=self.CCident();
+        print "Target identifies as %04x." % ident;
+    def CCstop(self):
+        """Stop debugging."""
+        self.writecmd(0x30,0x21,0,self.data);
         
     def MSP430stop(self):
         """Stop debugging."""
@@ -202,4 +228,7 @@ class GoodFET:
         while i<end:
             print "%04x %04x" % (i, self.MSP430peek(i));
             i+=2;
-    
+
+    def CCtest(self):
+        self.CCstop();
+        print "Done.";

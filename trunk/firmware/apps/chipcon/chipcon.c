@@ -168,7 +168,7 @@ void cchandle(unsigned char app,
     break;
   case CC_GET_PC:
     cc_get_pc();
-    txdata(app,verb,1);
+    txdata(app,verb,2);
     break;
   case CC_READ_STATUS:
     cc_read_status();

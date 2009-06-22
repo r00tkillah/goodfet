@@ -127,12 +127,28 @@ class GoodFET:
     def CCwr_config(self,config):
         """Write the config register of a Chipcon."""
         self.writecmd(0x30,0x81,1,[config&0xFF]);
+    
+    CCversions={0x0100:"CC1110",
+                0x8500:"CC2430",
+                0x8900:"CC2431",
+                0x8100:"CC2510",
+                0x9100:"CC2511"};
+    def CCidentstr(self):
+        ident=self.CCident();
+        chip=self.CCversions[ident&0xFF00];
+        return "%s/r%02x" % (chip, ident&0xFF); 
     def CCident(self):
         """Get a chipcon's ID."""
         self.writecmd(0x30,0x8B,0,None);
         chip=ord(self.data[0]);
         rev=ord(self.data[1]);
         return (chip<<8)+rev;
+    def CCgetPC(self):
+        """Get a chipcon's PC."""
+        self.writecmd(0x30,0x83,0,None);
+        hi=ord(self.data[0]);
+        lo=ord(self.data[1]);
+        return (hi<<8)+lo;
     def MSP430peek(self,adr):
         """Read the contents of memory at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8];
@@ -143,7 +159,6 @@ class GoodFET:
         self.data=[adr&0xff, (adr&0xff00)>>8, val&0xff, (val&0xff00)>>8];
         self.writecmd(0x11,0x03,4,self.data);
         return;# ord(self.data[0])+(ord(self.data[1])<<8);
-    
     def MSP430start(self):
         """Start debugging."""
         self.writecmd(0x11,0x20,0,self.data);
@@ -153,12 +168,14 @@ class GoodFET:
     def CCstart(self):
         """Start debugging."""
         self.writecmd(0x30,0x20,0,self.data);
-        ident=self.CCident();
-        print "Target identifies as %04x." % ident;
+        ident=self.CCidentstr();
+        print "Target identifies as %s." % ident;
     def CCstop(self):
         """Stop debugging."""
         self.writecmd(0x30,0x21,0,self.data);
-        
+    def CCstep_instr(self):
+        """Step one instruction."""
+        self.writecmd(0x30,0x89,0,self.data);
     def MSP430stop(self):
         """Stop debugging."""
         self.writecmd(0x11,0x21,0,self.data);
@@ -228,7 +245,20 @@ class GoodFET:
         while i<end:
             print "%04x %04x" % (i, self.MSP430peek(i));
             i+=2;
-
     def CCtest(self):
+        #Grab ident three times, should be equal.
+        ident1=self.CCident();
+        ident2=self.CCident();
+        ident3=self.CCident();
+        if(ident1!=ident2 or ident2!=ident3):
+            print "Error, repeated ident attempts unequal."
+            print "%04x, %04x, %04x" % (ident1, ident2, ident3);
+        
+        #Single step, printing PC.
+        print "Tracing execution at startup."
+        for i in range(1,15):
+            print "PC=%04x" % self.CCgetPC();
+            self.CCstep_instr();
+        #Exit debugger
         self.CCstop();
         print "Done.";

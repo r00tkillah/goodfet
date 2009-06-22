@@ -65,8 +65,10 @@ int main(void)
   
   init();
   
+  
   //Ready
-  txdata(MONITOR,OK,0);
+  //txdata(MONITOR,OK,0);
+  txstring(MONITOR,OK,"http://goodfet.sf.net/");
   
   //Command loop.  There's no end!
   while(1){

@@ -2,6 +2,18 @@
 
 unsigned char cmddata[256];
 
+//! Transmit a string.
+void txstring(unsigned char app,
+	      unsigned char verb,
+	      const char *str){
+  unsigned char len=strlen(str);
+  serial_tx(app);
+  serial_tx(verb);
+  serial_tx(len);
+  while(len--)
+    serial_tx(*(str++));
+}
+
 //! Transmit data.
 void txdata(unsigned char app,
 	    unsigned char verb,

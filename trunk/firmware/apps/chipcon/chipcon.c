@@ -127,7 +127,7 @@ void cchandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned char len){
   switch(verb){
-    //PEEK and POKE will come later.
+    //CC_PEEK and CC_POKE will come later.
   case READ:  //Write a command and return 1-byte reply.
     cccmd(len);
     ccread(1);
@@ -205,18 +205,19 @@ void cchandle(unsigned char app,
 
   //Macro commands
   case CC_READ_CODE_MEMORY:
-    cmddata[0]=peekcodebyte(cmddataword[0]);
+    cmddata[0]=cc_peekcodebyte(cmddataword[0]);
     txdata(app,verb,1);
     break;
   case CC_READ_XDATA_MEMORY:
-    cmddata[0]=peekdatabyte(cmddataword[0]);
+    cmddata[0]=cc_peekdatabyte(cmddataword[0]);
     txdata(app,verb,1);
     break;
   case CC_WRITE_XDATA_MEMORY:
-    cmddata[0]=pokedatabyte(cmddataword[0], cmddata[2]);
+    cmddata[0]=cc_pokedatabyte(cmddataword[0], cmddata[2]);
     txdata(app,verb,1);
     break;
   case CC_SET_PC:
+    
   case CC_CLOCK_INIT:
   case CC_WRITE_FLASH_PAGE:
   case CC_MASS_ERASE_FLASH:
@@ -281,7 +282,6 @@ unsigned short cc_get_pc(){
   return cmddataword[0];
 }
 
-
 //! Set a hardware breakpoint.
 void cc_set_hw_brkpnt(unsigned short adr){
   cmddataword[0]=adr;
@@ -345,7 +345,7 @@ unsigned char cc_debug(unsigned char len,
 }
 
 //! Fetch a byte of code memory.
-unsigned char peekcodebyte(unsigned long adr){
+unsigned char cc_peekcodebyte(unsigned long adr){
   /** See page 9 of SWRA124 */
   unsigned char bank=adr>>15,
     lb=adr&0xFF,
@@ -371,7 +371,7 @@ unsigned char peekcodebyte(unsigned long adr){
 
 
 //! Set a byte of data memory.
-unsigned char pokedatabyte(unsigned int adr,
+unsigned char cc_pokedatabyte(unsigned int adr,
 			   unsigned char val){
   unsigned char
     hb=(adr&0xFF00)>>8,
@@ -396,7 +396,7 @@ for (n = 0; n < count; n++) {
 }
 
 //! Fetch a byte of data memory.
-unsigned char peekdatabyte(unsigned int adr){
+unsigned char cc_peekdatabyte(unsigned int adr){
   unsigned char
     hb=(adr&0xFF00)>>8,
     lb=adr&0xFF,

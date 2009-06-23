@@ -18,12 +18,12 @@ void cc_set_hw_brkpnt(unsigned short);
 //! Debug an instruction, for remote use.
 void cc_debug_instr(unsigned char);
 //!Read a byte of code memory.
-unsigned char peekcodebyte(unsigned long adr);
+unsigned char cc_peekcodebyte(unsigned long adr);
 //!Read a byte of data memory.
-unsigned char peekdatabyte(unsigned int adr);
+unsigned char cc_peekdatabyte(unsigned int adr);
 //! Set a byte of data memory.
-unsigned char pokedatabyte(unsigned int adr,
-			   unsigned char val);
+unsigned char cc_pokedatabyte(unsigned int adr,
+			      unsigned char val);
 //! Debug an instruction, for local use.
 unsigned char cc_debug(unsigned char len,
 		       unsigned char a,

@@ -360,7 +360,7 @@ unsigned char peekcodebyte(unsigned long adr){
   
   //for each byte
   //CLR A
-  cc_debug(1, 0xE4, 0, 0);
+  cc_debug(2, 0xE4, 0, 0);
   //MOVC A, @A+DPTR;
   toret=cc_debug(1, 0x93, 0, 0);
   //INC DPTR

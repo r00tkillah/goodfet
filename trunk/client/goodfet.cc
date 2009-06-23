@@ -4,14 +4,14 @@ import sys;
 import binascii;
 
 from GoodFET import GoodFET;
-from intelhex import IntelHex16bit;
+from intelhex import IntelHex;
 
 
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s test" % sys.argv[0];
-    print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s dumpcode $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
     print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
@@ -29,23 +29,41 @@ client.CCstart();
 
 if(sys.argv[1]=="test"):
     client.CCtest();
-if(sys.argv[1]=="dump"):
+if(sys.argv[1]=="dumpcode"):
     f = sys.argv[2];
-    start=0x0200;
+    start=0x0000;
     stop=0xFFFF;
     if(len(sys.argv)>3):
         start=int(sys.argv[3],16);
     if(len(sys.argv)>4):
         stop=int(sys.argv[4],16);
     
-    print "Dumping from %04x to %04x as %s." % (start,stop,f);
-    h = IntelHex16bit(None);
+    print "Dumping code from %04x to %04x as %s." % (start,stop,f);
+    h = IntelHex(None);
     i=start;
     while i<stop:
-        h[i>>1]=client.MSP430peek(i);
+        h[i>>1]=client.CCpeekcodebyte(i);
         if(i%0x100==0):
             print "Dumped %04x."%i;
-        i+=2;
+        i+=1;
+    h.write_hex_file(f);
+if(sys.argv[1]=="dumpdata"):
+    f = sys.argv[2];
+    start=0xE000;
+    stop=0xFFFF;
+    if(len(sys.argv)>3):
+        start=int(sys.argv[3],16);
+    if(len(sys.argv)>4):
+        stop=int(sys.argv[4],16);
+    
+    print "Dumping data from %04x to %04x as %s." % (start,stop,f);
+    h = IntelHex(None);
+    i=start;
+    while i<stop:
+        h[i>>1]=client.CCpeekdatabyte(i);
+        if(i%0x100==0):
+            print "Dumped %04x."%i;
+        i+=1;
     h.write_hex_file(f);
 if(sys.argv[1]=="erase"):
   print "Status: %s" % client.CCstatusstr();
@@ -61,7 +79,7 @@ if(sys.argv[1]=="flash"):
     if(len(sys.argv)>4):
         stop=int(sys.argv[4],16);
     
-    h = IntelHex16bit(f);
+    h = IntelHex(f);
     
     client.MSP430masserase();
     for i in h._buf.keys():
@@ -81,7 +99,7 @@ if(sys.argv[1]=="verify"):
     if(len(sys.argv)>4):
         stop=int(sys.argv[4],16);
     
-    h = IntelHex16bit(f);
+    h = IntelHex(f);
     for i in h._buf.keys():
         if(i>=start and i<stop and i&1==0):
             peek=client.MSP430peek(i)

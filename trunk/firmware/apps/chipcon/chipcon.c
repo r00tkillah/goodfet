@@ -331,12 +331,15 @@ unsigned char cc_debug(unsigned char len,
 	      unsigned char a,
 	      unsigned char b,
 	      unsigned char c){
-  unsigned char cmd=0x54+0x3;//(len&0x3);
+  unsigned char cmd=0x54+(len&0x3);//(len&0x3);
   CCWRITE;
   cctrans8(cmd);
-  /*if(len--)*/ cctrans8(a);
-  if(len--) cctrans8(b);
-  if(len--) cctrans8(c);
+  if(len--)
+    cctrans8(a);
+  if(len--)
+    cctrans8(b);
+  if(len--)
+    cctrans8(c);
   CCREAD;
   return cctrans8(0x00);
 }
@@ -351,7 +354,7 @@ unsigned char peekcodebyte(unsigned long adr){
   adr&=0x7FFF;
   
   //MOV MEMCTR, (bank*16)+1
-  cc_debug(3, 0x75, 0xC7, 0);//(bank<<4) + 1);
+  cc_debug(3, 0x75, 0xC7, (bank<<4) + 1);
   //MOV DPTR, address
   cc_debug(3, 0x90, hb, lb);
   
@@ -381,7 +384,7 @@ unsigned char pokedatabyte(unsigned int adr,
   //MOVX @DPTR, A
   cc_debug(1, 0xF0, 0, 0);
   
-  return;
+  return 0;
   /*
 DEBUG_INSTR(IN: 0x90, HIBYTE(address), LOBYTE(address), OUT: Discard);
 for (n = 0; n < count; n++) {

@@ -41,7 +41,7 @@ if(sys.argv[1]=="dumpcode"):
     print "Dumping code from %04x to %04x as %s." % (start,stop,f);
     h = IntelHex(None);
     i=start;
-    while i<stop:
+    while i<=stop:
         h[i>>1]=client.CCpeekcodebyte(i);
         if(i%0x100==0):
             print "Dumped %04x."%i;
@@ -59,8 +59,8 @@ if(sys.argv[1]=="dumpdata"):
     print "Dumping data from %04x to %04x as %s." % (start,stop,f);
     h = IntelHex(None);
     i=start;
-    while i<stop:
-        h[i>>1]=client.CCpeekdatabyte(i);
+    while i<=stop:
+        h[i]=client.CCpeekdatabyte(i);
         if(i%0x100==0):
             print "Dumped %04x."%i;
         i+=1;
@@ -84,13 +84,29 @@ if(sys.argv[1]=="flash"):
     client.MSP430masserase();
     for i in h._buf.keys():
         #print "%04x: %04x"%(i,h[i>>1]);
-        if(i>=start and i<stop  and i&1==0):
+        if(i>=start and i<=stop  and i&1==0):
             client.MSP430writeflash(i,h[i>>1]);
+            if(i%0x100==0):
+                print "%04x" % i;
+if(sys.argv[1]=="writedata"):
+    f=sys.argv[2];
+    start=0;
+    stop=0xFFFF;
+    if(len(sys.argv)>3):
+        start=int(sys.argv[3],16);
+    if(len(sys.argv)>4):
+        stop=int(sys.argv[4],16);
+    
+    h = IntelHex(f);
+    
+    for i in h._buf.keys():
+        if(i>=start and i<=stop):
+            client.CCpokedatabyte(i,h[i]);
             if(i%0x100==0):
                 print "%04x" % i;
 if(sys.argv[1]=="flashtest"):
     client.MSP430flashtest();
-if(sys.argv[1]=="verify"):
+if(sys.argv[1]=="verifycode"):
     f=sys.argv[2];
     start=0;
     stop=0xFFFF;
@@ -101,7 +117,7 @@ if(sys.argv[1]=="verify"):
     
     h = IntelHex(f);
     for i in h._buf.keys():
-        if(i>=start and i<stop and i&1==0):
+        if(i>=start and i<=stop):
             peek=client.MSP430peek(i)
             if(h[i>>1]!=peek):
                 print "ERROR at %04x, found %04x not %04x"%(i,peek,h[i>>1]);

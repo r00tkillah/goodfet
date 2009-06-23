@@ -15,6 +15,20 @@ unsigned short cc_get_chip_id();
 unsigned short cc_get_pc();
 //! Set a hardware breakpoint.
 void cc_set_hw_brkpnt(unsigned short);
+//! Debug an instruction, for remote use.
+void cc_debug_instr(unsigned char);
+//!Read a byte of code memory.
+unsigned char peekcodebyte(unsigned long adr);
+//!Read a byte of data memory.
+unsigned char peekdatabyte(unsigned int adr);
+//! Set a byte of data memory.
+unsigned char pokedatabyte(unsigned int adr,
+			   unsigned char val);
+//! Debug an instruction, for local use.
+unsigned char cc_debug(unsigned char len,
+		       unsigned char a,
+		       unsigned char b,
+		       unsigned char c);
 
 //! Halt the CPU.
 void cc_halt();

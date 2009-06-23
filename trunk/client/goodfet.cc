@@ -27,10 +27,6 @@ client.serInit("/dev/ttyUSB0")
 client.CCsetup();
 client.CCstart();
 
-#client.setBaud(2);
-
-if(sys.argv[1]=="monitortest"):
-    client.monitortest();
 if(sys.argv[1]=="test"):
     client.CCtest();
 if(sys.argv[1]=="dump"):
@@ -52,9 +48,10 @@ if(sys.argv[1]=="dump"):
         i+=2;
     h.write_hex_file(f);
 if(sys.argv[1]=="erase"):
-    client.MSP430masserase();
-if(sys.argv[1]=="ivt"):
-    client.MSP430dumpmem(0xFFE0,0xFFFF);
+  print "Status: %s" % client.CCstatusstr();
+  client.CCchiperase();
+  print "Status: %s" %client.CCstatusstr();
+
 if(sys.argv[1]=="flash"):
     f=sys.argv[2];
     start=0;
@@ -93,6 +90,4 @@ if(sys.argv[1]=="verify"):
             if(i%0x100==0):
                 print "%04x" % i;
 
-
-#client.MSP430releasecpu();
-#client.MSP430stop();
+client.CCstop();

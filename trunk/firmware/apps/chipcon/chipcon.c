@@ -187,7 +187,8 @@ void cchandle(unsigned char app,
     txdata(app,verb,1);
     break;
   case CC_DEBUG_INSTR:
-    txdata(app,NOK,0);//TODO add me
+    cc_debug_instr(len);
+    txdata(app,verb,1);
     break;
   case CC_STEP_INSTR:
     cc_step_instr();
@@ -204,8 +205,17 @@ void cchandle(unsigned char app,
 
   //Macro commands
   case CC_READ_CODE_MEMORY:
+    cmddata[0]=peekcodebyte(cmddataword[0]);
+    txdata(app,verb,1);
+    break;
   case CC_READ_XDATA_MEMORY:
+    cmddata[0]=peekdatabyte(cmddataword[0]);
+    txdata(app,verb,1);
+    break;
   case CC_WRITE_XDATA_MEMORY:
+    cmddata[0]=pokedatabyte(cmddataword[0], cmddata[2]);
+    txdata(app,verb,1);
+    break;
   case CC_SET_PC:
   case CC_CLOCK_INIT:
   case CC_WRITE_FLASH_PAGE:
@@ -303,4 +313,104 @@ void cc_step_instr(){
   cccmd(1);
   ccread(1);
   return;
+}
+
+//! Debug an instruction.
+void cc_debug_instr(unsigned char len){
+  //Bottom two bits of command indicate length.
+  unsigned char cmd=0x54+(len&0x3);
+  CCWRITE;
+  cctrans8(cmd);  //Second command code
+  cccmd(len&0x3); //Command itself.
+  ccread(1);
+  return;
+}
+
+//! Debug an instruction, for local use.
+unsigned char cc_debug(unsigned char len,
+	      unsigned char a,
+	      unsigned char b,
+	      unsigned char c){
+  unsigned char cmd=0x54+0x3;//(len&0x3);
+  CCWRITE;
+  cctrans8(cmd);
+  /*if(len--)*/ cctrans8(a);
+  if(len--) cctrans8(b);
+  if(len--) cctrans8(c);
+  CCREAD;
+  return cctrans8(0x00);
+}
+
+//! Fetch a byte of code memory.
+unsigned char peekcodebyte(unsigned long adr){
+  /** See page 9 of SWRA124 */
+  unsigned char bank=adr>>15,
+    lb=adr&0xFF,
+    hb=(adr>>8)&0x7F,
+    toret=0;
+  adr&=0x7FFF;
+  
+  //MOV MEMCTR, (bank*16)+1
+  cc_debug(3, 0x75, 0xC7, 0);//(bank<<4) + 1);
+  //MOV DPTR, address
+  cc_debug(3, 0x90, hb, lb);
+  
+  //for each byte
+  //CLR A
+  cc_debug(1, 0xE4, 0, 0);
+  //MOVC A, @A+DPTR;
+  toret=cc_debug(1, 0x93, 0, 0);
+  //INC DPTR
+  //cc_debug(1, 0xA3, 0, 0);
+  
+  return toret;
+}
+
+
+//! Set a byte of data memory.
+unsigned char pokedatabyte(unsigned int adr,
+			   unsigned char val){
+  unsigned char
+    hb=(adr&0xFF00)>>8,
+    lb=adr&0xFF;
+  
+  //MOV DPTR, adr
+  cc_debug(3, 0x90, hb, lb);
+  //MOV A, val
+  cc_debug(2, 0x74, val, 0);
+  //MOVX @DPTR, A
+  cc_debug(1, 0xF0, 0, 0);
+  
+  return;
+  /*
+DEBUG_INSTR(IN: 0x90, HIBYTE(address), LOBYTE(address), OUT: Discard);
+for (n = 0; n < count; n++) {
+    DEBUG_INSTR(IN: 0x74, inputArray[n], OUT: Discard);
+    DEBUG_INSTR(IN: 0xF0, OUT: Discard);
+    DEBUG_INSTR(IN: 0xA3, OUT: Discard);
+}
+   */
+}
+
+//! Fetch a byte of data memory.
+unsigned char peekdatabyte(unsigned int adr){
+  unsigned char
+    hb=(adr&0xFF00)>>8,
+    lb=adr&0xFF,
+    toret;
+
+  //MOV DPTR, adr
+  cc_debug(3, 0x90, hb, lb);
+  //MOVX A, @DPTR
+  //Must be 2, perhaps for clocking?
+  toret=cc_debug(3, 0xE0, 0, 0);
+  return toret;
+  
+    /*
+DEBUG_INSTR(IN: 0x90, HIBYTE(address), LOBYTE(address), OUT: Discard);
+for (n = 0; n < count; n++) {
+    DEBUG_INSTR(IN: 0xE0, OUT: outputArray[n]);
+    DEBUG_INSTR(IN: 0xA3, OUT: Discard);
+}
+  */
 }

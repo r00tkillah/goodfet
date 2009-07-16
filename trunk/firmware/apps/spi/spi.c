@@ -32,9 +32,9 @@
 
 //! Set up the pins for SPI mode.
 void spisetup(){
+  P5OUT|=SS;
   P5DIR|=MOSI+SCK+SS;
   P5DIR&=~MISO;
-  P5OUT|=SS;
 }
 
 //! Read and write an SPI bit.
@@ -80,6 +80,27 @@ void spihandle(unsigned char app,
       cmddata[i]=spitrans8(cmddata[i]);
     P5OUT|=SS;  //Raise !SS to end transaction.
     txdata(app,verb,len);
+    break;
+  case SPI_JEDEC://Grab 3-byte JEDEC ID.
+    P5OUT&=~SS; //Drop !SS to begin transaction.
+    spitrans8(0x9f);
+    len=3;
+    for(i=0;i<len;i++)
+      cmddata[i]=spitrans8(cmddata[i]);
+    txdata(app,verb,len);
+    P5OUT|=SS;  //Raise !SS to end transaction.
+    break;
+  case PEEK://Grab 128 bytes from an SPI Flash ROM
+    P5OUT&=~SS; //Drop !SS to begin transaction.
+    spitrans8(0x03);//Flash Read Command
+    len=3;//write 3 byte pointer
+    for(i=0;i<len;i++)
+      spitrans8(cmddata[i]);
+    len=0x80;//128 byte chunk
+    for(i=0;i<len;i++)
+      cmddata[i]=spitrans8(0);
+    txdata(app,verb,len);
+    P5OUT|=SS;  //Raise !SS to end transaction.
     break;
   case SETUP:
     spisetup();

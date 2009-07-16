@@ -49,6 +49,11 @@ extern unsigned char cmddata[256];
 #define JTAG_DR_SHIFT 0x81
 #define JTAG_DR_SHIFT20 0x91
 
+//SPI commands
+#define SPI_JEDEC 0x80
+#define SPI_ERASE 0x81
+#define SPI_WRITE 0x82
+
 //JTAG430 commands
 #define JTAG430_HALTCPU 0xA0
 #define JTAG430_RELEASECPU 0xA1

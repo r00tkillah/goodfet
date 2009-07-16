@@ -139,6 +139,14 @@ class GoodFET:
               0];
         self.SPItrans(data);
         return ord(self.data[4]);
+    def SPIpeekblock(self,adr):
+        """Grab a byte from an SPI Flash ROM."""
+        data=[(adr&0xFF0000)>>16,
+              (adr&0xFF00)>>8,
+              adr&0xFF];
+        
+        self.writecmd(0x01,0x02,3,data);
+        return self.data;
     
     def SPIjedecmanstr(self):
         """Grab the JEDEC manufacturer string.  Call after SPIjedec()."""

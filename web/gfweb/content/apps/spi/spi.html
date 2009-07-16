@@ -27,3 +27,23 @@ then raised after all bytes have been exchanged.</p>
 
 <p>There is also a <a href="http://travisgoodspeed.blogspot.com/2009/06/spi-client-tutorial-for-goodfet.html">
 full tutorial</a> for the SPI application.</p>
+
+<h2>Verbs</h2>
+
+<p>The following verbs are supported.</p>
+
+<table border="1">
+<tr><th>Hex</th><th>#define</th><th>Description</th></tr>
+<tr><td>0x00</td><td>READ</td><td>Exchange data.</td></tr>
+<tr><td>0x01</td><td>WRITE</td><td>Exchange data.</td></tr>
+<tr><td>0x02</td><td>PEEK</td><td>Read 64 bytes from supplied 24-bit address.</td></tr>
+<!--<tr><td>0x03</td><td>POKE</td><td>Write word[1] to memory at word[0]. (Not flash.)</td></tr>-->
+<tr><td>0x10</td><td>SETUP</td><td>Configure I/O pins.</td></tr>
+<tr><td>0x20</td><td>START</td><td>Start a transaction.</td></tr>
+<tr><td>0x21</td><td>STOP</td><td>Stop a transaction.</td></tr>
+<tr><td>0x7E</td><td>NOK</td><td>No Operation</td></tr>
+
+<tr><td>0x80</td><td>SPI_JEDEC</td><td>Grab 3-byte JEDEC ID.</td></tr>
+<tr><td>0x81</td><td>SPI_ERASE</td><td>Erase a Flash EEPROM.</td></tr>
+<tr><td>0x82</td><td>SPI_WRITE</td><td>Write to a Flash EEPROM.</td></tr>
+</table>

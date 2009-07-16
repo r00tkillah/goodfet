@@ -69,10 +69,15 @@ if(sys.argv[1]=="dump"):
     h = IntelHex(None);
     i=start;
     while i<=stop:
-        h[i>>1]=client.SPIpeek(i);
+        data=client.SPIpeekblock(i);
+        
+        
         if(i%0x100==0):
             print "Dumped %04x."%i;
-        i+=1;
+        for j in data:
+            h[i]=ord(j);
+            #print "*%08x=%02x" % (i,ord(j));
+            i+=1;
     h.write_hex_file(f);
 
 if(sys.argv[1]=="erase"):

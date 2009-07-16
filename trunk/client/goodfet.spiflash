@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+
+#GoodFET SPI Flash Client
+#by Travis Goodspeed
+
+#N.B.,
+#Might be Winbond W25x80-specific.
+
+import sys;
+import binascii;
+
+from GoodFET import GoodFET;
+from intelhex import IntelHex;
+
+if(len(sys.argv)==1):
+    print "Usage: %s verb [objects]\n" % sys.argv[0];
+    print "%s info" % sys.argv[0];
+    print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s erase" % sys.argv[0];
+    print "%s write $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s peek 0x$start [0x$stop]" % sys.argv[0];
+    print "%s poke 0x$adr 0x$val" % sys.argv[0];
+    sys.exit();
+
+#Initailize FET and set baud rate
+client=GoodFET();
+client.serInit("/dev/ttyUSB0")
+
+client.SPIsetup();
+
+if(sys.argv[1]=="test"):
+    result="";
+    dropped=0;
+    for i in range(40):
+        data=client.SPIjedec();
+        if ord(data[1])==0xFF:
+            result+="-";
+            dropped=dropped+1;
+        else:
+            result+="+";
+    print "Connection Test: (- is bad)\n%s" % result;
+    print "%i misreads" % dropped;
+    if(dropped==40):
+        print "No successful reads.  Is the chip wired correctly?";
+    elif(dropped>0):
+        print "Some success, some failures.  Is a wire loose?";
+    else:
+        print "All reads succeeded.  Wiring is probably good.";
+
+if(sys.argv[1]=="info"):
+    data=client.SPIjedec();
+    print "Ident as %s\nManufacturer: %02x %s\nType: %02x\nCapacity: %02x" % (
+        client.SPIjedecstr(),
+        ord(data[1]),client.SPIjedecmanstr(),
+        ord(data[2]),
+        ord(data[3]));
+
+if(sys.argv[1]=="dump"):
+    f = sys.argv[2];
+    start=0x0000;
+    stop=0xFFFF;
+    if(len(sys.argv)>3):
+        start=int(sys.argv[3],16);
+    if(len(sys.argv)>4):
+        stop=int(sys.argv[4],16);
+    
+    print "Dumping code from %04x to %04x as %s." % (start,stop,f);
+    h = IntelHex(None);
+    i=start;
+    while i<=stop:
+        h[i>>1]=client.SPIpeek(i);
+        if(i%0x100==0):
+            print "Dumped %04x."%i;
+        i+=1;
+    h.write_hex_file(f);
+
+if(sys.argv[1]=="erase"):
+  print "Status: %s" % client.CCstatusstr();
+  client.CCchiperase();
+  print "Status: %s" %client.CCstatusstr();
+
+if(sys.argv[1]=="peek"):
+    start=0x0000;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
+    stop=start;
+    if(len(sys.argv)>3):
+        stop=int(sys.argv[3],16);
+    print "Peeking from %04x to %04x." % (start,stop);
+    while start<=stop:
+        print "%04x: %02x" % (start,client.SPIpeek(start));
+        start=start+1;
+# if(sys.argv[1]=="poke"):
+#     start=0x0000;
+#     val=0x00;
+#     if(len(sys.argv)>2):
+#         start=int(sys.argv[2],16);
+#     if(len(sys.argv)>3):
+#         val=int(sys.argv[3],16);
+#     print "Poking %04x to become %02x." % (start,val);
+#     client.CCpokedatabyte(start,val);
+
+

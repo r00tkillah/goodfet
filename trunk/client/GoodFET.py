@@ -7,7 +7,7 @@
 # Rewrite cleanly as soon as is convenient.
 
 import sys, time, string, cStringIO, struct
-sys.path.append("/usr/lib/tinyos")
+#sys.path.append("/usr/lib/tinyos")
 import serial
 
 
@@ -99,23 +99,70 @@ class GoodFET:
         
         print "Self-test complete.";
     
-    def spisetup(self):
+    def SPIsetup(self):
         """Moved the FET into the SPI application."""
-        self.writecmd(1,0x10,0,self.data); #SPI/SETUP
+        self.writecmd(0x01,0x10,0,self.data); #SPI/SETUP
         #self.readcmd();
-    def spitrans8(self,byte):
+    def SPItrans8(self,byte):
         """Read and write 8 bits by SPI."""
-        self.data=[byte];
-        self.writecmd(1,0,1,self.data);    #SPI exchange
-        #self.readcmd();
-        
-        if self.app!=1 or self.verb!=0:
-            print "Error in SPI transaction; app=%02x, verb=%02x" % (self.app, self.verb);
-        return ord(self.data[0]);
+        data=self.SPItrans([byte]);
+        return ord(data[0]);
+    
+    def SPItrans(self,data):
+        """Exchange data by SPI."""
+        self.data=data;
+        self.writecmd(0x01,0x00,len(data),data);
+        return self.data;
+    
+    JEDECmanufacturers={0xFF: "MISSING",
+                        0xEF: "Winbond"};
+    JEDECdevices={0xEF3014: "W25X80L",
+                  0xEF3013: "W25X40L",
+                  0xEF3012: "W25X20L",
+                  0xEF3011: "W25X10L"};
+    def SPIjedec(self):
+        """Grab an SPI Flash ROM's JEDEC bytes."""
+        data=[0x9f, 0, 0, 0];
+        data=self.SPItrans(data);
+        #print "Manufacturer: %02x\nType: %02x\nCapacity: %02x" % (ord(data[1]),ord(data[2]),ord(data[3]));
+        self.JEDECmanufacturer=ord(data[1]);
+        self.JEDECtype=ord(data[2]);
+        self.JEDECcapacity=ord(data[3]);
+        self.JEDECdevice=(ord(data[1])<<16)+(ord(data[2])<<8)+ord(data[3]);
+        return data;
+    def SPIpeek(self,adr):
+        """Grab a byte from an SPI Flash ROM."""
+        data=[0x03,
+              (adr&0xFF0000)>>16,
+              (adr&0xFF00)>>8,
+              adr&0xFF,
+              0];
+        self.SPItrans(data);
+        return ord(self.data[4]);
+    
+    def SPIjedecmanstr(self):
+        """Grab the JEDEC manufacturer string.  Call after SPIjedec()."""
+        man=self.JEDECmanufacturers[self.JEDECmanufacturer];
+        if man==0:
+            man="UNKNOWN";
+        return man;
+    
+    def SPIjedecstr(self):
+        """Grab the JEDEC manufacturer string.  Call after SPIjedec()."""
+        man=self.JEDECmanufacturers[self.JEDECmanufacturer];
+        if man==0:
+            man="UNKNOWN";
+        device=self.JEDECdevices[self.JEDECdevice];
+        if device==0:
+            device="???"
+        return "%s %s" % (man,device);
     def MSP430setup(self):
         """Move the FET into the MSP430 JTAG application."""
         print "Initializing MSP430.";
         self.writecmd(0x11,0x10,0,self.data);
+
+    
+    
     def CCsetup(self):
         """Move the FET into the CC2430/CC2530 application."""
         print "Initializing Chipcon.";

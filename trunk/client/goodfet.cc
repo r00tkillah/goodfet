@@ -11,17 +11,20 @@ from intelhex import IntelHex;
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s test" % sys.argv[0];
+    print "%s info" % sys.argv[0];
     print "%s dumpcode $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s dumpdata $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
-    print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s writedata $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s peekdata 0x$start [0x$stop]" % sys.argv[0];
+    print "%s pokedata 0x$adr 0x$val" % sys.argv[0];
+    #print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
     sys.exit();
 
 #Initailize FET and set baud rate
 client=GoodFET();
 client.serInit("/dev/ttyUSB0")
-
-
 
 #Connect to target
 client.CCsetup();
@@ -123,5 +126,25 @@ if(sys.argv[1]=="verifycode"):
                 print "ERROR at %04x, found %04x not %04x"%(i,peek,h[i>>1]);
             if(i%0x100==0):
                 print "%04x" % i;
+if(sys.argv[1]=="peekdata"):
+    start=0x0000;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
+    stop=start;
+    if(len(sys.argv)>3):
+        stop=int(sys.argv[3],16);
+    print "Peeking from %04x to %04x." % (start,stop);
+    while start<=stop:
+        print "%04x: %02x" % (start,client.CCpeekdatabyte(start));
+        start=start+1;
+if(sys.argv[1]=="pokedata"):
+    start=0x0000;
+    val=0x00;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
+    if(len(sys.argv)>3):
+        val=int(sys.argv[3],16);
+    print "Poking %04x to become %02x." % (start,val);
+    client.CCpokedatabyte(start,val);
 
 client.CCstop();

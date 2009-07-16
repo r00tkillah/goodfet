@@ -132,7 +132,8 @@ class GoodFET:
                 0x8500:"CC2430",
                 0x8900:"CC2431",
                 0x8100:"CC2510",
-                0x9100:"CC2511"};
+                0x9100:"CC2511",
+                0xFF00:"CCmissing"};
     def CCidentstr(self):
         ident=self.CCident();
         chip=self.CCversions[ident&0xFF00];

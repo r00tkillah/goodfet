@@ -1,7 +1,7 @@
 //GoodFET ChipCon Debugging Application
-//Handles basic I/O for the Chipcon 8051 debugging protocol.
+//by Travis Goodspeed
+//<travis at radiantmachines.com>
 
-//Higher level left to client application.
 
 //This is like SPI, except that you read or write, not both.
 
@@ -9,8 +9,6 @@
     then reads a single byte reply from the target.  The WRITE verb
     only writes.
 */
-
-//This is REALLY untested.
 
 #include "platform.h"
 #include "command.h"

@@ -98,9 +98,11 @@ void msp430_init_dco() {
   DCOCTL=0xF0;
   //a4
   //1100
-  BCSCTL1 = 0xa8; /* ACLK is devided by 4. RSEL=6 no division for MCLK
-		     and SSMCLK. XT2 is off. */
 
+  /* ACLK is devided by 4. RSEL=6 no division for MCLK
+     and SSMCLK. XT2 is off. */
+  //BCSCTL1 = 0xa8;
+  
   BCSCTL2 = 0x00; /* Init FLL to desired frequency using the 32762Hz
 		     crystal DCO frquenzy = 2,4576 MHz  */
   

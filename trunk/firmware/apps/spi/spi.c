@@ -66,6 +66,13 @@ unsigned char spitrans8(unsigned char byte){
   return byte;
 }
 
+//! Enable SPI writing
+void spiflash_wrten(){
+    P5OUT&=~SS; //Drop !SS to begin transaction.
+    spitrans8(0x06);//Chip Erase
+    P5OUT|=SS;  //Raise !SS to end transaction.
+}
+
 //! Handles a monitor command.
 void spihandle(unsigned char app,
 	       unsigned char verb,
@@ -101,6 +108,16 @@ void spihandle(unsigned char app,
       cmddata[i]=spitrans8(0);
     txdata(app,verb,len);
     P5OUT|=SS;  //Raise !SS to end transaction.
+    break;
+  case POKE://Poke up bytes from an SPI Flash ROM.
+    
+    break;
+  case SPI_ERASE://Erase the SPI Flash ROM.
+    spiflash_wrten();
+    P5OUT&=~SS; //Drop !SS to begin transaction.
+    spitrans8(0xC7);//Chip Erase
+    P5OUT|=SS;  //Raise !SS to end transaction.
+    txdata(app,verb,0);
     break;
   case SETUP:
     spisetup();

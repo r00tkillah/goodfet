@@ -153,20 +153,21 @@ class GoodFET:
         
         self.writecmd(0x01,0x02,3,data);
         return self.data;
+    
     def SPIpokebyte(self,adr,val):
-        self.SPIwriteenable();
-        data=[0x02,
-              (adr&0xFF0000)>>16,
+        self.SPIpokebytes(adr,[val]);
+    def SPIpokebytes(self,adr,data):
+        #self.SPIwriteenable();
+        adranddata=[(adr&0xFF0000)>>16,
               (adr&0xFF00)>>8,
-              adr&0xFF,
-              val];
-        self.SPItrans(data);
+              adr&0xFF
+              ]+data;
+        self.writecmd(0x01,0x03,
+                      len(adranddata),adranddata);
+        
     def SPIchiperase(self):
         """Mass erase an SPI Flash ROM."""
-        self.SPIwriteenable();
-        #Chip Erase
-        data=[0xC7];
-        self.SPItrans(data);
+        self.writecmd(0x01,0x81,0,[]);
     def SPIwriteenable(self):
         """SPI Flash Write Enable"""
         data=[0x06];

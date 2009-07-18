@@ -115,11 +115,17 @@ class GoodFET:
         return self.data;
     
     JEDECmanufacturers={0xFF: "MISSING",
-                        0xEF: "Winbond"};
-    JEDECdevices={0xEF3014: "W25X80L",
+                        0xEF: "Winbond",
+                        0xC2: "MXIC"};
+
+    JEDECdevices={0xFFFFFF: "MISSING",
+                  0xEF3014: "W25X80L",
                   0xEF3013: "W25X40L",
                   0xEF3012: "W25X20L",
-                  0xEF3011: "W25X10L"};
+                  0xEF3011: "W25X10L",
+                  0xC22014: "MX25L8005",
+                  0xC22013: "MX25L4005"
+                  };
     def SPIjedec(self):
         """Grab an SPI Flash ROM's JEDEC bytes."""
         data=[0x9f, 0, 0, 0];
@@ -147,20 +153,38 @@ class GoodFET:
         
         self.writecmd(0x01,0x02,3,data);
         return self.data;
-    
+    def SPIpokebyte(self,adr,val):
+        self.SPIwriteenable();
+        data=[0x02,
+              (adr&0xFF0000)>>16,
+              (adr&0xFF00)>>8,
+              adr&0xFF,
+              val];
+        self.SPItrans(data);
+    def SPIchiperase(self):
+        """Mass erase an SPI Flash ROM."""
+        self.SPIwriteenable();
+        #Chip Erase
+        data=[0xC7];
+        self.SPItrans(data);
+    def SPIwriteenable(self):
+        """SPI Flash Write Enable"""
+        data=[0x06];
+        self.SPItrans(data);
+        
     def SPIjedecmanstr(self):
         """Grab the JEDEC manufacturer string.  Call after SPIjedec()."""
-        man=self.JEDECmanufacturers[self.JEDECmanufacturer];
+        man=self.JEDECmanufacturers.get(self.JEDECmanufacturer)
         if man==0:
             man="UNKNOWN";
         return man;
     
     def SPIjedecstr(self):
         """Grab the JEDEC manufacturer string.  Call after SPIjedec()."""
-        man=self.JEDECmanufacturers[self.JEDECmanufacturer];
+        man=self.JEDECmanufacturers.get(self.JEDECmanufacturer);
         if man==0:
             man="UNKNOWN";
-        device=self.JEDECdevices[self.JEDECdevice];
+        device=self.JEDECdevices.get(self.JEDECdevice);
         if device==0:
             device="???"
         return "%s %s" % (man,device);

@@ -59,31 +59,30 @@ if(sys.argv[1]=="info"):
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];
     start=0x0000;
-    stop=0xFFFF;
+    stop=0x100000; #TODO, adjust this by the JEDEC size parameter.
     if(len(sys.argv)>3):
         start=int(sys.argv[3],16);
     if(len(sys.argv)>4):
         stop=int(sys.argv[4],16);
     
-    print "Dumping code from %04x to %04x as %s." % (start,stop,f);
-    h = IntelHex(None);
+    
+
+    print "Dumping code from %06x to %06x as %s." % (start,stop,f);
+    file = open(f, mode='wb')
+
     i=start;
     while i<=stop:
         data=client.SPIpeekblock(i);
         
         
         if(i%0x100==0):
-            print "Dumped %04x."%i;
+            print "Dumped %06x."%i;
         for j in data:
-            h[i]=ord(j);
-            #print "*%08x=%02x" % (i,ord(j));
+            file.write(j);
             i+=1;
-    h.write_hex_file(f);
-
+    file.close()
 if(sys.argv[1]=="erase"):
-  print "Status: %s" % client.CCstatusstr();
-  client.CCchiperase();
-  print "Status: %s" %client.CCstatusstr();
+  client.SPIchiperase();
 
 if(sys.argv[1]=="peek"):
     start=0x0000;
@@ -92,18 +91,19 @@ if(sys.argv[1]=="peek"):
     stop=start;
     if(len(sys.argv)>3):
         stop=int(sys.argv[3],16);
-    print "Peeking from %04x to %04x." % (start,stop);
+    print "Peeking from %06x to %06x." % (start,stop);
     while start<=stop:
-        print "%04x: %02x" % (start,client.SPIpeek(start));
+        print "%06x: %02x" % (start,client.SPIpeek(start));
         start=start+1;
-# if(sys.argv[1]=="poke"):
-#     start=0x0000;
-#     val=0x00;
-#     if(len(sys.argv)>2):
-#         start=int(sys.argv[2],16);
-#     if(len(sys.argv)>3):
-#         val=int(sys.argv[3],16);
-#     print "Poking %04x to become %02x." % (start,val);
-#     client.CCpokedatabyte(start,val);
+
+if(sys.argv[1]=="poke"):
+    start=0x0000;
+    val=0x00;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
+    if(len(sys.argv)>3):
+        val=int(sys.argv[3],16);
+    print "Poking %06x to become %02x." % (start,val);
+    client.SPIpokebyte(start,val);
 
 

@@ -35,6 +35,10 @@ void spisetup(){
   P5OUT|=SS;
   P5DIR|=MOSI+SCK+SS;
   P5DIR&=~MISO;
+  
+  //Begin a new transaction.
+  P5OUT&=~SS; 
+  P5OUT|=SS;
 }
 
 //! Read and write an SPI bit.

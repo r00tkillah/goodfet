@@ -28,7 +28,12 @@ if(len(sys.argv)==1):
 client=GoodFET();
 client.serInit("/dev/ttyUSB0")
 
+
 client.SPIsetup();
+
+#Dummy read.
+#Might read as all ones if chip has a startup delay.
+client.SPIjedec();
 
 if(sys.argv[1]=="test"):
     result="";
@@ -93,11 +98,17 @@ if(sys.argv[1]=="flash"):
     file = open(f, mode='rb')
 
     i=start;
-    bytes=file.read();
+    chars=list(file.read());
+    chunksize=0x80;
+    
     while i<=stop:
-        client.SPIpokebyte(i,ord(bytes[i]));
+        bytes=range(0,chunksize);
+        for j in range(0,chunksize):
+            bytes[j]=ord(chars[i+j]);
+        #client.SPIpokebyte(i,ord(chars[i]));
+        client.SPIpokebytes(i,bytes);
         
-        i+=1;
+        i+=chunksize;
         if(i%0x100==0):
             print "Flashed %06x."%i;
     file.close()

@@ -102,7 +102,7 @@ class GoodFET:
     def SPIsetup(self):
         """Moved the FET into the SPI application."""
         self.writecmd(0x01,0x10,0,self.data); #SPI/SETUP
-        #self.readcmd();
+        
     def SPItrans8(self,byte):
         """Read and write 8 bits by SPI."""
         data=self.SPItrans([byte]);

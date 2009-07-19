@@ -79,6 +79,7 @@ void spiflash_wrten(){
 //! Grab the SPI flash status byte.
 unsigned char spiflash_status(){
   unsigned char c;
+  P5OUT|=SS;  //Raise !SS to end transaction.
   P5OUT&=~SS; //Drop !SS to begin transaction.
   spitrans8(0x05);//GET STATUS
   c=spitrans8(0xFF);
@@ -99,6 +100,11 @@ void spihandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned char len){
   unsigned char i;
+  
+  
+  //Raise !SS to end transaction, just in case we forgot.
+  P5OUT|=SS;  
+  
   switch(verb){
     //PEEK and POKE might come later.
   case READ:
@@ -127,8 +133,8 @@ void spihandle(unsigned char app,
     len=0x80;//128 byte chunk
     for(i=0;i<len;i++)
       cmddata[i]=spitrans8(0);
-    txdata(app,verb,len);
     P5OUT|=SS;  //Raise !SS to end transaction.
+    txdata(app,verb,len);
     break;
   case POKE://Poke up bytes from an SPI Flash ROM.
     spiflash_setstatus(0x02);
@@ -140,9 +146,8 @@ void spihandle(unsigned char app,
     //First three bytes are address, then data.
     for(i=0;i<len;i++)
       spitrans8(cmddata[i]);
-    P5OUT&=~SS; //Drop !SS to begin transaction.
+    P5OUT|=SS;  //Raise !SS to end transaction.
     while(spiflash_status()&0x01);//while busy
-    spiflash_wrten();
     txdata(app,verb,len);
     break;
   case SPI_ERASE://Erase the SPI Flash ROM.
@@ -157,4 +162,5 @@ void spihandle(unsigned char app,
     txdata(app,verb,0);
     break;
   }
+  
 }

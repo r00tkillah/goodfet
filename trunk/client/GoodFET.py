@@ -216,7 +216,7 @@ class GoodFET:
                 0xFF00:"CCmissing"};
     def CCidentstr(self):
         ident=self.CCident();
-        chip=self.CCversions[ident&0xFF00];
+        chip=self.CCversions.get(ident&0xFF00);
         return "%s/r%02x" % (chip, ident&0xFF); 
     def CCident(self):
         """Get a chipcon's ID."""
@@ -294,10 +294,11 @@ class GoodFET:
         self.writecmd(0x30,0x20,0,self.data);
         ident=self.CCidentstr();
         print "Target identifies as %s." % ident;
-        print "Status: %s." % self.CCstatusstr();
+        #print "Status: %s." % self.CCstatusstr();
         self.CCreleasecpu();
         self.CChaltcpu();
         print "Status: %s." % self.CCstatusstr();
+        
     def CCstop(self):
         """Stop debugging."""
         self.writecmd(0x30,0x21,0,self.data);

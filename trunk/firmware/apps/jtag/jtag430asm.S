@@ -1,5 +1,5 @@
 .globl jtag430_tclk_flashpulses
-.type jtag430_tclk_flashpulses,@function    /* declare main as a function */
+.type jtag430_tclk_flashpulses,@function //for linking
 
 
 //! At 3.68MHz, 7 to 14 cycles/loop are allowed for 257 to 475kHz

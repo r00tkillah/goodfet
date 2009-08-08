@@ -215,7 +215,6 @@ void cchandle(unsigned char app,
     txdata(app,verb,1);
     break;
   case CC_SET_PC:
-    
   case CC_CLOCK_INIT:
   case CC_WRITE_FLASH_PAGE:
   case CC_MASS_ERASE_FLASH:
@@ -360,7 +359,7 @@ unsigned char cc_peekcodebyte(unsigned long adr){
   //CLR A
   cc_debug(2, 0xE4, 0, 0);
   //MOVC A, @A+DPTR;
-  toret=cc_debug(1, 0x93, 0, 0);
+  toret=cc_debug(3, 0x93, 0, 0);
   //INC DPTR
   //cc_debug(1, 0xA3, 0, 0);
   

@@ -18,10 +18,30 @@ unsigned char serial_rx(){
   
   return c;
 }
+
+//! Receive a byte.
+unsigned char serial1_rx(){
+  char c;
+  
+  while(!(IFG2&URXIFG1));//wait for a byte
+  c = RXBUF1;
+  IFG2&=~URXIFG1;
+  U1TCTL &= ~URXSE;
+  
+  return c;
+}
+
+
 //! Transmit a byte.
 void serial_tx(unsigned char x){
   while ((IFG1 & UTXIFG0) == 0); //loop until buffer is free
   TXBUF0 = x;
+}
+
+//! Transmit a byte on the second UART.
+void serial1_tx(unsigned char x){
+  while ((IFG2 & UTXIFG1) == 0); //loop until buffer is free
+  TXBUF1 = x;
 }
 
 //! Set the baud rate.
@@ -48,9 +68,32 @@ void setbaud(unsigned char rate){
   }
 }
 
-void msp430_init_uart(){
+//! Set the baud rate of the second uart.
+void setbaud1(unsigned char rate){
   
-  /* RS232 */
+  //http://mspgcc.sourceforge.net/baudrate.html
+  switch(rate){
+  case 1://9600 baud
+    UBR01=0x7F; UBR11=0x01; UMCTL1=0x5B; /* uart0 3683400Hz 9599bps */
+    break;
+  case 2://19200 baud
+    UBR01=0xBF; UBR11=0x00; UMCTL1=0xF7; /* uart0 3683400Hz 19194bps */
+    break;
+  case 3://38400 baud
+    UBR01=0x5F; UBR11=0x00; UMCTL1=0xBF; /* uart0 3683400Hz 38408bps */
+    break;
+  case 4://57600 baud
+    UBR01=0x40; UBR11=0x00; UMCTL1=0x00; /* uart0 3683400Hz 57553bps */
+    break;
+  default:
+  case 5://115200 baud
+    UBR01=0x20; UBR11=0x00; UMCTL1=0x00; /* uart0 3683400Hz 115106bps */
+    break;
+  }
+}
+
+
+void msp430_init_uart(){
   
   P3SEL |= BIT4|BIT5;                        // P3.4,5 = USART0 TXD/RXD
   P3DIR |= BIT4;
@@ -60,6 +103,7 @@ void msp430_init_uart(){
   
   setbaud(0);
   
+  //Necessary for bit-banging, switch to hardware for performance.
   ME1 &= ~USPIE0;			/* USART1 SPI module disable */
   ME1 |= (UTXE0 | URXE0);               /* Enable USART1 TXD/RXD */
 

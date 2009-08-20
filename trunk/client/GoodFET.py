@@ -6,9 +6,7 @@
 # This code is ugly as sin, for bootstrapping the firmware only.
 # Rewrite cleanly as soon as is convenient.
 
-import sys, time, string, cStringIO, struct
-#sys.path.append("/usr/lib/tinyos")
-import serial
+import sys, time, string, cStringIO, struct, glob, serial
 
 
 class GoodFET:
@@ -16,8 +14,18 @@ class GoodFET:
         self.data=[0];
     def timeout(self):
         print "timout\n";
-    def serInit(self, port):
+    def serInit(self, port=None):
         """Open the serial port"""
+        
+        if port is None:
+            glob_list = glob.glob("/dev/tty.usbserial*");
+            if len(glob_list) > 0:
+                port = glob_list[0];
+        if port is None:
+            glob_list = glob.glob("/dev/ttyUSB*");
+            if len(glob_list) > 0:
+                port = glob_list[0];
+        
         self.serialport = serial.Serial(
             port,
             #9600,
@@ -69,6 +77,19 @@ class GoodFET:
         self.data=[address&0xff,address>>8,value];
         self.writecmd(0,0x03,3,self.data);
         return ord(self.data[0]);
+    def dumpmem(self,begin,end):
+        i=begin;
+        while i<end:
+            print "%04x %04x" % (i, self.peekword(i));
+            i+=2;
+    def monitor_ram_pattern(self):
+        """Overwrite all of RAM with 0xBEEF."""
+        self.writecmd(0,0x90,0,self.data);
+        return;
+    def monitor_ram_depth(self):
+        """Determine how many bytes of RAM are unused by looking for 0xBEEF.."""
+        self.writecmd(0,0x91,0,self.data);
+        return ord(self.data[0])+(ord(self.data[1])<<8);
     def setBaud(self,baud):
         rates=[9600, 9600, 19200, 38400];
         self.data=[baud];
@@ -116,7 +137,9 @@ class GoodFET:
     
     JEDECmanufacturers={0xFF: "MISSING",
                         0xEF: "Winbond",
-                        0xC2: "MXIC"};
+                        0xC2: "MXIC",
+                        0x20: "Numonyx/ST"
+                        };
 
     JEDECdevices={0xFFFFFF: "MISSING",
                   0xEF3014: "W25X80L",
@@ -124,7 +147,8 @@ class GoodFET:
                   0xEF3012: "W25X20L",
                   0xEF3011: "W25X10L",
                   0xC22014: "MX25L8005",
-                  0xC22013: "MX25L4005"
+                  0xC22013: "MX25L4005",
+                  0x204011: "M45PE10"
                   };
     def SPIjedec(self):
         """Grab an SPI Flash ROM's JEDEC bytes."""

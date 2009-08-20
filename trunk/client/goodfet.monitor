@@ -6,31 +6,28 @@ import binascii;
 from GoodFET import GoodFET;
 from intelhex import IntelHex16bit;
 
-
-
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s test" % sys.argv[0];
     print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
-    print "%s erase" % sys.argv[0];
-    print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s ivt" % sys.argv[0];
+    print "%s peek [0x$start 0x$stop]" % sys.argv[0];
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s ramfill" % sys.argv[0];
+    print "%s ramdepth" % sys.argv[0];
     sys.exit();
 
 #Initailize FET and set baud rate
 client=GoodFET();
 client.serInit()
 
-#Connect to target
-client.MSP430setup();
-client.MSP430start();
 
-#client.setBaud(2);
-
-if(sys.argv[1]=="monitortest"):
-    client.monitortest();
+if(sys.argv[1]=="ramfill"):
+    client.monitor_ram_pattern();
+if(sys.argv[1]=="ramdepth"):
+    print "0x%04x RAM bytes free." % client.monitor_ram_depth();
 if(sys.argv[1]=="test"):
-    client.MSP430test();
+    client.monitortest();
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];
     start=0x0200;
@@ -44,35 +41,25 @@ if(sys.argv[1]=="dump"):
     h = IntelHex16bit(None);
     i=start;
     while i<stop:
-        h[i>>1]=client.MSP430peek(i);
+        h[i>>1]=client.peekword(i);
         if(i%0x100==0):
             print "Dumped %04x."%i;
         i+=2;
     h.write_hex_file(f);
 if(sys.argv[1]=="erase"):
-    client.MSP430masserase();
+    client.masserase();
 if(sys.argv[1]=="ivt"):
-    client.MSP430dumpmem(0xFFE0,0xFFFF);
-if(sys.argv[1]=="flash"):
-    f=sys.argv[2];
-    start=0;
+    client.dumpmem(0xFFE0,0xFFFF);
+
+if(sys.argv[1]=="peek"):
+    start=0xFFE0;
     stop=0xFFFF;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
     if(len(sys.argv)>3):
-        start=int(sys.argv[3],16);
-    if(len(sys.argv)>4):
-        stop=int(sys.argv[4],16);
+        stop=int(sys.argv[3],16);
     
-    h = IntelHex16bit(f);
-    
-    client.MSP430masserase();
-    for i in h._buf.keys():
-        #print "%04x: %04x"%(i,h[i>>1]);
-        if(i>=start and i<stop  and i&1==0):
-            client.MSP430writeflash(i,h[i>>1]);
-            if(i%0x100==0):
-                print "%04x" % i;
-if(sys.argv[1]=="flashtest"):
-    client.MSP430flashtest();
+    client.dumpmem(start,stop);
 if(sys.argv[1]=="verify"):
     f=sys.argv[2];
     start=0;
@@ -85,7 +72,7 @@ if(sys.argv[1]=="verify"):
     h = IntelHex16bit(f);
     for i in h._buf.keys():
         if(i>=start and i<stop and i&1==0):
-            peek=client.MSP430peek(i)
+            peek=client.peek(i)
             if(h[i>>1]!=peek):
                 print "ERROR at %04x, found %04x not %04x"%(i,peek,h[i>>1]);
             if(i%0x100==0):
@@ -93,7 +80,5 @@ if(sys.argv[1]=="verify"):
 
 if(sys.argv[1]=="whatever"):
     for i in [0x24FF, 0x2500, 0x2502, 0x2504]:
-        print "%04x" % client.MSP430peek(i);
+        print "%04x" % client.peekword(i);
 
-client.MSP430releasecpu();
-client.MSP430stop();

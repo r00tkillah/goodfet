@@ -23,7 +23,7 @@ if(len(sys.argv)==1):
 
 #Initailize FET and set baud rate
 client=GoodFET();
-client.serInit("/dev/ttyUSB0")
+client.serInit()
 
 #Connect to target
 client.CCsetup();
@@ -83,11 +83,11 @@ if(sys.argv[1]=="erase"):
     
 #     h = IntelHex(f);
     
-#     client.MSP430masserase();
+#     client.CCchiperase();
 #     for i in h._buf.keys():
 #         #print "%04x: %04x"%(i,h[i>>1]);
 #         if(i>=start and i<=stop  and i&1==0):
-#             client.MSP430writeflash(i,h[i>>1]);
+#             client.CCwriteflash(i,h[i>>1]);
 #             if(i%0x100==0):
 #                 print "%04x" % i;
 if(sys.argv[1]=="writedata"):
@@ -106,8 +106,8 @@ if(sys.argv[1]=="writedata"):
             client.CCpokedatabyte(i,h[i]);
             if(i%0x100==0):
                 print "%04x" % i;
-if(sys.argv[1]=="flashtest"):
-    client.MSP430flashtest();
+#if(sys.argv[1]=="flashtest"):
+#    client.CCflashtest();
 if(sys.argv[1]=="peekdata"):
     start=0x0000;
     if(len(sys.argv)>2):

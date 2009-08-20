@@ -1,5 +1,6 @@
 #include "command.h"
 #include "platform.h"
+#include "monitor.h"
 
 //! Handles a monitor command.
 void monitorhandle(unsigned char app,
@@ -21,5 +22,36 @@ void monitorhandle(unsigned char app,
     setbaud(cmddata[0]);
     //txdata(app,verb,0);
     break;
+  case MONITOR_RAM_PATTERN:
+    monitor_ram_pattern();//reboots, will never return
+    break;
+  case MONITOR_RAM_DEPTH:
+    cmddataword[0]=monitor_ram_depth();
+    txdata(app,verb,2);
+    break;
   }
+}
+
+//! Overwrite all of RAM with 0xBEEF, then reboot.
+void monitor_ram_pattern(){
+  register int *a;
+  
+  //Wipe all of ram.
+  for(a=(int*)0x1100;a<(int*)0x2500;a++){//TODO get these from the linker.
+    *((int*)a) = 0xBEEF;
+  }
+  txdata(0x00,0x90,0);
+  
+  //Reboot
+  asm("br &0xfffe");
+}
+
+//! Return the number of contiguous bytes 0xBEEF, to measure RAM usage.
+unsigned int monitor_ram_depth(){
+  register int a;
+  register int count=0;
+  for(a=0x1100;a<0x2500;a+=2)
+    if(*((int*)a)==0xBEEF) count+=2;
+  
+  return count;
 }

@@ -96,7 +96,7 @@ void spiflash_setstatus(unsigned char c){
   spitrans8(0x01);//SET STATUS
   spitrans8(c);
   P5OUT|=SS;  //Raise !SS to end transaction.
-  return c;
+  //return c;
 }
 
 //! Handles a monitor command.

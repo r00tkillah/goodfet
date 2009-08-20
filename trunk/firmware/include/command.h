@@ -19,6 +19,8 @@ extern unsigned char cmddata[256];
 
 // Monitor Commands
 #define MONITOR_CHANGE_BAUD 0x80
+#define MONITOR_RAM_PATTERN 0x90
+#define MONITOR_RAM_DEPTH 0x91
 
 //CHIPCON commands
 #define CC_CHIP_ERASE 0x80

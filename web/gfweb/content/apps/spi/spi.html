@@ -4,15 +4,24 @@
 the Serial Peripheral Interface.  Use the following pinout,
 which is very similar to the JTAG pinout.</p>
 
+<!--
 <a href="http://www.flickr.com/photos/travisgoodspeed/3593286652/"
 title="GoodFET SPI Pinout by Travis Goodspeed, on Flickr">
 <img src="http://farm3.static.flickr.com/2466/3593286652_f849e74d18.jpg"
 width="500" height="290" alt="GoodFET SPI Pinout" /></a>
+-->
+
+<a href="http://www.flickr.com/photos/travisgoodspeed/3839800528/"
+title="GoodFET SPI Flash Pinout by Travis Goodspeed, on Flickr">
+<img src="http://farm3.static.flickr.com/2577/3839800528_65e6430feb_o.png"
+width="420" height="412" alt="GoodFET SPI Flash Pinout" /></a>
+
 
 <h2>Clients</h2>
 
-<p>Please <a href="http://travisgoodspeed.blogspot.com/2009/06/spi-client-tutorial-for-goodfet.html">
-write one</a>!</p>
+<p>A Python
+client, <a href="/clients/goodfet.spiflash/">goodfet.spiflash</a>, is
+quite effective at reading, writing, and erasing SPI flash chips.</p>
 
 <h2>Development</h2>
 
@@ -38,7 +47,7 @@ by those that write flash memory, such as POKE and SPI_ERASE.</p>
 <tr><td>0x00</td><td>READ</td><td>Exchange data.</td></tr>
 <tr><td>0x01</td><td>WRITE</td><td>Exchange data.</td></tr>
 <tr><td>0x02</td><td>PEEK</td><td>Read 64 bytes from supplied 24-bit address.</td></tr>
-<tr><td>0x03</td><td>POKE</td><td>Write data to flash at 24-bit address.</td></tr>-->
+<tr><td>0x03</td><td>POKE</td><td>Write data to flash at 24-bit address.</td></tr>
 <tr><td>0x10</td><td>SETUP</td><td>Configure I/O pins.</td></tr>
 <tr><td>0x20</td><td>START</td><td>Start a transaction.</td></tr>
 <tr><td>0x21</td><td>STOP</td><td>Stop a transaction.</td></tr>

@@ -2,16 +2,18 @@
 PORT=/dev/ttyUSB0
 BSL=msp430-bsl --invert-reset --invert-test -c $(PORT) --speed=38400
 
-#mcu=msp430x1611
+#mcu=msp430x2618
 mcu=msp430x1612
 
-#ldscript is wonky
-GCCINC=-T ldscripts/161x.x
+
+#N.B., gcc WILL NOT BITCH if this file doesn't exist.
+#GCCINC=-T ldscripts/161x.x
+GCCINC=-T ldscripts/$(mcu).x
 
 CC=msp430-gcc -Wall -g -mmcu=$(mcu) -DGCC $(GCCINC) -I include
 
 apps= apps/monitor/monitor.o apps/spi/spi.o apps/i2c/i2c.o apps/chipcon/chipcon.o apps/jtag/jtag.o apps/jtag/jtag430.o
-libs= lib/msp430f1612.o lib/command.o apps/jtag/jtag430asm.o
+libs= lib/$(mcu).o lib/command.o apps/jtag/jtag430asm.o
 app=goodfet
 
 all: $(app).hex

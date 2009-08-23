@@ -25,6 +25,8 @@ run:
 
 install: $(app).hex
 	$(BSL) -e -p $(app).hex 
+verify:
+	$(BSL) -P $(app).hex -v $(app).hex
 $(app): $(app).c $(libs) $(apps)
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex

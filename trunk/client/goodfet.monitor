@@ -28,6 +28,8 @@ if(sys.argv[1]=="ramdepth"):
     print "0x%04x RAM bytes free." % client.monitor_ram_depth();
 if(sys.argv[1]=="test"):
     client.monitortest();
+if(sys.argv[1]=="findbaud"):
+    client.findbaud();
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];
     start=0x0200;

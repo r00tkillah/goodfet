@@ -1,6 +1,6 @@
 
 PORT=/dev/ttyUSB0
-BSL=msp430-bsl --invert-reset --invert-test -c $(PORT) --speed=38400
+BSL=../../contrib/tos-bsl --invert-reset --invert-test -c $(PORT) --speed=38400
 
 #mcu=msp430x2618
 mcu=msp430x1612

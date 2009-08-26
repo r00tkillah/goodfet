@@ -23,6 +23,9 @@ void init(){
   msp430_init_dco();
   msp430_init_uart();
   
+  
+  
+  
   //Enable Interrupts.
   //eint();
 }
@@ -67,6 +70,14 @@ int main(void)
   
   //Ready
   //txdata(MONITOR,OK,0);
+  //while (1){
+  //  txdata(0xFF,0xff,0x0);
+  //  delay(1000);
+  //}
+  //delay(0xffff);
+  //while(*((int*)0x1001));
+  //while(1)
+  //  txdata(0xFF,0xFF,0);
   txstring(MONITOR,OK,"http://goodfet.sf.net/");
   
   //Command loop.  There's no end!

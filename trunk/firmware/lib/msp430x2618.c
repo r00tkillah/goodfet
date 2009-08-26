@@ -25,18 +25,25 @@ unsigned char serial_rx(){
 //! Receive a byte.
 unsigned char serial1_rx(){
   //TODO
+  return 00;
 }
-
 
 //! Transmit a byte.
 void serial_tx(unsigned char x){
-  while ((IFG2 & UCA0TXIFG) == 0); //loop unti lbuffer is free
+  while ((IFG2 & UCA0TXIFG) == 0); //loop until buffer is free
+  UCA0TXBUF = x;	/* send the character */
+  while(!(IFG2 & UCA0TXIFG));
+}
+//! Transmit a byte.
+void serial_tx_old(unsigned char x){
+  while ((IFG2 & UCA0TXIFG) == 0); //loop until buffer is free
   UCA0TXBUF = x;	/* send the character */
   while(!(IFG2 & UCA0TXIFG));
 }
 
 //! Transmit a byte on the second UART.
 void serial1_tx(unsigned char x){
+
 }
 
 //! Set the baud rate.
@@ -88,36 +95,40 @@ void setbaud1(unsigned char rate){
 }
 
 
-//host.h says 0x2B for DCO=4.9MHZ
-//Divide by four for accuracy.
 
 //19200
-#define BAUD0EN 0x41
-#define BAUD1EN 0x03
+#define BAUD0EN 0x1b
+#define BAUD1EN 0x00
 
 
 void msp430_init_uart(){
-  // Serial on P3.4, P3.5
+
+  // Serial on P3.4, P3.5                                                                                                                                                 
   P3SEL |= BIT4 + BIT5;
   P3DIR |= BIT4;
-  
-  //UCA0CTL1 |= UCSWRST;                    /* disable UART */
+
+  //UCA0CTL1 |= UCSWRST;                    /* disable UART */                                                                                                            
 
   UCA0CTL0 = 0x00;
-  //UCA0CTL0 |= UCMSB ;
-  UCA0CTL1 |= UCSSEL_2;                     // SMCLK
-  UCA0BR0 = BAUD0EN;                        // 115200
+  //UCA0CTL0 |= UCMSB ;                                                                                                                                                   
+  UCA0CTL1 |= UCSSEL_2;                     // SMCLK                                                                                                                      
+  UCA0BR0 = BAUD0EN;                        // 115200                                                                                                                     
   UCA0BR1 = BAUD1EN;
-  UCA0MCTL = 0;                             // Modulation UCBRSx = 5
-  UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
-  
+  UCA0MCTL = 0;                             // Modulation UCBRSx = 5                                                                                                      
+  UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**                                                                                          
+
+
+  //Leave this commented!                                                                                                                                                 
+  //Interrupt is handled by target code, not by bootloader.                                                                                                               
+  //IE2 |= UCA0RXIE;         
+
 }
 
-
+//external resistor
+#define DCOR 1
 void msp430_init_dco() {
   BCSCTL1 = CALBC1_16MHZ;
-  DCOCTL = CALDCO_16MHZ;
-  
+  DCOCTL = CALDCO_16MHZ;  
   return;
 }
 

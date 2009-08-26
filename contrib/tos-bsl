@@ -14,7 +14,7 @@ import sys, time, string, cStringIO, struct
 sys.path.append("/usr/lib/tinyos")
 import serial
 
-VERSION = string.split("Revision: 1.39-telos-8 ")[1] #freeze the mspgcc CVS version, and tag telos
+VERSION = string.split("Revision: 1.39-goodfet-8 ")[1] #forked from TinyOS Telos version.
 
 DEBUG = 0                                       #disable debug messages by default
 
@@ -847,7 +847,7 @@ class BootStrapLoader(LowLevel):
         if self.patchLoaded:
             self.BSLMemAccessWarning = 1                #Turn warning back on.
 
-
+    
     def verifyBlk(self, addr, blkout, action):
         """verify memory against data or 0xff"""
         if DEBUG > 1: sys.stderr.write("* verifyBlk()\n")
@@ -874,7 +874,10 @@ class BootStrapLoader(LowLevel):
                         sys.stderr.flush()
                         raise BSLException(self.ERR_ERASE_CHECK_FAILED) #Erase Check failed!
                     continue
-
+    def readBlk(self,adr,len):
+        """Read a block of memory."""
+        blkin = self.bslTxRx(self.BSL_RXBLK, addr, len(blkout))
+        
     def programBlk(self, addr, blkout, action):
         """programm a memory block"""
         if DEBUG > 1: sys.stderr.write("* programBlk()\n")

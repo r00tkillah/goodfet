@@ -13,7 +13,7 @@ class GoodFET:
     def __init__(self, *args, **kargs):
         self.data=[0];
     def timeout(self):
-        print "timout\n";
+        print "timeout\n";
     def serInit(self, port=None):
         """Open the serial port"""
         
@@ -28,7 +28,13 @@ class GoodFET:
         
         self.serialport = serial.Serial(
             port,
+            #300,
+            #2400,
+            #4800,
             #9600,
+            #19200,
+            #38400,
+            #57600,
             115200,
             parity = serial.PARITY_NONE
             )
@@ -41,8 +47,8 @@ class GoodFET:
         #time.sleep(1);
         self.readcmd(); #Read the first command.
         if(self.verb!=0x7F):
-            print "Verb is wrong.  Incorrect firmware?";
-        
+            print "Verb %02x is wrong.  Incorrect firmware?" % self.verb;
+        print "Connected."
     def writecmd(self, app, verb, count, data):
         """Write a command and some data to the GoodFET."""
         self.serialport.write(chr(app));
@@ -90,8 +96,17 @@ class GoodFET:
         """Determine how many bytes of RAM are unused by looking for 0xBEEF.."""
         self.writecmd(0,0x91,0,self.data);
         return ord(self.data[0])+(ord(self.data[1])<<8);
+    
+    #Baud rates.
+    baudrates=[115200, 
+               9600,
+               19200,
+               38400,
+               57600,
+               115200];
     def setBaud(self,baud):
-        rates=[9600, 9600, 19200, 38400];
+        """Change the baud rate.  TODO fix this."""
+        rates=self.baudrates;
         self.data=[baud];
         print "Changing FET baud."
         self.serialport.write(chr(0x00));
@@ -107,6 +122,21 @@ class GoodFET:
         
         print "Baud is now %i." % rates[baud];
         return;
+    def readbyte(self):
+        return ord(self.serialport.read(1));
+    def findbaud(self):
+        for r in self.baudrates:
+            print "\nTrying %i" % r;
+            self.serialport.setBaudrate(r);
+            #time.sleep(1);
+            self.serialport.flushInput()
+            self.serialport.flushOutput()
+            
+            for i in range(1,10):
+                self.readbyte();
+            
+            print "Read %02x %02x %02x %02x" % (
+                self.readbyte(),self.readbyte(),self.readbyte(),self.readbyte());
     def monitortest(self):
         """Self-test several functions through the monitor."""
         print "Performing monitor self-test.";

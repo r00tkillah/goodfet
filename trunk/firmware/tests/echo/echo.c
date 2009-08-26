@@ -36,7 +36,7 @@ int main(void)
   PLEDOUT^=PLEDPIN;  // Blink
   
   //while(1) serial_tx(serial_rx());
-  while(1) serial_tx(serial_rx());
+  while(1) serial_tx('G');
   
   while(1){
     i = 10000;

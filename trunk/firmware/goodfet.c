@@ -76,8 +76,10 @@ int main(void)
   //}
   //delay(0xffff);
   //while(*((int*)0x1001));
+  
   //while(1)
   //  txdata(0xFF,0xFF,0);
+  
   txstring(MONITOR,OK,"http://goodfet.sf.net/");
   
   //Command loop.  There's no end!

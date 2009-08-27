@@ -49,23 +49,28 @@ void serial1_tx(unsigned char x){
 //! Set the baud rate.
 void setbaud(unsigned char rate){
   
-  //http://mspgcc.sourceforge.net/baudrate.html
+  //Table 15-4, page 481 of 2xx Family Guide
   switch(rate){
   case 1://9600 baud
-    
+    UCA0BR1 = 0x06;
+    UCA0BR0 = 0x82;
     break;
   case 2://19200 baud
-    
+    UCA0BR1 = 0x03;
+    UCA0BR0 = 0x41;
     break;
   case 3://38400 baud
-    
+    UCA0BR1 = 0xa0;
+    UCA0BR0 = 0x01;
     break;
   case 4://57600 baud
-    
+    UCA0BR1 = 0x1d;
+    UCA0BR0 = 0x01;
     break;
   default:
   case 5://115200 baud
-    
+    UCA0BR0 = 0x8a;
+    UCA0BR1 = 0x00;
     break;
   }
 }
@@ -79,7 +84,6 @@ void setbaud1(unsigned char rate){
     
     break;
   case 2://19200 baud
-    
     break;
   case 3://38400 baud
     
@@ -94,12 +98,8 @@ void setbaud1(unsigned char rate){
   }
 }
 
-
-
-//19200
-#define BAUD0EN 0x1b
-#define BAUD1EN 0x00
-
+#define BAUD0EN 0x41
+#define BAUD1EN 0x03
 
 void msp430_init_uart(){
 
@@ -112,8 +112,11 @@ void msp430_init_uart(){
   UCA0CTL0 = 0x00;
   //UCA0CTL0 |= UCMSB ;                                                                                                                                                   
   UCA0CTL1 |= UCSSEL_2;                     // SMCLK                                                                                                                      
-  UCA0BR0 = BAUD0EN;                        // 115200                                                                                                                     
-  UCA0BR1 = BAUD1EN;
+
+  //UCA0BR0 = BAUD0EN;                        // 115200                                                                                                                     
+  //UCA0BR1 = BAUD1EN;
+  setbaud(5);//default baud, 115200
+
   UCA0MCTL = 0;                             // Modulation UCBRSx = 5                                                                                                      
   UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**                                                                                          
 
@@ -124,9 +127,10 @@ void msp430_init_uart(){
 
 }
 
-//external resistor
-#define DCOR 1
 void msp430_init_dco() {
+  //This REQUIRES that info flash be unmolested.
+  //TODO check for that.
+  
   BCSCTL1 = CALBC1_16MHZ;
   DCOCTL = CALDCO_16MHZ;  
   return;

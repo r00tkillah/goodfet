@@ -77,9 +77,7 @@ if(sys.argv[1]=="dump"):
     i=start;
     while i<=stop:
         data=client.SPIpeekblock(i);
-        
-        
-        if(i%0x100==0):
+        if(i%0x1000==0):
             print "Dumped %06x."%i;
         for j in data:
             file.write(j);

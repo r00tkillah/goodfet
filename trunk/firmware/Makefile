@@ -24,9 +24,13 @@ run:
 	../client/goodfet.msp430 test
 
 install: $(app).hex
-	$(BSL) -e -p $(app).hex 
+	$(BSL) -e
+	#$(BSL) -p info.txt || true  #MSP430F2xx targets only, inelegant.
+	$(BSL) -p $(app).hex 
 verify:
 	$(BSL) -P $(app).hex -v $(app).hex
+dumpinfo:
+	$(BSL) --dumpinfo -c /dev/ttyUSB0
 $(app): $(app).c $(libs) $(apps)
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex

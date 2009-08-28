@@ -912,7 +912,7 @@ class BootStrapLoader(LowLevel):
                 pstart = pstart + length
                 currentAddr = currentAddr + length
                 self.byteCtr = self.byteCtr + length #total sum
-
+    
     def uploadData(self, startaddress, size, wait=0):
         """upload a datablock"""
         if DEBUG > 1: sys.stderr.write("* uploadData()\n")
@@ -1341,7 +1341,9 @@ def main():
     bslrepl     = None
     mayuseBSL   = 1
     forceBSL    = 0
-
+    dumpivt     = 0
+    dumpinfo    = 0
+    
     sys.stderr.write("MSP430 Bootstrap Loader Version: %s\n" % VERSION)
 
     try:
@@ -1354,7 +1356,8 @@ def main():
              "intelhex", "titext", "notimeout", "bsl=", "speed=",
              "bslversion", "f1x", "f2x", "f4x", "invert-reset", "invert-test",
 	     "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
-             "tmote","no-BSL-download", "force-BSL-download", "slow"]
+             "tmote","no-BSL-download", "force-BSL-download", "slow",
+             "dumpivt", "dumpinfo"]
         )
     except getopt.GetoptError:
         # print help information and exit:
@@ -1375,6 +1378,10 @@ def main():
             bsl.passwd = Memory(a).getMemrange(0xffe0, 0xffff)
         elif o in ("-w", "--wait"):
             wait = 1
+        elif o in ("--dumpivt"):
+            dumpivt=1;
+        elif o in ("--dumpinfo"):
+            dumpinfo=1;
         elif o in ("-f", "--framesize"):
             try:
                 maxData = int(a)                    #try to convert decimal
@@ -1597,7 +1604,22 @@ def main():
 
     if reset:                                       #reset device first if desired
         bsl.actionReset()
-
+    if dumpivt:
+        bsl.txPasswd(); #default pass
+        data=bsl.uploadData(0xc00,1024);
+        hex="";
+        for c in data:
+            hex+=("%02x "%ord(c));
+        print hex;
+    if dumpinfo:
+        bsl.txPasswd(); #default pass
+        data=bsl.uploadData(0x1000,256);
+        hex="@1000\n";
+        for c in data:
+            hex+=("%02x "%ord(c));
+        hex+="\nq\n";
+        print hex;
+    
     if goaddr is not None:                          #start user programm at specified address
         bsl.actionRun(goaddr)                       #load PC and execute
 

@@ -58,6 +58,7 @@ if(sys.argv[1]=="peek"):
     stop=0xFFFF;
     if(len(sys.argv)>2):
         start=int(sys.argv[2],16);
+        stop=start+1
     if(len(sys.argv)>3):
         stop=int(sys.argv[3],16);
     

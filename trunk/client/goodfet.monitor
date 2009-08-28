@@ -15,6 +15,7 @@ if(len(sys.argv)==1):
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s ramfill" % sys.argv[0];
     print "%s ramdepth" % sys.argv[0];
+    print "%s info" % sys.argv[0];
     sys.exit();
 
 #Initailize FET and set baud rate
@@ -22,6 +23,10 @@ client=GoodFET();
 client.serInit()
 
 
+if(sys.argv[1]=="info"):
+    a=client.peekbyte(0xff0);
+    b=client.peekbyte(0xff1);
+    print "GoodFET with %02x%02x MCU" % (a,b);
 if(sys.argv[1]=="ramfill"):
     client.monitor_ram_pattern();
 if(sys.argv[1]=="ramdepth"):

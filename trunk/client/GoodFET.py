@@ -6,7 +6,7 @@
 # This code is ugly as sin, for bootstrapping the firmware only.
 # Rewrite cleanly as soon as is convenient.
 
-import sys, time, string, cStringIO, struct, glob, serial
+import sys, time, string, cStringIO, struct, glob, serial, os;
 
 
 class GoodFET:
@@ -16,6 +16,9 @@ class GoodFET:
         print "timeout\n";
     def serInit(self, port=None):
         """Open the serial port"""
+        
+        if port is None:
+            port=os.environ.get("GOODFET");
         
         if port is None:
             glob_list = glob.glob("/dev/tty.usbserial*");
@@ -28,13 +31,7 @@ class GoodFET:
         
         self.serialport = serial.Serial(
             port,
-            #300,
-            #2400,
-            #4800,
             #9600,
-            #19200,
-            #38400,
-            #57600,
             115200,
             parity = serial.PARITY_NONE
             )
@@ -48,7 +45,7 @@ class GoodFET:
         self.readcmd(); #Read the first command.
         if(self.verb!=0x7F):
             print "Verb %02x is wrong.  Incorrect firmware?" % self.verb;
-        print "Connected."
+        #print "Connected."
     def writecmd(self, app, verb, count, data):
         """Write a command and some data to the GoodFET."""
         self.serialport.write(chr(app));
@@ -141,7 +138,7 @@ class GoodFET:
         """Self-test several functions through the monitor."""
         print "Performing monitor self-test.";
         
-        if self.peekword(0x0c00)!=0x0c04:
+        if self.peekword(0x0c00)!=0x0c04 and self.peekword(0x0c00)!=0x0c06:
             print "ERROR Fetched wrong value from 0x0c04.";
         self.pokebyte(0x0021,0); #Drop LED
         if self.peekbyte(0x0021)!=0:
@@ -252,7 +249,7 @@ class GoodFET:
     
     def CCsetup(self):
         """Move the FET into the CC2430/CC2530 application."""
-        print "Initializing Chipcon.";
+        #print "Initializing Chipcon.";
         self.writecmd(0x30,0x10,0,self.data);
     def CCrd_config(self):
         """Read the config register of a Chipcon."""
@@ -351,7 +348,7 @@ class GoodFET:
         #print "Status: %s." % self.CCstatusstr();
         self.CCreleasecpu();
         self.CChaltcpu();
-        print "Status: %s." % self.CCstatusstr();
+        #print "Status: %s." % self.CCstatusstr();
         
     def CCstop(self):
         """Stop debugging."""
@@ -436,7 +433,7 @@ class GoodFET:
     def CCtest(self):
         self.CCreleasecpu();
         self.CChaltcpu();
-        print "Status: %s" % self.CCstatusstr();
+        #print "Status: %s" % self.CCstatusstr();
         
         #Grab ident three times, should be equal.
         ident1=self.CCident();
@@ -447,26 +444,22 @@ class GoodFET:
             print "%04x, %04x, %04x" % (ident1, ident2, ident3);
         
         #Single step, printing PC.
-        #print "Tracing execution at startup."
+        print "Tracing execution at startup."
         for i in range(1,15):
             pc=self.CCgetPC();
             byte=self.CCpeekcodebyte(i);
-            print "PC=%04x, %02x" % (pc, byte);
+            #print "PC=%04x, %02x" % (pc, byte);
             self.CCstep_instr();
         
-        #print "Verifying that debugging a NOP doesn't affect the PC."
+        print "Verifying that debugging a NOP doesn't affect the PC."
         for i in range(1,15):
             pc=self.CCgetPC();
             self.CCdebuginstr([0x00]);
             if(pc!=self.CCgetPC()):
                 print "ERROR: PC changed during CCdebuginstr([NOP])!";
-        for i in range(0xE500,0xE600):
-            byte=self.CCpeekdatabyte(i);
-            print "data %04x: %02x" % (i,byte);
-            self.CCpokedatabyte(i,i&0xFF);
-            byte=self.CCpeekdatabyte(i);
-            print "data %04x: %02x" % (i,byte);
-        print "Status: %s." % self.CCstatusstr();
+        
+        
+        #print "Status: %s." % self.CCstatusstr();
         #Exit debugger
         self.CCstop();
         print "Done.";

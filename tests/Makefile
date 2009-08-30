@@ -3,7 +3,7 @@ GOODFET=/dev/ttyUSB0
 
 all: $(TARGETS)
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) *~
 
 monitor: monitor.zsh
 	./monitor.zsh >monitor

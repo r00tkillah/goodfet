@@ -17,7 +17,7 @@ before use.  These inconveniences will be fixed in the GoodFET11.
 <table border="1">
 <tr><td>Quantity</td><td>Package</td><td></td></tr>
 <tr><td>1</td><td>SSOP28</td><td>FT232R </td></tr>
-<tr><td>3</td><td>QFP64</td><td>MSP430F1611 or 1612</td></tr>
+<tr><td>1</td><td>QFP64</td><td>MSP430F1611 or 1612</td></tr>
 <tr><td>2</td><td>0603</td><td>0.1&mu;F Decoupling Capacitors</td></tr>
 <tr><td>3</td><td>0603</td><td>LED</td></tr>
 <tr><td>2</td><td>0603</td><td>330R LED Series Resistors</td></tr>
@@ -25,7 +25,8 @@ before use.  These inconveniences will be fixed in the GoodFET11.
 <tr><td>6</td><td>0603</td><td>100R JTAG Series Resistors</td></tr>
 </table>
 
-<p>Also, one 47K through-hole resistor to patch an erratum.</p>
+<p>Also, one 47K through-hole resistor and a 32.768kHz crystal
+are required to patch errata.</p>
 
 <h2>Construction</h2>
 
@@ -43,10 +44,8 @@ in the Errata section.
 The GOODFET10 is missing a 47K pull-up resistor on the !RST pin of the MSP430F161x
 chip.  Solder one like so.</p>
 
-<p>Further, no crystals are present on this board.  It is recommended that firmware
-be written in such a way that they are unnecessary, but a 32KHz crystal may be
-patched onto the XIN/XOUT pins if needed.  The GoodFET11 will include
-pads for crystals, but they are to remain optional.</p>
+<p>Further, no crystals are present on this board.  A 32.768kHz crystal must be
+patched onto the XIN/XOUT pins.</p>
 
 <p>The board as first manufactured was too thin, so a wedge or a crimped
 USB extension cable is necessary for a tight fit.  Future runs will be made

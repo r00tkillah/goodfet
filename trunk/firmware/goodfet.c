@@ -5,9 +5,6 @@
 #include "command.h"
 #include "apps.h"
 
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
 
 
 //LED on P1.0

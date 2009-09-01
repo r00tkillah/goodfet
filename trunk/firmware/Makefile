@@ -1,9 +1,12 @@
 
-PORT=/dev/ttyUSB0
-BSL=../../contrib/tos-bsl --invert-reset --invert-test -c $(PORT) --speed=38400
+#include `uname`.mak
 
+GOODFET?=/dev/ttyUSB0
+BSL=../../contrib/tos-bsl --invert-reset --invert-test -c $(GOODFET) --speed=38400
+
+#mcu=msp430x2274
 #mcu=msp430x2618
-mcu=msp430x1612
+mcu?=msp430x1612
 
 
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.

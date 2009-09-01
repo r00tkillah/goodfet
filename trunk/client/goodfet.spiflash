@@ -18,7 +18,7 @@ if(len(sys.argv)==1):
     print "%s info" % sys.argv[0];
     print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
-    print "%s write $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
     print "%s poke 0x$adr 0x$val" % sys.argv[0];

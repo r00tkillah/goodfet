@@ -18,8 +18,9 @@ class GoodFET:
         """Open the serial port"""
         
         if port is None:
-            port=os.environ.get("GOODFET");
-        
+            glob_list = glob.glob(os.environ.get("GOODFET"));
+            if len(glob_list) > 0:
+                port = glob_list[0];
         if port is None:
             glob_list = glob.glob("/dev/tty.usbserial*");
             if len(glob_list) > 0:
@@ -150,6 +151,7 @@ class GoodFET:
     def SPIsetup(self):
         """Moved the FET into the SPI application."""
         self.writecmd(0x01,0x10,0,self.data); #SPI/SETUP
+    
         
     def SPItrans8(self,byte):
         """Read and write 8 bits by SPI."""
@@ -245,8 +247,23 @@ class GoodFET:
         print "Initializing MSP430.";
         self.writecmd(0x11,0x10,0,self.data);
 
-    
-    
+    def I2Csetup(self):
+        """Move the FET into the I2C application."""
+        self.writecmd(0x02,0x10,0,self.data); #SPI/SETUP
+    def I2Cstart(self):
+        """Start an I2C transaction."""
+        self.writecmd(0x02,0x20,0,self.data); #SPI/SETUP
+    def I2Cstop(self):
+        """Stop an I2C transaction."""
+        self.writecmd(0x02,0x21,0,self.data); #SPI/SETUP
+    def I2Cread(self,len=1):
+        """Read len bytes by I2C."""
+        self.writecmd(0x02,0x00,1,[len]); #SPI/SETUP
+        return self.data;
+    def I2Cwrite(self,bytes):
+        """Write bytes by I2C."""
+        self.writecmd(0x02,0x01,len(bytes),bytes); #SPI/SETUP
+        return ord(self.data[0]);
     def CCsetup(self):
         """Move the FET into the CC2430/CC2530 application."""
         #print "Initializing Chipcon.";

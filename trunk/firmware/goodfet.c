@@ -14,14 +14,13 @@
 void init(){
   WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
   
-  //LED and TX OUT
+  //LED out and on.
   PLEDDIR |= PLEDPIN;
+  PLEDOUT |= PLEDPIN;
   
+  //Setup clocks, unique to each '430.
   msp430_init_dco();
   msp430_init_uart();
-  
-  
-  
   
   //Enable Interrupts.
   //eint();
@@ -38,7 +37,7 @@ void handle(unsigned char app,
   case SPI:
     spihandle(app,verb,len);
     break;
-  case I2C:
+  case I2CAPP:
     i2chandle(app,verb,len);
     break;
   case CHIPCON:

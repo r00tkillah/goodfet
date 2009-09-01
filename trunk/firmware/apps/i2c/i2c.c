@@ -15,27 +15,46 @@
 
 
 //Pins and I/O
-#define SS   BIT3
-#define SDA  BIT2
-#define SCL  BIT3
+#include <jtag.h>
+#define SDA TDI
+#define SCL TDO
 
-#define I2CDELAY(x) delay(x)
+#define I2CDELAY(x) delay(x<<4)
 
-//Bits are cleared by output of low.
-//Bits are set but input and pull-up resistor.
-#define SETSDA P5DIR&=~SDA
-#define CLRSDA P5DIR|=SDA
-#define SETSCL P5DIR&=~SCL
-#define CLRSCL P5DIR|=SCL
+
+//2xx only, need 1xx compat code
+#define CLRSDA P5OUT&=~SDA
+#define SETSDA P5OUT|=SDA
+#define CLRSCL P5OUT&=~SCL
+#define SETSCL P5OUT|=SCL
 
 #define READSDA (P5IN&SDA?1:0)
-#define SETBOTH P5DIR&=~(SDA|SCL)
+#define SETBOTH P5OUT|=(SDA|SCL)
 
 #define I2C_DATA_HI() SETSDA
 #define I2C_DATA_LO() CLRSDA
 
 #define I2C_CLOCK_HI() SETSCL
 #define I2C_CLOCK_LO() CLRSCL
+
+#warning "Using internal resistors.  Won't work on 161x devices."
+
+//! Inits bitbanging port, must be called before using the functions below
+void I2C_Init()
+{
+  
+  //Clear SDA and SCL.
+  //Direction, not value, is used to set the value.
+  //(Pull-up or 0.)
+  P5DIR|=(SDA|SCL);
+  P5REN|=SDA|SCL;
+  
+  
+  I2C_CLOCK_HI();
+  I2C_DATA_HI();
+
+  I2CDELAY(1);
+}
 
 //! Write an I2C bit.
 void I2C_WriteBit( unsigned char c )
@@ -64,7 +83,7 @@ unsigned char I2C_ReadBit()
 
   I2C_CLOCK_HI();
   I2CDELAY(1);
-
+  
   unsigned char c = READSDA;
 
   I2C_CLOCK_LO();
@@ -73,19 +92,6 @@ unsigned char I2C_ReadBit()
   return c;
 }
 
-//! Inits bitbanging port, must be called before using the functions below
-void I2C_Init()
-{
-  //Clear SDA and SCL.
-  //Direction, not value, is used to set the value.
-  //(Pull-up or 0.)
-  P5OUT&=~(SDA|SCL);
-  
-  I2C_CLOCK_HI();
-  I2C_DATA_HI();
-
-  I2CDELAY(1);
-}
 
 //! Send a START Condition
 void I2C_Start()
@@ -116,7 +122,7 @@ unsigned char I2C_Write( unsigned char c )
 {
   char i;
   for (i=0;i<8;i++){
-    I2C_WriteBit( c & 128 );
+    I2C_WriteBit( c & 0x80 );
     c<<=1;
   }
   
@@ -161,22 +167,25 @@ void i2chandle(unsigned char app,
   case READ:
     if(len>0)          //optional parameter of length
       len=cmddata[0];
-    if(len==0)         //default value of 1
+    if(!len)           //default value of 1
       len=1;
     for(i=0;i<len;i++)
       cmddata[i]=I2C_Read(1);  //Always acknowledge
     txdata(app,verb,len);
     break;
   case WRITE:
+    cmddata[0]=0;
     for(i=0;i<len;i++)
-      I2C_Write(cmddata[i]);
-    txdata(app,verb,0);
+      cmddata[0]+=I2C_Write(cmddata[i]);
+    txdata(app,verb,1);
     break;
   case START:
     I2C_Start();
+    txdata(app,verb,0);
     break;
   case STOP:
     I2C_Stop();
+    txdata(app,verb,0);
     break;
   case SETUP:
     I2C_Init();

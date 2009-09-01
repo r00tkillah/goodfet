@@ -8,8 +8,6 @@
 #include "jtag.h"
 
 
-
-
 //! Set up the pins for JTAG mode.
 void jtagsetup(){
   P5DIR|=MOSI+SCK+TMS;

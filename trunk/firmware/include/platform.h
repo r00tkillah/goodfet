@@ -6,13 +6,13 @@
 
 
 //Use P3 instead of P5 for target I/O on chips without P5.
-//#ifndef P5OUT
-//#warning "P5OUT undefined, using P3 instead."
-//#define P5OUT P3OUT
-//#define P5DIR P3DIR
-//#define P5REN P3REN
-//#define P5IN P3IN
-//#endif
+#ifdef __msp430x22x4
+#warning "2274, using P3 instead.  Will break 2618 and 1612 support."
+#define P5OUT P3OUT
+#define P5DIR P3DIR
+#define P5REN P3REN
+#define P5IN P3IN
+#endif
 
 unsigned char serial_rx();
 void serial_tx(unsigned char);

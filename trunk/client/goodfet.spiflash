@@ -56,11 +56,12 @@ if(sys.argv[1]=="test"):
 
 if(sys.argv[1]=="info"):
     data=client.SPIjedec();
-    print "Ident as %s\nManufacturer: %02x %s\nType: %02x\nCapacity: %02x" % (
+    print "Ident as %s\nManufacturer: %02x %s\nType: %02x\nCapacity: %02x (%i bytes)" % (
         client.SPIjedecstr(),
         ord(data[1]),client.SPIjedecmanstr(),
         ord(data[2]),
-        ord(data[3]));
+        ord(data[3]),
+        client.JEDECsize);
 
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];

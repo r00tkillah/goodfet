@@ -179,6 +179,11 @@ class GoodFET:
                   0xC22013: "MX25L4005",
                   0x204011: "M45PE10"
                   };
+    JEDECsizes={0x14: 0x100000,
+                0x13: 0x080000,
+                0x12: 0x040000,
+                0x11: 0x020000}
+    JEDECsize=0;
     def SPIjedec(self):
         """Grab an SPI Flash ROM's JEDEC bytes."""
         data=[0x9f, 0, 0, 0];
@@ -187,6 +192,7 @@ class GoodFET:
         self.JEDECmanufacturer=ord(data[1]);
         self.JEDECtype=ord(data[2]);
         self.JEDECcapacity=ord(data[3]);
+        self.JEDECsize=self.JEDECsizes.get(self.JEDECcapacity);
         self.JEDECdevice=(ord(data[1])<<16)+(ord(data[2])<<8)+ord(data[3]);
         return data;
     def SPIpeek(self,adr):
@@ -199,14 +205,13 @@ class GoodFET:
         self.SPItrans(data);
         return ord(self.data[4]);
     def SPIpeekblock(self,adr):
-        """Grab a byte from an SPI Flash ROM."""
+        """Grab a block from an SPI Flash ROM.  Block size is unknown"""
         data=[(adr&0xFF0000)>>16,
               (adr&0xFF00)>>8,
               adr&0xFF];
         
         self.writecmd(0x01,0x02,3,data);
         return self.data;
-    
     def SPIpokebyte(self,adr,val):
         self.SPIpokebytes(adr,[val]);
     def SPIpokebytes(self,adr,data):

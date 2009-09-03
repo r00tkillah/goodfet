@@ -17,7 +17,7 @@ class GoodFET:
     def serInit(self, port=None):
         """Open the serial port"""
         
-        if port is None:
+        if port is None and os.environ.get("GOODFET")!=None:
             glob_list = glob.glob(os.environ.get("GOODFET"));
             if len(glob_list) > 0:
                 port = glob_list[0];

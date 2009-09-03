@@ -33,7 +33,7 @@ install: $(app).hex
 verify:
 	$(BSL) -P $(app).hex -v $(app).hex
 dumpinfo:
-	$(BSL) --dumpinfo -c /dev/ttyUSB0
+	$(BSL) --dumpinfo
 $(app): $(app).c $(libs) $(apps)
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex

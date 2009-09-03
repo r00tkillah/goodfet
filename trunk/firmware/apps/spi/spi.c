@@ -99,6 +99,38 @@ void spiflash_setstatus(unsigned char c){
   //return c;
 }
 
+//! Peek some blocks.
+void spiflash_peek(unsigned char app,
+		   unsigned char verb,
+		   unsigned char len){
+  register char blocks=(len>3?cmddata[3]:1);
+  unsigned char i,j;
+  
+  P5OUT&=~SS; //Drop !SS to begin transaction.
+  spitrans8(0x03);//Flash Read Command
+  len=3;//write 3 byte pointer
+  for(i=0;i<len;i++)
+    spitrans8(cmddata[i]);
+  
+  //Send reply header
+  len=0x80;//128 byte chunk, repeated for each block
+  serial_tx(app);
+  serial_tx(verb);
+  serial_tx(len); //multiplied by block count.
+  
+  while(blocks--){
+    for(i=0;i<len;i++)
+      serial_tx(spitrans8(0));
+    
+    /* old fashioned
+    for(i=0;i<len;i++)
+      cmddata[i]=spitrans8(0);
+    txdata(app,verb,len);
+    */
+  }
+  P5OUT|=SS;  //Raise !SS to end transaction.
+}
+
 //! Handles a monitor command.
 void spihandle(unsigned char app,
 	       unsigned char verb,
@@ -129,16 +161,8 @@ void spihandle(unsigned char app,
     P5OUT|=SS;  //Raise !SS to end transaction.
     break;
   case PEEK://Grab 128 bytes from an SPI Flash ROM
-    P5OUT&=~SS; //Drop !SS to begin transaction.
-    spitrans8(0x03);//Flash Read Command
-    len=3;//write 3 byte pointer
-    for(i=0;i<len;i++)
-      spitrans8(cmddata[i]);
-    len=0x80;//128 byte chunk
-    for(i=0;i<len;i++)
-      cmddata[i]=spitrans8(0);
-    P5OUT|=SS;  //Raise !SS to end transaction.
-    txdata(app,verb,len);
+    
+    spiflash_peek(app,verb,len);
     break;
   case POKE://Poke up bytes from an SPI Flash ROM.
     spiflash_setstatus(0x02);

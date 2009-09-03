@@ -47,7 +47,7 @@ class GoodFET:
         if(self.verb!=0x7F):
             print "Verb %02x is wrong.  Incorrect firmware?" % self.verb;
         #print "Connected."
-    def writecmd(self, app, verb, count, data):
+    def writecmd(self, app, verb, count, data=[], blocks=1):
         """Write a command and some data to the GoodFET."""
         self.serialport.write(chr(app));
         self.serialport.write(chr(verb));
@@ -56,14 +56,15 @@ class GoodFET:
         if count!=0:
             for d in data:
                 self.serialport.write(chr(d));
-        self.readcmd();  #Uncomment this later, to ensure a response.
-    def readcmd(self):
+        
+        self.readcmd(blocks);  #Uncomment this later, to ensure a response.
+    def readcmd(self,blocks=1):
         """Read a reply from the GoodFET."""
         self.app=ord(self.serialport.read(1));
         self.verb=ord(self.serialport.read(1));
         self.count=ord(self.serialport.read(1));
-        if self.count>0:
-            self.data=self.serialport.read(self.count);
+        self.data=self.serialport.read(self.count*blocks);
+        return self.data;
         #print "READ %02x %02x %02x " % (self.app, self.verb, self.count);
         
     #Monitor stuff
@@ -193,6 +194,8 @@ class GoodFET:
         self.JEDECtype=ord(data[2]);
         self.JEDECcapacity=ord(data[3]);
         self.JEDECsize=self.JEDECsizes.get(self.JEDECcapacity);
+        if self.JEDECsize==None:
+            self.JEDECsize=0;
         self.JEDECdevice=(ord(data[1])<<16)+(ord(data[2])<<8)+ord(data[3]);
         return data;
     def SPIpeek(self,adr):
@@ -204,14 +207,24 @@ class GoodFET:
               0];
         self.SPItrans(data);
         return ord(self.data[4]);
-    def SPIpeekblock(self,adr):
-        """Grab a block from an SPI Flash ROM.  Block size is unknown"""
+#     def SPIpeekblock(self,adr):
+#         """Grab a block from an SPI Flash ROM.  Block size is unknown"""
+#         data=[(adr&0xFF0000)>>16,
+#               (adr&0xFF00)>>8,
+#               adr&0xFF];
+        
+#         self.writecmd(0x01,0x02,3,data);
+#         return self.data;
+    def SPIpeekblock(self,adr,blocks=1):
+        """Grab a few block from an SPI Flash ROM.  Block size is unknown"""
         data=[(adr&0xFF0000)>>16,
               (adr&0xFF00)>>8,
-              adr&0xFF];
+              adr&0xFF,
+              blocks];
         
-        self.writecmd(0x01,0x02,3,data);
+        self.writecmd(0x01,0x02,4,data,blocks);
         return self.data;
+    
     def SPIpokebyte(self,adr,val):
         self.SPIpokebytes(adr,[val]);
     def SPIpokebytes(self,adr,data):

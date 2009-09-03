@@ -19,7 +19,7 @@ if(len(sys.argv)==1):
     print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
     print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
-    #print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
     print "%s poke 0x$adr 0x$val" % sys.argv[0];
     sys.exit();
@@ -74,7 +74,7 @@ if(sys.argv[1]=="dump"):
     
     print "Dumping code from %06x to %06x as %s." % (start,stop,f);
     file = open(f, mode='wb')
-
+    
     i=start;
     while i<=stop:
         data=client.SPIpeekblock(i,255);
@@ -84,6 +84,33 @@ if(sys.argv[1]=="dump"):
             if i<stop: file.write(j);
             i+=1;
     file.close()
+
+if(sys.argv[1]=="verify"):
+    f = sys.argv[2];
+    start=0x0000;
+    stop=client.JEDECsize;
+    if(len(sys.argv)>3):
+        start=int(sys.argv[3],16);
+    if(len(sys.argv)>4):
+        stop=int(sys.argv[4],16);
+    
+    print "Verifying code from %06x to %06x as %s." % (start,stop,f);
+    file = open(f, mode='rb')
+    
+    i=start;
+    bits=0;
+    while i<=stop:
+        data=client.SPIpeekblock(i,255);
+        print "Verified %06x." % i;
+        for j in data:
+            if i<stop:
+                bits|=ord(file.read(1))^ord(j);
+            i+=1;
+        if bits!=0:
+            print "Bits don't match."
+
+    file.close()
+
 if(sys.argv[1]=="flash"):
     f = sys.argv[2];
     start=0x0000;

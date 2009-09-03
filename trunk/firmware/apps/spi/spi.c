@@ -17,6 +17,7 @@
 #define MISO BIT2
 #define SCK  BIT3
 
+
 //This could be more accurate.
 //Does it ever need to be?
 #define SPISPEED 0
@@ -40,6 +41,7 @@ void spisetup(){
   P5OUT&=~SS; 
   P5OUT|=SS;
 }
+
 
 //! Read and write an SPI bit.
 unsigned char spitrans8(unsigned char byte){
@@ -70,6 +72,7 @@ unsigned char spitrans8(unsigned char byte){
   return byte;
 }
 
+
 //! Enable SPI writing
 void spiflash_wrten(){
   P5OUT&=~SS; //Drop !SS to begin transaction.
@@ -79,6 +82,7 @@ void spiflash_wrten(){
   spitrans8(0x06);//Write Enable
   P5OUT|=SS;  //Raise !SS to end transaction.
 }
+
 
 //! Grab the SPI flash status byte.
 unsigned char spiflash_status(){
@@ -90,6 +94,8 @@ unsigned char spiflash_status(){
   P5OUT|=SS;  //Raise !SS to end transaction.
   return c;
 }
+
+
 //! Grab the SPI flash status byte.
 void spiflash_setstatus(unsigned char c){
   P5OUT&=~SS; //Drop !SS to begin transaction.
@@ -151,6 +157,8 @@ void spihandle(unsigned char app,
     P5OUT|=SS;  //Raise !SS to end transaction.
     txdata(app,verb,len);
     break;
+
+
   case SPI_JEDEC://Grab 3-byte JEDEC ID.
     P5OUT&=~SS; //Drop !SS to begin transaction.
     spitrans8(0x9f);
@@ -160,10 +168,13 @@ void spihandle(unsigned char app,
     txdata(app,verb,len);
     P5OUT|=SS;  //Raise !SS to end transaction.
     break;
+
+
   case PEEK://Grab 128 bytes from an SPI Flash ROM
-    
     spiflash_peek(app,verb,len);
     break;
+
+
   case POKE://Poke up bytes from an SPI Flash ROM.
     spiflash_setstatus(0x02);
     spiflash_wrten();
@@ -178,6 +189,8 @@ void spihandle(unsigned char app,
     while(spiflash_status()&0x01);//while busy
     txdata(app,verb,len);
     break;
+
+
   case SPI_ERASE://Erase the SPI Flash ROM.
     spiflash_wrten();
     P5OUT&=~SS; //Drop !SS to begin transaction.
@@ -185,6 +198,8 @@ void spihandle(unsigned char app,
     P5OUT|=SS;  //Raise !SS to end transaction.
     txdata(app,verb,0);
     break;
+
+
   case SETUP:
     spisetup();
     txdata(app,verb,0);

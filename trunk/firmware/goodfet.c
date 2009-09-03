@@ -50,7 +50,11 @@ void handle(unsigned char app,
     jtag430handle(app,verb,len);
     break;
   default:
+    #ifdef HANDLEOTHER
+    HANDLEOTHER(app,verb,len);
+    #else
     txdata(app,NOK,0);
+    #endif
     break;
   }
 }

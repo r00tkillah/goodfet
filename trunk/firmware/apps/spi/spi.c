@@ -186,7 +186,11 @@ void spihandle(unsigned char app,
     for(i=0;i<len;i++)
       spitrans8(cmddata[i]);
     P5OUT|=SS;  //Raise !SS to end transaction.
-    while(spiflash_status()&0x01);//while busy
+    
+    while(spiflash_status()&0x01)//while busy
+      P1OUT^=1;
+    P1OUT&=~1;
+    
     txdata(app,verb,len);
     break;
 

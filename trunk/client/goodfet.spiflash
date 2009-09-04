@@ -10,7 +10,7 @@ import sys;
 import binascii;
 import array;
 
-from GoodFET import GoodFET;
+from GoodFET import GoodFETSPIFlash;
 from intelhex import IntelHex;
 
 if(len(sys.argv)==1):
@@ -24,8 +24,8 @@ if(len(sys.argv)==1):
     print "%s poke 0x$adr 0x$val" % sys.argv[0];
     sys.exit();
 
-#Initailize FET and set baud rate
-client=GoodFET();
+#Initialize FET and set baud rate
+client=GoodFETSPIFlash();
 client.serInit()
 
 

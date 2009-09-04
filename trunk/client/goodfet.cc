@@ -3,7 +3,7 @@
 import sys;
 import binascii;
 
-from GoodFET import GoodFET;
+from GoodFET import GoodFETCC;
 from intelhex import IntelHex;
 
 
@@ -22,7 +22,7 @@ if(len(sys.argv)==1):
     sys.exit();
 
 #Initailize FET and set baud rate
-client=GoodFET();
+client=GoodFETCC();
 client.serInit()
 
 #Connect to target

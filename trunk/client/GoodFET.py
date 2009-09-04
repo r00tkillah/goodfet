@@ -10,6 +10,7 @@ import sys, time, string, cStringIO, struct, glob, serial, os;
 
 
 class GoodFET:
+    """GoodFET Client Library"""
     def __init__(self, *args, **kargs):
         self.data=[0];
     def timeout(self):
@@ -47,7 +48,7 @@ class GoodFET:
         if(self.verb!=0x7F):
             print "Verb %02x is wrong.  Incorrect firmware?" % self.verb;
         #print "Connected."
-    def writecmd(self, app, verb, count, data=[], blocks=1):
+    def writecmd(self, app, verb, count=0, data=[], blocks=1):
         """Write a command and some data to the GoodFET."""
         self.serialport.write(chr(app));
         self.serialport.write(chr(verb));
@@ -152,7 +153,6 @@ class GoodFET:
     def SPIsetup(self):
         """Moved the FET into the SPI application."""
         self.writecmd(0x01,0x10,0,self.data); #SPI/SETUP
-    
         
     def SPItrans8(self,byte):
         """Read and write 8 bits by SPI."""
@@ -207,14 +207,6 @@ class GoodFET:
               0];
         self.SPItrans(data);
         return ord(self.data[4]);
-#     def SPIpeekblock(self,adr):
-#         """Grab a block from an SPI Flash ROM.  Block size is unknown"""
-#         data=[(adr&0xFF0000)>>16,
-#               (adr&0xFF00)>>8,
-#               adr&0xFF];
-        
-#         self.writecmd(0x01,0x02,3,data);
-#         return self.data;
     def SPIpeekblock(self,adr,blocks=1):
         """Grab a few block from an SPI Flash ROM.  Block size is unknown"""
         data=[(adr&0xFF0000)>>16,
@@ -260,6 +252,7 @@ class GoodFET:
         if device==0:
             device="???"
         return "%s %s" % (man,device);
+
     def MSP430setup(self):
         """Move the FET into the MSP430 JTAG application."""
         print "Initializing MSP430.";

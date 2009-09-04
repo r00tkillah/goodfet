@@ -57,6 +57,38 @@ unsigned long jtag430_deviceid(){
 }
 
 
+//! Write data to address
+unsigned int jtag430x2_writemem(unsigned long adr,
+				unsigned long data){
+  jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
+  if(jtag_ir_shift8(0) & 0x0301){
+    CLRTCLK;
+    jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+    if(adr>=0x100)
+      jtag_ir_shift8(0x0500);//word mode
+    else
+      jtag_ir_shift8(0x0510);//byte mode
+    jtag_ir_shift8(IR_ADDR_16BIT);
+    jtag_dr_shift20(adr);
+    
+    SETTCLK;
+    
+    jtag_ir_shift8(IR_DATA_TO_ADDR);
+    jtag_ir_shift8(data);//16 word
+
+    CLRTCLK;
+    jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+    jtag_ir_shift8(0x0501);
+    SETTCLK;
+
+    CLRTCLK;
+    SETTCLK;
+    //init state
+  }else{
+    while(1) P1OUT^=1; //loop if locked up
+  }
+}
+
 //! Read data from address
 unsigned int jtag430x2_readmem(unsigned long adr){
   unsigned int toret=0;
@@ -72,7 +104,7 @@ unsigned int jtag430x2_readmem(unsigned long adr){
       jtag_dr_shift16(0x0511);//byte read
     }
     jtag_ir_shift8(IR_ADDR_16BIT);
-    jtag_dr_shift20(adr);
+    jtag_dr_shift20(adr); //20
 
     jtag_ir_shift8(IR_DATA_TO_ADDR);
     SETTCLK;
@@ -85,9 +117,9 @@ unsigned int jtag430x2_readmem(unsigned long adr){
     CLRTCLK;
     SETTCLK;
     // Processor is now again in Init State
+  }else{
+    return 0xDEAD;
   }
-
-
   
   return toret;
 }
@@ -97,7 +129,7 @@ unsigned int jtag430x2_readmem(unsigned long adr){
 void jtag430x2handle(unsigned char app,
 		   unsigned char verb,
 		   unsigned char len){
-  
+  jtag430_resettap();
   switch(verb){
   case START:
     //Enter JTAG mode.
@@ -139,6 +171,11 @@ void jtag430x2handle(unsigned char app,
   case JTAG430_SETINSTRFETCH:
   case JTAG430_WRITEMEM:
   case POKE:
+    jtag430x2_writemem(cmddataword[0],
+		       cmddataword[1]);
+    cmddataword[0]=jtag430x2_readmem(cmddataword[0]);
+    txdata(app,verb,2);
+    break;
   case JTAG430_WRITEFLASH:
   case JTAG430_ERASEFLASH:
   case JTAG430_SETPC:

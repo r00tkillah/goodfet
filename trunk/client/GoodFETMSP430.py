@@ -41,10 +41,10 @@ class GoodFETMSP430(GoodFET):
         self.writecmd(self.MSP430APP,0x02,2,self.data);
         return ord(self.data[0])+(ord(self.data[1])<<8);
     def MSP430poke(self,adr,val):
-        """Read the contents of memory at an address."""
+        """Write the contents of memory at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8, val&0xff, (val&0xff00)>>8];
         self.writecmd(self.MSP430APP,0x03,4,self.data);
-        return;# ord(self.data[0])+(ord(self.data[1])<<8);
+        return ord(self.data[0])+(ord(self.data[1])<<8);
     def MSP430start(self):
         """Start debugging."""
         self.writecmd(self.MSP430APP,0x20,0,self.data);

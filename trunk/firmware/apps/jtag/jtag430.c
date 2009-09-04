@@ -82,7 +82,6 @@ void jtag430_writemem(unsigned int adr, unsigned int data){
   SETTCLK;
 }
 
-
 //! Write data to flash memory.  Must be preconfigured.
 void jtag430_writeflashword(unsigned int adr, unsigned int data){
   /*

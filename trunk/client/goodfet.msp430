@@ -103,6 +103,19 @@ if(sys.argv[1]=="peek"):
     while start<=stop:
         print "%04x: %04x" % (start,client.MSP430peek(start));
         start=start+2;
+if(sys.argv[1]=="poke"):
+    start=0x0000;
+    val=0x00;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
+    if(len(sys.argv)>3):
+        val=int(sys.argv[3],16);
+    print "Poking %06x to become %02x." % (start,val);
+    
+    while client.MSP430peek(start)!=val:
+        client.MSP430poke(start,val);
+        print "Poked to %04x" % client.MSP430peek(start);
+
 
 
 if(sys.argv[1]=="whatever"):

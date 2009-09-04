@@ -118,3 +118,11 @@ extern int savedtclk;
 // Bypass instruction
 #define IR_BYPASS                  0xFF   // 0xFF
 
+//MSP430X2 unique
+#define IR_COREIP_ID               0xE8   // 0x17 
+#define IR_DEVICE_ID               0xE1   // 0x87
+
+//MSP430 or MSP430X
+#define MSP430JTAGID 0x89
+//MSP430X2 only
+#define MSP430X2JTAGID 0x91

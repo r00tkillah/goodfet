@@ -3,6 +3,7 @@
 //! Global data buffer.
 extern unsigned char cmddata[256];
 #define cmddataword ((unsigned int*) cmddata)
+#define cmddatalong ((unsigned long*) cmddata)
 #define memorybyte ((unsigned char*) 0)
 #define memoryword ((unsigned int*) 0)
 
@@ -71,6 +72,8 @@ extern unsigned char cmddata[256];
 #define JTAG430_VERIFYMEM 0xE5
 #define JTAG430_BLOWFUSE 0xE6
 #define JTAG430_ISFUSEBLOWN 0xE7
+#define JTAG430_COREIP_ID 0xF0
+#define JTAG430_DEVICE_ID 0xF1
 
 //! Handle a command.  Defined in goodfet.c
 void handle(unsigned char app,

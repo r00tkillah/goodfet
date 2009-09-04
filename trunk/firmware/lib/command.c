@@ -31,6 +31,9 @@ void txdata(unsigned char app,
   }
 }
 
+//Be very careful changing delay().
+//It was chosen poorly by trial and error.
+
 //! Delay for a count.
 void delay(unsigned int count){
   volatile unsigned int i=count;

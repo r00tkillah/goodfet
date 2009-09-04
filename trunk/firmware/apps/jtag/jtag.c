@@ -55,7 +55,10 @@ unsigned char jtagtrans8(unsigned char byte){
 unsigned long jtagtransn(unsigned long word,
 			 unsigned int bitcount){
   unsigned int bit;
+  unsigned int high=(word>>16);
   SAVETCLK;
+  
+  
   
   for (bit = 0; bit < bitcount; bit++) {
     /* write MOSI on trailing edge of previous clock */
@@ -73,6 +76,11 @@ unsigned long jtagtransn(unsigned long word,
     /* read MISO on trailing edge */
     word |= READMISO;
   }
+  
+  if(bitcount==20){
+    word = ((word << 16) | (word >> 4)) & 0x000FFFFF;
+  }
+  
   RESTORETCLK;
   
   // exit state

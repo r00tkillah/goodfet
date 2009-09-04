@@ -64,8 +64,8 @@ class GoodFET:
         self.verb=ord(self.serialport.read(1));
         self.count=ord(self.serialport.read(1));
         self.data=self.serialport.read(self.count*blocks);
-        return self.data;
         #print "READ %02x %02x %02x " % (self.app, self.verb, self.count);
+        return self.data;
         
     #Monitor stuff
     def peekbyte(self,address):

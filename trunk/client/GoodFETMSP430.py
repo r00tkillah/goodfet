@@ -11,14 +11,30 @@ from GoodFET import GoodFET;
 
 class GoodFETMSP430(GoodFET):
     MSP430APP=0x11;  #Changed by inheritors.
+    CoreID=0;
+    DeviceID=0;
+    JTAGID=0;
+    MSP430ident=0;
     def MSP430setup(self):
         """Move the FET into the MSP430 JTAG application."""
-        print "Initializing MSP430.";
-        self.writecmd(0x11,0x10,0,self.data);
+        self.writecmd(self.MSP430APP,0x10,0,None);
+        
     def MSP430stop(self):
         """Stop debugging."""
         self.writecmd(self.MSP430APP,0x21,0,self.data);
-
+    
+    def MSP430coreid(self):
+        """Get the Core ID."""
+        self.writecmd(self.MSP430APP,0xF0);
+        CoreID=ord(self.data[0])+(ord(self.data[1])<<8);
+        return CoreID;
+    def MSP430deviceid(self):
+        """Get the Core ID."""
+        self.writecmd(self.MSP430APP,0xF1);
+        DeviceID=(
+            ord(self.data[0])+(ord(self.data[1])<<8)+
+            (ord(self.data[2])<<16)+(ord(self.data[3])<<24));
+        return DeviceID;
     def MSP430peek(self,adr):
         """Read the contents of memory at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8];
@@ -32,8 +48,12 @@ class GoodFETMSP430(GoodFET):
     def MSP430start(self):
         """Start debugging."""
         self.writecmd(self.MSP430APP,0x20,0,self.data);
-        ident=self.MSP430ident();
-        print "Target identifies as %04x." % ident;
+        self.JTAGID=ord(self.data[0]);
+        #print "Identified as %02x." % id;
+        if(self.JTAGID==0x89 or self.JTAGID==0x91):
+            print "Successfully connected."
+        else:
+            print "Error, misidentified as %02x." % id;
     
     def MSP430haltcpu(self):
         """Halt the CPU."""
@@ -57,8 +77,13 @@ class GoodFETMSP430(GoodFET):
         return self.data[0];
     def MSP430ident(self):
         """Grab self-identification word from 0x0FF0 as big endian."""
-        i=self.MSP430peek(0x0ff0);
-        return ((i&0xFF00)>>8)+((i&0xFF)<<8)
+        if(self.JTAGID==0x89):
+            i=self.MSP430peek(0x0ff0);
+            ident=((i&0xFF00)>>8)+((i&0xFF)<<8)
+        if(self.JTAGID==0x91):
+            i=self.MSP430peek(0x1A04);
+            ident=((i&0xFF00)>>8)+((i&0xFF)<<8)
+        return ident;
     def MSP430test(self):
         """Test MSP430 JTAG.  Requires that a chip be attached."""
         if self.MSP430ident()==0xffff:
@@ -90,7 +115,7 @@ class GoodFETMSP430(GoodFET):
         rval=ord(self.data[0])+(ord(self.data[1])<<8);
         if(val!=rval):
             print "FLASH WRITE ERROR AT %04x.  Found %04x, wrote %04x." % (adr,rval,val);
-            
+        
     def MSP430dumpbsl(self):
         self.MSP430dumpmem(0xC00,0xfff);
     def MSP430dumpallmem(self):

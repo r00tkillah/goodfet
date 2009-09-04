@@ -55,6 +55,9 @@ extern unsigned char cmddata[256];
 #define SPI_JEDEC 0x80
 #define SPI_ERASE 0x81
 
+//OCT commands
+#define OCT_CMP 0x90
+
 //JTAG430 commands
 #define JTAG430_HALTCPU 0xA0
 #define JTAG430_RELEASECPU 0xA1

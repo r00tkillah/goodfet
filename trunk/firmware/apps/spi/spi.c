@@ -43,7 +43,7 @@ void spisetup(){
 }
 
 
-//! Read and write an SPI bit.
+//! Read and write an SPI byte.
 unsigned char spitrans8(unsigned char byte){
   unsigned int bit;
   //This function came from the SPI Wikipedia article.
@@ -187,6 +187,7 @@ void spihandle(unsigned char app,
       spitrans8(cmddata[i]);
     P5OUT|=SS;  //Raise !SS to end transaction.
     
+    
     while(spiflash_status()&0x01)//while busy
       P1OUT^=1;
     P1OUT&=~1;
@@ -200,9 +201,14 @@ void spihandle(unsigned char app,
     P5OUT&=~SS; //Drop !SS to begin transaction.
     spitrans8(0xC7);//Chip Erase
     P5OUT|=SS;  //Raise !SS to end transaction.
+    
+        
+    while(spiflash_status()&0x01)//while busy
+      P1OUT^=1;
+    P1OUT&=~1;
+    
     txdata(app,verb,0);
     break;
-
 
   case SETUP:
     spisetup();

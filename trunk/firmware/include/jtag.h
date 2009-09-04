@@ -4,8 +4,18 @@
 #include <iomacros.h>
 
 
+extern unsigned int drwidth;
+
+#define MSP430MODE 0
+#define MSP430XMODE 1
+#define MSP430X2MODE 2
+extern unsigned int jtag430mode;
+
 // Generic Commands
 
+//! Shift n bytes.
+unsigned long jtagtransn(unsigned long word,
+			 unsigned int bitcount);
 //! Shift 8 bits of the IR.
 unsigned char jtag_ir_shift8(unsigned char);
 //! Shift 16 bits of the DR.
@@ -21,6 +31,9 @@ void jtagsetup();
 void jtag430_start();
 //! Reset the TAP state machine, check the fuse.
 void jtag430_resettap();
+
+//! Defined in jtag430asm.S
+void jtag430_tclk_flashpulses(int);
 
 //High-level Macros follow
 //! Write data to address.
@@ -84,7 +97,8 @@ extern int savedtclk;
 #define SAVETCLK savedtclk=P5OUT&TCLK;
 #define RESTORETCLK if(savedtclk) P5OUT|=TCLK; else P5OUT&=~TCLK
 
-//JTAG commands, bit-swapped
+
+//16-bit MSP430 JTAG commands, bit-swapped
 #define IR_CNTRL_SIG_16BIT         0xC8   // 0x13
 #define IR_CNTRL_SIG_CAPTURE       0x28   // 0x14
 #define IR_CNTRL_SIG_RELEASE       0xA8   // 0x15

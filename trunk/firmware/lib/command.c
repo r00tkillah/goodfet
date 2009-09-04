@@ -36,3 +36,13 @@ void delay(unsigned int count){
   volatile unsigned int i=count;
   while(i--) asm("nop");
 }
+//! MSDelay
+void msdelay(unsigned int ms){
+  volatile unsigned int i,j;
+  i=100;
+  while(i--){
+    j=ms;
+    while(j--) asm("nop");
+  }
+  //Using TimerA might be cleaner.
+}

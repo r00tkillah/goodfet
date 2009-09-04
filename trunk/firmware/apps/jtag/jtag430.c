@@ -4,6 +4,8 @@
 #include "jtag.h"
 
 
+unsigned int jtag430mode=MSP430X2MODE;
+
 //! Set the program counter.
 void jtag430_setpc(unsigned int adr){
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
@@ -79,27 +81,6 @@ void jtag430_writemem(unsigned int adr, unsigned int data){
   SETTCLK;
 }
 
-//! Defined in jtag430asm.S
-void jtag430_tclk_flashpulses(int);
-/* //! Pulse TCLK at 350kHz +/- 100kHz */
-/* void jtag430_tclk_flashpulses(register i){ */
-/*   //TODO check this on a scope. */
-/*   register j=0; */
-  
-/*   //At 2MHz, 350kHz is obtained with 5 clocks of delay */
-  
-/*   /\** Pondering: */
-/*       What happens if the frequency is too low or to high? */
-/*       Is there any risk of damaging the chip, or only of a poor write? */
-/*   *\/ */
-/*   while(j++!=i){ */
-/*     SETTCLK; */
-/*     _NOP(); */
-/*     _NOP(); */
-/*     _NOP(); */
-/*     CLRTCLK; */
-/*   } */
-/* } */
 
 //! Write data to flash memory.  Must be preconfigured.
 void jtag430_writeflashword(unsigned int adr, unsigned int data){
@@ -148,6 +129,8 @@ void jtag430_writeflash(unsigned int adr, unsigned int data){
   
   jtag430_releasecpu();
 }
+
+
 
 //! Power-On Reset
 void jtag430_por(){
@@ -278,10 +261,12 @@ void jtag430_setinstrfetch(){
   }
 }
 
-//! Handles unique MSP430 JTAG commands.  Forwards others to JTAG.
-void jtag430handle(unsigned char app,
+
+//! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
+void oldjtag430handle(unsigned char app,
 		   unsigned char verb,
 		   unsigned char len){
+  
   switch(verb){
   case START:
     //Enter JTAG mode.
@@ -336,3 +321,16 @@ void jtag430handle(unsigned char app,
   jtag430_resettap();
 }
 
+//! Handles unique MSP430 JTAG commands.  Forwards others to JTAG.
+void jtag430handle(unsigned char app,
+		   unsigned char verb,
+		   unsigned char len){
+  switch(jtag430mode){
+  case MSP430MODE:
+    return oldjtag430handle(app,verb,len);
+  case MSP430X2MODE:
+    return jtag430x2handle(app,verb,len);
+  default:
+    txdata(app,NOK,0);
+  }
+}

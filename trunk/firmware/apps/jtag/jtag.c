@@ -51,12 +51,13 @@ unsigned char jtagtrans8(unsigned char byte){
   return byte;
 }
 
-//! Shift 8 bits in and out.
-unsigned int jtagtrans16(unsigned int word){
+//! Shift n bits in and out.
+unsigned long jtagtransn(unsigned long word,
+			 unsigned int bitcount){
   unsigned int bit;
   SAVETCLK;
   
-  for (bit = 0; bit < 16; bit++) {
+  for (bit = 0; bit < bitcount; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (word & 0x8000)
       {SETMOSI;}
@@ -64,12 +65,12 @@ unsigned int jtagtrans16(unsigned int word){
       {CLRMOSI;}
     word <<= 1;
     
-    if(bit==15)
+    if(bit==bitcount-1)
       SETTMS;//TMS high on last bit to exit.
     
     CLRTCK;
     SETTCK;
-     /* read MISO on trailing edge */
+    /* read MISO on trailing edge */
     word |= READMISO;
   }
   RESTORETCLK;
@@ -85,15 +86,50 @@ unsigned int jtagtrans16(unsigned int word){
   return word;
 }
 
+/*
+//! Shift 16 bits in and out.
+unsigned int jtagtrans16(unsigned int word){ //REMOVEME
+  unsigned int bit;
+  SAVETCLK;
+  
+  for (bit = 0; bit < 16; bit++) {
+    // write MOSI on trailing edge of previous clock 
+    if (word & 0x8000)
+      {SETMOSI;}
+    else
+      {CLRMOSI;}
+    word <<= 1;
+    
+    if(bit==15)
+      SETTMS;//TMS high on last bit to exit.
+    
+    CLRTCK;
+    SETTCK;
+    // read MISO on trailing edge 
+    word |= READMISO;
+  }
+  RESTORETCLK;
+  
+  // exit state
+  CLRTCK;
+  SETTCK;
+  // update state
+  CLRTMS;
+  CLRTCK;
+  SETTCK;
+  
+  return word;
+}*/
+
 //! Stop JTAG, release pins
 void jtag_stop(){
   P5OUT=0;
   P4OUT=0;
 }
 
-
-//! Shift 16 bits of the DR.
-unsigned int jtag_dr_shift16(unsigned int in){
+unsigned int drwidth=20;
+//! Shift all bits of the DR.
+unsigned long jtag_dr_shift(unsigned long in){
   // idle
   SETTMS;
   CLRTCK;
@@ -105,9 +141,16 @@ unsigned int jtag_dr_shift16(unsigned int in){
   // capture IR
   CLRTCK;
   SETTCK;
-
+  
   // shift DR, then idle
-  return(jtagtrans16(in));
+  return(jtagtransn(in,drwidth));
+}
+
+
+//! Shift 16 bits of the DR.
+unsigned int jtag_dr_shift16(unsigned int in){
+  //This name is deprecated, kept around to find 16-bit dependent code.
+  return jtag_dr_shift(in);
 }
 
 

@@ -88,6 +88,8 @@ void txstring(unsigned char app,
 
 //! Delay
 void delay(unsigned int count);
+//! MSDelay
+void msdelay(unsigned int ms);
 
 
 void monitorhandle(unsigned char, unsigned char, unsigned char);
@@ -96,3 +98,6 @@ void i2chandle(unsigned char, unsigned char, unsigned char);
 void cchandle(unsigned char, unsigned char, unsigned char);
 void jtaghandle(unsigned char, unsigned char, unsigned char);
 void jtag430handle(unsigned char, unsigned char, unsigned char);
+void jtag430x2handle(unsigned char app, unsigned char verb,
+		     unsigned char len);
+  

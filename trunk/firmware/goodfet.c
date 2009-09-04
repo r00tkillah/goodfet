@@ -46,8 +46,8 @@ void handle(unsigned char app,
   case JTAG:
     jtaghandle(app,verb,len);
     break;
-  case JTAG430:
-    jtag430handle(app,verb,len);
+  case JTAG430: //Also JTAG430X, JTAG430X2
+    jtag430x2handle(app,verb,len);
     break;
   default:
     #ifdef HANDLEOTHER
@@ -66,19 +66,6 @@ int main(void)
   unsigned char app, verb, len;
   
   init();
-  
-  
-  //Ready
-  //txdata(MONITOR,OK,0);
-  //while (1){
-  //  txdata(0xFF,0xff,0x0);
-  //  delay(1000);
-  //}
-  //delay(0xffff);
-  //while(*((int*)0x1001));
-  
-  //while(1)
-  //  txdata(0xFF,0xFF,0);
   
   txstring(MONITOR,OK,"http://goodfet.sf.net/");
   

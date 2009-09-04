@@ -55,14 +55,19 @@ unsigned char jtagtrans8(unsigned char byte){
 unsigned long jtagtransn(unsigned long word,
 			 unsigned int bitcount){
   unsigned int bit;
-  unsigned int high=(word>>16);
+  //0x8000
+  unsigned long high;
+  
+  if(bitcount==20)
+    high=0x80000;
+  if(bitcount==16)
+    high= 0x8000;
+  
   SAVETCLK;
-  
-  
   
   for (bit = 0; bit < bitcount; bit++) {
     /* write MOSI on trailing edge of previous clock */
-    if (word & 0x8000)
+    if (word & high)
       {SETMOSI;}
     else
       {CLRMOSI;}
@@ -137,7 +142,7 @@ void jtag_stop(){
 
 unsigned int drwidth=20;
 //! Shift all bits of the DR.
-unsigned long jtag_dr_shift(unsigned long in){
+unsigned long jtag_dr_shift20(unsigned long in){
   // idle
   SETTMS;
   CLRTCK;
@@ -151,14 +156,26 @@ unsigned long jtag_dr_shift(unsigned long in){
   SETTCK;
   
   // shift DR, then idle
-  return(jtagtransn(in,drwidth));
+  return(jtagtransn(in,20));
 }
 
 
 //! Shift 16 bits of the DR.
 unsigned int jtag_dr_shift16(unsigned int in){
-  //This name is deprecated, kept around to find 16-bit dependent code.
-  return jtag_dr_shift(in);
+  // idle
+  SETTMS;
+  CLRTCK;
+  SETTCK;
+  // select DR
+  CLRTMS;
+  CLRTCK;
+  SETTCK;
+  // capture IR
+  CLRTCK;
+  SETTCK;
+  
+  // shift DR, then idle
+  return(jtagtransn(in,16));
 }
 
 

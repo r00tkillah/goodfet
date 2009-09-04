@@ -51,6 +51,7 @@ unsigned int jtag430_readmem(unsigned int adr){
   
   CLRTCLK;
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  
   if(adr>0xFF)
     jtag_dr_shift16(0x2409);//word read
   else

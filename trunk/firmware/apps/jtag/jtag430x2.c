@@ -53,11 +53,13 @@ unsigned int jtag430_coreid(){
 
 unsigned long jtag430_deviceid(){
   jtag_ir_shift8(IR_DEVICE_ID);
-  return jtag_dr_shift(0);
+  return jtag_dr_shift20(0);
 }
 
 //! Set the program counter.
 void jtag430x2_setpc(unsigned long pc){
+  //From SLAU265.
+  
   unsigned short Mova;
   unsigned short Pc_l;
 
@@ -85,15 +87,18 @@ void jtag430x2_setpc(unsigned long pc){
       jtag_dr_shift16(0x4303);
       CLRTCLK;
       jtag_ir_shift8(IR_ADDR_CAPTURE);
-      jtag_dr_shift(0x00000);
+      jtag_dr_shift20(0x00000);
+  }else{
+    while(1) P1OUT^=1; //Lock LED if locked up.
   }
 }
+
 
 //! Read data from address
 unsigned int jtag430x2_readmem(unsigned int adr){
   unsigned int toret;
   
-  //SETPC_430Xv2(StartAddr);
+  jtag430x2_setpc(adr);
   SETTCLK;
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x0501);
@@ -128,6 +133,7 @@ void jtag430x2handle(unsigned char app,
       drwidth=16;
     }else if(jtagid==MSP430X2JTAGID){
       jtag430mode=MSP430X2MODE;
+      drwidth=20;
     }else{
       txdata(app,NOK,1);
       return;
@@ -140,6 +146,7 @@ void jtag430x2handle(unsigned char app,
   case JTAG430_READMEM:
   case PEEK:
     cmddataword[0]=jtag430x2_readmem(cmddataword[0]);
+    //cmddataword[0]=jtag430_readmem(cmddataword[0]);
     txdata(app,verb,2);
     break;
   case JTAG430_COREIP_ID:

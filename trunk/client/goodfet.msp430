@@ -3,7 +3,7 @@
 import sys;
 import binascii;
 
-from GoodFET import GoodFETMSP430;
+from GoodFETMSP430 import GoodFETMSP430;
 from intelhex import IntelHex16bit;
 
 

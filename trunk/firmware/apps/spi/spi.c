@@ -10,25 +10,12 @@
 #include <io.h>
 #include <iomacros.h>
 
-
-//Pins and I/O
-#define SS   BIT0
-#define MOSI BIT1
-#define MISO BIT2
-#define SCK  BIT3
-
+#include <spi.h>
 
 //This could be more accurate.
 //Does it ever need to be?
 #define SPISPEED 0
 #define SPIDELAY(x) delay(x)
-
-#define SETMOSI P5OUT|=MOSI
-#define CLRMOSI P5OUT&=~MOSI
-#define SETCLK P5OUT|=SCK
-#define CLRCLK P5OUT&=~SCK
-#define READMISO (P5IN&MISO?1:0)
-
 
 
 //! Set up the pins for SPI mode.
@@ -75,6 +62,7 @@ unsigned char spitrans8(unsigned char byte){
 
 //! Enable SPI writing
 void spiflash_wrten(){
+  SETSS;
   P5OUT&=~SS; //Drop !SS to begin transaction.
   spitrans8(0x04);//Write Disable
   P5OUT|=SS;  //Raise !SS to end transaction.
@@ -98,12 +86,65 @@ unsigned char spiflash_status(){
 
 //! Grab the SPI flash status byte.
 void spiflash_setstatus(unsigned char c){
-  P5OUT&=~SS; //Drop !SS to begin transaction.
+  SETSS;
+  CLRSS; //Drop !SS to begin transaction.
   spitrans8(0x01);//SET STATUS
   spitrans8(c);
-  P5OUT|=SS;  //Raise !SS to end transaction.
+  SETSS;  //Raise !SS to end transaction.
   //return c;
 }
+
+
+//! Read a block to a buffer.
+void spiflash_peekblock(unsigned long adr,
+			unsigned char *buf,
+			unsigned int len){
+  unsigned char i;
+  
+  SETSS;
+  CLRSS; //Drop !SS to begin transaction.
+  spitrans8(0x03);//Flash Read Command
+  
+  //Send address
+  spitrans8((adr&0xFF0000)>>16);
+  spitrans8((adr&0xFF00)>>8);
+  spitrans8(adr&0xFF);
+  
+  for(i=0;i<len;i++)
+    buf[i]=spitrans8(0);
+  SETSS;  //Raise !SS to end transaction.
+}
+
+
+//! Read a block to a buffer.
+void spiflash_pokeblock(unsigned long adr,
+			unsigned char *buf,
+			unsigned int len){
+  unsigned char i;
+  
+  SETSS;
+  
+  spiflash_setstatus(0x02);
+  spiflash_wrten();
+  
+  CLRSS; //Drop !SS to begin transaction.
+  spitrans8(0x02); //Poke command.
+  
+  //Send address
+  spitrans8((adr&0xFF0000)>>16);
+  spitrans8((adr&0xFF00)>>8);
+  spitrans8(adr&0xFF);
+
+  for(i=0;i<len;i++)
+    spitrans8(buf[i]);
+  SETSS;  //Raise !SS to end transaction.
+  
+  while(spiflash_status()&0x01)
+    ;
+  
+  return;
+}
+
 
 //! Peek some blocks.
 void spiflash_peek(unsigned char app,

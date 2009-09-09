@@ -23,6 +23,10 @@ extern unsigned char cmddata[256];
 #define MONITOR_RAM_PATTERN 0x90
 #define MONITOR_RAM_DEPTH 0x91
 
+#define MONITOR_DIR 0xA0
+#define MONITOR_OUT 0xA1
+#define MONITOR_IN  0xA2
+
 //CHIPCON commands
 #define CC_CHIP_ERASE 0x80
 #define CC_WR_CONFIG 0x81

@@ -29,6 +29,18 @@ void monitorhandle(unsigned char app,
     cmddataword[0]=monitor_ram_depth();
     txdata(app,verb,2);
     break;
+  case MONITOR_DIR:
+    P5DIR=cmddata[0];
+    txdata(app,verb,1);
+    break;
+  case MONITOR_IN:
+    cmddata[0]=P5IN;
+    txdata(app,verb,1);
+    break;
+  case MONITOR_OUT:
+    P5OUT=cmddata[0];
+    txdata(app,verb,1);
+    break;
   }
 }
 

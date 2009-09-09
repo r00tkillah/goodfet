@@ -32,7 +32,7 @@ run:
 
 install: $(app).hex
 	$(BSL) -e
-	#$(BSL) -p info.txt || true  #MSP430F2xx targets only, inelegant.
+	ls info.txt && $(BSL) -p info.txt || true  #MSP430F2xx targets only, inelegant.
 	$(BSL) -p $(app).hex 
 verify:
 	$(BSL) -P $(app).hex -v $(app).hex

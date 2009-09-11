@@ -22,6 +22,11 @@ if(len(sys.argv)==1):
 client=GoodFET();
 client.serInit()
 
+if(sys.argv[1]=="on"):
+    client.dir(0xFF);
+    client.out(0xFF);
+if(sys.argv[1]=="off"):
+    client.out(0x00);
 
 if(sys.argv[1]=="info"):
     a=client.peekbyte(0xff0);

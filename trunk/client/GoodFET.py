@@ -68,6 +68,12 @@ class GoodFET:
         return self.data;
         
     #Monitor stuff
+    def out(self,byte):
+        """Write a byte to P5OUT."""
+        self.writecmd(0,0xA1,1,[byte]);
+    def dir(self,byte):
+        """Write a byte to P5DIR."""
+        self.writecmd(0,0xA0,1,[byte]);
     def peekbyte(self,address):
         """Read a byte of memory from the monitor."""
         self.data=[address&0xff,address>>8];

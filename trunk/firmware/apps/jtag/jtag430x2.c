@@ -46,11 +46,13 @@ unsigned char jtag430x2_start(){
   return jtag430x2_jtagid();
 }
 
+//! Grab the core ID.
 unsigned int jtag430_coreid(){
   jtag_ir_shift8(IR_COREIP_ID);
   return jtag_dr_shift16(0);
 }
 
+//! Grab the device ID.
 unsigned long jtag430_deviceid(){
   jtag_ir_shift8(IR_DEVICE_ID);
   return jtag_dr_shift20(0);
@@ -65,20 +67,20 @@ unsigned int jtag430x2_writemem(unsigned long adr,
     CLRTCLK;
     jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
     if(adr>=0x100)
-      jtag_ir_shift8(0x0500);//word mode
+      jtag_dr_shift16(0x0500);//word mode
     else
-      jtag_ir_shift8(0x0510);//byte mode
+      jtag_dr_shift16(0x0510);//byte mode
     jtag_ir_shift8(IR_ADDR_16BIT);
     jtag_dr_shift20(adr);
     
     SETTCLK;
     
     jtag_ir_shift8(IR_DATA_TO_ADDR);
-    jtag_ir_shift8(data);//16 word
+    jtag_dr_shift16(data);//16 word
 
     CLRTCLK;
     jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-    jtag_ir_shift8(0x0501);
+    jtag_dr_shift16(0x0501);
     SETTCLK;
 
     CLRTCLK;
@@ -154,8 +156,8 @@ void jtag430x2handle(unsigned char app,
     break;
   case JTAG430_READMEM:
   case PEEK:
-    cmddataword[0]=jtag430x2_readmem(cmddataword[0]);
-    //cmddataword[0]=jtag430_readmem(cmddataword[0]);
+    //cmddataword[0]=jtag430x2_readmem(cmddataword[0]);
+    cmddataword[0]=jtag430x2_readmem(cmddatalong[0]);
     txdata(app,verb,2);
     break;
   case JTAG430_COREIP_ID:

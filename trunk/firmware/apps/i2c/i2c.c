@@ -37,7 +37,7 @@
 #define I2C_CLOCK_HI() SETSCL
 #define I2C_CLOCK_LO() CLRSCL
 
-#warning "Using internal resistors.  Won't work on 161x devices."
+//#warning "Using internal resistors.  Won't work on 161x devices."
 
 //! Inits bitbanging port, must be called before using the functions below
 void I2C_Init()
@@ -46,6 +46,7 @@ void I2C_Init()
   //Clear SDA and SCL.
   //Direction, not value, is used to set the value.
   //(Pull-up or 0.)
+  
   P5DIR|=(SDA|SCL);
   P5REN|=SDA|SCL;
   

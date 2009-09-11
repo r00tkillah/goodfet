@@ -37,8 +37,9 @@ class GoodFETMSP430(GoodFET):
         return DeviceID;
     def MSP430peek(self,adr):
         """Read the contents of memory at an address."""
-        self.data=[adr&0xff, (adr&0xff00)>>8];
-        self.writecmd(self.MSP430APP,0x02,2,self.data);
+        self.data=[adr&0xff, (adr&0xff00)>>8,
+                   (adr&0xff0000)>>16,(adr&0xff000000)>>24];
+        self.writecmd(self.MSP430APP,0x02,4,self.data);
         return ord(self.data[0])+(ord(self.data[1])<<8);
     def MSP430poke(self,adr,val):
         """Write the contents of memory at an address."""

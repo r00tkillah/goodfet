@@ -1,11 +1,15 @@
+TARGETS=monitor cc msp430x2
+GOODFET=/dev/ttyUSB0
 
-#Missing tagets: msp430x2
-TARGETS=monitor cc
 
-all: $(TARGETS)
+all: 
+	make clean
+	make install
+	make $(TARGETS)
 clean:
 	rm -f $(TARGETS) *~
-
+flash:
+	./flashall.zsh
 monitor: monitor.zsh
 	GOODFET=/dev/ttyUSB0 ./monitor.zsh >monitor
 cc: cc.zsh

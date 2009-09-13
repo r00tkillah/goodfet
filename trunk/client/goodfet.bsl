@@ -2,19 +2,23 @@
 # Serial Bootstrap Loader software for the MSP430 embedded proccessor.
 #
 # (C) 2001-2003 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+# this is distributed under a free software license, see license-bsl.txt
 #
 # fixes from Colin Domoney
 #
 # based on the application note slas96b.pdf from Texas Instruments, Inc.,
 # Volker Rzehak
 # additional infos from slaa089a.pdf
+# 
+# Forked by Travis Goodspeed <travis at tnbelt.com> for use with the GoodFET
+# JTAG programmer.
 
 import sys, time, string, cStringIO, struct
 sys.path.append("/usr/lib/tinyos")
-import serial
+import serial, os, glob
 
-VERSION = string.split("Revision: 1.39-goodfet-8 ")[1] #forked from TinyOS Telos version.
+#forked from TinyOS Telos version.
+VERSION = string.split("Revision: 1.39-goodfet-8 ")[1] 
 
 DEBUG = 0                                       #disable debug messages by default
 
@@ -189,13 +193,19 @@ F4x                     = "F4x family"
 #known device list
 deviceids = {
     0xf149: F1x,
-    0xf16c: F1x, #for telosb
+    0xf16c: F1x, #for GoodFET10 to '20
     0xf112: F1x,
     0xf413: F4x,
     0xf123: F1x,
     0xf449: F4x,
     0x1232: F1x,
-    0xf26f: F2x,
+    0xf26f: F2x, #for GoodFET20
+}
+
+#GoodFET firmware
+firmware = {
+    0xf16c: "http://goodfet.sourceforge.net/dist/msp430x1612.hex",
+    0xf26f: "http://goodfet.sourceforge.net/dist/msp430x2618.hex",
 }
 
 class BSLException(Exception):
@@ -879,7 +889,7 @@ class BootStrapLoader(LowLevel):
         blkin = self.bslTxRx(self.BSL_RXBLK, addr, len(blkout))
         
     def programBlk(self, addr, blkout, action):
-        """programm a memory block"""
+        """program a memory block"""
         if DEBUG > 1: sys.stderr.write("* programBlk()\n")
 
         #Check, if specified range is erased
@@ -983,10 +993,13 @@ class BootStrapLoader(LowLevel):
                           0x0ff0,                   #Start address
                           16)                       #No. of bytes to read
         dev_id, bslVerHi, bslVerLo = struct.unpack(">H8xBB4x", blkin[:-2]) #cut away checksum and extract data
-
+        self.dev_id=dev_id;
+        
+        
         if self.cpu is None:                        #cpy type forced?
             if deviceids.has_key(dev_id):
                 self.cpu = deviceids[dev_id]        #try to autodectect CPU type
+                
                 if DEBUG:
                     sys.stderr.write("Autodetect successful: %04x -> %s\n" % (dev_id, self.cpu))
             else:
@@ -1115,7 +1128,22 @@ class BootStrapLoader(LowLevel):
             sys.stderr.flush()
         else:
             raise BSLException, "programming without data not possible"
-
+    def actionFromweb(self):
+        """Grab GoodFET firmware from the web, then flash it."""
+        print "%x" % self.dev_id;
+        print "%s" % firmware[self.dev_id];
+        fn="/tmp/fw.hex"
+        os.system("curl %s >%s" % (firmware[self.dev_id],fn))
+        
+        fw=Memory(fn);
+        #fw.loadIhex(open(fn,"rb"));
+        
+        sys.stderr.write("Program ...\n")
+        sys.stderr.flush()
+        self.programData(fw, self.ACTION_PROGRAM | self.ACTION_VERIFY)
+        sys.stderr.write("%i bytes programmed.\n" % self.byteCtr)
+        sys.stderr.flush()
+        
     def actionVerify(self):
         """Verify programmed data"""
         if self.data is not None:
@@ -1325,7 +1353,7 @@ def main():
     import getopt
     filetype    = None
     filename    = None
-    comPort     = 0     #Default setting.
+    comPort     = None     #Default setting.
     speed       = None
     unpatched   = 0
     reset       = 0
@@ -1344,6 +1372,23 @@ def main():
     dumpivt     = 0
     dumpinfo    = 0
     
+    bsl.invertRST = 1
+    bsl.invertTEST = 1
+    
+    if comPort is None and os.environ.get("GOODFET")!=None:
+        glob_list = glob.glob(os.environ.get("GOODFET"));
+        if len(glob_list) > 0:
+            comPort = glob_list[0];
+    if comPort is None:
+        glob_list = glob.glob("/dev/tty.usbserial*");
+        if len(glob_list) > 0:
+            comPort = glob_list[0];
+    if comPort is None:
+        glob_list = glob.glob("/dev/ttyUSB*");
+        if len(glob_list) > 0:
+            comPort = glob_list[0];
+    
+    
     sys.stderr.write("MSP430 Bootstrap Loader Version: %s\n" % VERSION)
 
     try:
@@ -1357,7 +1402,7 @@ def main():
              "bslversion", "f1x", "f2x", "f4x", "invert-reset", "invert-test",
 	     "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
              "tmote","no-BSL-download", "force-BSL-download", "slow",
-             "dumpivt", "dumpinfo"]
+             "dumpivt", "dumpinfo", "fromweb"]
         )
     except getopt.GetoptError:
         # print help information and exit:
@@ -1414,8 +1459,11 @@ def main():
             toinit.append(bsl.actionMassErase)        #Erase Flash
         elif o in ("-E", "--erasecheck"):
             toinit.append(bsl.actionEraseCheck)       #Erase Check (by file)
-        elif o in ("-p", "--programm"):
+        elif o in ("-p", "--program"):
             todo.append(bsl.actionProgram)          #Program file
+        elif o in ("--fromweb"):
+            toinit.append(bsl.actionMassErase)        #Erase Flash
+            todo.append(bsl.actionFromweb)          #Program GoodFET code
         elif o in ("-v", "--verify"):
             todo.append(bsl.actionVerify)           #Verify file
         elif o in ("-r", "--reset"):
@@ -1512,7 +1560,8 @@ def main():
             bsl.slowmode = 1
 
     if len(args) == 0:
-        sys.stderr.write("Use -h for help\n")
+        sys.stderr.write("Use -h for help\n");
+        sys.stderr.write("Use --fromweb to upgrade a GoodFET.\n")
     elif len(args) == 1:                            #a filename is given
         if not todo:                                #if there are no actions yet
             todo.extend([                           #add some useful actions...

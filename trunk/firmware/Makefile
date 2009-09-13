@@ -2,7 +2,10 @@
 #include `uname`.mak
 
 GOODFET?=/dev/ttyUSB0
-BSL=../../contrib/tos-bsl --invert-reset --invert-test -c $(GOODFET) --speed=38400
+
+
+#For tos-bsl, use --invert-reset --invert-test
+BSL=goodfet.bsl -c $(GOODFET) --speed=38400
 
 #mcu=msp430x2274
 #mcu=msp430x2618

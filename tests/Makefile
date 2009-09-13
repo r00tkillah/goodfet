@@ -17,3 +17,5 @@ cc: cc.zsh
 	GOODFET=/dev/ttyUSB1 ./cc.zsh >cc
 msp430x2: msp430x2.zsh
 	./msp430x2.zsh >msp430x2
+nodiff: all
+	svn diff $(TARGETS) | grep -v Index

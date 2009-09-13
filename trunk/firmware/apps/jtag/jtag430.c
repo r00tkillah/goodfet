@@ -191,8 +191,9 @@ void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count)
 void jtag430_resettap(){
   int i;
   // Settle output
+  SETTDI; //430X2
   SETTMS;
-  SETTDI;
+  //SETTDI; //classic
   SETTCK;
 
   // Navigate to reset state.
@@ -211,7 +212,7 @@ void jtag430_resettap(){
 
     
   /* sacred, by spec.
-     Sometimes this isn't necessary. */
+     Sometimes this isn't necessary.  */
   // fuse check
   CLRTMS;
   delay(50);
@@ -273,6 +274,7 @@ void oldjtag430handle(unsigned char app,
     jtag430_start();
     //TAP setup, fuse check
     jtag430_resettap();
+    
     txdata(app,verb,0);
     break;
   case JTAG430_HALTCPU:
@@ -287,7 +289,6 @@ void oldjtag430handle(unsigned char app,
     jtag430_setinstrfetch();
     txdata(app,verb,0);
     break;
-
     
   case JTAG430_READMEM:
   case PEEK:
@@ -296,8 +297,8 @@ void oldjtag430handle(unsigned char app,
     break;
   case JTAG430_WRITEMEM:
   case POKE:
-    jtag430_writemem(cmddataword[0],cmddataword[1]);
-    cmddataword[0]=jtag430_readmem(cmddataword[0]);
+    jtag430_writemem(cmddatalong[0],cmddataword[2]);
+    cmddataword[0]=jtag430_readmem(cmddatalong[0]);
     txdata(app,verb,2);
     break;
   case JTAG430_WRITEFLASH:

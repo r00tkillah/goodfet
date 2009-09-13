@@ -36,26 +36,36 @@ class GoodFETMSP430(GoodFET):
             (ord(self.data[2])<<16)+(ord(self.data[3])<<24));
         return DeviceID;
     def MSP430peek(self,adr):
-        """Read the contents of memory at an address."""
+        """Read a word at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8,
-                   (adr&0xff0000)>>16,(adr&0xff000000)>>24];
-        self.writecmd(self.MSP430APP,0x02,4,self.data);
+                   (adr&0xff0000)>>16,(adr&0xff000000)>>24,
+                   ]; 
+        self.writecmd(self.MSP430APP,0x02,4,self.data,1);
         return ord(self.data[0])+(ord(self.data[1])<<8);
+    def MSP430peekblock(self,adr,blocks=1):
+        """Grab a few block from an SPI Flash ROM.  Block size is unknown"""
+        data=[adr&0xff, (adr&0xff00)>>8,
+                   (adr&0xff0000)>>16,(adr&0xff000000)>>24,
+                   blocks];
+        
+        self.writecmd(self.MSP430APP,0x02,5,data,blocks);
+        return self.data;
+    
     def MSP430poke(self,adr,val):
         """Write the contents of memory at an address."""
-        self.data=[adr&0xff, (adr&0xff00)>>8, val&0xff, (val&0xff00)>>8];
-        self.writecmd(self.MSP430APP,0x03,4,self.data);
+        self.data=[adr&0xff, (adr&0xff00)>>8,
+                   (adr&0xff0000)>>16,(adr&0xff000000)>>24,
+                   val&0xff, (val&0xff00)>>8];
+        self.writecmd(self.MSP430APP,0x03,6,self.data);
         return ord(self.data[0])+(ord(self.data[1])<<8);
     def MSP430start(self):
         """Start debugging."""
         self.writecmd(self.MSP430APP,0x20,0,self.data);
         self.JTAGID=ord(self.data[0]);
-        #print "Identified as %02x." % id;
-        if(self.JTAGID==0x89 or self.JTAGID==0x91):
-            print "Successfully connected."
-        else:
+        #print "Identified as %02x." % self.JTAGID;
+        if(not (self.JTAGID==0x89 or self.JTAGID==0x91)):
             print "Error, misidentified as %02x." % id;
-    
+        
     def MSP430haltcpu(self):
         """Halt the CPU."""
         self.writecmd(self.MSP430APP,0xA0,0,self.data);
@@ -81,21 +91,29 @@ class GoodFETMSP430(GoodFET):
         if(self.JTAGID==0x89):
             i=self.MSP430peek(0x0ff0);
             ident=((i&0xFF00)>>8)+((i&0xFF)<<8)
+            
         if(self.JTAGID==0x91):
             i=self.MSP430peek(0x1A04);
             ident=((i&0xFF00)>>8)+((i&0xFF)<<8)
+            #ident=0x0091;
+            
         return ident;
     def MSP430test(self):
         """Test MSP430 JTAG.  Requires that a chip be attached."""
         if self.MSP430ident()==0xffff:
             print "Is anything connected?";
-        print "Testing RAM.";
-        temp=self.MSP430peek(0x0200);
-        self.MSP430poke(0x0200,0xdead);
-        if(self.MSP430peek(0x0200)!=0xdead):
-            print "Poke of 0x0200 did not set to 0xDEAD properly.";
-            return;
-        self.MSP430poke(0x0200,temp); #restore old value.
+        print "Testing RAM from 1c00 to 1d00.";
+        for a in range(0x1c00,0x1d00):
+            self.MSP430poke(a,0);
+            if(self.MSP430peek(a)!=0):
+                print "Fault at %06x" % a;
+            self.MSP430poke(a,0xffff);
+            if(self.MSP430peek(a)!=0xffff):
+                print "Fault at %06x" % a;
+        print "RAM Test Complete."
+        for a in range(1,5):
+            print "Identity %04x" % self.MSP430ident();
+            
     def MSP430flashtest(self):
         self.MSP430masserase();
         i=0x2500;

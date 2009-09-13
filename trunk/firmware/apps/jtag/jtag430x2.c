@@ -60,10 +60,10 @@ unsigned long jtag430_deviceid(){
 
 
 //! Write data to address
-unsigned int jtag430x2_writemem(unsigned long adr,
-				unsigned long data){
+void jtag430x2_writemem(unsigned long adr,
+			unsigned int data){
   jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
-  if(jtag_ir_shift8(0) & 0x0301){
+  if(jtag_dr_shift16(0) & 0x0301){
     CLRTCLK;
     jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
     if(adr>=0x100)
@@ -94,10 +94,13 @@ unsigned int jtag430x2_writemem(unsigned long adr,
 //! Read data from address
 unsigned int jtag430x2_readmem(unsigned long adr){
   unsigned int toret=0;
-
-  jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
+  
+  do{
+    jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
+  }while(!(jtag_dr_shift16(0) & 0x0301));
+  
   if(jtag_dr_shift16(0) & 0x0301){
-    // Read Memory                                                                                                                                                                 
+    // Read Memory
     CLRTCLK;
     jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
     if(adr>=0x100){
@@ -105,6 +108,7 @@ unsigned int jtag430x2_readmem(unsigned long adr){
     }else{
       jtag_dr_shift16(0x0511);//byte read
     }
+    
     jtag_ir_shift8(IR_ADDR_16BIT);
     jtag_dr_shift20(adr); //20
 
@@ -114,24 +118,85 @@ unsigned int jtag430x2_readmem(unsigned long adr){
     toret = jtag_dr_shift16(0x0000);
     
     SETTCLK;
-    // one or more cycle, so CPU is driving correct MAB
-
+    
+    //Cycle a bit.
     CLRTCLK;
     SETTCLK;
-    // Processor is now again in Init State
   }else{
-    return 0xDEAD;
+    return 0xBABE;
   }
   
   return toret;
 }
 
+//! Syncs a POR.
+unsigned int jtag430x2_syncpor(){
+  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift16(0x1501); //JTAG mode
+  while(!(jtag_dr_shift16(0) & 0x200));
+  return jtag430x2_por();
+}
 
-//! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
+//! Executes an MSP430X2 POR
+unsigned int jtag430x2_por(){
+  unsigned int i = 0;
+  
+  // tick
+  CLRTCLK;
+  SETTCLK;
+
+  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift16(0x0C01);
+  jtag_dr_shift16(0x0401);
+  
+  //cycle
+  for (i = 0; i < 10; i++){
+    CLRTCLK;
+    SETTCLK;
+  }
+  
+  jtag_dr_shift16(0x0501);
+  
+  // tick
+  CLRTCLK;
+  SETTCLK;
+  
+  
+  // Disable WDT
+  jtag430x2_writemem(0x015C, 0x5A80);
+  
+  // check state
+  jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
+  if(jtag_dr_shift16(0) & 0x0301)
+    return(1);//ok
+  
+  return 0;//error
+}
+
+
+//! Check the fuse.
+unsigned int jtag430x2_fusecheck(){
+  int i;
+  for(i=0;i<3;i++){
+    jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
+    if(jtag_dr_shift16(0xAAAA)==0x5555)
+      return 1;//blown
+  }
+  return 0;//unblown
+}
+
+
+//! Handles MSP430X2 JTAG commands.  Forwards others to JTAG.
 void jtag430x2handle(unsigned char app,
-		   unsigned char verb,
-		   unsigned char len){
-  jtag430_resettap();
+		     unsigned char verb,
+		     unsigned char len){
+  register char blocks;
+  
+  unsigned int i,val;
+  unsigned long at;
+  
+  //jtag430_resettap();
+  
   switch(verb){
   case START:
     //Enter JTAG mode.
@@ -150,15 +215,43 @@ void jtag430x2handle(unsigned char app,
       return;
     }
     
-    //TAP setup, fuse check
-    //jtag430_resettap();
+    jtag430x2_fusecheck();
+        
+    jtag430x2_syncpor();
+    
+    jtag430_resettap();
+    
     txdata(app,verb,1);
     break;
   case JTAG430_READMEM:
   case PEEK:
-    //cmddataword[0]=jtag430x2_readmem(cmddataword[0]);
-    cmddataword[0]=jtag430x2_readmem(cmddatalong[0]);
+    blocks=(len>4?cmddata[4]:1);
+    at=cmddatalong[0];
+    
+    /*
+    cmddataword[0]=jtag430x2_readmem(at);
     txdata(app,verb,2);
+    break;
+    */
+    
+    len=0x80;
+    serial_tx(app);
+    serial_tx(verb);
+    serial_tx(len);
+    
+    while(blocks--){
+      for(i=0;i<len;i+=2){
+	jtag430_resettap();
+	delay(10);
+	
+	val=jtag430x2_readmem(at);
+		
+	at+=2;
+	serial_tx(val&0xFF);
+	serial_tx((val&0xFF00)>>8);
+      }
+    }
+    
     break;
   case JTAG430_COREIP_ID:
     cmddataword[0]=jtag430_coreid();
@@ -169,13 +262,15 @@ void jtag430x2handle(unsigned char app,
     txdata(app,verb,4);
     break;
   case JTAG430_HALTCPU:
+    //jtag430x2_haltcpu();
+    break;
   case JTAG430_RELEASECPU:
   case JTAG430_SETINSTRFETCH:
   case JTAG430_WRITEMEM:
   case POKE:
-    jtag430x2_writemem(cmddataword[0],
-		       cmddataword[1]);
-    cmddataword[0]=jtag430x2_readmem(cmddataword[0]);
+    jtag430x2_writemem(cmddatalong[0],
+		       cmddataword[2]);
+    cmddataword[0]=jtag430x2_readmem(cmddatalong[0]);
     txdata(app,verb,2);
     break;
   case JTAG430_WRITEFLASH:

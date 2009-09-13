@@ -4,7 +4,7 @@ import sys;
 import binascii;
 
 from GoodFETMSP430 import GoodFETMSP430;
-from intelhex import IntelHex16bit;
+from intelhex import IntelHex16bit, IntelHex;
 
 
 
@@ -23,13 +23,15 @@ client.serInit()
 
 #Connect to target
 client.MSP430setup();
+#print "setup"
 
 #Identify model number.
 client.MSP430start();
+#print "started"
 
 if(sys.argv[1]=="info"):
-    print "Model    %04x " % client.MSP430coreid();
-    print "Core %08x " % client.MSP430deviceid();
+    print "Model    %08x " % client.MSP430deviceid();
+    print "Core     %04x " % client.MSP430coreid();
     print "Identity %04x" % client.MSP430ident();
 if(sys.argv[1]=="test"):
     client.MSP430test();
@@ -43,13 +45,15 @@ if(sys.argv[1]=="dump"):
         stop=int(sys.argv[4],16);
     
     print "Dumping from %04x to %04x as %s." % (start,stop,f);
-    h = IntelHex16bit(None);
+    #h = IntelHex16bit(None);
+    h = IntelHex(None);
     i=start;
-    while i<stop:
-        h[i>>1]=client.MSP430peek(i);
-        if(i%0x100==0):
-            print "Dumped %04x."%i;
-        i+=2;
+    while i<=stop:
+        data=client.MSP430peekblock(i,0x20);
+        print "Dumped %06x."%i;
+        for j in data:
+            if i<=stop: h[i]=ord(j);
+            i+=1;
     h.write_hex_file(f);
 if(sys.argv[1]=="erase"):
     client.MSP430masserase();

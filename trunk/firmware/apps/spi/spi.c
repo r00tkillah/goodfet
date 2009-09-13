@@ -151,7 +151,7 @@ void spiflash_peek(unsigned char app,
 		   unsigned char verb,
 		   unsigned char len){
   register char blocks=(len>3?cmddata[3]:1);
-  unsigned char i,j;
+  unsigned char i;
   
   P5OUT&=~SS; //Drop !SS to begin transaction.
   spitrans8(0x03);//Flash Read Command
@@ -183,7 +183,6 @@ void spihandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned char len){
   unsigned char i;
-  
   
   //Raise !SS to end transaction, just in case we forgot.
   P5OUT|=SS;  

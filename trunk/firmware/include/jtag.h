@@ -20,9 +20,12 @@ unsigned long jtagtransn(unsigned long word,
 unsigned char jtag_ir_shift8(unsigned char);
 //! Shift 16 bits of the DR.
 unsigned int jtag_dr_shift16(unsigned int);
+//! Shift 20 bits of the DR, MSP430 specific.
+unsigned long jtag_dr_shift20(unsigned long in);
 //! Stop JTAG, release pins
 void jtag_stop();
 
+//! Setup the JTAG pin directions.
 void jtagsetup();
 
 // JTAG430 Commands
@@ -126,3 +129,8 @@ extern int savedtclk;
 #define MSP430JTAGID 0x89
 //MSP430X2 only
 #define MSP430X2JTAGID 0x91
+
+//! Syncs a POR.
+unsigned int jtag430x2_syncpor();
+//! Executes an MSP430X2 POR
+unsigned int jtag430x2_por();

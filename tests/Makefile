@@ -18,4 +18,6 @@ cc: cc.zsh
 msp430x2: msp430x2.zsh
 	./msp430x2.zsh >msp430x2
 nodiff: all
-	svn diff $(TARGETS) | grep -v Index
+	#If this fails, it's because a test result differs with the one in svn.
+	if (svn diff $(TARGETS) | grep Index); then false; fi
+

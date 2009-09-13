@@ -1,10 +1,11 @@
-TARGETS=monitor cc msp430x2
+#TODO msp430x2
+TARGETS=monitor cc 
 GOODFET=/dev/ttyUSB0
 
 
 all: 
 	make clean
-	make install
+	make flash
 	make $(TARGETS)
 clean:
 	rm -f $(TARGETS) *~

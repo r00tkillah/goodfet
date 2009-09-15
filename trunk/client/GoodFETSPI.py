@@ -37,11 +37,18 @@ class GoodFETSPIFlash(GoodFETSPI):
                   0xEF3013: "W25X40L",
                   0xEF3012: "W25X20L",
                   0xEF3011: "W25X10L",
+                  0xC22017: "MX25L6405D",
+                  0xC22016: "MX25L3205D",
+                  0xC22015: "MX25L1605D",
                   0xC22014: "MX25L8005",
                   0xC22013: "MX25L4005",
                   0x204011: "M45PE10"
                   };
-    JEDECsizes={0x14: 0x100000,
+    
+    JEDECsizes={0x16: 0x800000,
+                0x16: 0x400000,
+                0x15: 0x200000,
+                0x14: 0x100000,
                 0x13: 0x080000,
                 0x12: 0x040000,
                 0x11: 0x020000}

@@ -33,6 +33,7 @@ class GoodFETSPIFlash(GoodFETSPI):
                         };
 
     JEDECdevices={0xFFFFFF: "MISSING",
+                  0xEF3015: "W25X16L",
                   0xEF3014: "W25X80L",
                   0xEF3013: "W25X40L",
                   0xEF3012: "W25X20L",

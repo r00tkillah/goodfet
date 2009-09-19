@@ -60,12 +60,18 @@ class GoodFET:
         self.readcmd(blocks);  #Uncomment this later, to ensure a response.
     def readcmd(self,blocks=1):
         """Read a reply from the GoodFET."""
-        self.app=ord(self.serialport.read(1));
-        self.verb=ord(self.serialport.read(1));
-        self.count=ord(self.serialport.read(1));
-        self.data=self.serialport.read(self.count*blocks);
-        #print "READ %02x %02x %02x " % (self.app, self.verb, self.count);
-        return self.data;
+        while 1:
+            self.app=ord(self.serialport.read(1));
+            self.verb=ord(self.serialport.read(1));
+            self.count=ord(self.serialport.read(1));
+            self.data=self.serialport.read(self.count*blocks);
+            #print "READ %02x %02x %02x " % (self.app, self.verb, self.count);
+            
+            #Debugging string; print, but wait.
+            if self.app==0xFF and self.verb==0xFF:
+                print "DEBUG %s" % self.data;
+            else:
+                return self.data;
         
     #Monitor stuff
     def out(self,byte):

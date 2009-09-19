@@ -15,7 +15,8 @@
 //This could be more accurate.
 //Does it ever need to be?
 #define SPISPEED 0
-#define SPIDELAY(x) delay(x)
+#define SPIDELAY(x)
+//delay(x)
 
 
 //! Set up the pins for SPI mode.
@@ -139,8 +140,7 @@ void spiflash_pokeblock(unsigned long adr,
     spitrans8(buf[i]);
   SETSS;  //Raise !SS to end transaction.
   
-  while(spiflash_status()&0x01)
-    ;
+  //while(spiflash_status()&0x01);
   
   return;
 }
@@ -185,7 +185,8 @@ void spihandle(unsigned char app,
   unsigned char i;
   
   //Raise !SS to end transaction, just in case we forgot.
-  P5OUT|=SS;  
+  P5OUT|=SS;
+  spisetup();
   
   switch(verb){
     //PEEK and POKE might come later.

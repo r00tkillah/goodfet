@@ -6,6 +6,7 @@
 
 unsigned char cmddata[256];
 
+
 //! Transmit a string.
 void txstring(unsigned char app,
 	      unsigned char verb,
@@ -17,6 +18,12 @@ void txstring(unsigned char app,
   while(len--)
     serial_tx(*(str++));
 }
+
+//! Transmits a debugging string out of line.
+void debugstr(const char *str){
+  txstring(0xFF,0xFF,str);
+}
+
 
 //! Transmit data.
 void txdata(unsigned char app,

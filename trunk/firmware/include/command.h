@@ -18,6 +18,8 @@ extern unsigned char cmddata[256];
 #define NOK   0x7E
 #define OK    0x7F
 
+#define DEBUGSTR 0xFF
+
 // Monitor Commands
 #define MONITOR_CHANGE_BAUD 0x80
 #define MONITOR_RAM_PATTERN 0x90
@@ -93,6 +95,8 @@ void txdata(unsigned char app,
 void txstring(unsigned char app,
 	      unsigned char verb,
 	      const char *str);
+//! Transmit a debug string.
+void debugstr(const char *str);
 
 //! Delay
 void delay(unsigned int count);

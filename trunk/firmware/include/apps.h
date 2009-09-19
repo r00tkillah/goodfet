@@ -10,3 +10,4 @@
 
 #define OCT 0x70
 
+#define DEBUGAPP 0xFF

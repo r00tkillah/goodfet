@@ -107,6 +107,7 @@ if(sys.argv[1]=="peek"):
     while start<=stop:
         print "%04x: %04x" % (start,client.MSP430peek(start));
         start=start+2;
+
 if(sys.argv[1]=="poke"):
     start=0x0000;
     val=0x00;

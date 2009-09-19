@@ -201,8 +201,9 @@ void jtag430x2handle(unsigned char app,
   switch(verb){
   case START:
     //Enter JTAG mode.
-    do cmddata[0]=jtag430x2_start();
-    while(cmddata[0]==00 || cmddata[0]==0xFF);
+    //do 
+      cmddata[0]=jtag430x2_start();
+    //while(cmddata[0]==00 || cmddata[0]==0xFF);
     
     //MSP430 or MSP430X
     if(jtagid==MSP430JTAGID){ 
@@ -265,18 +266,22 @@ void jtag430x2handle(unsigned char app,
   case JTAG430_HALTCPU:
     //jtag430x2_haltcpu();
     break;
-  case JTAG430_RELEASECPU:
-  case JTAG430_SETINSTRFETCH:
-  case JTAG430_WRITEMEM:
+
   case POKE:
     jtag430x2_writemem(cmddatalong[0],
 		       cmddataword[2]);
     cmddataword[0]=jtag430x2_readmem(cmddatalong[0]);
     txdata(app,verb,2);
     break;
+  case JTAG430_RELEASECPU:
+    
+  case JTAG430_SETINSTRFETCH:
+  case JTAG430_WRITEMEM:
   case JTAG430_WRITEFLASH:
   case JTAG430_ERASEFLASH:
   case JTAG430_SETPC:
+    txdata(app,NOK,0);
+    break;
   default:
     jtaghandle(app,verb,len);
   }

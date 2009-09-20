@@ -1,9 +1,11 @@
 <h1>GoodFET20</h1>
 
-<p>The GoodFET20 is the third hardware revision of the GoodFET.
-In addition to the low frequency crystal, it adds a high frequency
-crystal for speeds up to 8MHz and an optional 74HC4053 analog bidirectional
-MUX for voltage glitching.</p>
+<p>The GoodFET20 is the third hardware revision of the GoodFET.  The
+same board is also the basis of
+the <a href="/hardware/badfet20">BadFET20</a>, which runs at 16MHz and
+optionally glitches the voltage of target chips to bypass securiy
+features.
+</p>
 
 <h2>CAD Files</h2>
 
@@ -23,9 +25,6 @@ MUX for voltage glitching.</p>
 <tr><td>6</td><td>0603</td><td>47K Pull-up Resistors (GoodFET only)</td></tr>
 <tr><td>6</td><td>0603</td><td>100R JTAG Series Resistors</td></tr>
 <tr><td>1</td><td>TC26H</td><td>32.768kHz Crystal</td></tr>
-<tr><td>1</td><td>TC26H</td><td>8MHz Crystal (BadFET only)</td></tr>
-<tr><td>2</td><td>0603</td><td>2pF Caps (BadFET only)</td></tr>
-<tr><td>1</td><td>SO16</td><td>74HC4053 (BadFET only)</td></tr>
 </table>
 
 <h2>Construction</h2>

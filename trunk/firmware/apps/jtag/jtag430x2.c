@@ -263,20 +263,19 @@ void jtag430x2handle(unsigned char app,
     cmddatalong[0]=jtag430_deviceid();
     txdata(app,verb,4);
     break;
-  case JTAG430_HALTCPU:
-    //jtag430x2_haltcpu();
-    break;
 
+  case JTAG430_WRITEMEM:
   case POKE:
     jtag430x2_writemem(cmddatalong[0],
 		       cmddataword[2]);
     cmddataword[0]=jtag430x2_readmem(cmddatalong[0]);
     txdata(app,verb,2);
     break;
+
+    //unimplemented functions
+  case JTAG430_HALTCPU:  
   case JTAG430_RELEASECPU:
-    
   case JTAG430_SETINSTRFETCH:
-  case JTAG430_WRITEMEM:
   case JTAG430_WRITEFLASH:
   case JTAG430_ERASEFLASH:
   case JTAG430_SETPC:

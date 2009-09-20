@@ -1,5 +1,9 @@
-//GoodFET SPI Application
-//Handles basic I/O
+/*! \file spi.c
+  \author Travis Goodspeed
+  
+  This is an implementation of the SPI protocol
+  for the GoodFET project.
+*/
 
 //Higher level left to client application.
 

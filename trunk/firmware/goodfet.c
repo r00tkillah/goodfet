@@ -1,5 +1,10 @@
-//GOODFET Main File
-//Includes several applications.
+/*! \file goodfet.c
+  \author Travis Goodspeed
+  
+  This is the main module of the GoodFET, which calls the initialization
+  routines and delegates commands to the various applications.
+*/
+
 
 #include "platform.h"
 #include "command.h"

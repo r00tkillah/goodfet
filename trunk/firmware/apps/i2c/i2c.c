@@ -1,5 +1,11 @@
-//GoodFET I2C Master Application
-//Handles basic I/O
+/*! \file i2c.c
+  \author Travis Goodspeed
+  
+  GoodFET I2C Master Application
+  Handles basic I/O
+
+*/
+
 
 //Higher level left to client application.
 

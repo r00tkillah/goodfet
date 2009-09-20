@@ -1,11 +1,14 @@
-//GoodFET ChipCon Debugging Application
-//by Travis Goodspeed
-//<travis at radiantmachines.com>
+/*! \file chipcon.c
+  \author Travis Goodspeed
+  
+  This is an implementation of the Chipcon 8051
+  debugging protocol for the GoodFET.
+*/
 
 
 //This is like SPI, except that you read or write, not both.
 
-/** N.B. The READ verb performs a write of all (any) supplied data,
+/* N.B. The READ verb performs a write of all (any) supplied data,
     then reads a single byte reply from the target.  The WRITE verb
     only writes.
 */
@@ -19,7 +22,7 @@
 #include <iomacros.h>
 
 
-/** Concerning clock rates,
+/* Concerning clock rates,
     the maximimum clock rates are defined on page 4 of the spec.
     They vary, but are roughly 30MHz.  Raising this clock rate might
     allow for clock glitching, but the GoodFET isn't sufficient fast for that.

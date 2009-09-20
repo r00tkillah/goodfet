@@ -1,3 +1,10 @@
+/*! \file monitor.c
+  \author Travis Goodspeed
+  
+  This is an implementation of the SPI protocol
+  for the GoodFET project.
+*/
+
 #include "command.h"
 #include "platform.h"
 #include "monitor.h"

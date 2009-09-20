@@ -1,3 +1,11 @@
+/*! \file jtag430.c
+  \author Travis Goodspeed <travis at radiantmachines.com>
+  
+  This is an implementation of the 16-bit MSP430 JTAG protocol
+  for the GoodFET project at http://goodfet.sf.net/
+  
+  See the license file for details of proper use.
+*/
 
 #include "platform.h"
 #include "command.h"

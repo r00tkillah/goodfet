@@ -1,7 +1,3 @@
 
-releases:
-	zsh build.zsh
-clean:
-	rm -f *.zip
-upload: releases
+upload: 
 	rsync -ave ssh goodfet??.zip travisutk,goodfet@web.sourceforge.net:htdocs/releases/

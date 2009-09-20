@@ -1,4 +1,7 @@
-//! Application stuff.
+/*! \file apps.h
+  \author Travis Goodspeed
+  \brief Application definitions.
+*/
 
 #define MONITOR 0x00
 #define SPI 0x01

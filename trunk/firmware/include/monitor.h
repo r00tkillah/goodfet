@@ -1,4 +1,7 @@
-
+/*! \file monitor.h
+  \author Travis Goodspeed
+  \brief Debug monitor commands.
+*/
 
 #include <signal.h>
 #include <io.h>

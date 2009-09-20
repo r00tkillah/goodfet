@@ -1,8 +1,6 @@
 /*! \file chipcon.c
   \author Travis Goodspeed
-  
-  This is an implementation of the Chipcon 8051
-  debugging protocol for the GoodFET.
+  \brief Chipcon 8051 debugging.
 */
 
 

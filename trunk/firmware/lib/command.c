@@ -1,7 +1,6 @@
 /*! \file command.c
   \author Travis Goodspeed
-  
-  These functions manage command interpretation.
+  \brief These functions manage command interpretation.
 */
 
 #include "command.h"
@@ -23,7 +22,12 @@ void txstring(unsigned char app,
     serial_tx(*(str++));
 }
 
-//! Transmits a debugging string out of line.
+/*! \brief Transmit a debug string.
+  
+  Transmits a debugging string that is to be printed
+  out of line by the client.  This is just for record-keeping;
+  it is not considered a proper reply to a query.
+ */
 void debugstr(const char *str){
   txstring(0xFF,0xFF,str);
 }

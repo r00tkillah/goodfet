@@ -1,10 +1,6 @@
 /*! \file jtag.c
   \author Travis Goodspeed <travis at radiantmachines.com>
-  
-  This is an implementation of the low-level JTAG functions
-  for the GoodFET project at http://goodfet.sf.net/
-  
-  See the license file for details of proper use.
+  \brief Low-level JTAG
 */
 
 

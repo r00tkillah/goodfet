@@ -1,7 +1,11 @@
-// Command handling functions.
+/*! \file command.h
+  \author Travis Goodspeed
+  \brief Command codes and buffers.
+*/
 
 //! Global data buffer.
 extern unsigned char cmddata[256];
+
 #define cmddataword ((unsigned int*) cmddata)
 #define cmddatalong ((unsigned long*) cmddata)
 #define memorybyte ((unsigned char*) 0)
@@ -98,7 +102,7 @@ void txstring(unsigned char app,
 //! Transmit a debug string.
 void debugstr(const char *str);
 
-//! Delay
+//! Delay for a count.
 void delay(unsigned int count);
 //! MSDelay
 void msdelay(unsigned int ms);

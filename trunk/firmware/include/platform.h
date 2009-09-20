@@ -1,4 +1,10 @@
-//! \file platform.h
+/*! \file platform.h
+  \author Travis Goodspeed
+  \brief Port and baud rate definitions.
+  
+  The functions specified here are defined in the platform
+  definition file, such as msp430x1612.c or msp430x2618.c.
+*/
 
 #include <signal.h>
 #include <io.h>

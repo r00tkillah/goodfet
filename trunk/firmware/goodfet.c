@@ -1,5 +1,6 @@
 /*! \file goodfet.c
   \author Travis Goodspeed
+  \brief Main module.
   
   This is the main module of the GoodFET, which calls the initialization
   routines and delegates commands to the various applications.

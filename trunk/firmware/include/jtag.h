@@ -1,3 +1,7 @@
+/*! \file jtag.h
+  \author Travis Goodspeed
+  \brief JTAG handler functions.
+*/
 
 #include <signal.h>
 #include <io.h>

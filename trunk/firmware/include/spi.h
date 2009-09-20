@@ -1,4 +1,7 @@
-/** SPI **/
+/*! \file spi.h
+  \author Travis Goodspeed
+  \brief Definitions for the SPI application.
+*/
 
 
 //Pins and I/O

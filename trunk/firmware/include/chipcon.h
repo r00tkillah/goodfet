@@ -1,4 +1,7 @@
-//These high-level functions are implemented in chipcon.c.
+/*! \file chipcon.h
+  \author Travis Goodspeed
+  \brief Chipcon application functions.
+*/
 
 
 //! Erase a chipcon chip.

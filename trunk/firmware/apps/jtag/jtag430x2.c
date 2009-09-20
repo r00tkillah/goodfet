@@ -1,10 +1,6 @@
 /*! \file jtag430x2.c
   \author Travis Goodspeed <travis at radiantmachines.com>
-  
-  This is an implementation of the MSP430X2 JTAG protocol
-  for the GoodFET project at http://goodfet.sf.net/
-  
-  See the license file for details of proper use.
+  \brief MSP430X2 JTAG (20-bit)
 */
 
 #include "platform.h"
@@ -94,7 +90,7 @@ void jtag430x2_writemem(unsigned long adr,
 //! Read data from address
 unsigned int jtag430x2_readmem(unsigned long adr){
   unsigned int toret=0;
-  unsigned int tries=5;
+  //unsigned int tries=5;
   
   while(1){
     do{

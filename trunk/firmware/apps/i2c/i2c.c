@@ -1,9 +1,6 @@
 /*! \file i2c.c
   \author Travis Goodspeed
-  
-  GoodFET I2C Master Application
-  Handles basic I/O
-
+  \brief I2C Master  
 */
 
 

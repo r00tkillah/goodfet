@@ -142,7 +142,7 @@ void spiflash_pokeblock(unsigned long adr,
     spitrans8(buf[i]);
   SETSS;  //Raise !SS to end transaction.
   
-  //while(spiflash_status()&0x01);
+  while(spiflash_status()&0x01);
   
   return;
 }
@@ -231,8 +231,10 @@ void spihandle(unsigned char app,
     P5OUT|=SS;          //Raise !SS to end transaction.
     
     
+    
     while(spiflash_status()&0x01)
       P1OUT^=1;
+    
     P1OUT&=~1;
     
     txdata(app,verb,len);

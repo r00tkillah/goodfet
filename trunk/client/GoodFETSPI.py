@@ -46,20 +46,21 @@ class GoodFETSPIFlash(GoodFETSPI):
                   0x204011: "M45PE10"
                   };
     
-    JEDECsizes={0x16: 0x800000,
+    JEDECsizes={0x17: 0x800000,
                 0x16: 0x400000,
                 0x15: 0x200000,
                 0x14: 0x100000,
                 0x13: 0x080000,
                 0x12: 0x040000,
-                0x11: 0x020000}
+                0x11: 0x020000
+                };
+    
     JEDECsize=0;
 
     def SPIjedec(self):
         """Grab an SPI Flash ROM's JEDEC bytes."""
         data=[0x9f, 0, 0, 0];
         data=self.SPItrans(data);
-        #print "Manufacturer: %02x\nType: %02x\nCapacity: %02x" % (ord(data[1]),ord(data[2]),ord(data[3]));
         self.JEDECmanufacturer=ord(data[1]);
         self.JEDECtype=ord(data[2]);
         self.JEDECcapacity=ord(data[3]);

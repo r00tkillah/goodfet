@@ -50,3 +50,8 @@ erase:
 	$(BSL) -e 
 clean:
 	rm -f $(app) $(app).hex $(libs) $(apps)
+docs:
+	doxygen
+pushdocs: docs
+	rsync --exclude .svn -ave ssh doc/html/* travisutk,goodfet@web.sourceforge.net:htdocs/docs/
+.FAKE: docs

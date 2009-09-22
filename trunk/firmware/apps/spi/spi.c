@@ -222,16 +222,16 @@ void spihandle(unsigned char app,
     spiflash_setstatus(0x02);
     spiflash_wrten();
     
-    P5OUT&=~SS; //Drop !SS to begin transaction.
-    spitrans8(0x02); //Poke command.
+    P5OUT&=~SS;         //Drop !SS to begin transaction.
+    spitrans8(0x02);    //Poke command.
     
     //First three bytes are address, then data.
     for(i=0;i<len;i++)
       spitrans8(cmddata[i]);
-    P5OUT|=SS;  //Raise !SS to end transaction.
+    P5OUT|=SS;          //Raise !SS to end transaction.
     
     
-    while(spiflash_status()&0x01)//while busy
+    while(spiflash_status()&0x01)
       P1OUT^=1;
     P1OUT&=~1;
     

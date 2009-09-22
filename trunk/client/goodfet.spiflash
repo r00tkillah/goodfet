@@ -126,13 +126,12 @@ if(sys.argv[1]=="flash"):
 
     i=start;
     chars=list(file.read());
-    chunksize=0x80;
+    chunksize=0xfc;
     
     while i<=stop:
         bytes=range(0,chunksize);
         for j in range(0,chunksize):
             bytes[j]=ord(chars[i+j]);
-        #client.SPIpokebyte(i,ord(chars[i]));
         client.SPIpokebytes(i,bytes);
         
         i+=chunksize;

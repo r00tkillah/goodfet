@@ -29,7 +29,8 @@ class GoodFETSPIFlash(GoodFETSPI):
     JEDECmanufacturers={0xFF: "MISSING",
                         0xEF: "Winbond",
                         0xC2: "MXIC",
-                        0x20: "Numonyx/ST"
+                        0x20: "Numonyx/ST",
+                        0x1F: "Atmel"
                         };
 
     JEDECdevices={0xFFFFFF: "MISSING",

@@ -9,7 +9,6 @@
 
 unsigned char cmddata[256];
 
-
 //! Transmit a string.
 void txstring(unsigned char app,
 	      unsigned char verb,

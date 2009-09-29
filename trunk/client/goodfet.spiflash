@@ -126,6 +126,8 @@ if(sys.argv[1]=="flash"):
 
     i=start;
     chars=list(file.read());
+    
+    #N.B., chunksize must be an even fraction of 0x100.
     chunksize=0x80;
     
     while i<=stop:

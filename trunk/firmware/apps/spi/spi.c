@@ -66,9 +66,11 @@ unsigned char spitrans8(unsigned char byte){
 //! Enable SPI writing
 void spiflash_wrten(){
   SETSS;
+  /*
   P5OUT&=~SS; //Drop !SS to begin transaction.
   spitrans8(0x04);//Write Disable
   P5OUT|=SS;  //Raise !SS to end transaction.
+  */
   P5OUT&=~SS; //Drop !SS to begin transaction.
   spitrans8(0x06);//Write Enable
   P5OUT|=SS;  //Raise !SS to end transaction.
@@ -205,7 +207,7 @@ void spihandle(unsigned char app,
   case SPI_JEDEC://Grab 3-byte JEDEC ID.
     P5OUT&=~SS; //Drop !SS to begin transaction.
     spitrans8(0x9f);
-    len=3;
+    len=3;  //Length is variable in some chips, 3 minimum.
     for(i=0;i<len;i++)
       cmddata[i]=spitrans8(cmddata[i]);
     txdata(app,verb,len);

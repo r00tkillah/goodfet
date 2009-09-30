@@ -32,7 +32,7 @@ client.CCstart();
 if(sys.argv[1]=="test"):
     client.CCtest();
 if(sys.argv[1]=="deadtest"):
-    for range(1,10):
+    for i in range(1,10):
         print "IDENT as %s" % self.CCidentstr();
 if(sys.argv[1]=="dumpcode"):
     f = sys.argv[2];

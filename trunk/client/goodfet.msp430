@@ -33,6 +33,7 @@ if(sys.argv[1]=="info"):
     print "Model    %08x " % client.MSP430deviceid();
     print "Core     %04x " % client.MSP430coreid();
     print "Identity %04x" % client.MSP430ident();
+    print "Identifies as %s" % client.MSP430identstr();
 if(sys.argv[1]=="test"):
     client.MSP430test();
 if(sys.argv[1]=="dump"):

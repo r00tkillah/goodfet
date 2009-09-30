@@ -99,6 +99,34 @@ class GoodFETMSP430(GoodFET):
             #ident=0x0091;
         
         return ident;
+    def MSP430identstr(self):
+        """Grab model string."""
+        return self.MSP430devices.get(self.MSP430ident());
+    MSP430devices={
+        #MSP430F2xx
+        0xf227: "MSP430F22xx",
+        0xf213: "MSP430F21x1",
+        0xf249: "MSP430F24x",
+        0xf26f: "MSP430F261x",
+        
+        #MSP430F1xx
+        0xf16c: "MSP430F161x",
+        0xf149: "MSP430F13x", #or f14x(1)
+        0xf112: "MSP430F11x", #or f11x1
+        0xf143: "MSP430F14x",
+        0xf112: "MSP430F11x", #or F11x1A
+        0xf123: "MSP430F1xx", #or F123x
+        0x1132: "MSP430F1122", #or F1132
+        0x1232: "MSP430F1222", #or F1232
+        0xf169: "MSP430F16x",
+        
+        #MSP430F4xx
+        0xF449: "MSP430F43x", #or F44x
+        0xF427: "MSP430FE42x", #or FW42x, F415, F417
+        0xF439: "MSP430FG43x",
+        0xf46f: "MSP430FG46xx", #or F471xx
+        
+        }
     def MSP430test(self):
         """Test MSP430 JTAG.  Requires that a chip be attached."""
         if self.MSP430ident()==0xffff:

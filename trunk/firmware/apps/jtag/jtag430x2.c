@@ -27,12 +27,12 @@ unsigned char jtag430x2_start(){
   
   //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
   CLRRST;
-  delay(10);
+  delay(10);//10
   CLRTST;
 
-  delay(5);
+  delay(5);//5
   SETTST;
-  msdelay(5);
+  msdelay(5);//5
   SETRST;
   P5DIR&=~RST;
   
@@ -210,6 +210,9 @@ void jtag430x2handle(unsigned char app,
     if(jtagid==MSP430JTAGID){ 
       jtag430mode=MSP430MODE;
       drwidth=16;
+      jtag430_resettap();
+      txdata(app,verb,1);
+      return;
     }else if(jtagid==MSP430X2JTAGID){
       jtag430mode=MSP430X2MODE;
       drwidth=20;

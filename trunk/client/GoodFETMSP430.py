@@ -88,6 +88,7 @@ class GoodFETMSP430(GoodFET):
         return self.data[0];
     def MSP430ident(self):
         """Grab self-identification word from 0x0FF0 as big endian."""
+        ident=0x00;
         if(self.JTAGID==0x89):
             i=self.MSP430peek(0x0ff0);
             ident=((i&0xFF00)>>8)+((i&0xFF)<<8)
@@ -96,7 +97,7 @@ class GoodFETMSP430(GoodFET):
             i=self.MSP430peek(0x1A04);
             ident=((i&0xFF00)>>8)+((i&0xFF)<<8)
             #ident=0x0091;
-            
+        
         return ident;
     def MSP430test(self):
         """Test MSP430 JTAG.  Requires that a chip be attached."""

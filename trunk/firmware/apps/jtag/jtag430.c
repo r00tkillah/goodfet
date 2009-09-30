@@ -240,11 +240,11 @@ void jtag430_start(){
   
   //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
   CLRRST;
-  delay(100);
+  delay(100); //100
   CLRTST;
-  delay(50);
+  delay(50);  //50
   SETTST;
-  delay(50);
+  delay(50);  //50
   SETRST;
   P5DIR&=~RST;
   delay(0xFFFF);
@@ -320,6 +320,14 @@ void oldjtag430handle(unsigned char app,
     jtag430_setpc(cmddataword[0]);
     txdata(app,verb,0);
     break;
+    
+  case JTAG430_COREIP_ID:
+  case JTAG430_DEVICE_ID:
+    cmddataword[0]=0;
+    cmddataword[1]=0;
+    txdata(app,verb,4);
+    break;
+    
   default:
     jtaghandle(app,verb,len);
   }

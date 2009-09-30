@@ -194,6 +194,11 @@ void jtag430x2handle(unsigned char app,
   
   //jtag430_resettap();
   
+  if(verb!=START && jtag430mode==MSP430MODE){
+    jtag430handle(app,verb,len);
+    return;
+  }
+  
   switch(verb){
   case START:
     //Enter JTAG mode.

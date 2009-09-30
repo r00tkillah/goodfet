@@ -64,7 +64,7 @@ class GoodFETMSP430(GoodFET):
         self.JTAGID=ord(self.data[0]);
         #print "Identified as %02x." % self.JTAGID;
         if(not (self.JTAGID==0x89 or self.JTAGID==0x91)):
-            print "Error, misidentified as %02x." % id;
+            print "Error, misidentified as %02x." % self.JTAGID;
         
     def MSP430haltcpu(self):
         """Halt the CPU."""

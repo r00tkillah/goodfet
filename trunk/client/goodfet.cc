@@ -67,10 +67,12 @@ if(sys.argv[1]=="dumpdata"):
             print "Dumped %04x."%i;
         i+=1;
     h.write_hex_file(f);
+if(sys.argv[1]=="status"):
+    print "Status: %s" %client.CCstatusstr();
 if(sys.argv[1]=="erase"):
-  print "Status: %s" % client.CCstatusstr();
-  client.CCchiperase();
-  print "Status: %s" %client.CCstatusstr();
+    print "Status: %s" % client.CCstatusstr();
+    client.CCchiperase();
+    print "Status: %s" %client.CCstatusstr();
 
 # if(sys.argv[1]=="flash"):
 #     f=sys.argv[2];

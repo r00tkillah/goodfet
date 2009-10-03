@@ -234,12 +234,6 @@ void jtag430x2handle(unsigned char app,
     blocks=(len>4?cmddata[4]:1);
     at=cmddatalong[0];
     
-    /*
-    cmddataword[0]=jtag430x2_readmem(at);
-    txdata(app,verb,2);
-    break;
-    */
-    
     len=0x80;
     serial_tx(app);
     serial_tx(verb);

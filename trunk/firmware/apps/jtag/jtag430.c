@@ -271,6 +271,9 @@ void jtag430_setinstrfetch(){
 void oldjtag430handle(unsigned char app,
 		   unsigned char verb,
 		   unsigned char len){
+  register char blocks;
+  unsigned long at;
+  unsigned int i, val;
   
   switch(verb){
   case START:
@@ -296,8 +299,33 @@ void oldjtag430handle(unsigned char app,
     
   case JTAG430_READMEM:
   case PEEK:
+    /*
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
     txdata(app,verb,2);
+    */
+    blocks=(len>4?cmddata[4]:1);
+    at=cmddatalong[0];
+    
+    len=0x80;
+    serial_tx(app);
+    serial_tx(verb);
+    serial_tx(len);
+    
+    while(blocks--){
+      for(i=0;i<len;i+=2){
+	jtag430_resettap();
+	delay(10);
+	
+	val=jtag430_readmem(at);
+		
+	at+=2;
+	serial_tx(val&0xFF);
+	serial_tx((val&0xFF00)>>8);
+      }
+    }
+    
+    
+    
     break;
   case JTAG430_WRITEMEM:
   case POKE:

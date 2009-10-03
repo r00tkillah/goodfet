@@ -48,7 +48,7 @@ class GoodFET:
             print "Verb %02x is wrong.  Incorrect firmware?" % self.verb;
         #print "Connected."
     def getbuffer(self,size=0x1c00):
-        writecmd(0,0xC2,[size&0xFF,(size>>16)&&0xFF]);
+        writecmd(0,0xC2,[size&0xFF,(size>>16)&0xFF]);
         print "Got %02x%02x buffer size." % (self.data[1],self.data[0]);
     def writecmd(self, app, verb, count=0, data=[], blocks=1):
         """Write a command and some data to the GoodFET."""

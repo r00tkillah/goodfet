@@ -16,10 +16,10 @@ from intelhex import IntelHex;
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s info" % sys.argv[0];
-    print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s dump $foo.rom [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
-    print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
-    print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s flash $foo.rom [0x$start 0x$stop]" % sys.argv[0];
+    print "%s verify $foo.rom [0x$start 0x$stop]" % sys.argv[0];
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
     print "%s poke 0x$adr 0x$val" % sys.argv[0];
     sys.exit();
@@ -130,6 +130,7 @@ if(sys.argv[1]=="flash"):
     #N.B., chunksize must be an even fraction of 0x100.
     chunksize=0x80;
     
+    #client.silent(1);
     while i<=stop:
         bytes=range(0,chunksize);
         for j in range(0,chunksize):
@@ -139,6 +140,8 @@ if(sys.argv[1]=="flash"):
         i+=chunksize;
         if(i%0x1000==0):
             print "Flashed %06x."%i;
+    print "Done, ending silence.";
+    #client.silent(0);
     file.close()
 
 

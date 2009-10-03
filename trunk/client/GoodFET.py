@@ -47,6 +47,9 @@ class GoodFET:
         if(self.verb!=0x7F):
             print "Verb %02x is wrong.  Incorrect firmware?" % self.verb;
         #print "Connected."
+    def getbuffer(self,size=0x1c00):
+        writecmd(0,0xC2,[size&0xFF,(size>>16)&&0xFF]);
+        print "Got %02x%02x buffer size." % (self.data[1],self.data[0]);
     def writecmd(self, app, verb, count=0, data=[], blocks=1):
         """Write a command and some data to the GoodFET."""
         self.serialport.write(chr(app));
@@ -57,7 +60,17 @@ class GoodFET:
             for d in data:
                 self.serialport.write(chr(d));
         
-        self.readcmd(blocks);  #Uncomment this later, to ensure a response.
+        if not self.besilent:
+            #print "Reading reply to %02x/%02x." % (app,verb);
+            self.readcmd(blocks);
+            #print "Read reply."
+    
+    besilent=0;
+    app=0;
+    verb=0;
+    count=0;
+    data="";
+
     def readcmd(self,blocks=1):
         """Read a reply from the GoodFET."""
         while 1:
@@ -72,8 +85,14 @@ class GoodFET:
                 print "DEBUG %s" % self.data;
             else:
                 return self.data;
-        
+    
     #Monitor stuff
+    def silent(self,s=0):
+        """Transmissions halted when 1."""
+        self.besilent=s;
+        print "besilent is %i" % self.besilent;
+        self.writecmd(0,0xB0,1,[s]);
+        
     def out(self,byte):
         """Write a byte to P5OUT."""
         self.writecmd(0,0xA1,1,[byte]);

@@ -6,7 +6,6 @@
 #include <io.h>
 #include <iomacros.h>
 
-
 //! Receive a byte.
 unsigned char serial_rx(){
   char c;
@@ -30,7 +29,6 @@ unsigned char serial1_rx(){
   
   return c;
 }
-
 
 //! Transmit a byte.
 void serial_tx(unsigned char x){

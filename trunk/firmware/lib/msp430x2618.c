@@ -1,7 +1,6 @@
 //! MSP430F2618 clock and I/O definitions
 
-// Ought to be portable to other 2xx chips.
-// 2274 looks particularly appealing.
+// Included by other 2xx ports, such as the 2274.
 
 #include "platform.h"
 

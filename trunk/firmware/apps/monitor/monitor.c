@@ -22,6 +22,11 @@ void monitorhandle(unsigned char app,
     cmddata[0]=memorybyte[cmddataword[0]];
     txdata(app,verb,1);
     break;
+  case MONITOR_SIZEBUF:
+    //TODO make the data length target-specific, varying by ram.
+    cmddataword[0]=0x100;
+    txdata(app,verb,2);
+    break;
   case MONITOR_CHANGE_BAUD:
     //This command, and ONLY this command, does not reply.
     setbaud(cmddata[0]);
@@ -44,6 +49,10 @@ void monitorhandle(unsigned char app,
     break;
   case MONITOR_OUT:
     P5OUT=cmddata[0];
+    txdata(app,verb,1);
+    break;
+  case MONITOR_SILENT:
+    silent=cmddata[0];
     txdata(app,verb,1);
     break;
   }

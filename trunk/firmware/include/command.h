@@ -4,7 +4,8 @@
 */
 
 //! Global data buffer.
-extern unsigned char cmddata[256];
+extern unsigned char cmddata[0x100];
+extern unsigned char silent;
 
 #define cmddataword ((unsigned int*) cmddata)
 #define cmddatalong ((unsigned long*) cmddata)
@@ -32,6 +33,13 @@ extern unsigned char cmddata[256];
 #define MONITOR_DIR 0xA0
 #define MONITOR_OUT 0xA1
 #define MONITOR_IN  0xA2
+
+#define MONITOR_SILENT 0xB0
+
+#define MONITOR_READBUF 0xC0
+#define MONITOR_WRITEBUF 0xC1
+#define MONITOR_SIZEBUF 0xC2
+
 
 //CHIPCON commands
 #define CC_CHIP_ERASE 0x80

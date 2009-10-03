@@ -8,6 +8,7 @@
 #include <string.h>
 
 unsigned char cmddata[256];
+unsigned char silent=0;
 
 //! Transmit a string.
 void txstring(unsigned char app,
@@ -37,6 +38,8 @@ void txdata(unsigned char app,
 	    unsigned char verb,
 	    unsigned char len){
   unsigned int i=0;
+  if(silent)
+    return;
   serial_tx(app);
   serial_tx(verb);
   serial_tx(len);

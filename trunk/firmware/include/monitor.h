@@ -7,7 +7,6 @@
 #include <io.h>
 #include <iomacros.h>
 
-
 // Generic Commands
 
 //! Overwrite all of RAM with 0xBEEF, then reboot.

@@ -139,18 +139,39 @@ class GoodFETMSP430(GoodFET):
         """Test MSP430 JTAG.  Requires that a chip be attached."""
         if self.MSP430ident()==0xffff:
             print "Is anything connected?";
-        print "Testing RAM from 1c00 to 1d00.";
-        for a in range(0x1c00,0x1d00):
+        print "Testing RAM from 200 to 210.";
+        for a in range(0x200,0x210):
             self.MSP430poke(a,0);
             if(self.MSP430peek(a)!=0):
                 print "Fault at %06x" % a;
             self.MSP430poke(a,0xffff);
             if(self.MSP430peek(a)!=0xffff):
                 print "Fault at %06x" % a;
-        print "RAM Test Complete."
-        for a in range(1,5):
-            print "Identity %04x" % self.MSP430ident();
-            
+                
+        print "Testing identity consistency."
+        ident=self.MSP430ident();
+        for a in range(1,20):
+            ident2=self.MSP430ident();
+            if ident!=ident2:
+                print "Identity %04x!=%04x" % (ident,ident2);
+        
+        print "Testing flash erase."
+        self.MSP430masserase();
+        for a in range(0xffe0, 0xffff):
+            if self.MSP430peek(a)!=0xffff:
+                print "%04x unerased, equals %04x" % (
+                    a, self.MSP430peek(a));
+
+        print "Testing flash write."
+        for a in range(0xffe0, 0xffff):
+            self.MSP430pokeflash(a,0xbeef);
+            if self.MSP430peek(a)!=0xbeef:
+                print "%04x unset, equals %04x" % (
+                    a, self.MSP430peek(a));
+        
+        print "Tests complete, erasing."
+        self.MSP430masserase();
+        
     def MSP430flashtest(self):
         self.MSP430masserase();
         i=0x2500;

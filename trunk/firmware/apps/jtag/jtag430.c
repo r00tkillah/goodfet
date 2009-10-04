@@ -54,7 +54,6 @@ unsigned int jtag430_readmem(unsigned int adr){
   unsigned int toret;
   jtag430_haltcpu();
   
-  
   CLRTCLK;
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   
@@ -339,6 +338,7 @@ void jtag430handle(unsigned char app,
     break;
   case JTAG430_WRITEMEM:
   case POKE:
+    jtag430_haltcpu();
     jtag430_writemem(cmddataword[0],cmddataword[2]);
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
     txdata(app,verb,2);
@@ -356,6 +356,7 @@ void jtag430handle(unsigned char app,
     txdata(app,verb,0);
     break;
   case JTAG430_SETPC:
+    jtag430_haltcpu();
     jtag430_setpc(cmddataword[0]);
     txdata(app,verb,0);
     break;

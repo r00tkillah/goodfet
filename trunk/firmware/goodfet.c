@@ -36,6 +36,7 @@ void init(){
 void handle(unsigned char app,
 	    unsigned char verb,
 	    unsigned char len){
+  //debugstr("GoodFET");
   switch(app){
   case MONITOR:
     monitorhandle(app,verb,len);

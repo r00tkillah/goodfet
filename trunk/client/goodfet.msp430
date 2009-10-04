@@ -27,6 +27,7 @@ client.MSP430setup();
 
 #Identify model number.
 client.MSP430start();
+client.MSP430haltcpu();
 #print "started"
 
 if(sys.argv[1]=="info"):
@@ -77,7 +78,7 @@ if(sys.argv[1]=="flash"):
     for i in h._buf.keys():
         #print "%04x: %04x"%(i,h[i>>1]);
         if(i>=start and i<stop  and i&1==0):
-            client.MSP430writeflash(i,h[i>>1]);
+            client.MSP430pokeflash(i,h[i>>1]);
             if(i%0x100==0):
                 print "%04x" % i;
 if(sys.argv[1]=="flashtest"):

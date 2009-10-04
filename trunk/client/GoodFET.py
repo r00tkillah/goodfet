@@ -60,11 +60,13 @@ class GoodFET:
             for d in data:
                 self.serialport.write(chr(d));
         
+        #self.serialport.flushOutput();
+        #self.serialport.flushInput();
+        
+        
         if not self.besilent:
-            #print "Reading reply to %02x/%02x." % (app,verb);
             self.readcmd(blocks);
-            #print "Read reply."
-    
+        
     besilent=0;
     app=0;
     verb=0;
@@ -74,16 +76,21 @@ class GoodFET:
     def readcmd(self,blocks=1):
         """Read a reply from the GoodFET."""
         while 1:
+            #print "Reading...";
             self.app=ord(self.serialport.read(1));
+            #print "APP=%2x" % self.app;
             self.verb=ord(self.serialport.read(1));
+            #print "VERB=%02x" % self.verb;
             self.count=ord(self.serialport.read(1));
-            self.data=self.serialport.read(self.count*blocks);
+            #print "Waiting for %i bytes." % self.count;
+            
             #print "READ %02x %02x %02x " % (self.app, self.verb, self.count);
             
             #Debugging string; print, but wait.
             if self.app==0xFF and self.verb==0xFF:
-                print "DEBUG %s" % self.data;
+                print "DEBUG %s" % self.serialport.read(self.count);
             else:
+                self.data=self.serialport.read(self.count*blocks);
                 return self.data;
     
     #Monitor stuff

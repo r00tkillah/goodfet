@@ -52,6 +52,8 @@ void jtag430_releasecpu(){
 //! Read data from address
 unsigned int jtag430_readmem(unsigned int adr){
   unsigned int toret;
+  jtag430_haltcpu();
+  
   
   CLRTCLK;
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
@@ -132,7 +134,7 @@ void jtag430_writeflash(unsigned int adr, unsigned int data){
   //FCTL1=0xA500, disabling flash write
   jtag430_writemem(0x0128, 0xA500);
   
-  jtag430_releasecpu();
+  //jtag430_releasecpu();
 }
 
 
@@ -188,7 +190,7 @@ void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count)
   //FCTL1=0xA500, disabling flash write
   jtag430_writemem(0x0128, 0xA500);
   
-  jtag430_releasecpu();
+  //jtag430_releasecpu();
 }
 
 
@@ -252,10 +254,14 @@ void jtag430_start(){
   
   //Perform a reset and disable watchdog.
   jtag430_por();
+  jtag430_writemem(0x120,0x5a80);//disable watchdog
+  
+  jtag430_haltcpu();
 }
 
 //! Set CPU to Instruction Fetch
 void jtag430_setinstrfetch(){
+  
   jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
 
   // Wait until instruction fetch state.
@@ -275,6 +281,8 @@ void jtag430handle(unsigned char app,
   register char blocks;
   unsigned long at;
   unsigned int i, val;
+  
+  //debugstr("Classic MSP430 handler.");
   
   switch(verb){
   case START:
@@ -307,7 +315,11 @@ void jtag430handle(unsigned char app,
     blocks=(len>4?cmddata[4]:1);
     at=cmddatalong[0];
     
-    len=0x80;
+    //Fetch large blocks for bulk fetches,
+    //small blocks for individual peeks.
+    if(blocks>1)
+      len=0x80;
+    
     serial_tx(app);
     serial_tx(verb);
     serial_tx(len);
@@ -315,18 +327,15 @@ void jtag430handle(unsigned char app,
     while(blocks--){
       for(i=0;i<len;i+=2){
 	jtag430_resettap();
-	delay(10);
+	//delay(10);
 	
 	val=jtag430_readmem(at);
-		
+	
 	at+=2;
 	serial_tx(val&0xFF);
 	serial_tx((val&0xFF00)>>8);
       }
     }
-    
-    
-    
     break;
   case JTAG430_WRITEMEM:
   case POKE:
@@ -335,7 +344,7 @@ void jtag430handle(unsigned char app,
     txdata(app,verb,2);
     break;
   case JTAG430_WRITEFLASH:
-    debugstr("Poking flash memory.");
+    //debugstr("Poking flash memory.");
     jtag430_writeflash(cmddataword[0],cmddataword[2]);
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
     txdata(app,verb,2);

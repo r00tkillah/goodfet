@@ -45,8 +45,8 @@ class GoodFETMSP430(GoodFET):
     def MSP430peekblock(self,adr,blocks=1):
         """Grab a few block from an SPI Flash ROM.  Block size is unknown"""
         data=[adr&0xff, (adr&0xff00)>>8,
-                   (adr&0xff0000)>>16,(adr&0xff000000)>>24,
-                   blocks];
+              (adr&0xff0000)>>16,(adr&0xff000000)>>24,
+              blocks];
         
         self.writecmd(self.MSP430APP,0x02,5,data,blocks);
         return self.data;
@@ -162,16 +162,7 @@ class GoodFETMSP430(GoodFET):
     def MSP430masserase(self):
         """Erase MSP430 flash memory."""
         self.writecmd(self.MSP430APP,0xE3,0,None);
-    def MSP430writeflash(self,adr,val):
-        """Write a word of flash memory."""
-        if(self.MSP430peek(adr)!=0xFFFF):
-            print "FLASH ERROR: %04x not clear." % adr;
-        data=[adr&0xFF,(adr&0xFF00)>>8,val&0xFF,(val&0xFF00)>>8];
-        self.writecmd(self.MSP430APP,0xE1,4,data);
-        rval=ord(self.data[0])+(ord(self.data[1])<<8);
-        if(val!=rval):
-            print "FLASH WRITE ERROR AT %04x.  Found %04x, wrote %04x." % (adr,rval,val);
-        
+    
     def MSP430dumpbsl(self):
         self.MSP430dumpmem(0xC00,0xfff);
     def MSP430dumpallmem(self):

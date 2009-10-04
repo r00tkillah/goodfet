@@ -113,7 +113,6 @@ void jtag430_writeflashword(unsigned int adr, unsigned int data){
   
   //Pulse TCLK
   jtag430_tclk_flashpulses(35); //35 standard
-  
 }
 
 //! Configure flash, then write a word.
@@ -346,13 +345,18 @@ void jtag430handle(unsigned char app,
   case JTAG430_WRITEFLASH:
     //debugstr("Poking flash memory.");
     jtag430_writeflash(cmddataword[0],cmddataword[2]);
+    
+    //Try again if failure.
+    if(cmddataword[0]!=jtag430_readmem(cmddataword[0]))
+      jtag430_writeflash(cmddataword[0],cmddataword[2]);
+    
+    //Return result.
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
+    
     txdata(app,verb,2);
     break;
   case JTAG430_ERASEFLASH:
-    jtag430_eraseflash(ERASE_MASS,0xFFFE,0xFFFF);
-    jtag430_eraseflash(ERASE_MASS,0xFFFE,0xFFFF);
-    jtag430_eraseflash(ERASE_MASS,0xFFFE,0xFFFF);
+    jtag430_eraseflash(ERASE_MASS,0xFFFE,0x3000);
     txdata(app,verb,0);
     break;
   case JTAG430_SETPC:
@@ -371,5 +375,5 @@ void jtag430handle(unsigned char app,
   default:
     jtaghandle(app,verb,len);
   }
-  //jtag430_resettap();
+  //jtag430_resettap();  //DO NOT UNCOMMENT
 }

@@ -12,10 +12,14 @@ jtag430_tclk_flashpulses:
 // At 16MHz, 33 to 62 cycles/loop are allowed.
 jtag430_tclk_flashpulses_3mhz:
 	mov #0x0031, r14
-pulseloop3:	
+pulseloop3:
 	bis.b #2, @r14		;SETTCLK, 3 cycles
 	sub #1, r15		; 1 cycle
 	;;  1+3+3+1+2=10, within limits
+	nop
+	nop
+	nop			;10+3=13
+	
 	bic.b #2, @r14		;CLRTCLK, 3 cycles
 	tst r15			; 1 cycle
 	jnz pulseloop3		; 2 cycles

@@ -174,14 +174,6 @@ class GoodFETMSP430(GoodFET):
         print "Tests complete, erasing."
         self.MSP430masserase();
         
-    def MSP430flashtest(self):
-        self.MSP430masserase();
-        i=0x2500;
-        while(i<0xFFFF):
-            if(self.MSP430peek(i)!=0xFFFF):
-                print "ERROR: Unerased flash at %04x."%i;
-            self.MSP430writeflash(i,0xDEAD);
-            i+=2;
     def MSP430masserase(self):
         """Erase MSP430 flash memory."""
         self.writecmd(self.MSP430APP,0xE3,0,None);

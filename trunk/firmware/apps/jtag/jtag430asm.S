@@ -28,7 +28,13 @@ pulseloop16:
 	sub #1, r15		; 1 cycle
 	;;  1+3+3+1+2=10, beneath limits,
 
-	;; +3+2=5, repeat 5 times to get 10+25=35, within limits
+	;; +3+2=5, repeat 8 times to get 10+40=50, within limits
+	push r11		; 3 cycles
+	pop r11			; 2 cycles
+	push r11		; 3 cycles
+	pop r11			; 2 cycles
+	push r11		; 3 cycles
+	pop r11			; 2 cycles
 	push r11		; 3 cycles
 	pop r11			; 2 cycles
 	push r11		; 3 cycles

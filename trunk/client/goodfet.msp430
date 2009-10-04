@@ -78,11 +78,13 @@ if(sys.argv[1]=="flash"):
     for i in h._buf.keys():
         #print "%04x: %04x"%(i,h[i>>1]);
         if(i>=start and i<stop  and i&1==0):
-            client.MSP430pokeflash(i,h[i>>1]);
+            val=h[i>>1];
+            val2=client.MSP430pokeflash(i,val);
+            if(val!=val2):
+                print "Write error at %04x, %04x!=%04x." %(
+                    i, val, val2);
             if(i%0x100==0):
                 print "%04x" % i;
-if(sys.argv[1]=="flashtest"):
-    client.MSP430flashtest();
 if(sys.argv[1]=="verify"):
     f=sys.argv[2];
     start=0;

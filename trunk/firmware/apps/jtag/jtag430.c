@@ -371,5 +371,5 @@ void jtag430handle(unsigned char app,
   default:
     jtaghandle(app,verb,len);
   }
-  jtag430_resettap();
+  //jtag430_resettap();
 }

@@ -116,6 +116,8 @@ class GoodFETMSP430(GoodFET):
         0xf213: "MSP430F21x1",
         0xf249: "MSP430F24x",
         0xf26f: "MSP430F261x",
+        0xf237: "MSP430F23x0",
+        
         
         #MSP430F1xx
         0xf16c: "MSP430F161x",

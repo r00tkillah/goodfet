@@ -88,7 +88,7 @@ void jtag430_writemem(unsigned int adr, unsigned int data){
 
 //! Write data to flash memory.  Must be preconfigured.
 void jtag430_writeflashword(unsigned int adr, unsigned int data){
-  /*
+  
   CLRTCLK;
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x2408);//word write
@@ -102,12 +102,13 @@ void jtag430_writeflashword(unsigned int adr, unsigned int data){
   CLRTCLK;
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x2409);
-  */
   
+  /*
   jtag430_writemem(adr,data);
   CLRTCLK;
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x2409);
+  */
   
   //Pulse TCLK
   jtag430_tclk_flashpulses(35); //35 standard
@@ -123,7 +124,7 @@ void jtag430_writeflash(unsigned int adr, unsigned int data){
   //FCTL2=0xA540, selecting MCLK as source, DIV=1
   jtag430_writemem(0x012A, 0xA540);
   //FCTL3=0xA500, should be 0xA540 for Info Seg A on 2xx chips.
-  jtag430_writemem(0x012C, 0xA500);
+  jtag430_writemem(0x012C, 0xA500); //all but info flash.
   
   //Write the word itself.
   jtag430_writeflashword(adr,data);
@@ -268,7 +269,7 @@ void jtag430_setinstrfetch(){
 
 
 //! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
-void oldjtag430handle(unsigned char app,
+void jtag430handle(unsigned char app,
 		   unsigned char verb,
 		   unsigned char len){
   register char blocks;
@@ -329,12 +330,13 @@ void oldjtag430handle(unsigned char app,
     break;
   case JTAG430_WRITEMEM:
   case POKE:
-    jtag430_writemem(cmddatalong[0],cmddataword[2]);
-    cmddataword[0]=jtag430_readmem(cmddatalong[0]);
+    jtag430_writemem(cmddataword[0],cmddataword[2]);
+    cmddataword[0]=jtag430_readmem(cmddataword[0]);
     txdata(app,verb,2);
     break;
   case JTAG430_WRITEFLASH:
-    jtag430_writeflash(cmddataword[0],cmddataword[1]);
+    debugstr("Poking flash memory.");
+    jtag430_writeflash(cmddataword[0],cmddataword[2]);
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
     txdata(app,verb,2);
     break;
@@ -360,18 +362,4 @@ void oldjtag430handle(unsigned char app,
     jtaghandle(app,verb,len);
   }
   jtag430_resettap();
-}
-
-//! Handles unique MSP430 JTAG commands.  Forwards others to JTAG.
-void jtag430handle(unsigned char app,
-		   unsigned char verb,
-		   unsigned char len){
-  switch(jtag430mode){
-  case MSP430MODE:
-    return oldjtag430handle(app,verb,len);
-  case MSP430X2MODE:
-    return jtag430x2handle(app,verb,len);
-  default:
-    txdata(app,NOK,0);
-  }
 }

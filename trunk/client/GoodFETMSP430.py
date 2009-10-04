@@ -58,6 +58,14 @@ class GoodFETMSP430(GoodFET):
                    val&0xff, (val&0xff00)>>8];
         self.writecmd(self.MSP430APP,0x03,6,self.data);
         return ord(self.data[0])+(ord(self.data[1])<<8);
+    def MSP430pokeflash(self,adr,val):
+        """Write the contents of flash memory at an address."""
+        self.data=[adr&0xff, (adr&0xff00)>>8,
+                   (adr&0xff0000)>>16,(adr&0xff000000)>>24,
+                   val&0xff, (val&0xff00)>>8];
+        self.writecmd(self.MSP430APP,0xE1,6,self.data);
+        return ord(self.data[0])+(ord(self.data[1])<<8);
+    
     def MSP430start(self):
         """Start debugging."""
         self.writecmd(self.MSP430APP,0x20,0,self.data);

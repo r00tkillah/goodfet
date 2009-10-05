@@ -28,4 +28,4 @@ all:
 clean:
 	rm -f *.hex *~ $(gfpath)
 upload: all
-	rsync --exclude .svn -ave ssh dist travisutk,goodfet@web.sourceforge.net:htdocs/
+	rsync --exclude .svn -ave ssh --delete dist travisutk,goodfet@web.sourceforge.net:htdocs/

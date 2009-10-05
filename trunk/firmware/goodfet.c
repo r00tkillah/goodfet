@@ -57,11 +57,13 @@ void handle(unsigned char app,
     jtag430x2handle(app,verb,len);
     break;
   default:
-    #ifdef HANDLEOTHER
-    HANDLEOTHER(app,verb,len);
-    #else
-    txdata(app,NOK,0);
-    #endif
+    if(pluginhandle){
+      pluginhandle(app,verb,len);
+    }else{
+      debugstr("Plugin missing.");
+      txdata(app,NOK,0);
+    }
+      
     break;
   }
 }

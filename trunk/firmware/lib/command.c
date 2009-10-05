@@ -30,6 +30,7 @@ void debugstr(const char *str){
   txstring(0xFF,0xFF,str);
 }
 
+
 //! Transmit a header.
 void txhead(unsigned char app,
 	    unsigned char verb,

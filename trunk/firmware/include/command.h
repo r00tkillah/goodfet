@@ -99,6 +99,13 @@ extern unsigned char silent;
 #define JTAG430_COREIP_ID 0xF0
 #define JTAG430_DEVICE_ID 0xF1
 
+//! Handle a plugin, weak-linked to error.
+extern int pluginhandle(unsigned char app,
+			unsigned char verb,
+			unsigned int len)
+  __attribute__ ((weak));
+
+
 //! Handle a command.  Defined in goodfet.c
 void handle(unsigned char app,
 	    unsigned char verb,

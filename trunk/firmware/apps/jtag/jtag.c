@@ -206,7 +206,7 @@ unsigned char jtag_ir_shift8(unsigned char in){
 //! Handles a monitor command.
 void jtaghandle(unsigned char app,
 	       unsigned char verb,
-	       unsigned char len){
+	       unsigned long len){
   switch(verb){
     //START handled by specific JTAG
   case STOP:

@@ -159,7 +159,7 @@ unsigned char I2C_Read( unsigned char ack )
 //! Handles a monitor command.
 void i2chandle(unsigned char app,
 	       unsigned char verb,
-	       unsigned char len){
+	       unsigned long len){
   unsigned char i;
   switch(verb){
     

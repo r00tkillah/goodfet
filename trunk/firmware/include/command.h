@@ -4,7 +4,12 @@
 */
 
 //! Global data buffer.
-extern unsigned char cmddata[0x100];
+
+#ifndef CMDDATALEN
+#define CMDDATALEN 0x200
+#endif
+
+extern unsigned char cmddata[CMDDATALEN];
 extern unsigned char silent;
 
 #define cmddataword ((unsigned int*) cmddata)
@@ -97,19 +102,30 @@ extern unsigned char silent;
 //! Handle a command.  Defined in goodfet.c
 void handle(unsigned char app,
 	    unsigned char verb,
-	    unsigned char len);
+	    unsigned long len);
 //! Transmit a header.
 void txhead(unsigned char app,
 	    unsigned char verb,
-	    unsigned int len);
+	    unsigned long len);
 //! Transmit data.
 void txdata(unsigned char app,
 	    unsigned char verb,
-	    unsigned int len);
+	    unsigned long len);
 //! Transmit a string.
 void txstring(unsigned char app,
 	      unsigned char verb,
 	      const char *str);
+
+//! Receive a long.
+unsigned long rxlong();
+//! Receive a word.
+unsigned int rxword();
+
+//! Transmit a long.
+void txlong(unsigned long l);
+//! Transmit a word.
+void txword(unsigned int l);
+
 //! Transmit a debug string.
 void debugstr(const char *str);
 
@@ -119,12 +135,12 @@ void delay(unsigned int count);
 void msdelay(unsigned int ms);
 
 
-void monitorhandle(unsigned char, unsigned char, unsigned char);
-void spihandle(unsigned char, unsigned char, unsigned char);
-void i2chandle(unsigned char, unsigned char, unsigned char);
-void cchandle(unsigned char, unsigned char, unsigned char);
-void jtaghandle(unsigned char, unsigned char, unsigned char);
-void jtag430handle(unsigned char, unsigned char, unsigned char);
+void monitorhandle(unsigned char, unsigned char, unsigned long);
+void spihandle(unsigned char, unsigned char, unsigned long);
+void i2chandle(unsigned char, unsigned char, unsigned long);
+void cchandle(unsigned char, unsigned char, unsigned long);
+void jtaghandle(unsigned char, unsigned char, unsigned long);
+void jtag430handle(unsigned char, unsigned char, unsigned long);
 void jtag430x2handle(unsigned char app, unsigned char verb,
-		     unsigned char len);
+		     unsigned long len);
   

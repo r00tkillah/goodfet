@@ -10,7 +10,7 @@
 //! Handles a monitor command.
 void monitorhandle(unsigned char app,
 		   unsigned char verb,
-		   unsigned char len){
+		   unsigned long len){
   switch(verb){
   case PEEK:
     cmddata[0]=memorybyte[cmddataword[0]];

@@ -35,7 +35,7 @@ void init(){
 //! Handle a command.
 void handle(unsigned char app,
 	    unsigned char verb,
-	    unsigned char len){
+	    unsigned long len){
   //debugstr("GoodFET");
   switch(app){
   case MONITOR:
@@ -70,7 +70,8 @@ void handle(unsigned char app,
 int main(void)
 {
   volatile unsigned int i;
-  unsigned char app, verb, len;
+  unsigned char app, verb;
+  unsigned long len;
   
   init();
   
@@ -81,13 +82,23 @@ int main(void)
     //Magic 3
     app=serial_rx();
     verb=serial_rx();
-    len=serial_rx();
+    //len=serial_rx();
+    len=rxword();
     
-    //Read data, if any
-    for(i=0;i<len;i++){
-      cmddata[i]=serial_rx();
+    //Read data, looking for buffer overflow.y
+    if(len<=CMDDATALEN){
+      for(i=0;i<len;i++){
+	cmddata[i]=serial_rx();
+      }
+      handle(app,verb,len);
+    }else{
+      //Listen to the blaberring.
+      for(i-0;i<len;i++)
+	serial_rx();
+      //Reply with an error.
+      debugstr("Buffer length exceeded.");
+      txdata(MONITOR,NOK,0);
     }
-    handle(app,verb,len);
   }
 }
 

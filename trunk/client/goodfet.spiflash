@@ -53,7 +53,20 @@ if(sys.argv[1]=="test"):
         print "Some success, some failures.  Is a wire loose?";
     else:
         print "All reads succeeded.  Wiring is probably good.";
-
+    print "Erasing.";
+    client.SPIchiperase();
+    print "Testing erase.";
+    data=client.SPIpeekblock(0);
+    for i in data:
+        if ord(i)!=0xFF:
+            print "ERROR not properly erased!";
+    data=range(0,10);
+    client.SPIpokebytes(0,data);
+    print "Testing flash write.";
+    for i in data:
+        if(client.SPIpeek(i)!=i):
+            print "%06x not properly poked to %02x" % (i,i);
+    print "Test complete.";
 if(sys.argv[1]=="info"):
     data=client.SPIjedec();
     print "Ident as %s\nManufacturer: %02x %s\nType: %02x\nCapacity: %02x (%i bytes)" % (
@@ -77,7 +90,7 @@ if(sys.argv[1]=="dump"):
     
     i=start;
     while i<=stop:
-        data=client.SPIpeekblock(i,255);
+        data=client.SPIpeekblock(i);
         #if(i%0x1000==0):
         print "Dumped %06x."%i;
         for j in data:
@@ -128,7 +141,7 @@ if(sys.argv[1]=="flash"):
     chars=list(file.read());
     
     #N.B., chunksize must be an even fraction of 0x100.
-    chunksize=0x80;
+    chunksize=0x100;
     
     #client.silent(1);
     while i<=stop:

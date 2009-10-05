@@ -79,14 +79,13 @@ class GoodFETSPIFlash(GoodFETSPI):
               0];
         self.SPItrans(data);
         return ord(self.data[4]);
-    def SPIpeekblock(self,adr,blocks=1):
+    def SPIpeekblock(self,adr):
         """Grab a few block from an SPI Flash ROM.  Block size is unknown"""
         data=[(adr&0xFF0000)>>16,
               (adr&0xFF00)>>8,
-              adr&0xFF,
-              blocks];
+              adr&0xFF];
         
-        self.writecmd(0x01,0x02,4,data,blocks);
+        self.writecmd(0x01,0x02,3,data);
         return self.data;
     
     def SPIpokebyte(self,adr,val):
@@ -102,7 +101,7 @@ class GoodFETSPIFlash(GoodFETSPI):
         
     def SPIchiperase(self):
         """Mass erase an SPI Flash ROM."""
-        self.writecmd(0x01,0x81,0,[]);
+        self.writecmd(0x01,0x81);
     def SPIwriteenable(self):
         """SPI Flash Write Enable"""
         data=[0x06];

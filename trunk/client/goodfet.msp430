@@ -53,7 +53,7 @@ if(sys.argv[1]=="dump"):
     h = IntelHex(None);
     i=start;
     while i<=stop:
-        data=client.MSP430peekblock(i,0x20);
+        data=client.MSP430peekblock(i);
         print "Dumped %06x."%i;
         for j in data:
             if i<=stop: h[i]=ord(j);

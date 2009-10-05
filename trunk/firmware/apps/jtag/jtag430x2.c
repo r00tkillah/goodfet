@@ -186,7 +186,7 @@ unsigned int jtag430x2_fusecheck(){
 //! Handles MSP430X2 JTAG commands.  Forwards others to JTAG.
 void jtag430x2handle(unsigned char app,
 		     unsigned char verb,
-		     unsigned char len){
+		     unsigned long len){
   register char blocks;
   
   unsigned int i,val;

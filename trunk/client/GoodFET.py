@@ -50,11 +50,16 @@ class GoodFET:
     def getbuffer(self,size=0x1c00):
         writecmd(0,0xC2,[size&0xFF,(size>>16)&0xFF]);
         print "Got %02x%02x buffer size." % (self.data[1],self.data[0]);
-    def writecmd(self, app, verb, count=0, data=[], blocks=1):
+    def writecmd(self, app, verb, count=0, data=[]):
         """Write a command and some data to the GoodFET."""
         self.serialport.write(chr(app));
         self.serialport.write(chr(verb));
-        self.serialport.write(chr(count));
+        
+            
+        #little endian 16-bit length
+        self.serialport.write(chr(count&0xFF));
+        self.serialport.write(chr(count>>8));
+        
         #print "count=%02x, len(data)=%04x" % (count,len(data));
         if count!=0:
             for d in data:
@@ -65,7 +70,7 @@ class GoodFET:
         
         
         if not self.besilent:
-            self.readcmd(blocks);
+            self.readcmd();
         
     besilent=0;
     app=0;
@@ -73,7 +78,7 @@ class GoodFET:
     count=0;
     data="";
 
-    def readcmd(self,blocks=1):
+    def readcmd(self):
         """Read a reply from the GoodFET."""
         while 1:
             #print "Reading...";
@@ -81,16 +86,16 @@ class GoodFET:
             #print "APP=%2x" % self.app;
             self.verb=ord(self.serialport.read(1));
             #print "VERB=%02x" % self.verb;
-            self.count=ord(self.serialport.read(1));
-            #print "Waiting for %i bytes." % self.count;
-            
-            #print "READ %02x %02x %02x " % (self.app, self.verb, self.count);
+            self.count=(
+                ord(self.serialport.read(1))
+                +(ord(self.serialport.read(1))<<8)
+                );
             
             #Debugging string; print, but wait.
             if self.app==0xFF and self.verb==0xFF:
                 print "DEBUG %s" % self.serialport.read(self.count);
             else:
-                self.data=self.serialport.read(self.count*blocks);
+                self.data=self.serialport.read(self.count);
                 return self.data;
     
     #Monitor stuff

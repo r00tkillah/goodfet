@@ -7,17 +7,15 @@
 #include "platform.h"
 #include <string.h>
 
-unsigned char cmddata[256];
+unsigned char cmddata[CMDDATALEN];
 unsigned char silent=0;
 
 //! Transmit a string.
 void txstring(unsigned char app,
 	      unsigned char verb,
 	      const char *str){
-  unsigned char len=strlen(str);
-  serial_tx(app);
-  serial_tx(verb);
-  serial_tx(len);
+  unsigned long len=strlen(str);
+  txhead(app,verb,len);
   while(len--)
     serial_tx(*(str++));
 }
@@ -35,16 +33,17 @@ void debugstr(const char *str){
 //! Transmit a header.
 void txhead(unsigned char app,
 	    unsigned char verb,
-	    unsigned int len){
+	    unsigned long len){
   serial_tx(app);
   serial_tx(verb);
-  serial_tx(len);
+  //serial_tx(len);
+  txword(len);
 }
 
 //! Transmit data.
 void txdata(unsigned char app,
 	    unsigned char verb,
-	    unsigned int len){
+	    unsigned long len){
   unsigned int i=0;
   if(silent)
     return;
@@ -52,6 +51,41 @@ void txdata(unsigned char app,
   for(i=0;i<len;i++){
     serial_tx(cmddata[i]);
   }
+}
+
+//! Receive a long.
+unsigned long rxlong(){
+  unsigned long toret=0;
+  toret=serial_rx();
+  toret|=(((long)serial_rx())<<8);
+  toret|=(((long)serial_rx())<<16);
+  toret|=(((long)serial_rx())<<24);
+  return toret;
+}
+//! Receive a word.
+unsigned int rxword(){
+  unsigned long toret=0;
+  toret=serial_rx();
+  toret|=(((long)serial_rx())<<8);
+  return toret;
+}
+//! Transmit a long.
+void txlong(unsigned long l){
+  serial_tx(l&0xFF);
+  l>>=8;
+  serial_tx(l&0xFF);
+  l>>=8;
+  serial_tx(l&0xFF);
+  l>>=8;
+  serial_tx(l&0xFF);
+  l>>=8;
+}
+//! Transmit a word.
+void txword(unsigned int l){
+  serial_tx(l&0xFF);
+  l>>=8;
+  serial_tx(l&0xFF);
+  l>>=8;
 }
 
 //Be very careful changing delay().

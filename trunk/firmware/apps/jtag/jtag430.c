@@ -275,7 +275,7 @@ void jtag430_setinstrfetch(){
 //! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
 void jtag430handle(unsigned char app,
 		   unsigned char verb,
-		   unsigned char len){
+		   unsigned long len){
   register char blocks;
   unsigned long at;
   unsigned int i, val;
@@ -306,31 +306,24 @@ void jtag430handle(unsigned char app,
     
   case JTAG430_READMEM:
   case PEEK:
-    /*
-    cmddataword[0]=jtag430_readmem(cmddataword[0]);
-    txdata(app,verb,2);
-    */
-    blocks=(len>4?cmddata[4]:1);
     at=cmddatalong[0];
     
     //Fetch large blocks for bulk fetches,
     //small blocks for individual peeks.
-    if(blocks>1)
-      len=0x80;
+    if(len>5)
+      len=(cmddataword[2]);//always even.
+    else
+      len=2;
+    len&=~1;//clue lsbit
     
     txhead(app,verb,len);
-    
-    while(blocks--){
-      for(i=0;i<len;i+=2){
-	jtag430_resettap();
-	//delay(10);
-	
-	val=jtag430_readmem(at);
-	
-	at+=2;
-	serial_tx(val&0xFF);
-	serial_tx((val&0xFF00)>>8);
-      }
+    for(i=0;i<len;i+=2){
+      jtag430_resettap();
+      val=jtag430_readmem(at);
+      
+      at+=2;
+      serial_tx(val&0xFF);
+      serial_tx((val&0xFF00)>>8);
     }
     break;
   case JTAG430_WRITEMEM:

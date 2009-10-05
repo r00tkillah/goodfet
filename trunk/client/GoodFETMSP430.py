@@ -39,16 +39,16 @@ class GoodFETMSP430(GoodFET):
         """Read a word at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8,
                    (adr&0xff0000)>>16,(adr&0xff000000)>>24,
-                   ]; 
-        self.writecmd(self.MSP430APP,0x02,4,self.data,1);
+                   ];
+        self.writecmd(self.MSP430APP,0x02,4,self.data);
+        
         return ord(self.data[0])+(ord(self.data[1])<<8);
-    def MSP430peekblock(self,adr,blocks=1):
+    def MSP430peekblock(self,adr):
         """Grab a few block from an SPI Flash ROM.  Block size is unknown"""
         data=[adr&0xff, (adr&0xff00)>>8,
               (adr&0xff0000)>>16,(adr&0xff000000)>>24,
-              blocks];
-        
-        self.writecmd(self.MSP430APP,0x02,5,data,blocks);
+              0x00,0x04];
+        self.writecmd(self.MSP430APP,0x02,6,data);
         return self.data;
     
     def MSP430poke(self,adr,val):
@@ -139,8 +139,10 @@ class GoodFETMSP430(GoodFET):
         }
     def MSP430test(self):
         """Test MSP430 JTAG.  Requires that a chip be attached."""
+        
         if self.MSP430ident()==0xffff:
-            print "Is anything connected?";
+            print "ERROR Is anything connected?";
+        print "Testing %s." % self.MSP430identstr();
         print "Testing RAM from 200 to 210.";
         for a in range(0x200,0x210):
             self.MSP430poke(a,0);

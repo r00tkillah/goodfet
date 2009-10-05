@@ -153,10 +153,8 @@ void spiflash_pokeblock(unsigned long adr,
 //! Peek some blocks.
 void spiflash_peek(unsigned char app,
 		   unsigned char verb,
-		   unsigned char len){
-  register char blocks=(len>3?cmddata[3]:1);
-  unsigned char i;
-  
+		   unsigned long len){
+  unsigned int i;
   P5OUT&=~SS; //Drop !SS to begin transaction.
   spitrans8(0x03);//Flash Read Command
   len=3;//write 3 byte pointer
@@ -164,27 +162,20 @@ void spiflash_peek(unsigned char app,
     spitrans8(cmddata[i]);
   
   //Send reply header
-  len=0x80;//128 byte chunk, repeated for each block
+  len=0x1000;
   txhead(app,verb,len);
   
-  while(blocks--){
-    for(i=0;i<len;i++)
-      serial_tx(spitrans8(0));
-    
-    /* old fashioned
-    for(i=0;i<len;i++)
-      cmddata[i]=spitrans8(0);
-    txdata(app,verb,len);
-    */
-  }
+  while(len--)
+    serial_tx(spitrans8(0));
+  
   P5OUT|=SS;  //Raise !SS to end transaction.
 }
 
 //! Handles a monitor command.
 void spihandle(unsigned char app,
 	       unsigned char verb,
-	       unsigned char len){
-  unsigned char i;
+	       unsigned long len){
+  unsigned long i;
   
   //Raise !SS to end transaction, just in case we forgot.
   P5OUT|=SS;
@@ -231,7 +222,6 @@ void spihandle(unsigned char app,
     P5OUT|=SS;          //Raise !SS to end transaction.
     
     
-    
     while(spiflash_status()&0x01)
       P1OUT^=1;
     
@@ -247,7 +237,7 @@ void spihandle(unsigned char app,
     spitrans8(0xC7);//Chip Erase
     P5OUT|=SS;  //Raise !SS to end transaction.
     
-        
+    
     while(spiflash_status()&0x01)//while busy
       P1OUT^=1;
     P1OUT&=~1;

@@ -17,7 +17,7 @@ cc: cc.zsh
 msp430x2: msp430x2.zsh
 	./msp430x2.zsh >msp430x2
 spiflash:
-	GOODFET=/dev/ttyUSB0 goodfet.spiflash test >spiflash
+	GOODFET=/dev/ttyUSB0 ../trunk/client/goodfet.spiflash test >spiflash
 nodiff: all
 	#If this fails, it's because a test result differs with the one in svn.
 	if (svn diff $(TARGETS) | grep Index); then false; fi

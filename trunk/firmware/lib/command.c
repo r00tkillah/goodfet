@@ -32,17 +32,23 @@ void debugstr(const char *str){
   txstring(0xFF,0xFF,str);
 }
 
+//! Transmit a header.
+void txhead(unsigned char app,
+	    unsigned char verb,
+	    unsigned int len){
+  serial_tx(app);
+  serial_tx(verb);
+  serial_tx(len);
+}
 
 //! Transmit data.
 void txdata(unsigned char app,
 	    unsigned char verb,
-	    unsigned char len){
+	    unsigned int len){
   unsigned int i=0;
   if(silent)
     return;
-  serial_tx(app);
-  serial_tx(verb);
-  serial_tx(len);
+  txhead(app,verb,len);
   for(i=0;i<len;i++){
     serial_tx(cmddata[i]);
   }

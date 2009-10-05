@@ -97,12 +97,15 @@ extern unsigned char silent;
 //! Handle a command.  Defined in goodfet.c
 void handle(unsigned char app,
 	    unsigned char verb,
-	    unsigned  char len);
-
+	    unsigned char len);
+//! Transmit a header.
+void txhead(unsigned char app,
+	    unsigned char verb,
+	    unsigned int len);
 //! Transmit data.
 void txdata(unsigned char app,
 	    unsigned char verb,
-	    unsigned char len);
+	    unsigned int len);
 //! Transmit a string.
 void txstring(unsigned char app,
 	      unsigned char verb,

@@ -318,9 +318,7 @@ void jtag430handle(unsigned char app,
     if(blocks>1)
       len=0x80;
     
-    serial_tx(app);
-    serial_tx(verb);
-    serial_tx(len);
+    txhead(app,verb,len);
     
     while(blocks--){
       for(i=0;i<len;i+=2){

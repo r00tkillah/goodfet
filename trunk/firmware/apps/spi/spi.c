@@ -165,9 +165,7 @@ void spiflash_peek(unsigned char app,
   
   //Send reply header
   len=0x80;//128 byte chunk, repeated for each block
-  serial_tx(app);
-  serial_tx(verb);
-  serial_tx(len); //multiplied by block count.
+  txhead(app,verb,len);
   
   while(blocks--){
     for(i=0;i<len;i++)

@@ -23,11 +23,38 @@ to the IVT.</p>
 <tr><th>Hex</th><th>#define</th><th>Description</th></tr>
 <tr><td>0x02</td><td>PEEK</td><td>Read word from memory at word[0].</td></tr>
 <tr><td>0x03</td><td>POKE</td><td>Write word[1] to memory at word[0]. (Not flash.)</td></tr>
+
 <tr><td>0x80</td><td>CHANGE_BAUD</td><td>Change the baud rate.</td></tr>
 <tr><td>0x90</td><td>RAM_PATTERN</td><td>Suicide, filling RAM with a pattern.</td></tr>
 <tr><td>0x91</td><td>RAM_DEPTH</td><td>Determine heap/stack depth.</td></tr>
+
+<tr><td>0xA0</td><td>DIR</td><td>Set port direction bits.</td></tr>
+<tr><td>0xA1</td><td>OUT</td><td>Set output value.</td></tr>
+<tr><td>0xA2</td><td>IN</td><td>Get input value.</td></tr>
+
+<tr><td>0xC0</td><td>READBUF</td><td>Dump buffer, takes 16-bit length.</td></tr>
+<tr><td>0xC1</td><td>WRITEBUF</td><td>Set buffer, takes 16-bit length.</td></tr>
+<tr><td>0xC2</td><td>SIZEBUF</td><td>Return buffer size.</td></tr>
+
 </table>
 </p>
+
+<h3>READBUF (0xC0)</h3>
+
+<p>This command takes a 16-bit, little-endian length as its
+parameter, then spits out as many bytes from the beginning of the buffer.
+The bytes come after the reply command, outside of the command stream.</p>
+
+<h3>WRITEBUF (0xC1)</h3>
+
+<p>This command takes a 16-bit, little-endian length as its parameter,
+then reads as many bytes into the beginning of the buffer.  The bytes
+come after the reply command, outside of the command stream.</p>
+
+<h3>SIZEBUF (0xC2)</h3>
+
+<p>This command returns the size of the monitor buffer.</p>
+
 
 <h3>CHANGE_BAUD (0x80)</h3>
 

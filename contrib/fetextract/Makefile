@@ -35,9 +35,9 @@ MSP430FET.asm: MSP430FET.hex
 
 MSP430.dll:
 	wget http://www.soft-switch.org/downloads/mspgcc/MSP430.dll
-	echo "f0685a0eca0545dfc542530afff8159f  MSP430.dll" | \
-	md5sum -c || \
-	rm MSP430.dll
+	#echo "f0685a0eca0545dfc542530afff8159f  MSP430.dll" | \
+	#md5sum -c || \
+	#rm MSP430.dll
 
 clean:
 	rm -f fetextract *~ MSP430FET.hex MSP430.dll MSP430FET.bin

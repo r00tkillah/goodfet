@@ -3,10 +3,9 @@
 <h2>Programming</h2>
 
 <p>The GoodFET is programmed by the MSP430's BootStrap Loader (BSL)
-which is adequately documented elsewhere.  Using the tos-bsl client
-from <a href="http://tinyos.net/">TinyOS</a>, an image may be programmed
-by</p>
-<pre>tos-bsl --invert-reset --invert-test -c -e -p foo.hex</pre>
+which is adequately documented elsewhere.  Using the GoodFET's fork of
+the TinyOS BSL client, an image may be programmed by</p>
+<pre>goodfet.bsl -e -p foo.hex</pre>
 
 <h2>Serial Port</h2>
 
@@ -29,12 +28,12 @@ by sending the appropriate command.</p>
 <h3>Transactions</h3>
 
 <p>The workstation may send {u8 <i>app</i>, u8 <i>verb</i>,
-u8 <i>count</i>}. If <i>count</i> is non-zero, then <i>count</i> bytes of data
+u16 <i>count</i>}. If <i>count</i> is non-zero, then <i>count</i> bytes of data
 follow.  The target will reply with {u8 <i>app</i>, u8 <i>verb</i>,
-u8 <i>count</i>} and data.</p>
+u16 <i>count</i>} and data. <b>N.B., <i>count</i> was u8 until October 5, 2009.</b></p>
 
 <p>The GoodFET will announce that it is ready for a command by transmitting
-{0x00, 0x7F, 0x00}, which is the "OK" message from the Monitor application.</p>
+{0x00, 0x7F, 0x00, 0x00}, which is the "OK" message from the Monitor application.</p>
 
 <h3>Apps</h3>
 

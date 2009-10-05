@@ -3,6 +3,7 @@
 
 gfpath?=.tmpbuild
 fwpath=$(gfpath)/trunk/firmware
+clientpath=$(gfpath)/trunk/client
 testpath=$(gfpath)/tests
 
 all:
@@ -11,14 +12,15 @@ all:
 	echo "Options +Indexes" >dist/.htaccess
 	rm -rf $(gfpath)
 	svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet $(gfpath)
-	cd $(testpath) && make nodiff
-	cd $(fwpath) && mcu=msp430x1612 make clean all
-	cp $(fwpath)/goodfet.hex dist/msp430x1612.hex
-	cd $(fwpath) && mcu=msp430x2618 make clean all
-	cp $(fwpath)/goodfet.hex dist/msp430x2618.hex
-	cd $(fwpath) && mcu=msp430x2274 make clean all
-	cp $(fwpath)/goodfet.hex dist/msp430x2274.hex
-
+	cd $(testpath) && make nodiff 
+	cd $(fwpath) && mcu=msp430x1612 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/msp430x1612.hex >/dev/null
+	cd $(fwpath) && mcu=msp430x2618 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/msp430x2618.hex >/dev/null
+	cd $(fwpath) && mcu=msp430x2274 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/msp430x2274.hex >/dev/null
+	cp $(clientpath)/*.py $(clientpath)/goodfet.* dist
+	cd dist && zip client.zip *
 clean:
 	rm -f *.hex *~ $(gfpath)
 upload: all

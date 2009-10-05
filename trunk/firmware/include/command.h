@@ -6,7 +6,7 @@
 //! Global data buffer.
 
 #ifndef CMDDATALEN
-#define CMDDATALEN 0x200
+#define CMDDATALEN 0x0x204
 #endif
 
 extern unsigned char cmddata[CMDDATALEN];

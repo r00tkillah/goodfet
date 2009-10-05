@@ -62,6 +62,7 @@ class GoodFETSPIFlash(GoodFETSPI):
         """Grab an SPI Flash ROM's JEDEC bytes."""
         data=[0x9f, 0, 0, 0];
         data=self.SPItrans(data);
+        
         self.JEDECmanufacturer=ord(data[1]);
         self.JEDECtype=ord(data[2]);
         self.JEDECcapacity=ord(data[3]);
@@ -91,11 +92,17 @@ class GoodFETSPIFlash(GoodFETSPI):
     def SPIpokebyte(self,adr,val):
         self.SPIpokebytes(adr,[val]);
     def SPIpokebytes(self,adr,data):
-        #self.SPIwriteenable();
-        adranddata=[(adr&0xFF0000)>>16,
-              (adr&0xFF00)>>8,
-              adr&0xFF
-              ]+data;
+        #Used to be 24 bits, BE, not 32 bits, LE.
+#       adranddata=[(adr&0xFF0000)>>16,
+#               (adr&0xFF00)>>8,
+#               adr&0xFF
+#               ]+data;
+        adranddata=[adr&0xFF,
+                    (adr&0xFF00)>>8,
+                    (adr&0xFF0000)>>16,
+                    0, #MSB
+                    ]+data;
+        
         self.writecmd(0x01,0x03,
                       len(adranddata),adranddata);
         

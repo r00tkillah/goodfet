@@ -55,7 +55,9 @@ class GoodFET:
         self.serialport.write(chr(app));
         self.serialport.write(chr(verb));
         
-            
+        
+        #print "TX %02x %02x" % (app,verb);
+        
         #little endian 16-bit length
         self.serialport.write(chr(count&0xFF));
         self.serialport.write(chr(count>>8));
@@ -64,11 +66,6 @@ class GoodFET:
         if count!=0:
             for d in data:
                 self.serialport.write(chr(d));
-        
-        #self.serialport.flushOutput();
-        #self.serialport.flushInput();
-        
-        
         if not self.besilent:
             self.readcmd();
         

@@ -35,7 +35,7 @@ void spisetup(){
 
 //! Read and write an SPI byte.
 unsigned char spitrans8(unsigned char byte){
-  unsigned int bit;
+  register unsigned int bit;
   //This function came from the SPI Wikipedia article.
   //Minor alterations.
   
@@ -47,13 +47,8 @@ unsigned char spitrans8(unsigned char byte){
       CLRMOSI;
     byte <<= 1;
  
-    /* half a clock cycle before leading/rising edge */
-    SPIDELAY(SPISPEED/2);
     SETCLK;
- 
-    /* half a clock cycle before trailing/falling edge */
-    SPIDELAY(SPISPEED/2);
- 
+  
     /* read MISO on trailing edge */
     byte |= READMISO;
     CLRCLK;
@@ -120,17 +115,41 @@ void spiflash_peekblock(unsigned long adr,
   SETSS;  //Raise !SS to end transaction.
 }
 
+//! Write many blocks to the SPI Flash.
+void spiflash_pokeblocks(unsigned long adr,
+			 unsigned char *buf,
+			 unsigned int len){
+  long off=0;//offset of this block
+  int blen;//length of this block
+  SETSS;
+  spiflash_setstatus(0x02);
+  spiflash_wrten();
+  
+  while(off<len){
+    //calculate block length
+    blen=(len-off>0x100?0x100:len-off);
+    //write the block
+    spiflash_pokeblock(adr+off,
+		       buf+off,
+		       blen);
+    //add offset
+    off+=blen;
+  }
+}
 
 //! Read a block to a buffer.
 void spiflash_pokeblock(unsigned long adr,
 			unsigned char *buf,
 			unsigned int len){
-  unsigned char i;
+  unsigned int i;
   
   SETSS;
   
-  spiflash_setstatus(0x02);
-  spiflash_wrten();
+  //while(spiflash_status()&0x01);//minor performance impact
+  
+  //Are these necessary?
+  //spiflash_setstatus(0x02);
+  //spiflash_wrten();
   
   CLRSS; //Drop !SS to begin transaction.
   spitrans8(0x02); //Poke command.
@@ -144,8 +163,7 @@ void spiflash_pokeblock(unsigned long adr,
     spitrans8(buf[i]);
   SETSS;  //Raise !SS to end transaction.
   
-  while(spiflash_status()&0x01);
-  
+  while(spiflash_status()&0x01);//minor performance impact
   return;
 }
 
@@ -210,22 +228,9 @@ void spihandle(unsigned char app,
 
 
   case POKE://Poke up bytes from an SPI Flash ROM.
-    spiflash_setstatus(0x02);
-    spiflash_wrten();
-    
-    P5OUT&=~SS;         //Drop !SS to begin transaction.
-    spitrans8(0x02);    //Poke command.
-    
-    //First three bytes are address, then data.
-    for(i=0;i<len;i++)
-      spitrans8(cmddata[i]);
-    P5OUT|=SS;          //Raise !SS to end transaction.
-    
-    
-    while(spiflash_status()&0x01)
-      P1OUT^=1;
-    
-    P1OUT&=~1;
+    spiflash_pokeblocks(cmddatalong[0],//adr
+			cmddata+4,//buf
+			len-4);//len    
     
     txdata(app,verb,len);
     break;

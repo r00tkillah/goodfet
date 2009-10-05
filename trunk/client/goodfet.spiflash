@@ -141,9 +141,9 @@ if(sys.argv[1]=="flash"):
     chars=list(file.read());
     
     #N.B., chunksize must be an even fraction of 0x100.
-    chunksize=0x100;
+    #Increasing above 0x200 doesn't help, 0x100 might be good enough.
+    chunksize=0x200;
     
-    #client.silent(1);
     while i<=stop:
         bytes=range(0,chunksize);
         for j in range(0,chunksize):
@@ -153,8 +153,8 @@ if(sys.argv[1]=="flash"):
         i+=chunksize;
         if(i%0x1000==0):
             print "Flashed %06x."%i;
-    print "Done, ending silence.";
-    #client.silent(0);
+    
+    
     file.close()
 
 

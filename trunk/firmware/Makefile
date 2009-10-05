@@ -1,6 +1,5 @@
 
 #include `uname`.mak
-
 GOODFET?=/dev/ttyUSB0
 
 
@@ -17,7 +16,7 @@ mcu?=msp430x1612
 GCCINC=-T ldscripts/$(mcu).x
 
 CCEXTRA?=
-CC=msp430-gcc -Wall -g -mmcu=$(mcu) -DGCC $(GCCINC) -I include $(CCEXTRA)
+CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -DGCC $(GCCINC) -I include $(CCEXTRA)
 
 #Define extra modules here.
 moreapps?=

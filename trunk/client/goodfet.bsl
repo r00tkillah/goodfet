@@ -200,12 +200,14 @@ deviceids = {
     0xf449: F4x,
     0x1232: F1x,
     0xf26f: F2x, #for GoodFET20
+    0xf227: F2x, #for GoodFET30
 }
 
 #GoodFET firmware
 firmware = {
     0xf16c: "http://goodfet.sourceforge.net/dist/msp430x1612.hex",
     0xf26f: "http://goodfet.sourceforge.net/dist/msp430x2618.hex",
+    0xf227: "http://goodfet.sourceforge.net/dist/msp430x2274.hex"
 }
 
 class BSLException(Exception):
@@ -1130,9 +1132,9 @@ class BootStrapLoader(LowLevel):
             raise BSLException, "programming without data not possible"
     def actionFromweb(self):
         """Grab GoodFET firmware from the web, then flash it."""
-        print "%x" % self.dev_id;
+        print "Grabbing %x firmware." % self.dev_id;
         print "%s" % firmware[self.dev_id];
-        fn="/tmp/fw.hex"
+        fn="/tmp/.goodfet.hex"
         os.system("curl %s >%s" % (firmware[self.dev_id],fn))
         
         fw=Memory(fn);
@@ -1275,6 +1277,9 @@ General options:
                         --swap-reset-test, and --telos-latch
   --telosb              Implies options --swap-reset-test, --telos-i2c,
                         --no-BSL-download, and --speed=38400
+  --goodfet10
+  --goodfet20
+  --goodfet30
   --tmote               Identical operation to --telosb
   --no-BSL-download     Do not download replacement BSL (disable automatic)
   --force-BSL-download  Download replacement BSL even if not needed (the one
@@ -1402,7 +1407,9 @@ def main():
              "bslversion", "f1x", "f2x", "f4x", "invert-reset", "invert-test",
 	     "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
              "tmote","no-BSL-download", "force-BSL-download", "slow",
-             "dumpivt", "dumpinfo", "fromweb"]
+             "dumpivt", "dumpinfo", "fromweb",
+	"goodfet30", "goodfet20", "goodfet10"
+	]
         )
     except getopt.GetoptError:
         # print help information and exit:
@@ -1542,6 +1549,15 @@ def main():
             bsl.invertTEST = 1
             bsl.swapRSTTEST = 1
             bsl.telosLatch = 1
+	elif o in ("--goodfet10", ):
+	    bsl.invertRST = 1
+	    bsl.invertTEST = 1
+	elif o in ("--goodfet20", ):
+	    bsl.invertRST = 1
+	    bsl.invertTEST = 1
+	elif o in ("--goodfet30", ):
+	    bsl.invertRST = 1
+	    bsl.invertTEST = 0
         elif o in ("--telosb", ):
             bsl.swapRSTTEST = 1
             bsl.telosI2C = 1

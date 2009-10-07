@@ -78,6 +78,11 @@ void avr_prgen(){
   avrexchange(0xAC, 0x53, 0, 0);
 }
 
+//! Is the AVR ready or busy?
+u8 avr_isready(){
+  return avrexchange(0xF0, 0, 0, 0);
+}
+
 //! Read AVR device code.
 u8 avr_sig(u8 i){
   return avrexchange(0x30, //Read signature byte
@@ -87,18 +92,40 @@ u8 avr_sig(u8 i){
 	      );
 }
 
+//! Erase an AVR device
+void avr_erase(){
+  avrexchange(0xAC, 0x80, 0, 0);
+}
+
+//! Read lock bits.
+u8 avr_lockbits(){
+  return avrexchange(0x58, 0, 0, 0);
+}
+
+//! Read a byte of EEPROM.
+u8 avr_peekeeprom(u16 adr){
+  return avrexchange(0xA0, adr>>8, adr&0xFF, 0);
+}
+//! Read a byte of EEPROM.
+u8 avr_pokeeeprom(u16 adr, u8 val){
+  return avrexchange(0xC0, adr>>8, adr&0xFF, val);
+}
+
 //! Handles an AVR command.
 void avrhandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned long len){
   unsigned long i;
+  static u8 connected=0;
   
+  if(!avr_isready() && connected)
+    debugstr("AVR is not yet ready.");
   
   switch(verb){
   case READ:
   case WRITE:
     for(i=0;i<len;i++)
-      cmddata[i]=spitrans8(cmddata[i]);
+      cmddata[i]=avrtrans8(cmddata[i]);
     txdata(app,verb,len);
     break;
   case SETUP:
@@ -112,6 +139,22 @@ void avrhandle(unsigned char app,
     for(i=0;i<4;i++)
       cmddata[i]=avr_sig(i);
     txdata(app,verb,4);
+    break;
+  case AVR_ERASE:
+    avr_erase();
+    txdata(app,verb,0);
+    break;
+  case AVR_PEEKLOCK:
+    cmddata[0]=avr_lockbits();
+    txdata(app,verb,1);
+    break;
+
+  case AVR_POKEEEPROM:
+    avr_pokeeeprom(cmddataword[0], cmddata[2]);
+    //no break here.
+  case AVR_PEEKEEPROM:
+    cmddata[0]=avr_peekeeprom(cmddataword[0]);
+    txdata(app,verb,1);
     break;
   case PEEK:
   case POKE:

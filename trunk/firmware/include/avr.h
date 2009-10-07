@@ -15,7 +15,19 @@ void avrconnect();
 void avr_prgen();
 //! Read AVR device code.
 u8 avr_sig(u8 i);
+//! Erase an AVR device
+void avr_erase();
+//! Read lock bits.
+u8 avr_lockbits();
 
+
+//! Read a byte of EEPROM.
+u8 avr_peekeeprom(u16 adr);
+//! Read a byte of EEPROM.
+u8 avr_pokeeeprom(u16 adr, u8 val);
+
+//! Is the AVR ready or busy?
+u8 avr_isready();
 
 //Command codes.
 //! Performa  chip erase.
@@ -27,6 +39,8 @@ u8 avr_sig(u8 i);
 #define AVR_PEEKPGM 0x80
 //! Read EEPROM
 #define AVR_PEEKEEPROM 0x81
+//! Write EEPROM
+#define AVR_POKEEEPROM 0x91
 //! Read lock bits.
 #define AVR_PEEKLOCK 0x82
 //! Read signature.

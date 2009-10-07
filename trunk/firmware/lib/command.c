@@ -30,6 +30,17 @@ void debugstr(const char *str){
   txstring(0xFF,0xFF,str);
 }
 
+/*! \brief Transmit debug bytes.
+  
+  Transmits bytes for debugging.
+*/
+void debugbytes(const char *bytes, unsigned int len){
+  u16 i;
+  txhead(0xFF,0xFE,len);
+  for(i=0;i<len;i++)
+    serial_tx(bytes[i]);
+}
+
 
 //! Transmit a header.
 void txhead(unsigned char app,
@@ -37,7 +48,7 @@ void txhead(unsigned char app,
 	    unsigned long len){
   serial_tx(app);
   serial_tx(verb);
-  //serial_tx(len);
+  //serial_tx(len); //old protocol
   txword(len);
 }
 

@@ -3,12 +3,18 @@
   \brief Command codes and buffers.
 */
 
-//! Global data buffer.
+
+//Types
+#define u8 unsigned char
+#define u16 unsigned int
+#define u32 unsigned long
+
 
 #ifndef CMDDATALEN
 #define CMDDATALEN 0x204
 #endif
 
+//! Global data buffer.
 extern unsigned char cmddata[CMDDATALEN];
 extern unsigned char silent;
 

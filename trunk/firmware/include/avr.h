@@ -14,7 +14,7 @@ void avrconnect();
 //! Enable AVR programming mode.
 void avr_prgen();
 //! Read AVR device code.
-u8 avr_devicecode();
+u8 avr_sig(u8 i);
 
 
 //Command codes.

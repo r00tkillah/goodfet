@@ -1,0 +1,38 @@
+<h1>AVR Application</h1>
+
+<p>This application is used for programming and debugging the Atmel
+AVR series of microcontrollers by the serial interface.</p>
+
+<p>This pinout differs significantly from the Atmel 6-pin
+and 10-pin pinouts, but an adapter board is available.</p>
+
+<h2>Clients</h2>
+
+<p>A simple client in python is available as 'goodfet.avr'.</p>
+
+<h2>Status</h2>
+
+<p>This is a new port, and it is not yet ready for daily use.</p>
+
+<h2>Verbs</h2>
+
+
+<table border="1">
+<tr><th>Hex</th><th>#define</th><th>Description</th></tr>
+<tr><td>0x02</td><td>PEEK</td><td>Read from memory at word[0].</td></tr>
+<tr><td>0x03</td><td>POKE</td><td>Write word[1] to memory at word[0].</td></tr>
+<tr><td>0x10</td><td>SETUP</td><td>Configure I/O pins.</td></tr>
+<tr><td>0x20</td><td>START</td><td>Take the device under control.</td></tr>
+<tr><td>0x21</td><td>STOP</td><td>Release the device.</td></tr>
+<tr><td>0x7E</td><td>NOK</td><td>No Operation</td></tr>
+
+<tr><td>0x80</td><td>PEEKPGM</td><td></td></tr>
+<tr><td>0x81</td><td>PEEKEEPROM</td><td></td></tr>
+<tr><td>0x82</td><td>PEEKLOCK</td><td></td></tr>
+<tr><td>0x83</td><td>PEEKSIG</td><td></td></tr>
+<tr><td>0x84</td><td>READFUSES</td><td></td></tr>
+<tr><td>0x85</td><td>READCAL</td><td></td></tr>
+
+<tr><td>0xF0</td><td>ERASE</td><td>Chip Erase (Flash+EEPROM)</td></tr>
+<tr><td>0xF1</td><td>ERASE</td><td>RDY/!BSD</td></tr>
+</table>

@@ -11,6 +11,39 @@ from GoodFET import GoodFET;
 
 class GoodFETAVR(GoodFET):
     AVRAPP=0x32;
+    AVRVendors={0x1E: "Atmel",
+                0x00: "Locked",
+                };
+    
+    #List from avr910.asm and other sources.
+    #More devices at http://avr.fenceline.de/device_data.html
+    AVRDevices={
+        0x9003: "tiny10",
+        0x9004: "tiny11",
+        0x9005: "tiny12",
+        0x9006: "tiny15",
+        0x9007: "tiny13",
+        0x930B: "tiny85",
+        
+        0x9001: "S1200",
+        
+        0x9101: "S1213",
+        0x9102: "S2323",
+        0x9105: "S2333",
+        0x9103: "S2343",
+        
+        0x9201: "S4414",
+                0x9203: "S4433",
+        0x9202: "S4434",
+        
+        0x9301: "S8515",
+        0x9303: "S8535",
+        
+        0x9305: "mega83",
+        0x9701: "mega103",
+        0x9401: "mega161",
+        0x9402: "mega163",
+        };
     
     def setup(self):
         """Move the FET into the SPI application."""
@@ -30,4 +63,13 @@ class GoodFETAVR(GoodFET):
     def identstr(self):
         """Return an identifying string."""
         self.writecmd(self.AVRAPP,0x83,0,None);
-        return "AVR(%02x)" % ord(self.data[0]);
+        vendor=self.AVRVendors.get(ord(self.data[0]));
+        deviceid=(ord(self.data[1])<<8)+ord(self.data[2]);
+        device=self.AVRDevices.get(deviceid);
+        
+        #Return hex if device is unknown.
+        #They are similar enough that it needn't be known.
+        if device==None:
+            device=("0x%04x" % deviceid);
+        
+        return device;

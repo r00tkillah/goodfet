@@ -19,8 +19,8 @@ void avrsetup(){
 
 //! Initialized an attached AVR.
 void avrconnect(){
-  register int i;
-  avrsetup();//set I/O pins
+  //set I/O pins
+  avrsetup();
   
   //Pulse !RST (SS) at least twice while CLK is low.
   CLRCLK;
@@ -36,7 +36,7 @@ void avrconnect(){
   avr_prgen();
 }
 
-//! Read and write an SPI byte.
+//! Read and write an SPI byte with delays.
 unsigned char avrtrans8(unsigned char byte){
   register unsigned int bit;
   //This function came from the SPI Wikipedia article.
@@ -68,8 +68,7 @@ u8 avrexchange(u8 a, u8 b, u8 c, u8 d){
   avrtrans8(b);
   if(avrtrans8(c)!=b){
     debugstr("AVR sync error, b not returned as c.");
-  }else{
-    debugstr("Synced properly.");
+    //Reconnect here?
   }
   return avrtrans8(d);
 }
@@ -80,11 +79,11 @@ void avr_prgen(){
 }
 
 //! Read AVR device code.
-u8 avr_devicecode(){
+u8 avr_sig(u8 i){
   return avrexchange(0x30, //Read signature byte
 	      0x00,
-	      0x00, //&0x03 is sig adr
-	      0x00 //don't care.
+	      i&0x03,      //sig adr
+	      0x00         //don't care.
 	      );
 }
 
@@ -110,8 +109,9 @@ void avrhandle(unsigned char app,
     avrconnect();
     //no break here
   case AVR_PEEKSIG:
-    cmddata[0]=avr_devicecode();
-    txdata(app,verb,1);
+    for(i=0;i<4;i++)
+      cmddata[i]=avr_sig(i);
+    txdata(app,verb,4);
     break;
   case PEEK:
   case POKE:

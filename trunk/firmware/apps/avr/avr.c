@@ -111,6 +111,8 @@ u8 avr_pokeeeprom(u16 adr, u8 val){
   return avrexchange(0xC0, adr>>8, adr&0xFF, val);
 }
 
+
+
 //! Handles an AVR command.
 void avrhandle(unsigned char app,
 	       unsigned char verb,

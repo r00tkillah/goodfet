@@ -12,7 +12,7 @@
 #include <io.h>
 #include <iomacros.h>
 
-#include <spi.h>
+#include "spi.h"
 
 //This could be more accurate.
 //Does it ever need to be?
@@ -115,28 +115,6 @@ void spiflash_peekblock(unsigned long adr,
   SETSS;  //Raise !SS to end transaction.
 }
 
-//! Write many blocks to the SPI Flash.
-void spiflash_pokeblocks(unsigned long adr,
-			 unsigned char *buf,
-			 unsigned int len){
-  long off=0;//offset of this block
-  int blen;//length of this block
-  SETSS;
-  spiflash_setstatus(0x02);
-  spiflash_wrten();
-  
-  while(off<len){
-    //calculate block length
-    blen=(len-off>0x100?0x100:len-off);
-    //write the block
-    spiflash_pokeblock(adr+off,
-		       buf+off,
-		       blen);
-    //add offset
-    off+=blen;
-  }
-}
-
 //! Read a block to a buffer.
 void spiflash_pokeblock(unsigned long adr,
 			unsigned char *buf,
@@ -166,6 +144,30 @@ void spiflash_pokeblock(unsigned long adr,
   while(spiflash_status()&0x01);//minor performance impact
   return;
 }
+
+
+//! Write many blocks to the SPI Flash.
+void spiflash_pokeblocks(unsigned long adr,
+			 unsigned char *buf,
+			 unsigned int len){
+  long off=0;//offset of this block
+  int blen;//length of this block
+  SETSS;
+  spiflash_setstatus(0x02);
+  spiflash_wrten();
+  
+  while(off<len){
+    //calculate block length
+    blen=(len-off>0x100?0x100:len-off);
+    //write the block
+    spiflash_pokeblock(adr+off,
+		       buf+off,
+		       blen);
+    //add offset
+    off+=blen;
+  }
+}
+
 
 
 //! Peek some blocks.

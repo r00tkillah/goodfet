@@ -59,7 +59,7 @@ unsigned long jtagtransn(unsigned long word,
 			 unsigned int bitcount){
   unsigned int bit;
   //0x8000
-  unsigned long high;
+  unsigned long high=0x8000;
   
   if(bitcount==20)
     high=0x80000;

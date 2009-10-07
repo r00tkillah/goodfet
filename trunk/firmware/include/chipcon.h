@@ -40,3 +40,27 @@ void cc_resume();
 //! Step an instruction
 void cc_step_instr();
 
+
+//CHIPCON commands
+#define CC_CHIP_ERASE 0x80
+#define CC_WR_CONFIG 0x81
+#define CC_RD_CONFIG 0x82
+#define CC_GET_PC 0x83
+#define CC_READ_STATUS 0x84
+#define CC_SET_HW_BRKPNT 0x85
+#define CC_HALT 0x86
+#define CC_RESUME 0x87
+#define CC_DEBUG_INSTR 0x88
+#define CC_STEP_INSTR 0x89
+#define CC_STEP_REPLACE 0x8a
+#define CC_GET_CHIP_ID 0x8b
+//CHIPCON macros
+#define CC_READ_CODE_MEMORY 0x90
+#define CC_READ_XDATA_MEMORY 0x91
+#define CC_WRITE_XDATA_MEMORY 0x92
+#define CC_SET_PC 0x93
+#define CC_CLOCK_INIT 0x94
+#define CC_WRITE_FLASH_PAGE 0x95
+#define CC_READ_FLASH_PAGE 0x96
+#define CC_MASS_ERASE_FLASH 0x97
+#define CC_PROGRAM_FLASH 0x98

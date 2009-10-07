@@ -276,7 +276,6 @@ void jtag430_setinstrfetch(){
 void jtag430handle(unsigned char app,
 		   unsigned char verb,
 		   unsigned long len){
-  register char blocks;
   unsigned long at;
   unsigned int i, val;
   

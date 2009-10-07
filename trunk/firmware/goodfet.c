@@ -44,6 +44,9 @@ void handle(unsigned char app,
   case SPI:
     spihandle(app,verb,len);
     break;
+  case AVR:
+    avrhandle(app,verb,len);
+    break;
   case I2CAPP:
     i2chandle(app,verb,len);
     break;

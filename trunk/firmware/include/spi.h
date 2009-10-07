@@ -18,3 +18,20 @@
 #define SETCLK P5OUT|=SCK
 #define CLRCLK P5OUT&=~SCK
 #define READMISO (P5IN&MISO?1:0)
+
+//! Set up the pins for SPI mode.
+void spisetup();
+
+//! Read and write an SPI byte.
+unsigned char spitrans8(unsigned char byte);
+
+//! Read a block to a buffer.
+void spiflash_peekblock(unsigned long adr,
+			unsigned char *buf,
+			unsigned int len);
+
+
+//! Write many blocks to the SPI Flash.
+void spiflash_pokeblocks(unsigned long adr,
+			 unsigned char *buf,
+			 unsigned int len);

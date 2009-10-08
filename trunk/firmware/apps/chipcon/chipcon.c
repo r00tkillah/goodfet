@@ -332,6 +332,10 @@ unsigned char cc_debug(unsigned char len,
   unsigned char cmd=0x54+(len&0x3);//(len&0x3);
   CCWRITE;
   cctrans8(0xFF);//resync
+  cctrans8(0xFF);//resync
+  cctrans8(0xFF);//resync
+  cctrans8(0xFF);//resync
+  cctrans8(0xFF);//resync
   cctrans8(cmd);
   if(len--)
     cctrans8(a);

@@ -123,7 +123,13 @@ void spiflash_pokeblock(unsigned long adr,
   
   SETSS;
   
-  //while(spiflash_status()&0x01);//minor performance impact
+  //if(len!=0x100)
+  //  debugstr("Non-standard block size.");
+  
+  while(spiflash_status()&0x01);//minor performance impact
+  
+  spiflash_setstatus(0x02);
+  spiflash_wrten();
   
   //Are these necessary?
   //spiflash_setstatus(0x02);
@@ -153,8 +159,6 @@ void spiflash_pokeblocks(unsigned long adr,
   long off=0;//offset of this block
   int blen;//length of this block
   SETSS;
-  spiflash_setstatus(0x02);
-  spiflash_wrten();
   
   while(off<len){
     //calculate block length
@@ -190,6 +194,30 @@ void spiflash_peek(unsigned char app,
   
   P5OUT|=SS;  //Raise !SS to end transaction.
 }
+
+
+//! Erase a sector.
+void spiflash_erasesector(unsigned long adr){
+  //debugstr("Erasing a 4kB sector.");
+
+  //Write enable.
+  spiflash_wrten();
+
+  //Begin
+  CLRSS;
+
+  //Second command.
+  spitrans8(0x20);
+  //Send address
+  spitrans8((adr&0xFF0000)>>16);
+  spitrans8((adr&0xFF00)>>8);
+  spitrans8(adr&0xFF);
+
+  SETSS;
+  while(spiflash_status()&0x01);//while busy
+  //debugstr("Erased.");
+}
+
 
 //! Handles a monitor command.
 void spihandle(unsigned char app,
@@ -234,7 +262,7 @@ void spihandle(unsigned char app,
 			cmddata+4,//buf
 			len-4);//len    
     
-    txdata(app,verb,len);
+    txdata(app,verb,0);
     break;
 
 

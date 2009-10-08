@@ -35,3 +35,14 @@ void spiflash_peekblock(unsigned long adr,
 void spiflash_pokeblocks(unsigned long adr,
 			 unsigned char *buf,
 			 unsigned int len);
+
+
+//! Enable SPI writing
+void spiflash_wrten();
+
+//! Read and write an SPI byte.
+unsigned char spitrans8(unsigned char byte);
+//! Grab the SPI flash status byte.
+unsigned char spiflash_status();
+//! Erase a sector.
+void spiflash_erasesector(unsigned long adr);

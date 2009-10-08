@@ -93,16 +93,12 @@ class GoodFETSPIFlash(GoodFETSPI):
         self.SPIpokebytes(adr,[val]);
     def SPIpokebytes(self,adr,data):
         #Used to be 24 bits, BE, not 32 bits, LE.
-#       adranddata=[(adr&0xFF0000)>>16,
-#               (adr&0xFF00)>>8,
-#               adr&0xFF
-#               ]+data;
         adranddata=[adr&0xFF,
                     (adr&0xFF00)>>8,
                     (adr&0xFF0000)>>16,
                     0, #MSB
                     ]+data;
-        
+        #print "%06x: poking %i bytes" % (adr,len(data));
         self.writecmd(0x01,0x03,
                       len(adranddata),adranddata);
         

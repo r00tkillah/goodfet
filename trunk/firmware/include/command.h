@@ -9,9 +9,11 @@
 #define u16 unsigned int
 #define u32 unsigned long
 
-
 #ifndef CMDDATALEN
+//512 bytes
 #define CMDDATALEN 0x204
+//4k
+//#define CMDDATALEN 0x1004
 #endif
 
 //! Global data buffer.

@@ -111,16 +111,21 @@ if(sys.argv[1]=="verify"):
     file = open(f, mode='rb')
     
     i=start;
-    bits=0;
+    bytes=0;
     while i<=stop:
-        data=client.SPIpeekblock(i,255);
+        data=client.SPIpeekblock(i);
         print "Verified %06x." % i;
         for j in data:
             if i<stop:
-                bits|=ord(file.read(1))^ord(j);
+                #bits|=ord(file.read(1))^ord(j);
+                a=ord(file.read(1));
+                b=ord(j);
+                if a!=b:
+                    print "%06x: %02x/%02x" % (i,a,b);
+                    bytes+=1;
             i+=1;
-        if bits!=0:
-            print "Bits don't match."
+        if bytes!=0:
+            print "%i bytes don't match." % bytes
 
     file.close()
 
@@ -142,7 +147,8 @@ if(sys.argv[1]=="flash"):
     
     #N.B., chunksize must be an even fraction of 0x100.
     #Increasing above 0x200 doesn't help, 0x100 might be good enough.
-    chunksize=0x200;
+    chunksize=0x100;
+    #chunksize=0x1000;
     
     while i<=stop:
         bytes=range(0,chunksize);

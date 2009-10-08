@@ -36,7 +36,7 @@
 
 //This could be more accurate.
 //Does it ever need to be?
-#define CCSPEED 0
+#define CCSPEED 3
 #define CCDELAY(x) delay(x)
 
 #define SETMOSI P5OUT|=MOSI
@@ -331,6 +331,7 @@ unsigned char cc_debug(unsigned char len,
 	      unsigned char c){
   unsigned char cmd=0x54+(len&0x3);//(len&0x3);
   CCWRITE;
+  cctrans8(0xFF);//resync
   cctrans8(cmd);
   if(len--)
     cctrans8(a);

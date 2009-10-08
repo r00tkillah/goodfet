@@ -125,6 +125,9 @@ void ccread(unsigned char len){
 void cchandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned long len){
+  //Always init.  Might help with buggy lines.
+  ccdebuginit();
+  
   switch(verb){
     //CC_PEEK and CC_POKE will come later.
   case READ:  //Write a command and return 1-byte reply.

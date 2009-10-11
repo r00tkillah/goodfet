@@ -16,12 +16,12 @@ mcu?=msp430x1612
 GCCINC=-T ldscripts/$(mcu).x
 
 CCEXTRA?=
-CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -DGCC $(GCCINC) -I include $(CCEXTRA)
+CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -DGCC $(GCCINC) -I include $(CCEXTRA)
 
 #Define extra modules here.
-moreapps?=
+moreapps?=apps/i2c/i2c.o apps/chipcon/chipcon.o
 
-apps= $(moreapps) apps/monitor/monitor.o apps/spi/spi.o apps/i2c/i2c.o apps/chipcon/chipcon.o apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o
+apps= $(moreapps) apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o
 libs= lib/$(mcu).o lib/command.o apps/jtag/jtag430asm.o
 app= goodfet
 

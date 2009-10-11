@@ -30,8 +30,6 @@ void init(){
   
   //Enable Interrupts.
   //eint();
-
-
 }
 
 

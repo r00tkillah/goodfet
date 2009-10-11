@@ -9,6 +9,14 @@
 #define u16 unsigned int
 #define u32 unsigned long
 
+
+#ifdef msp430x2254
+//256 bytes, plus overhead
+//For chips with very little RAM.
+#define CMDDATALEN 0x104
+#warning Very little RAM.
+#endif
+
 #ifndef CMDDATALEN
 //512 bytes
 #define CMDDATALEN 0x204
@@ -64,12 +72,13 @@ extern unsigned char silent;
 #define OCT_CMP 0x90
 #define OCT_RES 0x91
 
+#define WEAKDEF __attribute__ ((weak))
 
 //! Handle a plugin, weak-linked to error.
 extern int pluginhandle(unsigned char app,
 			unsigned char verb,
 			unsigned int len)
-  __attribute__ ((weak));
+  WEAKDEF;
 
 
 //! Handle a command.  Defined in goodfet.c
@@ -110,8 +119,8 @@ void msdelay(unsigned int ms);
 
 void monitorhandle(unsigned char, unsigned char, unsigned long);
 void spihandle(unsigned char, unsigned char, unsigned long);
-void i2chandle(unsigned char, unsigned char, unsigned long);
-void cchandle(unsigned char, unsigned char, unsigned long);
+void i2chandle(unsigned char, unsigned char, unsigned long) WEAKDEF;
+void cchandle(unsigned char, unsigned char, unsigned long) WEAKDEF;
 void jtaghandle(unsigned char, unsigned char, unsigned long);
 void jtag430handle(unsigned char, unsigned char, unsigned long);
 void jtag430x2handle(unsigned char app, unsigned char verb,

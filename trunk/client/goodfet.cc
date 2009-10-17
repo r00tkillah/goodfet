@@ -82,32 +82,52 @@ if(sys.argv[1]=="erase"):
     client.CCchiperase();
     print "Status: %s" %client.CCstatusstr();
 
-# if(sys.argv[1]=="flash"):
-#     f=sys.argv[2];
-#     start=0;
-#     stop=0xFFFF;
-#     if(len(sys.argv)>3):
-#         start=int(sys.argv[3],16);
-#     if(len(sys.argv)>4):
-#         stop=int(sys.argv[4],16);
-    
-#     h = IntelHex(f);
-    
-#     client.CCchiperase();
-#     for i in h._buf.keys():
-#         #print "%04x: %04x"%(i,h[i>>1]);
-#         if(i>=start and i<=stop  and i&1==0):
-#             client.CCwriteflash(i,h[i>>1]);
-#             if(i%0x100==0):
-#                 print "%04x" % i;
-
+if(sys.argv[1]=="flash"):
+     f=sys.argv[2];
+     start=0;
+     stop=0xFFFF;
+     if(len(sys.argv)>3):
+         start=int(sys.argv[3],16);
+     if(len(sys.argv)>4):
+         stop=int(sys.argv[4],16);
+   
+     h = IntelHex(f);
+     page = 0x0000;
+     pagelen = 2048; #2kB pages in 32-bit words
+     bcount = 0;
+     
+     #Wipe all of flash.
+     client.CCchiperase();
+     #Wipe the RAM buffer for the next flash page.
+     client.CCeraseflashbuffer();
+     for i in h._buf.keys():
+         while(i>page+pagelen):
+             if bcount>0:
+                 client.CCflashpage(page);
+                 client.CCeraseflashbuffer();
+                 bcount=0;
+                 print "Flashed page at %06x" % page
+             page+=pagelen;
+             
+         #Place byte into buffer.
+         client.CCpokedatabyte(0xF000+i-page,
+                               h[i]);
+         bcount+=1;
+         if(i%0x100==0):
+                print "%04x at %06x" % (i,page);
+     #last page
+     client.CCflashpage(page);
+     print "Flashed final page at %06x" % page;
+     
 if(sys.argv[1]=="flashpage"):
+    target=0;
+    if(len(sys.argv)>2):
+        target=int(sys.argv[2],16);
     print "Writing a page of flash from 0xF000 in XDATA"
-    print "Status: %s" %client.CCstatusstr();
-    client.CCflashpage(0x0000);
-    while 1:
-        print "0x%06x: %s" %(
-            client.CCgetPC(),client.CCstatusstr());
+    client.CCflashpage(target);
+if(sys.argv[1]=="erasebuffer"):
+    print "Erasing flash buffer.";
+    client.CCeraseflashbuffer();
 
 if(sys.argv[1]=="writedata"):
     f=sys.argv[2];

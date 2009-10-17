@@ -128,6 +128,7 @@ void cchandle(unsigned char app,
   //Always init.  Might help with buggy lines.
   //Might hurt too.
   //ccdebuginit();
+  long i;
   
   switch(verb){
     //CC_PEEK and CC_POKE will come later.
@@ -227,6 +228,11 @@ void cchandle(unsigned char app,
     cc_write_flash_page(cmddatalong[0]);
     txdata(app,verb,0);
     break;
+  case CC_WIPEFLASHBUFFER:
+    for(i=0xf000;i<0xf800;i++)
+      cc_pokedatabyte(i,0xFF);
+    txdata(app,verb,0);
+    break;
   case CC_MASS_ERASE_FLASH:
   case CC_CLOCK_INIT:
   case CC_PROGRAM_FLASH:
@@ -316,12 +322,12 @@ const u8 flash_routine[] = {
   0x00,//#imm=((address >> 8) / FLASH_WORD_SIZE) & 0x7E,
   
   0x75, 0xAC, 0x00,                                          //                 MOV FADDRL, #00; 
-  /* Erase page. *
+  /* Erase page. */
   0x75, 0xAE, 0x01,                                          //                 MOV FLC, #01H; // ERASE 
                                                              //                 ; Wait for flash erase to complete 
   0xE5, 0xAE,                                                // eraseWaitLoop:  MOV A, FLC; 
   0x20, 0xE7, 0xFB,                                          //                 JB ACC_BUSY, eraseWaitLoop; 
-  */
+  /* End erase page. */
                                                              //                 ; Initialize the data pointer 
   0x90, 0xF0, 0x00,                                          //                 MOV DPTR, #0F000H; 
                                                              //                 ; Outer loops 
@@ -346,7 +352,12 @@ const u8 flash_routine[] = {
 //! Copies flash buffer to flash.
 void cc_write_flash_page(u32 adr){
   //Assumes that page has already been written to XDATA 0xF000
-  debugstr("Flashing 2kb at 0xF000 to given adr.");
+  //debugstr("Flashing 2kb at 0xF000 to given adr.");
+  
+  if(adr&(FLASHPAGE_SIZE-1)){
+    debugstr("Flash page address is not on a multiple of 2kB.  Aborting.");
+    return;
+  }
   
   //Routine comes next
   //WRITE_XDATA_MEMORY(IN: 0xF000 + FLASH_PAGE_SIZE, sizeof(routine), routine);
@@ -356,7 +367,7 @@ void cc_write_flash_page(u32 adr){
   //((address >> 8) / FLASH_WORD_SIZE) & 0x7E
   cc_pokedatabyte(0xF000+FLASHPAGE_SIZE+2,
 		  ((adr>>8)/FLASH_WORD_SIZE)&0x7E);
-  debugstr("Wrote flash routine.");
+  //debugstr("Wrote flash routine.");
   
   
   //MOV MEMCTR, (bank * 16) + 1;
@@ -364,18 +375,18 @@ void cc_write_flash_page(u32 adr){
   cmddata[1]=0xc7;
   cmddata[2]=0x51;
   cc_debug_instr(3);
-  debugstr("Loaded bank info.");
+  //debugstr("Loaded bank info.");
   
   cc_set_pc(0xf000+FLASHPAGE_SIZE);//execute code fragment
   cc_resume();
-  debugstr("Executing.");
+  //debugstr("Executing.");
   
-  /*
+  
   while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
-    P1OUT^=1;//blink LED
-  }*/
+    P1OUT^=1;//blink LED while flashing
+  }
   
-  debugstr("Done flashing.");
+  //debugstr("Done flashing.");
   
   P1OUT&=~1;//clear LED
 }

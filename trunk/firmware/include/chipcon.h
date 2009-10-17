@@ -94,3 +94,5 @@ void cc_step_instr();
 #define CC_READ_FLASH_PAGE 0x96
 #define CC_MASS_ERASE_FLASH 0x97
 #define CC_PROGRAM_FLASH 0x98
+#define CC_WIPEFLASHBUFFER 0x99
+

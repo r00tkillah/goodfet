@@ -146,8 +146,14 @@ class GoodFETCC(GoodFET):
     def CCstep_instr(self):
         """Step one instruction."""
         self.writecmd(0x30,0x89,0,self.data);
+    def CCeraseflashbuffer(self):
+        """Erase the 2kB flash buffer"""
+        self.writecmd(0x30,0x99);
     def CCflashpage(self,adr):
-        """Flash a page of flash from 0xF000 in XDATA"""
-        data=[0x00,0x00,0x00,0x00];
+        """Flash 2kB a page of flash from 0xF000 in XDATA"""
+        data=[adr&0xFF,
+              (adr>>8)&0xFF,
+              (adr>>16)&0xFF,
+              (adr>>24)&0xFF];
+        print "Flashing buffer to 0x%06x" % adr;
         self.writecmd(0x30,0x95,4,data);
-

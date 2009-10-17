@@ -985,8 +985,12 @@ class BootStrapLoader(LowLevel):
         """start BSL, download patch if desired and needed, adjust SP if desired"""
         sys.stderr.write("Invoking BSL...\n")
         sys.stderr.flush()
+        
+        #for '30, invertTEST=0, else =1
         if bslreset:
             self.bslReset(1)                        #Invoke the boot loader.
+        
+        
         self.txPasswd(self.passwd)                  #transmit password
 
         #Read actual bootstrap loader version.
@@ -1353,7 +1357,7 @@ def hexify(line, bytes, width=16):
         )
 
 #Main:
-def main():
+def main(itest=1):
     global DEBUG
     import getopt
     filetype    = None
@@ -1378,7 +1382,7 @@ def main():
     dumpinfo    = 0
     
     bsl.invertRST = 1
-    bsl.invertTEST = 1
+    bsl.invertTEST = itest
     
     if comPort is None and os.environ.get("GOODFET")!=None:
         glob_list = glob.glob(os.environ.get("GOODFET"));
@@ -1716,7 +1720,7 @@ def main():
 
 if __name__ == '__main__':
     try:
-        main()
+        main(1)
     except SystemExit:
         raise               #let pass exit() calls
     except KeyboardInterrupt:
@@ -1725,5 +1729,6 @@ if __name__ == '__main__':
         sys.exit(1)         #set errorlevel for script usage
     except Exception, msg:  #every Exception is caught and displayed
         if DEBUG: raise     #show full trace in debug mode
-        sys.stderr.write("\nAn error occoured:\n%s\n" % msg) #short messy in user mode
-        sys.exit(1)         #set errorlevel for script usage
+        #sys.stderr.write("\nAn error occoured:\n%s\n" % msg) #short messy in user mode
+        #sys.exit(1)         #set errorlevel for script usage
+        main(0);

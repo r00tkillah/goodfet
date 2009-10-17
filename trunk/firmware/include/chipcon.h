@@ -3,6 +3,7 @@
   \brief Chipcon application functions.
 */
 
+#include "command.h"
 
 //Chipcon command definitions.
 #define CCCMD_CHIP_ERASE 0x14
@@ -45,6 +46,15 @@ unsigned char cc_debug(unsigned char len,
 		       unsigned char b,
 		       unsigned char c);
 
+//! Populates flash buffer in xdata.
+void cc_write_flash_buffer(u8 *data, u16 len);
+//! Populates flash buffer in xdata.
+void cc_write_xdata(u16 adr, u8 *data, u16 len);
+//! Copies flash buffer to flash.
+void cc_write_flash_page(u32 adr);
+//! Set the Chipcon's Program Counter
+void cc_set_pc(u32 adr);
+
 //! Halt the CPU.
 void cc_halt();
 //! Resume the CPU.
@@ -52,6 +62,14 @@ void cc_resume();
 //! Step an instruction
 void cc_step_instr();
 
+#define CC_STATUS_ERASED 0x80
+#define CC_STATUS_PCONIDLE 0x40
+#define CC_STATUS_CPUHALTED 0x20
+#define CC_STATUS_PM0 0x10
+#define CC_STATUS_HALTSTATUS 0x08
+#define CC_STATUS_LOCKED 0x04
+#define CC_STATUS_OSCSTABLE 0x02
+#define CC_STATUS_OVERFLOW 0x01
 
 //CHIPCON commands
 #define CC_CHIP_ERASE 0x80

@@ -114,9 +114,9 @@ class GoodFETCC(GoodFET):
         return ord(self.data[0])
     CCstatusbits={0x80 : "erased",
                   0x40 : "pcon_idle",
-                  0x20 : "halted",
+                  0x20 : "cpu_halted",
                   0x10 : "pm0",
-                  0x08 : "halted",
+                  0x08 : "halt_status",
                   0x04 : "locked",
                   0x02 : "oscstable",
                   0x01 : "overflow"};
@@ -146,4 +146,7 @@ class GoodFETCC(GoodFET):
     def CCstep_instr(self):
         """Step one instruction."""
         self.writecmd(0x30,0x89,0,self.data);
+    def CCflashpage(self,adr):
+        """Flash a page of flash from 0xF000 in XDATA"""
+        self.writecmd(0x30,0x95,4,data);
 

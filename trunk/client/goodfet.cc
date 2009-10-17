@@ -100,6 +100,10 @@ if(sys.argv[1]=="erase"):
 #             client.CCwriteflash(i,h[i>>1]);
 #             if(i%0x100==0):
 #                 print "%04x" % i;
+
+if(sys.argv[1]=="flashpage"):
+    print "Writing a page of flash from 0xF000 in XDATA"
+    CCflashpage(0x0000);
 if(sys.argv[1]=="writedata"):
     f=sys.argv[2];
     start=0;

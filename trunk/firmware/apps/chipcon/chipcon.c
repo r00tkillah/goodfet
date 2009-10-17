@@ -219,13 +219,28 @@ void cchandle(unsigned char app,
     txdata(app,verb,1);
     break;
   case CC_SET_PC:
-  case CC_CLOCK_INIT:
+    cc_set_pc(cmddatalong[0]);
+    txdata(app,verb,0);
+    break;
   case CC_WRITE_FLASH_PAGE:
+    cc_write_flash_page(cmddatalong[0]);
+    txdata(app,verb,0);
+    break;
   case CC_MASS_ERASE_FLASH:
+  case CC_CLOCK_INIT:
   case CC_PROGRAM_FLASH:
+    debugstr("This Chipcon command is not yet implemented.");
     txdata(app,NOK,0);//TODO implement me.
     break;
   }
+}
+
+//! Set the Chipcon's Program Counter
+void cc_set_pc(u32 adr){
+  cmddata[0]=0x02;           //GetPC
+  cmddata[1]=(adr>>8)&0xff;  //HIBYTE
+  cmddata[2]=adr&0xff;       //LOBYTE
+  return;
 }
 
 //! Erase all of a Chipcon's memory.
@@ -271,6 +286,82 @@ unsigned short cc_get_chip_id(){
   return toret;
 }
 
+//! Populates flash buffer in xdata.
+void cc_write_flash_buffer(u8 *data, u16 len){
+  cc_write_xdata(0xf000, data, len);
+}
+//! Populates flash buffer in xdata.
+void cc_write_xdata(u16 adr, u8 *data, u16 len){
+  u16 i;
+  for(i=0; i<len; i++){
+    cc_pokedatabyte(adr+i,
+		    data[i]);
+  }
+}
+
+
+//256 words/page
+#define HIBYTE_WORDS_PER_FLASH_PAGE 0x00
+#define LOBYTE_WORDS_PER_FLASH_PAGE 0x80
+#define FLASHPAGE_SIZE 0x100
+//2 bytes/word
+#define FLASH_WORD_SIZE 0x2
+
+const u8 flash_routine[] = {
+  //MOV FADDRH, #imm; 
+  0x75, 0xAD,
+  0x00,//#imm=((address >> 8) / FLASH_WORD_SIZE) & 0x7E,
+  
+  0x75, 0xAC, 0x00,                                          //                 MOV FADDRL, #00; 
+  /* Erase page. *
+  0x75, 0xAE, 0x01,                                          //                 MOV FLC, #01H; // ERASE 
+                                                             //                 ; Wait for flash erase to complete 
+  0xE5, 0xAE,                                                // eraseWaitLoop:  MOV A, FLC; 
+  0x20, 0xE7, 0xFB,                                          //                 JB ACC_BUSY, eraseWaitLoop; 
+  */
+                                                             //                 ; Initialize the data pointer 
+  0x90, 0xF0, 0x00,                                          //                 MOV DPTR, #0F000H; 
+                                                             //                 ; Outer loops 
+  0x7F, HIBYTE_WORDS_PER_FLASH_PAGE,                         //                 MOV R7, #imm; 
+  0x7E, LOBYTE_WORDS_PER_FLASH_PAGE,                         //                 MOV R6, #imm; 
+  0x75, 0xAE, 0x02,                                          //                 MOV FLC, #02H; // WRITE 
+                                                             //                     ; Inner loops 
+  0x7D, FLASH_WORD_SIZE,                                     // writeLoop:          MOV R5, #imm; 
+  0xE0,                                                      // writeWordLoop:          MOVX A, @DPTR; 
+  0xA3,                                                      //                         INC DPTR; 
+  0xF5, 0xAF,                                                //                         MOV FWDATA, A;  
+  0xDD, 0xFA,                                                //                     DJNZ R5, writeWordLoop; 
+                                                             //                     ; Wait for completion 
+  0xE5, 0xAE,                                                // writeWaitLoop:      MOV A, FLC; 
+  0x20, 0xE6, 0xFB,                                          //                     JB ACC_SWBSY, writeWaitLoop; 
+  0xDE, 0xF1,                                                //                 DJNZ R6, writeLoop; 
+  0xDF, 0xEF,                                                //                 DJNZ R7, writeLoop; 
+                                                             //                 ; Done, fake a breakpoint 
+  0xA5                                                       //                 DB 0xA5; 
+}; 
+
+//! Copies flash buffer to flash.
+void cc_write_flash_page(u32 adr){
+  //Assumes that page has already been written to XDATA 0xF000
+  
+  //Routine comes next
+  //WRITE_XDATA_MEMORY(IN: 0xF000 + FLASH_PAGE_SIZE, sizeof(routine), routine);
+  cc_write_xdata(0xF000+FLASHPAGE_SIZE,
+		 (u8*) flash_routine, sizeof(flash_routine));
+  //Patch routine's third byte with
+  //((address >> 8) / FLASH_WORD_SIZE) & 0x7E
+  cc_pokedatabyte(0xF000+FLASHPAGE_SIZE+2,
+		  ((adr>>8)/FLASH_WORD_SIZE)&0x7E);
+  cc_debug(3, //MOV MEMCTR, (bank * 16) + 1;
+	   0x75, 0xc7, 0x51);
+  cc_set_pc(0xf000+FLASHPAGE_SIZE);//execute code fragment
+  cc_resume();
+  while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
+    P1OUT^=1;//blink LED
+  }
+  
+  P1OUT&=~1;//clear LED
+}
 
 //! Read the PC
 unsigned short cc_get_pc(){

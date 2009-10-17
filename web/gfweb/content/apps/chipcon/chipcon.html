@@ -69,7 +69,7 @@ are used for more complicated macro commands.</p>
 <tr><td>0x8A</td><td>CC_STEP_REPLACE</td><td></td></tr>
 <tr><td>0x8B</td><td>CC_GET_CHIP_ID</td><td></td></tr>
 
-<!--Higher level, make use of raw commands. --
+<!--Higher level, make use of raw commands. -->
 <tr><td>0x90</td><td>CC_READ_CODE_MEMORY</td><td></td></tr>
 <tr><td>0x91</td><td>CC_READ_XDATA_MEMORY</td><td></td></tr>
 <tr><td>0x92</td><td>CC_WRITE_XDATA_MEMORY</td><td></td></tr>
@@ -78,8 +78,9 @@ are used for more complicated macro commands.</p>
 <tr><td>0x95</td><td>CC_WRITE_FLASH_PAGE</td><td></td></tr>
 <tr><td>0x96</td><td>CC_READ_FLASH_PAGE</td><td></td></tr>
 <tr><td>0x97</td><td>CC_MASS_ERASE_FLASH</td><td></td></tr>
-<tr><td>0x98</td><td>CC_PROGRAM_FLASH</td><td></td></tr>
--->
+<tr><td>0x98</td><td>CC_PROGRAM_FLASH</td><td>Copy 2kB to Flash.</td></tr>
+<tr><td>0x99</td><td>CC_WIPEFLASHBUFFER</td><td>Wipe 2kB buffer to 0xFF.</td></tr>
+<tr><td>0x9A</td><td>CC_LOCKCHIP</td><td>Set security bits.</td></tr>
 </table>
 
 

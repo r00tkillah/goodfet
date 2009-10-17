@@ -33,9 +33,9 @@ run:
 	../client/goodfet.msp430 test
 
 install: $(app).hex
-	$(BSL) -e
-	ls info.txt && $(BSL) -p info.txt || true  #MSP430F2xx targets only, inelegant.
-	$(BSL) -p $(app).hex 
+	#$(BSL) -e
+	#ls info.txt && $(BSL) -p info.txt || true  #MSP430F2xx targets only, inelegant.
+	$(BSL) -e -p $(app).hex 
 verify:
 	$(BSL) -P $(app).hex -v $(app).hex
 dumpinfo:

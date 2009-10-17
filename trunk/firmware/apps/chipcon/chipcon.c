@@ -300,12 +300,13 @@ void cc_write_xdata(u16 adr, u8 *data, u16 len){
 }
 
 
-//256 words/page
-#define HIBYTE_WORDS_PER_FLASH_PAGE 0x00
-#define LOBYTE_WORDS_PER_FLASH_PAGE 0x80
-#define FLASHPAGE_SIZE 0x100
+//32-bit words, 2KB pages
+#define HIBYTE_WORDS_PER_FLASH_PAGE 0x02
+#define LOBYTE_WORDS_PER_FLASH_PAGE 0x00
+#define FLASHPAGE_SIZE 0x800
+
 //2 bytes/word
-#define FLASH_WORD_SIZE 0x2
+#define FLASH_WORD_SIZE 0x4
 
 const u8 flash_routine[] = {
   //MOV FADDRH, #imm; 

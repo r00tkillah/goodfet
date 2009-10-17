@@ -39,6 +39,9 @@ if(sys.argv[1]=="info"):
         client.MSP430ident());
 if(sys.argv[1]=="test"):
     client.MSP430test();
+if(sys.argv[1]=="glitch"):
+    for foo in range(0,100):
+        print "Identifies as %04x" % client.MSP430ident();
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];
     start=0x0200;

@@ -1,9 +1,14 @@
 #!/usr/bin/env python
+# GoodFET Chipcon Example
+# 
+# (C) 2009 Travis Goodspeed <travis at radiantmachines.com>
+#
+# This code is being rewritten and refactored.  You've been warned!
 
 import sys;
 import binascii;
 
-from GoodFET import GoodFETCC;
+from GoodFETCC import GoodFETCC;
 from intelhex import IntelHex;
 
 
@@ -47,7 +52,7 @@ if(sys.argv[1]=="dumpcode"):
     h = IntelHex(None);
     i=start;
     while i<=stop:
-        h[i>>1]=client.CCpeekcodebyte(i);
+        h[i]=client.CCpeekcodebyte(i);
         if(i%0x100==0):
             print "Dumped %04x."%i;
         i+=1;

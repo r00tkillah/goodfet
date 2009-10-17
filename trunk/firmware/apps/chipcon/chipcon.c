@@ -546,19 +546,13 @@ unsigned char cc_peekdatabyte(unsigned int adr){
     hb=(adr&0xFF00)>>8,
     lb=adr&0xFF,
     toret;
-
+  
   //MOV DPTR, adr
   cc_debug(3, 0x90, hb, lb);
   //MOVX A, @DPTR
   //Must be 2, perhaps for clocking?
   toret=cc_debug(3, 0xE0, 0, 0);
   return toret;
-  
-    /*
-DEBUG_INSTR(IN: 0x90, HIBYTE(address), LOBYTE(address), OUT: Discard);
-for (n = 0; n < count; n++) {
-    DEBUG_INSTR(IN: 0xE0, OUT: outputArray[n]);
-    DEBUG_INSTR(IN: 0xA3, OUT: Discard);
 }
-  */
-}
+
+

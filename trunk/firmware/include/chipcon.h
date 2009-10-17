@@ -4,6 +4,18 @@
 */
 
 
+//Chipcon command definitions.
+#define CCCMD_CHIP_ERASE 0x14
+#define CCCMD_WR_CONFIG 0x1D
+#define CCCMD_RD_CONFIG 0x24
+#define CCCMD_READ_STATUS 0x34
+#define CCCMD_GET_CHIP_ID 0x68
+#define CCCMD_GET_PC 0x28
+#define CCCMD_HALT 0x44
+#define CCCMD_RESUME 0x4C
+#define CCCMD_STEP_INSTR 0x5C
+#define CCCMD_DEBUG_INSTR 0x54
+
 //! Erase a chipcon chip.
 void cc_chip_erase();
 //! Write the configuration byte.

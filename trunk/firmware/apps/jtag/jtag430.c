@@ -281,6 +281,19 @@ void jtag430handle(unsigned char app,
   
   //debugstr("Classic MSP430 handler.");
   
+  
+  /* FIXME
+   * Sometimes JTAG doesn't init correctly.
+   * This restarts the connection if the masked-rom
+   * chip ID cannot be read.  Should print warning
+   * for testing server.
+   */
+  while((i=jtag430_readmem(0xff0))==0xFFFF){
+    jtag430_start();
+    P1OUT^=1;
+  }
+  P1OUT&=~1;
+    
   switch(verb){
   case START:
     //Enter JTAG mode.

@@ -7,8 +7,8 @@
 //This is like SPI, except that you read or write, not both.
 
 /* N.B. The READ verb performs a write of all (any) supplied data,
-    then reads a single byte reply from the target.  The WRITE verb
-    only writes.
+   then reads a single byte reply from the target.  The WRITE verb
+   only writes.
 */
 
 #include "platform.h"
@@ -21,10 +21,10 @@
 
 
 /* Concerning clock rates,
-    the maximimum clock rates are defined on page 4 of the spec.
-    They vary, but are roughly 30MHz.  Raising this clock rate might
-    allow for clock glitching, but the GoodFET isn't sufficient fast for that.
-    Perhaps a 200MHz ARM or an FPGA in the BadassFET?
+   the maximimum clock rates are defined on page 4 of the spec.
+   They vary, but are roughly 30MHz.  Raising this clock rate might
+   allow for clock glitching, but the GoodFET isn't sufficient fast for that.
+   Perhaps a 200MHz ARM or an FPGA in the BadassFET?
 */
 
 //Pins and I/O
@@ -230,30 +230,29 @@ void cchandle(unsigned char app,
 
 //! Erase all of a Chipcon's memory.
 void cc_chip_erase(){
-  cmddata[0]=0x14;
+  cmddata[0]=CCCMD_CHIP_ERASE; //0x14
   cccmd(1);
   ccread(1);
 }
 //! Write the configuration byte.
 void cc_wr_config(unsigned char config){
-  cmddata[0]=0x1d;
+  cmddata[0]=CCCMD_WR_CONFIG; //0x1D
   cmddata[1]=config;
   cccmd(2);
   ccread(1);
 }
 //! Read the configuration byte.
 unsigned char cc_rd_config(){
-  cmddata[0]=0x24;
+  cmddata[0]=CCCMD_RD_CONFIG; //0x24
   cccmd(1);
   ccread(1);
   return cmddata[0];
 }
 
 
-
 //! Read the status register
 unsigned char cc_read_status(){
-  cmddata[0]=0x34;
+  cmddata[0]=CCCMD_READ_STATUS; //0x3f
   cccmd(1);
   ccread(1);
   return cmddata[0];
@@ -262,7 +261,7 @@ unsigned char cc_read_status(){
 //! Read the CHIP ID bytes.
 unsigned short cc_get_chip_id(){
   unsigned short toret;
-  cmddata[0]=0x68;
+  cmddata[0]=CCCMD_GET_CHIP_ID; //0x68
   cccmd(1);
   ccread(2);
   
@@ -275,7 +274,7 @@ unsigned short cc_get_chip_id(){
 
 //! Read the PC
 unsigned short cc_get_pc(){
-  cmddata[0]=0x28;
+  cmddata[0]=CCCMD_GET_PC; //0x28
   cccmd(1);
   ccread(2);
   
@@ -285,6 +284,7 @@ unsigned short cc_get_pc(){
 
 //! Set a hardware breakpoint.
 void cc_set_hw_brkpnt(unsigned short adr){
+  debugstr("FIXME: This certainly won't work.");
   cmddataword[0]=adr;
   cccmd(2);
   ccread(1);
@@ -294,14 +294,14 @@ void cc_set_hw_brkpnt(unsigned short adr){
 
 //! Halt the CPU.
 void cc_halt(){
-  cmddata[0]=0x44;
+  cmddata[0]=CCCMD_HALT; //0x44
   cccmd(1);
   ccread(1);
   return;
 }
 //! Resume the CPU.
 void cc_resume(){
-  cmddata[0]=0x4C;
+  cmddata[0]=CCCMD_RESUME; //0x4C
   cccmd(1);
   ccread(1);
   return;
@@ -310,7 +310,7 @@ void cc_resume(){
 
 //! Step an instruction
 void cc_step_instr(){
-  cmddata[0]=0x5C;
+  cmddata[0]=CCCMD_STEP_INSTR; //0x5C
   cccmd(1);
   ccread(1);
   return;
@@ -319,7 +319,7 @@ void cc_step_instr(){
 //! Debug an instruction.
 void cc_debug_instr(unsigned char len){
   //Bottom two bits of command indicate length.
-  unsigned char cmd=0x54+(len&0x3);
+  unsigned char cmd=CCCMD_DEBUG_INSTR+(len&0x3); //0x54+len
   CCWRITE;
   cctrans8(cmd);  //Second command code
   cccmd(len&0x3); //Command itself.
@@ -332,13 +332,8 @@ unsigned char cc_debug(unsigned char len,
 	      unsigned char a,
 	      unsigned char b,
 	      unsigned char c){
-  unsigned char cmd=0x54+(len&0x3);//(len&0x3);
+  unsigned char cmd=CCCMD_DEBUG_INSTR+(len&0x3);//0x54+len
   CCWRITE;
-  cctrans8(0xFF);//resync
-  cctrans8(0xFF);//resync
-  cctrans8(0xFF);//resync
-  cctrans8(0xFF);//resync
-  cctrans8(0xFF);//resync
   cctrans8(cmd);
   if(len--)
     cctrans8(a);

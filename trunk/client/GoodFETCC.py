@@ -11,7 +11,6 @@ import binascii;
 from GoodFET import GoodFET;
 from intelhex import IntelHex;
 
-
 class GoodFETCC(GoodFET):
     """A GoodFET variant for use with Chipcon 8051 Zigbeema SoC."""
     def CChaltcpu(self):

@@ -27,12 +27,12 @@ unsigned char jtag430x2_start(){
   
   //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
   CLRRST;
-  delay(10);//10
+  delay(20);//10
   CLRTST;
 
-  delay(5);//5
+  delay(10);//5
   SETTST;
-  msdelay(5);//5
+  msdelay(10);//5
   SETRST;
   P5DIR&=~RST;
   
@@ -210,6 +210,13 @@ void jtag430x2handle(unsigned char app,
     if(jtagid==MSP430JTAGID){ 
       jtag430mode=MSP430MODE;
       drwidth=16;
+      
+      //Perform a reset and disable watchdog.
+      jtag430_por();
+      jtag430_writemem(0x120,0x5a80);//disable watchdog
+      
+      jtag430_haltcpu();
+      
       jtag430_resettap();
       txdata(app,verb,1);
       return;

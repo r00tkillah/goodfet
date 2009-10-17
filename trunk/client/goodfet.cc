@@ -103,7 +103,7 @@ if(sys.argv[1]=="erase"):
 
 if(sys.argv[1]=="flashpage"):
     print "Writing a page of flash from 0xF000 in XDATA"
-    CCflashpage(0x0000);
+    client.CCflashpage(0x0000);
 if(sys.argv[1]=="writedata"):
     f=sys.argv[2];
     start=0;

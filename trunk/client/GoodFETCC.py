@@ -64,7 +64,10 @@ class GoodFETCC(GoodFET):
     def CCwr_config(self,config):
         """Write the config register of a Chipcon."""
         self.writecmd(0x30,0x81,1,[config&0xFF]);
-    
+    def CClockchip(self):
+        """Set the flash lock bit in info mem."""
+        self.writecmd(0x30, 0x9A, 0, None);
+        
     CCversions={0x0100:"CC1110",
                 0x8500:"CC2430",
                 0x8900:"CC2431",

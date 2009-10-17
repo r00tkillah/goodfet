@@ -82,6 +82,25 @@ if(sys.argv[1]=="erase"):
     client.CCchiperase();
     print "Status: %s" %client.CCstatusstr();
 
+if(sys.argv[1]=="peekinfo"):
+    print "Select info flash."
+    client.CCwr_config(1);
+    print "Config is %02x" % client.CCrd_config();
+    
+    start=0x0000;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
+    stop=start;
+    if(len(sys.argv)>3):
+        stop=int(sys.argv[3],16);
+    print "Peeking from %04x to %04x." % (start,stop);
+    while start<=stop:
+        print "%04x: %02x" % (start,client.CCpeekcodebyte(start));
+        start=start+1;
+
+if(sys.argv[1]=="config"):
+    print "Config is %02x" % client.CCrd_config();
+
 if(sys.argv[1]=="flash"):
      f=sys.argv[2];
      start=0;
@@ -119,6 +138,10 @@ if(sys.argv[1]=="flash"):
      client.CCflashpage(page);
      print "Flashed final page at %06x" % page;
      
+if(sys.argv[1]=="lock"):
+    print "Status: %s" %client.CCstatusstr();
+    client.CClockchip();
+    print "Status: %s" %client.CCstatusstr();
 if(sys.argv[1]=="flashpage"):
     target=0;
     if(len(sys.argv)>2):

@@ -267,6 +267,25 @@ void cc_wr_config(unsigned char config){
   cccmd(2);
   ccread(1);
 }
+
+//! Locks the chip.
+void cc_lockchip(){
+  debugstr("Locking chip.");
+  cc_wr_config(1);//Select Info Flash 
+  if(!(cc_rd_config()&1))
+    debugstr("Config forgotten!");
+  
+  //Clear config page.
+  cc_pokedatabyte(0xf000,0);
+  cc_write_flash_page(0);
+  if(cc_peekcodebyte(0))
+    debugstr("Failed to clear info flash byte.");
+  
+  cc_wr_config(0);  
+  if(cc_rd_config()&1)
+    debugstr("Stuck in info flash mode!");
+}
+
 //! Read the configuration byte.
 unsigned char cc_rd_config(){
   cmddata[0]=CCCMD_RD_CONFIG; //0x24
@@ -353,15 +372,6 @@ const u8 flash_routine[] = {
 }; 
 
 
-//! Locks the chip.
-void cc_lockchip(){
-  debugstr("Locking chip.");
-  cc_wr_config(1);//Select Info Flash 
-  cc_debug(3, 0x75, 0xAF, 0x00);//MOV FWDATA, #00H
-  //cc_debug(2, 0xF5, 0xAF, 0); //MOV FWDATA, A
-  
-}
-
 //! Copies flash buffer to flash.
 void cc_write_flash_page(u32 adr){
   //Assumes that page has already been written to XDATA 0xF000
@@ -392,12 +402,14 @@ void cc_write_flash_page(u32 adr){
   
   cc_set_pc(0xf000+FLASHPAGE_SIZE);//execute code fragment
   cc_resume();
+  
   //debugstr("Executing.");
   
   
   while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
     P1OUT^=1;//blink LED while flashing
   }
+  
   
   //debugstr("Done flashing.");
   
@@ -467,11 +479,11 @@ unsigned char cc_debug(unsigned char len,
   unsigned char cmd=CCCMD_DEBUG_INSTR+(len&0x3);//0x54+len
   CCWRITE;
   cctrans8(cmd);
-  if(len--)
+  if(len>0)
     cctrans8(a);
-  if(len--)
+  if(len>1)
     cctrans8(b);
-  if(len--)
+  if(len>2)
     cctrans8(c);
   CCREAD;
   return cctrans8(0x00);

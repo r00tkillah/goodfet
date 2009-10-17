@@ -7,6 +7,8 @@
 
 //Chipcon command definitions.
 #define CCCMD_CHIP_ERASE 0x14
+
+//1D or 19?
 #define CCCMD_WR_CONFIG 0x1D
 #define CCCMD_RD_CONFIG 0x24
 #define CCCMD_READ_STATUS 0x34

@@ -148,5 +148,6 @@ class GoodFETCC(GoodFET):
         self.writecmd(0x30,0x89,0,self.data);
     def CCflashpage(self,adr):
         """Flash a page of flash from 0xF000 in XDATA"""
+        data=[0x00,0x00,0x00,0x00];
         self.writecmd(0x30,0x95,4,data);
 

@@ -61,6 +61,8 @@ void cc_halt();
 void cc_resume();
 //! Step an instruction
 void cc_step_instr();
+//! Locks the chip.
+void cc_lockchip();
 
 #define CC_STATUS_ERASED 0x80
 #define CC_STATUS_PCONIDLE 0x40
@@ -95,4 +97,4 @@ void cc_step_instr();
 #define CC_MASS_ERASE_FLASH 0x97
 #define CC_PROGRAM_FLASH 0x98
 #define CC_WIPEFLASHBUFFER 0x99
-
+#define CC_LOCKCHIP 0x9A

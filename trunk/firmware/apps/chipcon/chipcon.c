@@ -174,6 +174,9 @@ void cchandle(unsigned char app,
     cc_get_pc();
     txdata(app,verb,2);
     break;
+  case CC_LOCKCHIP:
+    cc_lockchip();
+    //no break, return status
   case CC_READ_STATUS:
     cc_read_status();
     txdata(app,verb,1);
@@ -348,6 +351,16 @@ const u8 flash_routine[] = {
                                                              //                 ; Done, fake a breakpoint 
   0xA5                                                       //                 DB 0xA5; 
 }; 
+
+
+//! Locks the chip.
+void cc_lockchip(){
+  debugstr("Locking chip.");
+  cc_wr_config(1);//Select Info Flash 
+  cc_debug(3, 0x75, 0xAF, 0x00);//MOV FWDATA, #00H
+  //cc_debug(2, 0xF5, 0xAF, 0); //MOV FWDATA, A
+  
+}
 
 //! Copies flash buffer to flash.
 void cc_write_flash_page(u32 adr){

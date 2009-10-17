@@ -103,7 +103,12 @@ if(sys.argv[1]=="erase"):
 
 if(sys.argv[1]=="flashpage"):
     print "Writing a page of flash from 0xF000 in XDATA"
+    print "Status: %s" %client.CCstatusstr();
     client.CCflashpage(0x0000);
+    while 1:
+        print "0x%06x: %s" %(
+            client.CCgetPC(),client.CCstatusstr());
+
 if(sys.argv[1]=="writedata"):
     f=sys.argv[2];
     start=0;

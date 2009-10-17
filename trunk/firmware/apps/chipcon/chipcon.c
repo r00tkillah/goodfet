@@ -20,11 +20,11 @@
 #include <iomacros.h>
 
 
-/* Concerning clock rates,
-   the maximimum clock rates are defined on page 4 of the spec.
-   They vary, but are roughly 30MHz.  Raising this clock rate might
-   allow for clock glitching, but the GoodFET isn't sufficient fast for that.
-   Perhaps a 200MHz ARM or an FPGA in the BadassFET?
+/* Concerning clock rates, the maximimum clock rates are defined on
+   page 4 of the spec.  They vary, but are roughly 30MHz.  Raising
+   this clock rate might allow for clock glitching, but the GoodFET
+   isn't sufficient fast for that.  Perhaps a 200MHz ARM or an FPGA in
+   the BadassFET?
 */
 
 //Pins and I/O
@@ -126,7 +126,8 @@ void cchandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned long len){
   //Always init.  Might help with buggy lines.
-  ccdebuginit();
+  //Might hurt too.
+  //ccdebuginit();
   
   switch(verb){
     //CC_PEEK and CC_POKE will come later.
@@ -237,9 +238,10 @@ void cchandle(unsigned char app,
 
 //! Set the Chipcon's Program Counter
 void cc_set_pc(u32 adr){
-  cmddata[0]=0x02;           //GetPC
-  cmddata[1]=(adr>>8)&0xff;  //HIBYTE
-  cmddata[2]=adr&0xff;       //LOBYTE
+  cmddata[0]=0x02;             //SetPC
+  cmddata[1]=((adr>>8)&0xff);  //HIBYTE
+  cmddata[2]=adr&0xff;         //LOBYTE
+  cc_debug_instr(3);
   return;
 }
 
@@ -305,7 +307,7 @@ void cc_write_xdata(u16 adr, u8 *data, u16 len){
 #define LOBYTE_WORDS_PER_FLASH_PAGE 0x00
 #define FLASHPAGE_SIZE 0x800
 
-//2 bytes/word
+//32 bit words
 #define FLASH_WORD_SIZE 0x4
 
 const u8 flash_routine[] = {
@@ -344,6 +346,7 @@ const u8 flash_routine[] = {
 //! Copies flash buffer to flash.
 void cc_write_flash_page(u32 adr){
   //Assumes that page has already been written to XDATA 0xF000
+  debugstr("Flashing 2kb at 0xF000 to given adr.");
   
   //Routine comes next
   //WRITE_XDATA_MEMORY(IN: 0xF000 + FLASH_PAGE_SIZE, sizeof(routine), routine);
@@ -353,13 +356,26 @@ void cc_write_flash_page(u32 adr){
   //((address >> 8) / FLASH_WORD_SIZE) & 0x7E
   cc_pokedatabyte(0xF000+FLASHPAGE_SIZE+2,
 		  ((adr>>8)/FLASH_WORD_SIZE)&0x7E);
-  cc_debug(3, //MOV MEMCTR, (bank * 16) + 1;
-	   0x75, 0xc7, 0x51);
+  debugstr("Wrote flash routine.");
+  
+  
+  //MOV MEMCTR, (bank * 16) + 1;
+  cmddata[0]=0x75;
+  cmddata[1]=0xc7;
+  cmddata[2]=0x51;
+  cc_debug_instr(3);
+  debugstr("Loaded bank info.");
+  
   cc_set_pc(0xf000+FLASHPAGE_SIZE);//execute code fragment
   cc_resume();
+  debugstr("Executing.");
+  
+  /*
   while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
     P1OUT^=1;//blink LED
-  }
+  }*/
+  
+  debugstr("Done flashing.");
   
   P1OUT&=~1;//clear LED
 }

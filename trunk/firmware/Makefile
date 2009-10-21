@@ -6,10 +6,14 @@ GOODFET?=/dev/ttyUSB0
 #For tos-bsl, use --invert-reset --invert-test
 BSL=goodfet.bsl -c $(GOODFET) --speed=38400
 
+
+#One of these should be defined explicitly.
+#Default removed because of confusion.
+
 #mcu=msp430x2274
 #mcu=msp430x2618
-mcu?=msp430x1612
-
+#mcu?=msp430x1612
+mcu?=RUNCONFIG
 
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.
 #GCCINC=-T ldscripts/161x.x
@@ -26,6 +30,10 @@ libs= lib/$(mcu).o lib/command.o apps/jtag/jtag430asm.o
 app= goodfet
 
 all: $(app).hex
+
+lib/RUNCONFIG.o:
+	./configure
+	false
 
 goodfet.hex: goodfet
 

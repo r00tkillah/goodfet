@@ -115,6 +115,7 @@ if(sys.argv[1]=="flash"):
      pagelen = 2048; #2kB pages in 32-bit words
      bcount = 0;
      
+     print "Wiping Flash."
      #Wipe all of flash.
      client.CCchiperase();
      #Wipe the RAM buffer for the next flash page.
@@ -133,7 +134,7 @@ if(sys.argv[1]=="flash"):
                                h[i]);
          bcount+=1;
          if(i%0x100==0):
-                print "%04x at %06x" % (i,page);
+                print "Buffering %04x to %06x" % (i,page);
      #last page
      client.CCflashpage(page);
      print "Flashed final page at %06x" % page;

@@ -67,12 +67,15 @@ class GoodFETCC(GoodFET):
     def CClockchip(self):
         """Set the flash lock bit in info mem."""
         self.writecmd(0x30, 0x9A, 0, None);
-        
+    
+
     CCversions={0x0100:"CC1110",
                 0x8500:"CC2430",
                 0x8900:"CC2431",
                 0x8100:"CC2510",
                 0x9100:"CC2511",
+                0xA500:"CC2530", #page 52 of SWRU191
+                0xB500:"CC2531",
                 0xFF00:"CCmissing"};
     def CCidentstr(self):
         ident=self.CCident();

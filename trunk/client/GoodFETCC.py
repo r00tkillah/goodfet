@@ -118,14 +118,23 @@ class GoodFETCC(GoodFET):
         """Check the status."""
         self.writecmd(0x30,0x84,0,None);
         return ord(self.data[0])
-    CCstatusbits={0x80 : "erased",
+    #Same as CC2530
+    CCstatusbits={0x80 : "erase_busy",
                   0x40 : "pcon_idle",
                   0x20 : "cpu_halted",
                   0x10 : "pm0",
                   0x08 : "halt_status",
                   0x04 : "locked",
                   0x02 : "oscstable",
-                  0x01 : "overflow"};
+                  0x01 : "overflow"
+                  };
+    CCconfigbits={0x20 : "soft_power_mode",   #new for CC2530
+                  0x08 : "timers_off",
+                  0x04 : "dma_pause",
+                  0x02 : "timer_suspend",
+                  0x01 : "sel_flash_info_page" #stricken from CC2530
+                  };
+                  
     def CCstatusstr(self):
         """Check the status as a string."""
         status=self.CCstatus();

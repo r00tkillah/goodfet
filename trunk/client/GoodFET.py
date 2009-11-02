@@ -36,6 +36,9 @@ class GoodFET:
             115200,
             parity = serial.PARITY_NONE
             )
+        
+        #Explicitly set RTS
+        self.serialport.setRTS(1);
         #Drop DTR, which is !RST, low to begin the app.
         self.serialport.setDTR(0);
         self.serialport.flushInput()

@@ -128,10 +128,6 @@ void msp430_init_uart(){
 
 //! Initialize the MSP430 clock.
 void msp430_init_dco() {
-  //LED lights when init_dco begins,
-  //then dims when successful.
-  PLEDOUT|=PLEDPIN;
-  
   if(CALBC1_16MHZ!=0xFF && CALDCO_16MHZ!=0xFF){
     //Info is intact, use it.
     BCSCTL1 = CALBC1_16MHZ;
@@ -147,8 +143,6 @@ void msp430_init_dco() {
     }
   }
   
-  //Hopefully by here the clock is meaningful.
-  PLEDOUT&=~PLEDPIN;
   return;
 }
 

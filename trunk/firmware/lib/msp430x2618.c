@@ -102,28 +102,28 @@ void setbaud1(unsigned char rate){
 
 void msp430_init_uart(){
 
-  // Serial on P3.4, P3.5                                                                                                                                                 
+  // Serial on P3.4, P3.5
   P3SEL |= BIT4 + BIT5;
   P3DIR |= BIT4;
 
-  //UCA0CTL1 |= UCSWRST;                    /* disable UART */                                                                                                            
+  //UCA0CTL1 |= UCSWRST;                    /* disable UART */
 
   UCA0CTL0 = 0x00;
-  //UCA0CTL0 |= UCMSB ;                                                                                                                                                   
-  UCA0CTL1 |= UCSSEL_2;                     // SMCLK                                                                                                                      
+  //UCA0CTL0 |= UCMSB ;
 
-  //UCA0BR0 = BAUD0EN;                        // 115200                                                                                                                     
+  UCA0CTL1 |= UCSSEL_2;                     // SMCLK
+
+  //UCA0BR0 = BAUD0EN;                        // 115200
   //UCA0BR1 = BAUD1EN;
   setbaud(5);//default baud, 115200
 
-  UCA0MCTL = 0;                             // Modulation UCBRSx = 5                                                                                                      
-  UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**                                                                                          
+  UCA0MCTL = 0;                             // Modulation UCBRSx = 5
+  UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
 
 
-  //Leave this commented!                                                                                                                                                 
-  //Interrupt is handled by target code, not by bootloader.                                                                                                               
-  //IE2 |= UCA0RXIE;         
-
+  //Leave this commented!
+  //Interrupt is handled by target code, not by bootloader.
+  //IE2 |= UCA0RXIE;
 }
 
 //! Initialize the MSP430 clock.

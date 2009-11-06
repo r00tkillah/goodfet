@@ -103,7 +103,24 @@ if(sys.argv[1]=="poke"):
     client.CCpokeirambyte(int(sys.argv[2],16),
                           int(sys.argv[3],16));
 if(sys.argv[1]=="randtest"):
-    print "coming soon"
+    #Seed RNG
+    client.CCpokeirambyte(0xBD,0x01); #RNDH=0x01
+    client.CCpokeirambyte(0xB4,0x04); #ADCCON1=0x04
+    client.CCpokeirambyte(0xBD,0x01); #RNDH=0x01
+    client.CCpokeirambyte(0xB4,0x04); #ADCCON1=0x04
+    
+    #Dump values
+    for foo in range(1,10):
+        print "%02x" % client.CCpeekirambyte(0xBD); #RNDH
+        client.CCpokeirambyte(0xB4,0x04); #ADCCON1=0x04
+        client.CCreleasecpu();
+        client.CChaltcpu();
+    print "%02x" % client.CCpeekdatabyte(0xDF61); #CHIP ID
+if(sys.argv[1]=="adctest"):
+    # ADCTest 0xDF3A 0xDF3B
+    print "ADC TEST %02x%02x" % (
+        client.CCpeekdatabyte(0xDF3A),
+        client.CCpeekdatabyte(0xDF3B));
 if(sys.argv[1]=="config"):
     print "Config is %02x" % client.CCrd_config();
 
@@ -123,14 +140,14 @@ if(sys.argv[1]=="flash"):
      
      print "Wiping Flash."
      #Wipe all of flash.
-     client.CCchiperase();
+     #client.CCchiperase();
      #Wipe the RAM buffer for the next flash page.
-     client.CCeraseflashbuffer();
+     #client.CCeraseflashbuffer();
      for i in h._buf.keys():
          while(i>page+pagelen):
              if bcount>0:
                  client.CCflashpage(page);
-                 client.CCeraseflashbuffer();
+                 #client.CCeraseflashbuffer();
                  bcount=0;
                  print "Flashed page at %06x" % page
              page+=pagelen;
@@ -140,7 +157,7 @@ if(sys.argv[1]=="flash"):
                                h[i]);
          bcount+=1;
          if(i%0x100==0):
-                print "Buffering %04x to %06x" % (i,page);
+                print "Buffering %04x toward %06x" % (i,page);
      #last page
      client.CCflashpage(page);
      print "Flashed final page at %06x" % page;

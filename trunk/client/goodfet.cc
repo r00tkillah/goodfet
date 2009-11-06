@@ -23,7 +23,9 @@ if(len(sys.argv)==1):
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s peekdata 0x$start [0x$stop]" % sys.argv[0];
     print "%s pokedata 0x$adr 0x$val" % sys.argv[0];
-    #print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
+    print "%s peek 0x$iram" % sys.argv[0];
+    print "%s poke 0x$iram 0x$val" % sys.argv[0];
+    print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
     sys.exit();
 
 #Initailize FET and set baud rate
@@ -97,8 +99,6 @@ if(sys.argv[1]=="peekinfo"):
     while start<=stop:
         print "%04x: %02x" % (start,client.CCpeekcodebyte(start));
         start=start+1;
-if(sys.argv[1]=="peek"):
-    print "%02x" % client.CCpeekirambyte(int(sys.argv[2],16));
 if(sys.argv[1]=="poke"):
     client.CCpokeirambyte(int(sys.argv[2],16),
                           int(sys.argv[3],16));
@@ -205,6 +205,18 @@ if(sys.argv[1]=="peekdata"):
     while start<=stop:
         print "%04x: %02x" % (start,client.CCpeekdatabyte(start));
         start=start+1;
+if(sys.argv[1]=="peek"):
+    start=0x0000;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
+    stop=start;
+    if(len(sys.argv)>3):
+        stop=int(sys.argv[3],16);
+    print "Peeking from %04x to %04x." % (start,stop);
+    while start<=stop:
+        print "%04x: %02x" % (start,client.CCpeekirambyte(start));
+        start=start+1;
+
 if(sys.argv[1]=="peekcode"):
     start=0x0000;
     if(len(sys.argv)>2):

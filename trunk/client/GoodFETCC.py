@@ -106,6 +106,17 @@ class GoodFETCC(GoodFET):
         self.data=[adr&0xff, (adr&0xff00)>>8];
         self.writecmd(0x30,0x91, 2, self.data);
         return ord(self.data[0]);
+    def CCpeekirambyte(self,adr):
+        """Read the contents of IRAM at an address."""
+        self.data=[adr&0xff];
+        self.writecmd(0x30,0x02, 1, self.data);
+        return ord(self.data[0]);
+    def CCpokeirambyte(self,adr,val):
+        """Write the contents of IRAM at an address."""
+        self.data=[adr&0xff, val&0xff];
+        self.writecmd(0x30,0x02, 2, self.data);
+        return ord(self.data[0]);
+    
     def CCpokedatabyte(self,adr,val):
         """Write a byte to data memory."""
         self.data=[adr&0xff, (adr&0xff00)>>8, val];

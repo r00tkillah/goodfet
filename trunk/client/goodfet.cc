@@ -97,7 +97,13 @@ if(sys.argv[1]=="peekinfo"):
     while start<=stop:
         print "%04x: %02x" % (start,client.CCpeekcodebyte(start));
         start=start+1;
-
+if(sys.argv[1]=="peek"):
+    print "%02x" % client.CCpeekirambyte(int(sys.argv[2],16));
+if(sys.argv[1]=="poke"):
+    client.CCpokeirambyte(int(sys.argv[2],16),
+                          int(sys.argv[3],16));
+if(sys.argv[1]=="randtest"):
+    print "coming soon"
 if(sys.argv[1]=="config"):
     print "Config is %02x" % client.CCrd_config();
 

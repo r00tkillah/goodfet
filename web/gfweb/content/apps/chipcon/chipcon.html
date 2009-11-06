@@ -42,10 +42,10 @@ are used for more complicated macro commands.</p>
 <tr><th>Hex</th><th>#define</th><th>Description</th></tr>
 <tr><td>0x00</td><td>READ</td><td>Write any data, return 1-byte reply.</td></tr>
 <tr><td>0x01</td><td>WRITE</td><td>Write data.</td></tr>
-<!--
-<tr><td>0x02</td><td>PEEK</td><td>Read from address.</td></tr>
-<tr><td>0x03</td><td>POKE</td><td>Write to address.</td></tr>
--->
+
+<tr><td>0x02</td><td>PEEK</td><td>Read from IRAM.</td></tr>
+<tr><td>0x03</td><td>POKE</td><td>Write to IRAM.</td></tr>
+
 <tr><td>0x10</td><td>SETUP</td><td>Configure I/O pins.</td></tr>
 <tr><td>0x20</td><td>START</td><td>Start a transaction.</td></tr>
 <tr><td>0x21</td><td>STOP</td><td>Stop a transaction.</td></tr>
@@ -80,6 +80,8 @@ are used for more complicated macro commands.</p>
 <tr><td>0x98</td><td>CC_PROGRAM_FLASH</td><td>Copy 2kB to Flash.</td></tr>
 <tr><td>0x99</td><td>CC_WIPEFLASHBUFFER</td><td>Wipe 2kB buffer to 0xFF.</td></tr>
 <tr><td>0x9A</td><td>CC_LOCKCHIP</td><td>Set security bits.</td></tr>
+
+
 </table>
 
 

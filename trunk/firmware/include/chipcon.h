@@ -39,6 +39,10 @@ void cc_debug_instr(unsigned char);
 unsigned char cc_peekcodebyte(unsigned long adr);
 //!Read a byte of data memory.
 unsigned char cc_peekdatabyte(unsigned int adr);
+//! Fetch a byte of IRAM.
+u8 cc_peekirambyte(u8 adr);
+//! Write a byte of IRAM.
+u8 cc_pokeirambyte(u8 adr, u8 val);
 //! Set a byte of data memory.
 unsigned char cc_pokedatabyte(unsigned int adr,
 			      unsigned char val);

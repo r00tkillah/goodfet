@@ -132,6 +132,14 @@ void cchandle(unsigned char app,
   
   switch(verb){
     //CC_PEEK and CC_POKE will come later.
+  case PEEK:
+    cmddata[0]=cc_peekirambyte(cmddata[0]);
+    txdata(app,verb,1);
+    break;
+  case POKE:
+    cmddata[0]=cc_pokeirambyte(cmddata[0],cmddata[1]);
+    txdata(app,verb,0);
+    break;
   case READ:  //Write a command and return 1-byte reply.
     cccmd(len);
     ccread(1);
@@ -553,6 +561,19 @@ unsigned char cc_peekdatabyte(unsigned int adr){
   //Must be 2, perhaps for clocking?
   toret=cc_debug(3, 0xE0, 0, 0);
   return toret;
+}
+
+
+//! Fetch a byte of IRAM.
+u8 cc_peekirambyte(u8 adr){
+  //MOV A, #iram
+  return cc_debug(3, 0xE5, adr, 0);
+}
+
+//! Write a byte of IRAM.
+u8 cc_pokeirambyte(u8 adr, u8 val){
+  //MOV #iram, #val
+  return cc_debug(3, 0x75, adr, val);
 }
 
 

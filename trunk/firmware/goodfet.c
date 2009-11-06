@@ -22,7 +22,7 @@ void init(){
   
   //LED out and on.
   PLEDDIR |= PLEDPIN;
-  PLEDOUT |= PLEDPIN;
+  PLEDOUT &= ~PLEDPIN;
   
   //Setup clocks, unique to each '430.
   msp430_init_dco();

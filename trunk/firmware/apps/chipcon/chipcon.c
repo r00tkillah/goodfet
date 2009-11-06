@@ -278,13 +278,16 @@ void cc_wr_config(unsigned char config){
 
 //! Locks the chip.
 void cc_lockchip(){
+  register i;
+  
   debugstr("Locking chip.");
   cc_wr_config(1);//Select Info Flash 
   if(!(cc_rd_config()&1))
     debugstr("Config forgotten!");
   
   //Clear config page.
-  cc_pokedatabyte(0xf000,0);
+  for(i=0;i<2048;i++)
+    cc_pokedatabyte(0xf000+i,0);
   cc_write_flash_page(0);
   if(cc_peekcodebyte(0))
     debugstr("Failed to clear info flash byte.");
@@ -559,21 +562,25 @@ unsigned char cc_peekdatabyte(unsigned int adr){
   cc_debug(3, 0x90, hb, lb);
   //MOVX A, @DPTR
   //Must be 2, perhaps for clocking?
-  toret=cc_debug(3, 0xE0, 0, 0);
-  return toret;
+  return cc_debug(3, 0xE0, 0, 0);
 }
 
 
 //! Fetch a byte of IRAM.
 u8 cc_peekirambyte(u8 adr){
+  //CLR A
+  cc_debug(2, 0xE4, 0, 0);
   //MOV A, #iram
   return cc_debug(3, 0xE5, adr, 0);
 }
 
 //! Write a byte of IRAM.
 u8 cc_pokeirambyte(u8 adr, u8 val){
+  //CLR A
+  cc_debug(2, 0xE4, 0, 0);
   //MOV #iram, #val
   return cc_debug(3, 0x75, adr, val);
+  //return cc_debug(3, 0x75, val, adr);
 }
 
 

@@ -19,7 +19,8 @@ u8 avr_sig(u8 i);
 void avr_erase();
 //! Read lock bits.
 u8 avr_lockbits();
-
+//! Read a byte of Flash
+u8 avr_peekflash(u16 adr);
 
 //! Read a byte of EEPROM.
 u8 avr_peekeeprom(u16 adr);

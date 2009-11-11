@@ -326,7 +326,7 @@ void jtag430handle(unsigned char app,
       len=(cmddataword[2]);//always even.
     else
       len=2;
-    len&=~1;//clue lsbit
+    len&=~1;//clear lsbit
     
     txhead(app,verb,len);
     for(i=0;i<len;i+=2){

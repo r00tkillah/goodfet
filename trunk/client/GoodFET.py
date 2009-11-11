@@ -58,6 +58,8 @@ class GoodFET:
         self.serialport.write(chr(app));
         self.serialport.write(chr(verb));
         
+        #if data!=None:
+        #    count=len(data); #Initial count ignored.
         
         #print "TX %02x %02x" % (app,verb);
         
@@ -72,6 +74,7 @@ class GoodFET:
                 #print "Converting %02x at %i" % (data[i],i)
                 data[i]=chr(data[i]);
             outstr=''.join(data);
+            #outstr=data;
             self.serialport.write(outstr);
         if not self.besilent:
             self.readcmd();

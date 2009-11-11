@@ -23,6 +23,7 @@ class GoodFETAVR(GoodFET):
         0x9005: "tiny12",
         0x9006: "tiny15",
         0x9007: "tiny13",
+        0x9108: "tiny25",
         0x930B: "tiny85",
         
         0x9001: "S1200",
@@ -33,16 +34,22 @@ class GoodFETAVR(GoodFET):
         0x9103: "S2343",
         
         0x9201: "S4414",
-                0x9203: "S4433",
+        0x9203: "S4433",
         0x9202: "S4434",
         
         0x9301: "S8515",
         0x9303: "S8535",
         
         0x9305: "mega83",
+        0x930a: "mega88",
         0x9701: "mega103",
         0x9401: "mega161",
         0x9402: "mega163",
+        0x9406: "mega168",
+        
+        0x950f: "mega328",
+        0x950d: "mega325",
+        0x9508: "mega32"
         };
     
     def setup(self):
@@ -72,6 +79,19 @@ class GoodFETAVR(GoodFET):
                       [ (adr&0xFF), (adr>>8)]
                       );#little-endian address
         return ord(self.data[0]);
+    def flashpeek(self, adr):
+        """Read a byte of the target's EEPROM."""
+        self.writecmd(self.AVRAPP,0x02 ,2,
+                      [ (adr&0xFF), (adr>>8)]
+                      );#little-endian address
+        return ord(self.data[0]);
+    def flashpeekblock(self, adr):
+        """Read a byte of the target's EEPROM."""
+        self.writecmd(self.AVRAPP,0x02 ,4,
+                      [ (adr&0xFF), (adr>>8) &0xFF, 0x80, 0x00]
+                      );
+        return self.data;
+    
     def eeprompoke(self, adr, val):
         """Write a byte of the target's EEPROM."""
         self.writecmd(self.AVRAPP,0x91 ,3,

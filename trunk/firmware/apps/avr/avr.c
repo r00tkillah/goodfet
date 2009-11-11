@@ -111,6 +111,14 @@ u8 avr_pokeeeprom(u16 adr, u8 val){
   return avrexchange(0xC0, adr>>8, adr&0xFF, val);
 }
 
+//! Read a byte of Flash
+u8 avr_peekflash(u16 adr){
+  u16 a=adr>>1;
+  if(adr&1) //high byte
+    return avrexchange(0x28,a>>8,a&0xff,0);
+  else      //low byte
+    return avrexchange(0x20,a>>8,a&0xff,0);
+}
 
 
 //! Handles an AVR command.
@@ -118,6 +126,7 @@ void avrhandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned long len){
   unsigned long i;
+  unsigned int at;
   static u8 connected=0;
   
   if(!avr_isready() && connected)
@@ -159,6 +168,22 @@ void avrhandle(unsigned char app,
     txdata(app,verb,1);
     break;
   case PEEK:
+    //cmddata[0]=avr_peekflash(cmddataword[0]);
+    //txdata(app,verb,1);
+    at=cmddataword[0];
+    
+    //Fetch large blocks for bulk fetches,
+    //small blocks for individual peeks.
+    if(len>2){
+      len=(cmddataword[1]);//always even.
+    }else{
+      len=1;
+    }
+    txhead(app,verb,len);
+    for(i=0;i<len;i++){
+      serial_tx(avr_peekflash(at++));
+    }
+    break;
   case POKE:
   default:
     debugstr("Verb unimplemented in AVR application.");

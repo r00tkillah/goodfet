@@ -128,7 +128,7 @@ void msp430_init_uart(){
 
 //! Initialize the MSP430 clock.
 void msp430_init_dco() {
-  if(CALBC1_16MHZ!=0xFF && CALDCO_16MHZ!=0xFF){
+  if(CALBC1_16MHZ!=0xFF){
     //Info is intact, use it.
     BCSCTL1 = CALBC1_16MHZ;
     DCOCTL = CALDCO_16MHZ;
@@ -137,6 +137,7 @@ void msp430_init_dco() {
     switch(*((int*)0xff0)){
     default:
     case 0x6ff2:        //f26f, the MSP430F2618
+      DCOCTL = 0x00;
       BCSCTL1 = 0x8f;   //CALBC1_16MHZ at 0x10f9
       DCOCTL = 0x7f;    //CALDCO_16MHZ at 0x10f8
       break;

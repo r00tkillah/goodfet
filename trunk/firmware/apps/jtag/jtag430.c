@@ -363,13 +363,14 @@ void jtag430handle(unsigned char app,
   case JTAG430_WRITEFLASH:
     at=cmddataword[0];
     
-    for(i=2;i<(len>>1);i++){
+    for(i=0;i<(len>>1)-2;i++){
       //debugstr("Poking flash memory.");
-      jtag430_writeflash(at,cmddataword[i]);
+      jtag430_writeflash(at+(i<<1),cmddataword[i+2]);
+      //Reflash if needed.  Try this twice to save grace?
       if(cmddataword[i]!=jtag430_readmem(at))
-	jtag430_writeflash(at,cmddataword[i]);
+	jtag430_writeflash(at+(i<<1),cmddataword[i+2]);
     }
-
+    
     //Return result of first write as a word.
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
     

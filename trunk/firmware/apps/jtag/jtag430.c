@@ -345,15 +345,32 @@ void jtag430handle(unsigned char app,
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
     txdata(app,verb,2);
     break;
+    /*
   case JTAG430_WRITEFLASH:
+
     //debugstr("Poking flash memory.");
     jtag430_writeflash(cmddataword[0],cmddataword[2]);
     
     //Try again if failure.
-    if(cmddataword[0]!=jtag430_readmem(cmddataword[0]))
-      jtag430_writeflash(cmddataword[0],cmddataword[2]);
+    //if(cmddataword[2]!=jtag430_readmem(cmddataword[0]))
+    //  jtag430_writeflash(cmddataword[0],cmddataword[2]);
     
     //Return result.
+    cmddataword[0]=jtag430_readmem(cmddataword[0]);
+    
+    txdata(app,verb,2);
+    break; */
+  case JTAG430_WRITEFLASH:
+    at=cmddataword[0];
+    
+    for(i=2;i<(len>>1);i++){
+      //debugstr("Poking flash memory.");
+      jtag430_writeflash(at,cmddataword[i]);
+      if(cmddataword[i]!=jtag430_readmem(at))
+	jtag430_writeflash(at,cmddataword[i]);
+    }
+
+    //Return result of first write as a word.
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
     
     txdata(app,verb,2);

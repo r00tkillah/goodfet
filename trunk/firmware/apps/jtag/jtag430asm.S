@@ -1,6 +1,9 @@
 .globl jtag430_tclk_flashpulses
 .type jtag430_tclk_flashpulses,@function //for linking
 
+#define _GNU_ASSEMBLER_
+#include "gfports.h"
+
 //This detects model, chooses appropriate timing.
 jtag430_tclk_flashpulses:
 	mov &0x0ff0, r14
@@ -11,7 +14,7 @@ jtag430_tclk_flashpulses:
 // At 3.68MHz, 7 to 14 cycles/loop are allowed for 257 to 475kHz.
 // At 16MHz, 33 to 62 cycles/loop are allowed.
 jtag430_tclk_flashpulses_3mhz:
-	mov #0x0031, r14
+	mov #P5OUT, r14
 pulseloop3:
 	bis.b #2, @r14		;SETTCLK, 3 cycles
 	sub #1, r15		; 1 cycle
@@ -26,7 +29,7 @@ pulseloop3:
 	ret
 
 jtag430_tclk_flashpulses_16mhz:
-	mov #0x0031, r14
+	mov #P5OUT, r14
 pulseloop16:	
 	bis.b #2, @r14		;SETTCLK, 3 cycles
 	sub #1, r15		; 1 cycle

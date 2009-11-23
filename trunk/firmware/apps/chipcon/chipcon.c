@@ -278,7 +278,7 @@ void cc_wr_config(unsigned char config){
 
 //! Locks the chip.
 void cc_lockchip(){
-  register i;
+  register int i;
   
   debugstr("Locking chip.");
   cc_wr_config(1);//Select Info Flash 
@@ -555,8 +555,7 @@ for (n = 0; n < count; n++) {
 unsigned char cc_peekdatabyte(unsigned int adr){
   unsigned char
     hb=(adr&0xFF00)>>8,
-    lb=adr&0xFF,
-    toret;
+    lb=adr&0xFF;
   
   //MOV DPTR, adr
   cc_debug(3, 0x90, hb, lb);

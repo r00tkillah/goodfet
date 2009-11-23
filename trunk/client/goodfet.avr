@@ -25,6 +25,14 @@ client.serInit()
 #Connect to target
 client.start();
 
+if(sys.argv[1]=="glitch"):
+    print "Identifies as %s" % client.identstr();
+    for i in range(1,20):
+        client.start();
+        print "Identifies as %s, fused 0x%02x" % (
+            client.identstr(),
+            client.lockbits());
+
 if(sys.argv[1]=="info"):
     print "Identifies as %s" % client.identstr();
 if(sys.argv[1]=="erase"):
@@ -32,6 +40,10 @@ if(sys.argv[1]=="erase"):
     client.erase();
 if(sys.argv[1]=="lockbits"):
     print "Lockbits are 0x%02x" % client.lockbits();
+#if(sys.argv[1]=="lock"):
+#if(sys.argv[1]=="unlock"):
+    
+
 
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];

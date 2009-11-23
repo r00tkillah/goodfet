@@ -14,7 +14,7 @@
 //256 bytes, plus overhead
 //For chips with very little RAM.
 #define CMDDATALEN 0x104
-#warning Very little RAM.
+//#warning Very little RAM.
 #endif
 
 #ifndef CMDDATALEN

@@ -11,10 +11,13 @@
 #include <iomacros.h>
 
 #include "avr.h"
+#include "glitch.h"
 
 //! Setup the AVR pins.
 void avrsetup(){
   spisetup();
+  
+  glitchsetup();
 }
 
 //! Initialized an attached AVR.

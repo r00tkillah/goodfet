@@ -10,7 +10,7 @@
 #include "platform.h"
 #include "command.h"
 #include "apps.h"
-
+#include "glitch.h"
 
 
 //LED on P1.0
@@ -80,8 +80,10 @@ int main(void)
   unsigned long len;
   
   init();
+  glitchsetup();
   
   txstring(MONITOR,OK,"http://goodfet.sf.net/");
+  
   
   //Command loop.  There's no end!
   while(1){

@@ -112,4 +112,4 @@ class GoodFETAVR(GoodFET):
         if device==None:
             device=("0x%04x" % deviceid);
         
-        return device;
+        return "%s %s" % (vendor,device);

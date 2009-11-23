@@ -138,7 +138,8 @@ extern int savedtclk;
 unsigned int jtag430x2_syncpor();
 //! Executes an MSP430X2 POR
 unsigned int jtag430x2_por();
-
+//! Power-On Reset
+void jtag430_por();
 
 //JTAG commands
 #define JTAG_IR_SHIFT 0x80

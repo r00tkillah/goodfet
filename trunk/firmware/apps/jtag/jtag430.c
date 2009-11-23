@@ -257,6 +257,32 @@ void jtag430_start(){
   jtag430_haltcpu();
 }
 
+//! Start normally, not JTAG.
+void jtag430_stop(){
+  jtagsetup();
+  
+  //Known-good starting position.
+  //Might be unnecessary.
+  SETTST;
+  SETRST;
+  delay(0xFFFF);
+  
+  //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
+  CLRRST;
+  delay(0xFFFF);
+  /*
+  delay(100); //100
+  CLRTST;
+  delay(50);  //50
+  SETTST;
+  delay(50);  //50
+  */
+  SETRST;
+  //P5DIR&=~RST;
+  //delay(0xFFFF);
+  
+}
+
 //! Set CPU to Instruction Fetch
 void jtag430_setinstrfetch(){
   
@@ -301,6 +327,11 @@ void jtag430handle(unsigned char app,
     //TAP setup, fuse check
     jtag430_resettap();
     
+    txdata(app,verb,0);
+    break;
+  case STOP:
+    debugstr("Resetting target.");
+    jtag430_stop();
     txdata(app,verb,0);
     break;
   case JTAG430_HALTCPU:

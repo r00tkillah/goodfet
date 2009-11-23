@@ -259,24 +259,19 @@ void jtag430_start(){
 
 //! Start normally, not JTAG.
 void jtag430_stop(){
+  debugstr("Exiting JTAG.");
   jtagsetup();
   
   //Known-good starting position.
   //Might be unnecessary.
-  SETTST;
+  //SETTST;
+  CLRTST;
   SETRST;
   delay(0xFFFF);
   
   //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
   CLRRST;
   delay(0xFFFF);
-  /*
-  delay(100); //100
-  CLRTST;
-  delay(50);  //50
-  SETTST;
-  delay(50);  //50
-  */
   SETRST;
   //P5DIR&=~RST;
   //delay(0xFFFF);
@@ -330,7 +325,6 @@ void jtag430handle(unsigned char app,
     txdata(app,verb,0);
     break;
   case STOP:
-    debugstr("Resetting target.");
     jtag430_stop();
     txdata(app,verb,0);
     break;

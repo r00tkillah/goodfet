@@ -128,11 +128,11 @@ class GoodFETMSP430(GoodFET):
         
         #MSP430F1xx
         0xf16c: "MSP430F161x",
-        0xf149: "MSP430F13x", #or f14x(1)
-        0xf112: "MSP430F11x", #or f11x1
+        0xf149: "MSP430F13x",  #or f14x(1)
+        0xf112: "MSP430F11x",  #or f11x1
         0xf143: "MSP430F14x",
-        0xf112: "MSP430F11x", #or F11x1A
-        0xf123: "MSP430F1xx", #or F123x
+        0xf112: "MSP430F11x",  #or F11x1A
+        0xf123: "MSP430F1xx",  #or F123x
         0x1132: "MSP430F1122", #or F1132
         0x1232: "MSP430F1222", #or F1232
         0xf169: "MSP430F16x",
@@ -186,7 +186,12 @@ class GoodFETMSP430(GoodFET):
     def MSP430masserase(self):
         """Erase MSP430 flash memory."""
         self.writecmd(self.MSP430APP,0xE3,0,None);
-    
+    def MSP430setPC(self, pc):
+        """Set the program counter."""
+        self.writecmd(self.MSP430APP,0xC2,2,[pc&0xFF,(pc>>8)&0xFF]);
+    def MSP430run(self):
+        """Reset the MSP430 to run on its own."""
+        self.writecmd(self.MSP430APP,0x21,0,None);
     def MSP430dumpbsl(self):
         self.MSP430dumpmem(0xC00,0xfff);
     def MSP430dumpallmem(self):

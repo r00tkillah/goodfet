@@ -25,6 +25,7 @@ class GoodFETAVR(GoodFET):
         0x9007: "tiny13",
         0x9108: "tiny25",
         0x930B: "tiny85",
+        0x9206: "tiny45",
         
         0x9001: "S1200",
         

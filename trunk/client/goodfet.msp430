@@ -15,6 +15,9 @@ if(len(sys.argv)==1):
     print "%s erase" % sys.argv[0];
     print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s poke 0x$adr 0x$val" % sys.argv[0];
+    print "%s peek 0x$start [0x$stop]" % sys.argv[0];
+    print "%s run" % sys.argv[0];
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -151,10 +154,15 @@ if(sys.argv[1]=="poke"):
         print "Poked to %04x" % client.MSP430peek(start);
 
 
+if(sys.argv[1]=="run"):
+    #Set PC to RESET vector's value.
+    #client.MSP430setPC(client.MSP430peek(0xfffe));
+    #client.MSP430releasecpu();
+    client.MSP430run();
 
 if(sys.argv[1]=="whatever"):
     for i in [0x24FF, 0x2500, 0x2502, 0x2504]:
         print "%04x" % client.MSP430peek(i);
 
-client.MSP430releasecpu();
-client.MSP430stop();
+#client.MSP430releasecpu();
+#client.MSP430stop();

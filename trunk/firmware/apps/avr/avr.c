@@ -70,7 +70,7 @@ u8 avrexchange(u8 a, u8 b, u8 c, u8 d){
   avrtrans8(a);
   avrtrans8(b);
   if(avrtrans8(c)!=b){
-    debugstr("AVR sync error, b not returned as c.");
+    //debugstr("AVR sync error, b not returned as c.");
     //Reconnect here?
   }
   return avrtrans8(d);

@@ -39,6 +39,9 @@ void handle(unsigned char app,
 	    unsigned long len){
   //debugstr("GoodFET");
   switch(app){
+  case GLITCH:
+    glitchhandle(app,verb,len);
+    break;
   case MONITOR:
     monitorhandle(app,verb,len);
     break;

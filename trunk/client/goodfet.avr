@@ -27,12 +27,28 @@ client.start();
 
 if(sys.argv[1]=="glitch"):
     print "Identifies as %s" % client.identstr();
+    client.glitchVoltages(0x880, 0xfff);
     for i in range(1,20):
         client.start();
         print "Identifies as %s, fused 0x%02x" % (
             client.identstr(),
             client.lockbits());
-
+if(sys.argv[1]=="glitchgraph"):
+    print "Identifies as %s" % client.identstr();
+    for voltage in range(0x860,0x890,5):
+        str="";
+        count=0;
+        #five minutes for 1,80
+        #thirty minutes for 1,500
+        
+        for i in range(1,40):
+            client.glitchVoltages(voltage, voltage);
+            client.start();
+            if(client.lockbits()==0xFF):
+                str="%s." % str;
+                count+=1;
+        print "%04x %s" % (voltage,str);
+        #print "%f, %i" % (voltage*(3.3/4096.0),count);
 if(sys.argv[1]=="info"):
     print "Identifies as %s" % client.identstr();
 if(sys.argv[1]=="erase"):

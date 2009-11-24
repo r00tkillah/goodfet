@@ -10,6 +10,9 @@ import sys, time, string, cStringIO, struct, glob, serial, os;
 
 class GoodFET:
     """GoodFET Client Library"""
+    
+    GLITCHAPP=0x71;
+    
     def __init__(self, *args, **kargs):
         self.data=[0];
     def timeout(self):
@@ -104,6 +107,30 @@ class GoodFET:
             else:
                 self.data=self.serialport.read(self.count);
                 return self.data;
+    #Glitching stuff.
+    def glitchAPP(self,app):
+        """Glitch into a device by its application."""
+        self.data=[app&0xff];
+        self.writecmd(self.GLITCHAPP,0x80,1,self.data);
+        #return ord(self.data[0]);
+    def glitchVERB(self,app,verb, data):
+        """Glitch during a transaction.."""
+        self.data=[app&0xff, verb&0xFF]+data;
+        self.writecmd(self.GLITCHAPP,0x81,len(self.data),self.data);
+        #return ord(self.data[0]);
+    def glitchVoltages(self,low=0x0880, high=0x0fff):
+        """Set glitching voltages. (0x0fff is max.)"""
+        self.data=[low&0xff, (low>>8)&0xff,
+                   high&0xff, (high>>8)&0xff];
+        self.writecmd(self.GLITCHAPP,0x90,4,self.data);
+        #return ord(self.data[0]);
+    def glitchRate(self,count=0x0800):
+        """Set glitching count period."""
+        self.data=[count&0xff, (count>>8)&0xff];
+        self.writecmd(self.GLITCHAPP,0x91,2,
+                      self.data);
+        #return ord(self.data[0]);
+    
     
     #Monitor stuff
     def silent(self,s=0):

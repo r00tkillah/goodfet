@@ -203,7 +203,7 @@ void jtag430x2handle(unsigned char app,
   case START:
     //Enter JTAG mode.
     //do 
-      cmddata[0]=jtag430x2_start();
+    cmddata[0]=jtag430x2_start();
     //while(cmddata[0]==00 || cmddata[0]==0xFF);
     
     //MSP430 or MSP430X

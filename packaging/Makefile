@@ -14,7 +14,7 @@ all:
 	echo "Options +Indexes" >dist/.htaccess
 	rm -rf $(gfpath)
 	svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet $(gfpath)
-	cd $(testpath) && make nodiff 
+	#cd $(testpath) && make nodiff 
 	cd $(fwpath) && mcu=msp430x1612 make clean all >/dev/null 2>>/dev/null
 	cp $(fwpath)/goodfet.hex dist/msp430x1612.hex >/dev/null
 	cd $(fwpath) && mcu=msp430x2618 make clean all >/dev/null 2>>/dev/null

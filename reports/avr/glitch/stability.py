@@ -3,7 +3,7 @@
 import sys;
 import binascii;
 
-sys.path.append('../../../client/')
+sys.path.append('../../../trunk/client/')
 
 from GoodFETAVR import GoodFETAVR;
 from intelhex import IntelHex16bit, IntelHex;
@@ -15,7 +15,7 @@ client.serInit()
 #Connect to target
 client.start();
 
-trials=100; #10,000 is smooth
+trials=10000; #10,000 is smooth
 skip=0x1;
 
 start=0x860;

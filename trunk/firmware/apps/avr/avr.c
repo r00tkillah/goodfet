@@ -104,6 +104,12 @@ void avr_erase(){
 u8 avr_lockbits(){
   return avrexchange(0x58, 0, 0, 0);
 }
+//! Write lock bits.
+void avr_setlock(u8 bits){
+  debugstr("Setting lock bits.");
+  avrexchange(0xAC,0xE0,0x00,
+	      bits);
+}
 
 //! Read a byte of EEPROM.
 u8 avr_peekeeprom(u16 adr){
@@ -162,7 +168,10 @@ void avrhandle(unsigned char app,
     cmddata[0]=avr_lockbits();
     txdata(app,verb,1);
     break;
-
+  case AVR_POKELOCK:
+    avr_setlock(cmddata[0]);
+    txdata(app,verb,0);
+    break;
   case AVR_POKEEEPROM:
     avr_pokeeeprom(cmddataword[0], cmddata[2]);
     //no break here.

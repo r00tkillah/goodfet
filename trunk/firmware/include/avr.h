@@ -19,6 +19,9 @@ u8 avr_sig(u8 i);
 void avr_erase();
 //! Read lock bits.
 u8 avr_lockbits();
+//! Write lock bits.
+void avr_setlock(u8 bits);
+
 //! Read a byte of Flash
 u8 avr_peekflash(u16 adr);
 
@@ -44,6 +47,8 @@ u8 avr_isready();
 #define AVR_POKEEEPROM 0x91
 //! Read lock bits.
 #define AVR_PEEKLOCK 0x82
+//! Write lock its.
+#define AVR_POKELOCK 0x92
 //! Read signature.
 #define AVR_PEEKSIG 0x83
 //! Read fuse bits.

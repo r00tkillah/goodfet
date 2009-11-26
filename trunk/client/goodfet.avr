@@ -10,7 +10,7 @@ if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s test" % sys.argv[0];
     print "%s info" % sys.argv[0];
-    print "%s lockbits" % sys.argv[0];
+    print "%s lockbits [value]" % sys.argv[0];
     #print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
     #print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
@@ -56,6 +56,8 @@ if(sys.argv[1]=="erase"):
     client.erase();
 if(sys.argv[1]=="lockbits"):
     print "Lockbits are 0x%02x" % client.lockbits();
+    if(len(sys.argv)>2):
+        print "Lockbits set 0x%02x" %  client.setlockbits(int(sys.argv[2],16));
 #if(sys.argv[1]=="lock"):
 #if(sys.argv[1]=="unlock"):
     

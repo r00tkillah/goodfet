@@ -74,6 +74,11 @@ class GoodFETAVR(GoodFET):
         """Read the target's lockbits."""
         self.writecmd(self.AVRAPP,0x82,0,None);
         return ord(self.data[0]);
+    def setlockbits(self,bits=0x00):
+        """Read the target's lockbits."""
+        self.writecmd(self.AVRAPP,0x92,1,[bits]);
+        return self.lockbits();
+    
     def eeprompeek(self, adr):
         """Read a byte of the target's EEPROM."""
         self.writecmd(self.AVRAPP,0x81 ,2,

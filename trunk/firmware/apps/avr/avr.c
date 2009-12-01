@@ -106,7 +106,6 @@ u8 avr_lockbits(){
 }
 //! Write lock bits.
 void avr_setlock(u8 bits){
-  debugstr("Setting lock bits.");
   avrexchange(0xAC,0xE0,0x00,
 	      bits);
 }
@@ -138,8 +137,10 @@ void avrhandle(unsigned char app,
   unsigned int at;
   static u8 connected=0;
   
+  /*
   if(!avr_isready() && connected)
     debugstr("AVR is not yet ready.");
+  */
   
   switch(verb){
   case READ:

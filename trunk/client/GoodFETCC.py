@@ -53,7 +53,7 @@ class GoodFETCC(GoodFET):
         self.CCstop();
         print "Done.";
 
-    def CCsetup(self):
+    def setup(self):
         """Move the FET into the CC2430/CC2530 application."""
         #print "Initializing Chipcon.";
         self.writecmd(0x30,0x10,0,self.data);
@@ -111,6 +111,13 @@ class GoodFETCC(GoodFET):
         self.data=[adr&0xff];
         self.writecmd(0x30,0x02, 1, self.data);
         return ord(self.data[0]);
+    def CCpeekiramword(self,adr):
+        """Read the little-endian contents of IRAM at an address."""
+        return self.CCpeekirambyte(adr)+(
+            self.CCpeekirambyte(adr+1)<<8);
+    def CCpokeiramword(self,adr,val):
+        self.CCpokeirambyte(adr,val&0xff);
+        self.CCpokeirambyte(adr+1,(val>>8)&0xff);
     def CCpokeirambyte(self,adr,val):
         """Write the contents of IRAM at an address."""
         self.data=[adr&0xff, val&0xff];
@@ -156,7 +163,7 @@ class GoodFETCC(GoodFET):
                 str="%s %s" %(self.CCstatusbits[i],str);
             i*=2;
         return str;
-    def CCstart(self):
+    def start(self):
         """Start debugging."""
         self.writecmd(0x30,0x20,0,self.data);
         ident=self.CCidentstr();
@@ -166,7 +173,7 @@ class GoodFETCC(GoodFET):
         self.CChaltcpu();
         #print "Status: %s." % self.CCstatusstr();
         
-    def CCstop(self):
+    def stop(self):
         """Stop debugging."""
         self.writecmd(0x30,0x21,0,self.data);
     def CCstep_instr(self):

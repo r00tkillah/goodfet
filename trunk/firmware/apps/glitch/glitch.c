@@ -23,6 +23,13 @@ void glitchsetup(){
   P6OUT|=0x40;
   
   glitchsetupdac();
+
+  WDTCTL = WDTPW + WDTHOLD;             // Stop WDT                                                                                                                                
+  TACTL = TASSEL1 + TACLR;              // SMCLK, clear TAR                                                                                                                        
+  CCTL0 = CCIE;                         // CCR0 interrupt enabled                                                                                                                  
+  CCR0 = glitchcount;
+  TACTL |= MC1;                         // Start Timer_A in continuous mode                                                                                                        
+  _EINT();                              // Enable interrupts 
 #endif
 }
 
@@ -31,14 +38,41 @@ void glitchsetupdac(){
   glitchvoltages(glitchL,glitchH);
 }
 
+// Timer A0 interrupt service routine                                                                                                                                              
+interrupt(TIMERA0_VECTOR) Timer_A (void)
+{
+  
+  switch(glitchstate){
+  case 0:
+    P1OUT|=1;
+    glitchstate=1;
+    DAC12_0DAT = glitchH;
+    break;
+  case 1:
+    P1OUT|=1;
+    glitchstate=0;
+    DAC12_0DAT = glitchL;
+    break;
+  default:
+    P1OUT&=~1;
+    //Do nothing.
+    break;
+  }
+  CCR0 += glitchcount;                        // Add Offset to CCR0                                                                                                                      
+}
+
+
+
 
 u16 glitchH=0xfff, glitchL=0xfff,
-  glitchstate, glitchcount;
+  glitchstate=2, glitchcount=0;
 
 //! Glitch an application.
 void glitchapp(u8 app){
   debugstr("That app is not yet supported.");
 }
+
+
 //! Set glitching voltages.
 void glitchvoltages(u16 low, u16 high){
   int i;

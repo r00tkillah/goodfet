@@ -103,7 +103,7 @@ class GoodFET:
             
             #Debugging string; print, but wait.
             if self.app==0xFF and self.verb==0xFF:
-                print "DEBUG %s" % self.serialport.read(self.count);
+                print "# DEBUG %s" % self.serialport.read(self.count);
             else:
                 self.data=self.serialport.read(self.count);
                 return self.data;

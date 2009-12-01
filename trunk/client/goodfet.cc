@@ -33,8 +33,8 @@ client=GoodFETCC();
 client.serInit()
 
 #Connect to target
-client.CCsetup();
-client.CCstart();
+client.setup();
+client.start();
 
 if(sys.argv[1]=="test"):
     client.CCtest();
@@ -238,4 +238,4 @@ if(sys.argv[1]=="pokedata"):
     print "Poking %04x to become %02x." % (start,val);
     client.CCpokedatabyte(start,val);
 
-client.CCstop();
+client.stop();

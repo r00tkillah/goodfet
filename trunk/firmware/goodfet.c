@@ -38,6 +38,7 @@ void handle(unsigned char app,
 	    unsigned char verb,
 	    unsigned long len){
   //debugstr("GoodFET");
+  P1OUT&=~1;
   switch(app){
   case GLITCH:
     glitchhandle(app,verb,len);

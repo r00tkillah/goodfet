@@ -150,6 +150,7 @@ void cchandle(unsigned char app,
     txdata(app,verb,0);
     break;
   case START://enter debugger
+    ccsetup();
     ccdebuginit();
     txdata(app,verb,0);
     break;

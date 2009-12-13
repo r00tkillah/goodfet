@@ -43,9 +43,11 @@ width="500" height="375" alt="BadFET20" /></a>
 
 <p>The GoodFET20 documentation used to indicate that adding an 8MHz
 crystal would suffice to convert a GoodFET to a BadFET.  That was
-incorrect, and a 2618 is required.</p>
+incorrect, and an MSP430F2618 is required.</p>
 
 <p>Thanks to Kenny for reporting that the 47K pull-up resistor
 was missing from the BOM.  This has since been corrected.</p>
 
-
+<p>Most 74HC4053 chips do not function at 3.3V.  For glitching
+research, please use the <a href="/hardware/goodfet21/">GoodFET21</a>
+instead.</p>

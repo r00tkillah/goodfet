@@ -24,11 +24,11 @@ void glitchsetup(){
   
   glitchsetupdac();
 
-  WDTCTL = WDTPW + WDTHOLD;             // Stop WDT                                                                                                                                
-  TACTL = TASSEL1 + TACLR;              // SMCLK, clear TAR                                                                                                                        
-  CCTL0 = CCIE;                         // CCR0 interrupt enabled                                                                                                                  
+  WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
+  TACTL = TASSEL1 + TACLR;              // SMCLK, clear TAR
+  CCTL0 = CCIE;                         // CCR0 interrupt enabled
   CCR0 = glitchcount;
-  TACTL |= MC1;                         // Start Timer_A in continuous mode                                                                                                        
+  TACTL |= MC1;                         // Start Timer_A in continuous mode
   _EINT();                              // Enable interrupts 
 #endif
 }
@@ -38,10 +38,10 @@ void glitchsetupdac(){
   glitchvoltages(glitchL,glitchH);
 }
 
-// Timer A0 interrupt service routine                                                                                                                                              
+// Timer A0 interrupt service routine
 interrupt(TIMERA0_VECTOR) Timer_A (void)
 {
-  
+#ifdef DAC12IR
   switch(glitchstate){
   case 0:
     P1OUT|=1;
@@ -58,7 +58,8 @@ interrupt(TIMERA0_VECTOR) Timer_A (void)
     //Do nothing.
     break;
   }
-  CCR0 += glitchcount;                        // Add Offset to CCR0                                                                                                                      
+  CCR0 += glitchcount;                        // Add Offset to CCR0
+#endif
 }
 
 

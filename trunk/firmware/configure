@@ -1,7 +1,7 @@
 #!/bin/sh
 
 cat <<EOF
-Set $GOODFET to be the port of your GoodFET, such as
+Set \$GOODFET to be the port of your GoodFET, such as
 GOODFET=/dev/cu.usbserial-*      #Darwin
 GOODFET=/dev/ttyUSB*             #Linux (Default)
 

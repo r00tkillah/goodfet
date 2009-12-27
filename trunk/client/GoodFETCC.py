@@ -50,7 +50,7 @@ class GoodFETCC(GoodFET):
         
         #print "Status: %s." % self.CCstatusstr();
         #Exit debugger
-        self.CCstop();
+        self.stop();
         print "Done.";
 
     def setup(self):

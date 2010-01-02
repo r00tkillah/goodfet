@@ -238,7 +238,8 @@ void jtag430_start(){
   SETTST;
   SETRST;
   delay(0xFFFF);
-  
+
+  #ifndef SBWREWRITE
   //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
   CLRRST;
   delay(100); //100
@@ -249,6 +250,7 @@ void jtag430_start(){
   SETRST;
   P5DIR&=~RST;
   delay(0xFFFF);
+  #endif
   
   //Perform a reset and disable watchdog.
   jtag430_por();
@@ -322,7 +324,9 @@ void jtag430handle(unsigned char app,
     //TAP setup, fuse check
     jtag430_resettap();
     
-    txdata(app,verb,0);
+    cmddata[0]=jtag_ir_shift8(IR_BYPASS);    
+    txdata(app,verb,1);
+
     break;
   case STOP:
     jtag430_stop();

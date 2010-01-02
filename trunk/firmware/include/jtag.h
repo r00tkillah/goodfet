@@ -104,6 +104,8 @@ extern int savedtclk;
 #define SAVETCLK savedtclk=P5OUT&TCLK;
 #define RESTORETCLK if(savedtclk) P5OUT|=TCLK; else P5OUT&=~TCLK
 
+//Replace every "CLRTCK SETTCK" with this.
+#define TCKTOCK CLRTCK,SETTCK
 
 //16-bit MSP430 JTAG commands, bit-swapped
 #define IR_CNTRL_SIG_16BIT         0xC8   // 0x13

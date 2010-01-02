@@ -110,6 +110,8 @@ void txword(unsigned int l);
 
 //! Transmit a debug string.
 void debugstr(const char *str);
+//! brief Debug a hex word string.
+void debughex(u16 v);
 
 //! Delay for a count.
 void delay(unsigned int count);

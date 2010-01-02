@@ -102,40 +102,6 @@ unsigned long jtagtransn(unsigned long word,
   return word;
 }
 
-/*
-//! Shift 16 bits in and out.
-unsigned int jtagtrans16(unsigned int word){ //REMOVEME
-  unsigned int bit;
-  SAVETCLK;
-  
-  for (bit = 0; bit < 16; bit++) {
-    // write MOSI on trailing edge of previous clock 
-    if (word & 0x8000)
-      {SETMOSI;}
-    else
-      {CLRMOSI;}
-    word <<= 1;
-    
-    if(bit==15)
-      SETTMS;//TMS high on last bit to exit.
-    
-    CLRTCK;
-    SETTCK;
-    // read MISO on trailing edge 
-    word |= READMISO;
-  }
-  RESTORETCLK;
-  
-  // exit state
-  CLRTCK;
-  SETTCK;
-  // update state
-  CLRTMS;
-  CLRTCK;
-  SETTCK;
-  
-  return word;
-}*/
 
 //! Stop JTAG, release pins
 void jtag_stop(){

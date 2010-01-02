@@ -42,6 +42,14 @@ void serial1_tx(unsigned char x){
   TXBUF1 = x;
 }
 
+/** Later, add support for the EZ430/FETUIF with 12MHz crystal
+    UBR00=0xE2; UBR10=0x04; UMCTL0=0x00; // uart0 12000000Hz 9600bps
+    UBR00=0x71; UBR10=0x02; UMCTL0=0x00; // uart0 12000000Hz 19200bps
+    UBR00=0x38; UBR10=0x01; UMCTL0=0x55; // uart0 12000000Hz 38400bps
+    UBR00=0xD0; UBR10=0x00; UMCTL0=0x4A; // uart0 12000000Hz 57581bps
+    UBR00=0x68; UBR10=0x00; UMCTL0=0x04; // uart0 12000000Hz 115273bps
+ */
+
 //! Set the baud rate.
 void setbaud(unsigned char rate){
   
@@ -115,6 +123,24 @@ void msp430_init_uart(){
   //IE1 |= URXIE1;                        /* Enable USART1 RX interrupt  */
 }
 
+
+/** For EZ430/FETUIF
+ void msp430_init_dco() {
+  WDTCTL = WDTPW + WDTHOLD; //stop WDT
+
+  BCSCTL1 = 0;
+
+  do {
+    int i;
+    IFG1 &= ~OFIFG;
+    for (i=0; i<1000; i++);
+
+  } while (IFG1 & OFIFG);
+
+  BCSCTL2 = SELM1 | DIVM1 | SELS;
+
+}
+ */
 
 void msp430_init_dco() {
 /* This code taken from the FU Berlin sources and reformatted. */

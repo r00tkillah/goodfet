@@ -36,20 +36,17 @@ unsigned char jtagtrans8(unsigned char byte){
     if(bit==7)
       SETTMS;//TMS high on last bit to exit.
     
-    CLRTCK;
-    SETTCK;
-     /* read MISO on trailing edge */
+    TCKTOCK;
+    /* read MISO on trailing edge */
     byte |= READMISO;
   }
   RESTORETCLK;
   
   // exit state
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // update state
   CLRTMS;
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   
   return byte;
 }
@@ -79,8 +76,7 @@ unsigned long jtagtransn(unsigned long word,
     if(bit==bitcount-1)
       SETTMS;//TMS high on last bit to exit.
     
-    CLRTCK;
-    SETTCK;
+    TCKTOCK;
     /* read MISO on trailing edge */
     word |= READMISO;
   }
@@ -92,12 +88,10 @@ unsigned long jtagtransn(unsigned long word,
   RESTORETCLK;
   
   // exit state
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // update state
   CLRTMS;
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   
   return word;
 }
@@ -114,15 +108,12 @@ unsigned int drwidth=20;
 unsigned long jtag_dr_shift20(unsigned long in){
   // idle
   SETTMS;
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // select DR
   CLRTMS;
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // capture IR
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   
   // shift DR, then idle
   return(jtagtransn(in,20));
@@ -133,15 +124,12 @@ unsigned long jtag_dr_shift20(unsigned long in){
 unsigned int jtag_dr_shift16(unsigned int in){
   // idle
   SETTMS;
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // select DR
   CLRTMS;
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // capture IR
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   
   // shift DR, then idle
   return(jtagtransn(in,16));
@@ -152,18 +140,14 @@ unsigned int jtag_dr_shift16(unsigned int in){
 unsigned char jtag_ir_shift8(unsigned char in){
   // idle
   SETTMS;
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // select DR
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // select IR
   CLRTMS;
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   // capture IR
-  CLRTCK;
-  SETTCK;
+  TCKTOCK;
   
   // shift IR, then idle.
   return(jtagtrans8(in));

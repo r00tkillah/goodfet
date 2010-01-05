@@ -199,19 +199,17 @@ void jtag430_resettap(){
   SETTDI; //430X2
   SETTMS;
   //SETTDI; //classic
-  SETTCK;
+  TCKTOCK;
 
   // Navigate to reset state.
   // Should be at least six.
   for(i=0;i<4;i++){
-    CLRTCK;
-    SETTCK;
+    TCKTOCK;
   }
 
   // test-logic-reset
-  CLRTCK;
   CLRTMS;
-  SETTCK;
+  TCKTOCK;
   SETTMS;
   // idle
 

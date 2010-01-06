@@ -11,7 +11,7 @@ if(len(sys.argv)==1):
     print "%s test" % sys.argv[0];
     print "%s info" % sys.argv[0];
     print "%s lockbits [value]" % sys.argv[0];
-    #print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
+    print "%s dumpflash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
     #print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     #print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
@@ -63,7 +63,7 @@ if(sys.argv[1]=="lockbits"):
     
 
 
-if(sys.argv[1]=="dump"):
+if(sys.argv[1]=="dumpflash"):
     f = sys.argv[2];
     start=0x0000;
     stop=0xFFFF;
@@ -96,6 +96,7 @@ if(sys.argv[1]=="peekeeprom"):
     while start<=stop:
         print "%06x: %02x" % (start,client.eeprompeek(start));
         start=start+1;
+
 if(sys.argv[1]=="peekflash"):
     start=0x0000;
     if(len(sys.argv)>2):

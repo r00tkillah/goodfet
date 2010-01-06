@@ -93,6 +93,11 @@ class GoodFETCC(GoodFET):
         hi=ord(self.data[0]);
         lo=ord(self.data[1]);
         return (hi<<8)+lo;
+    def CCcmd(self,phrase):
+        self.writecmd(0x30,0x00,len(phrase),phrase);
+        val=ord(self.data[0]);
+        print "Got %02x" % val;
+        return val;
     def CCdebuginstr(self,instr):
         self.writecmd(0x30,0x88,len(instr),instr);
         return ord(self.data[0]);

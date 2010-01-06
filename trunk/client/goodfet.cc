@@ -36,6 +36,17 @@ client.serInit()
 client.setup();
 client.start();
 
+if(sys.argv[1]=="explore"):
+    print "Exploring undefined commands."
+    print "Status: %s" %client.CCstatusstr();
+    
+    cmd=0x04; #read status
+    for foo in range(0,0x5):
+        client.CCcmd([(0x0F<<3)|(0x00)|0x03,0x09<<3]);
+        print "Status %02x: %s" % (foo,client.CCstatusstr());
+    for foo in range(0,3):
+        print "PC: %04x" % client.CCgetPC();
+        
 if(sys.argv[1]=="test"):
     client.CCtest();
 if(sys.argv[1]=="deadtest"):

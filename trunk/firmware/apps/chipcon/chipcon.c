@@ -142,8 +142,10 @@ void cchandle(unsigned char app,
     break;
   case READ:  //Write a command and return 1-byte reply.
     cccmd(len);
-    ccread(1);
+    if(cmddata[0]&0x4)
+      ccread(1);
     txdata(app,verb,1);
+    
     break;
   case WRITE: //Write a command with no reply.
     cccmd(len);

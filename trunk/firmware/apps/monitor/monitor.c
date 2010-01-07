@@ -7,6 +7,13 @@
 #include "platform.h"
 #include "monitor.h"
 
+//! Call a function by address.
+int fncall(unsigned int adr){
+  //TODO replace this with portable C.
+  //Preprocessor definition might help.
+  __asm__("call r15"); //r12 on IAR
+}
+
 //! Handles a monitor command.
 void monitorhandle(unsigned char app,
 		   unsigned char verb,
@@ -21,6 +28,16 @@ void monitorhandle(unsigned char app,
     memorybyte[cmddataword[0]]=cmddata[2];
     cmddata[0]=memorybyte[cmddataword[0]];
     txdata(app,verb,1);
+    break;
+  case CALL:
+    //Set the program counter to cmdword[0];
+    cmddataword[0]=fncall(cmddataword[0]);
+    txdata(app,verb,2);
+    break;
+  case EXEC:
+    //Execute the argument as code from RAM.
+    cmddataword[0]=fncall((u16) cmddataword);
+    txdata(app,verb,2);
     break;
   case MONITOR_SIZEBUF:
     //TODO make the data length target-specific, varying by ram.

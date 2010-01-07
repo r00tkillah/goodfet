@@ -41,6 +41,8 @@ extern unsigned char silent;
 #define SETUP 0x10
 #define START 0x20
 #define STOP  0x21
+#define CALL  0x30
+#define EXEC  0x31
 #define NOK   0x7E
 #define OK    0x7F
 

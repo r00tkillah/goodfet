@@ -40,8 +40,12 @@ class GoodFET:
             parity = serial.PARITY_NONE
             )
         
-        #Explicitly set RTS
+        #This might cause problems, but it makes failure graceful.
+        #self.serialport._timeout = 5;
+        
+        #Explicitly set RTS and DTR to halt board.
         self.serialport.setRTS(1);
+        self.serialport.setDTR(1);
         #Drop DTR, which is !RST, low to begin the app.
         self.serialport.setDTR(0);
         self.serialport.flushInput()

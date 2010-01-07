@@ -68,7 +68,7 @@ class GoodFET:
         #if data!=None:
         #    count=len(data); #Initial count ignored.
         
-        #print "TX %02x %02x" % (app,verb);
+        #print "TX %02x %02x %04x" % (app,verb,count);
         
         #little endian 16-bit length
         self.serialport.write(chr(count&0xFF));
@@ -77,11 +77,12 @@ class GoodFET:
         #print "count=%02x, len(data)=%04x" % (count,len(data));
         
         if count!=0:
-            for i in range(0,count):
+            if(isinstance(data,list)):
+                for i in range(0,count):
                 #print "Converting %02x at %i" % (data[i],i)
-                data[i]=chr(data[i]);
+                    data[i]=chr(data[i]);
+            #print type(data);
             outstr=''.join(data);
-            #outstr=data;
             self.serialport.write(outstr);
         if not self.besilent:
             self.readcmd();
@@ -153,6 +154,10 @@ class GoodFET:
         """Call to an address."""
         self.writecmd(0,0x30,2,
                       [adr&0xFF,(adr>>8)&0xFF]);
+    def execute(self,code):
+        """Execute supplied code."""
+        self.writecmd(0,0x31,2,#len(code),
+                      code);
     def peekbyte(self,address):
         """Read a byte of memory from the monitor."""
         self.data=[address&0xff,address>>8];

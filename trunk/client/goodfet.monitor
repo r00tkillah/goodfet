@@ -35,7 +35,13 @@ if(sys.argv[1]=="call"):
     adr=int(sys.argv[2],16);
     print "Calling %04x" % adr;
     client.call(adr);
-    client.monitortest();
+if(sys.argv[1]=="exec"):
+    code="";
+    for foo in sys.argv[2].split(" "):
+        code+=chr(int(foo,16));
+    code+="\x30\x41";
+    client.execute(code);
+    
 if(sys.argv[1]=="info"):
     a=client.peekbyte(0xff0);
     b=client.peekbyte(0xff1);

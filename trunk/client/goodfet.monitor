@@ -16,6 +16,9 @@ if(len(sys.argv)==1):
     print "%s ramfill" % sys.argv[0];
     print "%s ramdepth" % sys.argv[0];
     print "%s info" % sys.argv[0];
+    print "%s info" % sys.argv[0];
+    print "%s call 0x$start" % sys.argv[0];
+    print "%s exec '0x35 0x00 0x..'" % sys.argv[0];
     sys.exit();
 
 #Initailize FET and set baud rate
@@ -28,6 +31,11 @@ if(sys.argv[1]=="on"):
 if(sys.argv[1]=="off"):
     client.out(0x00);
 
+if(sys.argv[1]=="call"):
+    adr=int(sys.argv[2],16);
+    print "Calling %04x" % adr;
+    client.call(adr);
+    client.monitortest();
 if(sys.argv[1]=="info"):
     a=client.peekbyte(0xff0);
     b=client.peekbyte(0xff1);

@@ -149,6 +149,10 @@ class GoodFET:
     def dir(self,byte):
         """Write a byte to P5DIR."""
         self.writecmd(0,0xA0,1,[byte]);
+    def call(self,adr):
+        """Call to an address."""
+        self.writecmd(0,0x30,2,
+                      [adr&0xFF,(adr>>8)&0xFF]);
     def peekbyte(self,address):
         """Read a byte of memory from the monitor."""
         self.data=[address&0xff,address>>8];

@@ -9,9 +9,9 @@
 
 //! Call a function by address.
 int fncall(unsigned int adr){
-  //TODO replace this with portable C.
-  //Preprocessor definition might help.
-  __asm__("call r15"); //r12 on IAR
+  int (*machfn)() = 0;
+  machfn= (int (*)()) adr;
+  return machfn();
 }
 
 //! Handles a monitor command.
@@ -19,6 +19,9 @@ void monitorhandle(unsigned char app,
 		   unsigned char verb,
 		   unsigned long len){
   switch(verb){
+  default:
+    debugstr("ERROR: Command unsupported by debug monitor.");
+    break;
   case PEEK:
     cmddata[0]=memorybyte[cmddataword[0]];
     txdata(app,verb,1);

@@ -113,16 +113,23 @@ class GoodFET:
                 self.data=self.serialport.read(self.count);
                 return self.data;
     #Glitching stuff.
-    def glitchAPP(self,app):
+    def glitchApp(self,app):
         """Glitch into a device by its application."""
         self.data=[app&0xff];
         self.writecmd(self.GLITCHAPP,0x80,1,self.data);
         #return ord(self.data[0]);
-    def glitchVERB(self,app,verb, data):
-        """Glitch during a transaction.."""
+    def glitchVerb(self,app,verb,data):
+        """Glitch during a transaction."""
+        if data==None: data=[];
         self.data=[app&0xff, verb&0xFF]+data;
         self.writecmd(self.GLITCHAPP,0x81,len(self.data),self.data);
         #return ord(self.data[0]);
+    def glitchTime(self,app,verb,data):
+        """Time the execution of a verb."""
+        if data==None: data=[];
+        self.data=[app&0xff, verb&0xFF]+data;
+        self.writecmd(self.GLITCHAPP,0x82,len(self.data),self.data);
+        return ord(self.data[0])+(ord(self.data[1])<<8);
     def glitchVoltages(self,low=0x0880, high=0x0fff):
         """Set glitching voltages. (0x0fff is max.)"""
         self.data=[low&0xff, (low>>8)&0xff,

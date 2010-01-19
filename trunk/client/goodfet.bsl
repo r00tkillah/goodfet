@@ -284,9 +284,9 @@ class LowLevel:
         #used for some hardware
         self.invertRST = 0
         self.invertTEST = 0
-	self.swapRSTTEST = 0
-	self.telosLatch = 0
-	self.telosI2C = 0
+        self.swapRSTTEST = 0
+        self.telosLatch = 0
+        self.telosI2C = 0
         
         self.protocolMode = self.MODE_BSL
         self.BSLMemAccessWarning = 0                #Default: no warning.
@@ -490,22 +490,22 @@ class LowLevel:
         self.serialport.setDTR(not level)
 
     def telosI2CStart(self):
-	self.telosSetSDA(1)
-	self.telosSetSCL(1)
-	self.telosSetSDA(0)
+        self.telosSetSDA(1)
+        self.telosSetSCL(1)
+        self.telosSetSDA(0)
 
     def telosI2CStop(self):
-	self.telosSetSDA(0)
-	self.telosSetSCL(1)
-	self.telosSetSDA(1)
+        self.telosSetSDA(0)
+        self.telosSetSCL(1)
+        self.telosSetSDA(1)
 
     def telosI2CWriteBit(self, bit):
-	self.telosSetSCL(0)
-	self.telosSetSDA(bit)
+        self.telosSetSCL(0)
+        self.telosSetSDA(bit)
         time.sleep(2e-6)
-	self.telosSetSCL(1)
+        self.telosSetSCL(1)
         time.sleep(1e-6)
-	self.telosSetSCL(0)
+        self.telosSetSCL(0)
 
     def telosI2CWriteByte(self, byte):
         self.telosI2CWriteBit( byte & 0x80 );
@@ -519,36 +519,38 @@ class LowLevel:
         self.telosI2CWriteBit( 0 );  # "acknowledge"
 
     def telosI2CWriteCmd(self, addr, cmdbyte):
-	self.telosI2CStart()
+        self.telosI2CStart()
         self.telosI2CWriteByte( 0x90 | (addr << 1) )
-	self.telosI2CWriteByte( cmdbyte )
-	self.telosI2CStop()
+        self.telosI2CWriteByte( cmdbyte )
+        self.telosI2CStop()
 
     def telosBReset(self,invokeBSL=0):
-
-	# "BSL entry sequence at dedicated JTAG pins"
+        # "BSL entry sequence at dedicated JTAG pins"
         # rst !s0: 0 0 0 0 1 1
-	# tck !s1: 1 0 1 0 0 1
+        # tck !s1: 1 0 1 0 0 1
         #   s0|s1: 1 3 1 3 2 0
 
-	# "BSL entry sequence at shared JTAG pins"
+        # "BSL entry sequence at shared JTAG pins"
         # rst !s0: 0 0 0 0 1 1
-	# tck !s1: 0 1 0 1 1 0
+        # tck !s1: 0 1 0 1 1 0
         #   s0|s1: 3 1 3 1 0 2
 
-	if invokeBSL:
-	  self.telosI2CWriteCmd(0,1)
-	  self.telosI2CWriteCmd(0,3)
-	  self.telosI2CWriteCmd(0,1)
-	  self.telosI2CWriteCmd(0,3)
-	  self.telosI2CWriteCmd(0,2)
-	  self.telosI2CWriteCmd(0,0)
-	else:
-	  self.telosI2CWriteCmd(0,3)
-	  self.telosI2CWriteCmd(0,2)
-	self.telosI2CWriteCmd(0,0)
+        if invokeBSL:
+            self.telosI2CWriteCmd(0,1)
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,1)
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,2)
+            self.telosI2CWriteCmd(0,0)
+        else:
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,2)
+
+        # This line was not defined inside the else: block, not sure where it
+        # should be however
+        self.telosI2CWriteCmd(0,0)
         time.sleep(0.250)       #give MSP430's oscillator time to stabilize
-	self.serialport.flushInput()  #clear buffers
+        self.serialport.flushInput()  #clear buffers
 
     def bslReset(self, invokeBSL=0):
         """Applies BSL entry sequence on RST/NMI and TEST/VPP pins
@@ -559,19 +561,19 @@ class LowLevel:
         RST is inverted twice on boot loader hardware
         TEST is inverted (only once)
         Need positive voltage on DTR, RTS for power-supply of hardware"""
-	if self.telosI2C:
-	  self.telosBReset(invokeBSL)
-	  return
+        if self.telosI2C:
+            self.telosBReset(invokeBSL)
+            return
 
         if DEBUG > 1: sys.stderr.write("* bslReset(invokeBSL=%s)\n" % invokeBSL)
         self.SetRSTpin(1)       #power suply
         self.SetTESTpin(1)      #power suply
         time.sleep(0.250)       #charge capacitor on boot loader hardware
 
-	if self.telosLatch:
-	  self.SetTESTpin(0)
-	  self.SetRSTpin(0)
-	  self.SetTESTpin(1)
+        if self.telosLatch:
+            self.SetTESTpin(0)
+            self.SetRSTpin(0)
+            self.SetTESTpin(1)
 
         self.SetRSTpin(0)       #RST  pin: GND
         if invokeBSL:
@@ -1409,11 +1411,11 @@ def main(itest=1):
              "upload=", "download=", "size=", "hex", "bin",
              "intelhex", "titext", "notimeout", "bsl=", "speed=",
              "bslversion", "f1x", "f2x", "f4x", "invert-reset", "invert-test",
-	     "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
+             "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
              "tmote","no-BSL-download", "force-BSL-download", "slow",
              "dumpivt", "dumpinfo", "fromweb",
-	"goodfet30", "goodfet20", "goodfet10"
-	]
+             "goodfet30", "goodfet20", "goodfet10"
+            ]
         )
     except getopt.GetoptError:
         # print help information and exit:
@@ -1553,25 +1555,25 @@ def main(itest=1):
             bsl.invertTEST = 1
             bsl.swapRSTTEST = 1
             bsl.telosLatch = 1
-	elif o in ("--goodfet10", ):
-	    bsl.invertRST = 1
-	    bsl.invertTEST = 1
-	elif o in ("--goodfet20", ):
-	    bsl.invertRST = 1
-	    bsl.invertTEST = 1
-	elif o in ("--goodfet30", ):
-	    bsl.invertRST = 1
-	    bsl.invertTEST = 0
+        elif o in ("--goodfet10", ):
+            bsl.invertRST = 1
+            bsl.invertTEST = 1
+        elif o in ("--goodfet20", ):
+            bsl.invertRST = 1
+            bsl.invertTEST = 1
+        elif o in ("--goodfet30", ):
+            bsl.invertRST = 1
+            bsl.invertTEST = 0
         elif o in ("--telosb", ):
             bsl.swapRSTTEST = 1
             bsl.telosI2C = 1
             mayuseBSL = 0
-	    speed = 38400
+            speed = 38400
         elif o in ("--tmote", ):
             bsl.swapRSTTEST = 1
             bsl.telosI2C = 1
             mayuseBSL = 0
-	    speed = 38400
+            speed = 38400
         elif o in ("--no-BSL-download", ):
             mayuseBSL = 0
         elif o in ("--force-BSL-download", ):

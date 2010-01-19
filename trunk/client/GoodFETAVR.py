@@ -67,6 +67,21 @@ class GoodFETAVR(GoodFET):
     def start(self):
         """Start the connection."""
         self.writecmd(self.AVRAPP,0x20,0,None);
+    def glitchstart(self):
+        """Glitch into the AVR application."""
+        self.glitchVerb(self.AVRAPP,0x20,None);
+    def glitchstarttime(self):
+        """Measure the timer of the START verb."""
+        return self.glitchTime(self.AVRAPP,0x20,None);
+    def forcestart(self):
+        """Forcibly start a connection."""
+        
+        for i in range(0x880,0xfff):
+            #self.glitchVoltages(0x880, i);
+            self.start();
+            bits=self.lockbits();
+            print "At %04x, Lockbits: %02x" % (i,bits);
+            if(bits==0xFF): return;
     def erase(self):
         """Erase the target chip."""
         self.writecmd(self.AVRAPP,0xF0,0,None);

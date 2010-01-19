@@ -154,7 +154,7 @@ void avrhandle(unsigned char app,
   case START:
     avrconnect();
     txdata(app,verb,0);
-    break;
+    break;//Used to fall through here.
   case AVR_PEEKSIG:
     for(i=0;i<4;i++)
       cmddata[i]=avr_sig(i);

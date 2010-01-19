@@ -125,7 +125,6 @@ void glitchrate(u16 rate){
   glitchcount=rate;
 }
 
-
 //! Handles a monitor command.
 void glitchhandle(unsigned char app,
 		  unsigned char verb,
@@ -144,6 +143,20 @@ void glitchhandle(unsigned char app,
     //FIXME parameters don't work yet.
     glitchprime();
     handle(cmddata[0],cmddata[1],0);
+    break;
+  case GLITCHTIME:
+    _DINT();//disable interrupts
+    TACTL=0; //clear dividers
+    TACTL|=TACLR; //clear config
+    TACTL|=TASSEL_SMCLK| //smclk source
+      MC_2; //continuout mode.
+    
+    //perform the function
+    silent++;//Don't want the function to return anything.
+    handle(cmddata[0],cmddata[1],0);
+    silent--;
+    cmddataword[0]=TAR; //Return counter.
+    txdata(app,verb,2);
     break;
   case START:
   case STOP:

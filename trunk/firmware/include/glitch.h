@@ -10,8 +10,10 @@
 //Command codes
 #define GLITCHAPP      0x80
 #define GLITCHVERB     0x81
+#define GLITCHTIME     0x82
 #define GLITCHVOLTAGES 0x90
 #define GLITCHRATE     0x91
+
 
 //! Setup glitching.
 void glitchsetup();

@@ -151,9 +151,10 @@ void avrhandle(unsigned char app,
     avrsetup();
     txdata(app,verb,0);
     break;
-  case START://returns device code
+  case START:
     avrconnect();
-    //no break here
+    txdata(app,verb,0);
+    break;
   case AVR_PEEKSIG:
     for(i=0;i<4;i++)
       cmddata[i]=avr_sig(i);

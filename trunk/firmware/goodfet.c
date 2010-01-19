@@ -74,9 +74,9 @@ void handle(unsigned char app,
       pluginhandle(app,verb,len);
     }else{
       debugstr("Plugin missing.");
+      debughex(app);
       txdata(app,NOK,0);
     }
-      
     break;
   }
 }

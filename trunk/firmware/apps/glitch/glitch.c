@@ -11,7 +11,29 @@
 #include "command.h"
 #include "glitch.h"
 
-//! Disable glitch state at init.
+
+//! Call this before the function to be glitched.
+void glitchprime(){
+#ifdef DAC12IR
+  //Set to high voltage.
+  DAC12_0DAT = glitchH;
+  
+  //Reconfigure TACTL.
+  TACTL=0;           //Clear dividers.
+  TACTL|=TACLR;      //Clear TimerA Config
+  TACTL|=
+    TASSEL_SMCLK |   //SMCLK source,
+    MC_1;            //Count up to CCR0
+  //TAIE;            //Enable Interrupt
+  CCTL0 = CCIE;                         // CCR0 interrupt enabled
+  CCR0 = glitchcount;
+  
+  //Enable general interrupts, just in case.
+  _EINT();
+#endif
+}
+
+//! Setup glitching.
 void glitchsetup(){
 #ifdef DAC12IR
   //Set GSEL high to disable glitching.
@@ -42,6 +64,21 @@ void glitchsetupdac(){
 interrupt(TIMERA0_VECTOR) Timer_A (void)
 {
 #ifdef DAC12IR
+  debugstr("Glitching.");
+  DAC12_0DAT = 0;//glitchL;
+  asm("nop");/*
+  asm("nop");
+  asm("nop");
+  asm("nop");
+  asm("nop");
+  asm("nop");
+  asm("nop");
+  asm("nop");
+  asm("nop");
+  asm("nop");*/
+  //DAC12_0DAT = glitchH;
+  //DAC12_0DAT = glitchL;
+  /*
   switch(glitchstate){
   case 0:
     P1OUT|=1;
@@ -58,7 +95,7 @@ interrupt(TIMERA0_VECTOR) Timer_A (void)
     //Do nothing.
     break;
   }
-  CCR0 += glitchcount;                        // Add Offset to CCR0
+  */
 #endif
 }
 
@@ -111,10 +148,14 @@ void glitchhandle(unsigned char app,
     glitchrate(cmddataword[0]);
     txdata(app,verb,0);
     break;
+  case GLITCHVERB:
+    //FIXME parameters don't work yet.
+    glitchprime();
+    handle(cmddata[0],cmddata[1],0);
+    break;
   case START:
   case STOP:
   case GLITCHAPP:
-  case GLITCHVERB:
   default:
     debugstr("Unknown glitching verb.");
     txdata(app,NOK,0);

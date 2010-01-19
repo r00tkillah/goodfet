@@ -16,8 +16,6 @@
 //! Setup the AVR pins.
 void avrsetup(){
   spisetup();
-  
-  glitchsetup();
 }
 
 //! Initialized an attached AVR.
@@ -31,9 +29,9 @@ void avrconnect(){
 
   SETSS;
   CLRCLK;
-  delay(500);
+  delay(10);
   CLRSS;
-  delay(500);
+  delay(10);
   
   //Enable programming
   avr_prgen();

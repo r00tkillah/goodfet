@@ -84,8 +84,7 @@ int main(void)
   unsigned long len;
   
   init();
-  glitchsetup();
-  
+
   txstring(MONITOR,OK,"http://goodfet.sf.net/");
   
   

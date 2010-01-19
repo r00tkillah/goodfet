@@ -13,10 +13,12 @@
 #define GLITCHVOLTAGES 0x90
 #define GLITCHRATE     0x91
 
-//! Disable glitch state at init.
+//! Setup glitching.
 void glitchsetup();
 //! Setup analog chain for glitching.
 void glitchsetupdac();
+//! Call this before the function to be glitched.
+void glitchprime();
 
 extern u16 glitchH, glitchL, glitchstate, glitchcount;
 

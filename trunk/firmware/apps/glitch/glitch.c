@@ -65,13 +65,12 @@ interrupt(TIMERA0_VECTOR) Timer_A (void)
 {
 #ifdef DAC12IR
   //debugstr("Glitching.");
-  DAC12_0DAT = 0;//glitchL;
+  DAC12_0DAT = glitchL;
   asm("nop");
   asm("nop");
   asm("nop");
   asm("nop");
   asm("nop");
-  
   DAC12_0DAT = glitchH;
   //DAC12_0DAT = glitchL;
   /*

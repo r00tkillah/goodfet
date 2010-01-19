@@ -28,6 +28,11 @@ void init(){
   msp430_init_dco();
   msp430_init_uart();
   
+  //DAC should be at full voltage if it exists.
+  #ifdef DAC12IR
+  glitchvoltages(0xfff,0xfff);
+  #endif
+  
   //Enable Interrupts.
   //eint();
 }

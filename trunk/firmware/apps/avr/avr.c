@@ -29,17 +29,17 @@ void avrconnect(){
 
   SETSS;
   CLRCLK;
-  delay(10);
+  //delay(5);
   CLRSS;
-  delay(10);
+  //delay(5);
   
   //Enable programming
   avr_prgen();
 }
 
 //! Read and write an SPI byte with delays.
-unsigned char avrtrans8(unsigned char byte){
-  register unsigned int bit;
+u8 avrtrans8(u8 byte){
+  register u16 bit;
   //This function came from the SPI Wikipedia article.
   //Minor alterations.
   

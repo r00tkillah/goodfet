@@ -64,19 +64,10 @@ void glitchsetupdac(){
 interrupt(TIMERA0_VECTOR) Timer_A (void)
 {
 #ifdef DAC12IR
-  debugstr("Glitching.");
+  //debugstr("Glitching.");
   DAC12_0DAT = 0;//glitchL;
-  asm("nop");/*
   asm("nop");
-  asm("nop");
-  asm("nop");
-  asm("nop");
-  asm("nop");
-  asm("nop");
-  asm("nop");
-  asm("nop");
-  asm("nop");*/
-  //DAC12_0DAT = glitchH;
+  DAC12_0DAT = glitchH;
   //DAC12_0DAT = glitchL;
   /*
   switch(glitchstate){
@@ -117,6 +108,7 @@ void glitchvoltages(u16 low, u16 high){
   glitchH=high;
   glitchL=low;
   
+  //debugstr("Set glitching voltages.");
   
   #ifdef DAC12IR
   ADC12CTL0 = REF2_5V + REFON;                  // Internal 2.5V ref on

@@ -21,12 +21,15 @@ print "# GoodFET EEPROM Unlock test."
 print "# Count of reads with voltage glitch."
 
 client.start();
+client.erase();
 
 #Erase chip for baseline.
-while(client.eeprompeek(0)!=0xde):
+while(client.eeprompeek(0)!=0xca):
     client.start();
     client.erase();
-    client.eeprompoke(0,0xDE);
+    client.eeprompoke(0,0xca);
+    client.eeprompoke(1,0xAD);
+    
 
 #Lock chip to unlock it later.
 client.setlockbits(0xFC);
@@ -36,27 +39,31 @@ highv=0x900; #Works, but clock errors are common.
 #highv=0xfff;
 #highv=0xA00;
 
-#860 to 8a0
-#Low end doesn't work at all.
-#High end always works.
-
-#887 to 8a0 seems thorough.
-start=0x000;
-stop=0x400;  #No point glitching to a stable voltage!
+start=0x100;
+stop=0x200;  #No point glitching to a stable voltage!
 skip=0x1;
 
-trials=5
+trials=10
 #Time Range
 tstart=0x20;
-tstop=client.glitchstarttime();
+tstop=client.glitchstarttime();  #Really long; only use for initial investigation.
 #tstop=0x100;
 print "# AVRStart takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
 
 
-#Restrict range
-#tstart=0x0020
-#tstop=0x0050
+# #Restrict range to glitch 002a with v={0103,010F}
+# tstart=0x0029
+# tstop=0x002c
+# start=0x100
+# stop=0x110
+
+#Restrict range to glitch at 39 {01e7, 01c1, 01da, 01d8, 01c4, 01d5}
+tstart=0x0039
+tstop=0x003a
+start=0x1c0
+stop=0x1f0
+
 
 print "# %i trials/point, %i steps/point" % (trials, skip);
 print "# DAC Range %04x to %04x" % (start, stop);
@@ -69,12 +76,13 @@ sys.stdout.flush()
 voltages=range(start,stop,skip);
 random.shuffle(voltages);
 for va in voltages:
-    print "# Column %04x" % va;
+    print "# Row %04x" % va;
     for time in range(tstart,tstop,tstep):
         client.glitchVoltages(va, highv);  #Jump voltage.
         #client.glitchVoltages(va, va);    #Hold voltage.
         client.glitchRate(time);
-        count=0;
+        gcount=0;
+        scount=0;
         for i in range(0,trials):
             #Old start
             #client.start();
@@ -84,14 +92,20 @@ for va in voltages:
             #Try to read *0, which is 0xDE if read works.
             #a=client.eeprompeek(0)
             a=client.lockbits();
+            
+            b=client.eeprompeek(0);
+            c=client.eeprompeek(1);
+            
             if(a==0xFF):
-                count+=1;
-            if(client.eeprompeek(0)==0xde):
-                print "# HELL YEAH!"
-                count+=trials;
-        if(count>0):
+                gcount+=1;
+            if(b!=0 and b!=0xff):
+                print "# HELL YEAH! %02x %02x %02x" % (a,b,c);
+                sys.stdout.flush()
+                scount+=1;
+            
+        if(gcount>0 or scount>0):
             print "#Glitched from %04x at %04x" % (va,time);
-            print "%f, %f, %f" % (
-                va*(3.3/4096.0),time,
-                count);
+        print "%d, %f, %d, %d, %d" % (
+                va, va*(3.3/4096.0),time,
+                gcount, scount);
         sys.stdout.flush()

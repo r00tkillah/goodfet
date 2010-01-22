@@ -87,6 +87,9 @@ int main(void)
   volatile unsigned int i;
   unsigned char app, verb;
   unsigned long len;
+  // MSP reboot count for reset input & reboot function located at 0xFFFE
+  volatile unsigned int reset_count = 0;
+  void (*reboot_function)(void) = (void *) 0xFFFE;
   
   init();
 
@@ -97,6 +100,25 @@ int main(void)
   while(1){
     //Magic 3
     app=serial_rx();
+
+	// If the app is the reset byte (0x80) increment and loop
+	if (app == 0x80) {
+		reset_count++;
+
+		if (reset_count > 4) {
+			// We could trigger the WDT with either:
+			// WDTCTL = 0;
+			// or
+			// WDTCTL = WDTPW + WDTCNTCL + WDTSSEL + 0x00;
+			// but instead we'll jump to our reboot function pointer
+			(*reboot_function)();
+		}
+
+		continue;
+	} else {
+		reset_count = 0;
+	}
+
     verb=serial_rx();
     //len=serial_rx();
     len=rxword();

@@ -72,26 +72,8 @@ interrupt(TIMERA0_VECTOR) Timer_A (void)
   asm("nop");
   asm("nop");
   DAC12_0DAT = glitchH;
-  //DAC12_0DAT = glitchL;
-  /*
-  switch(glitchstate){
-  case 0:
-    P1OUT|=1;
-    glitchstate=1;
-    DAC12_0DAT = glitchH;
-    break;
-  case 1:
-    P1OUT|=1;
-    glitchstate=0;
-    DAC12_0DAT = glitchL;
-    break;
-  default:
-    P1OUT&=~1;
-    //Do nothing.
-    break;
-  }
-  */
 #endif
+  TACTL |= MC0;                         // Stop Timer_A;
 }
 
 

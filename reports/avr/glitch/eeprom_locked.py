@@ -23,12 +23,13 @@ print "# Count of reads with voltage glitch."
 client.start();
 client.erase();
 
+secret=0x01
 #Erase chip for baseline.
-while(client.eeprompeek(0)!=0xca):
+while(client.eeprompeek(0)!=secret):
     client.start();
     client.erase();
-    client.eeprompoke(0,0xca);
-    client.eeprompoke(1,0xAD);
+    client.eeprompoke(0,secret);
+    client.eeprompoke(1,secret);
     
 
 #Lock chip to unlock it later.
@@ -41,15 +42,17 @@ highv=0x900; #Works, but clock errors are common.
 
 start=0x100;
 stop=0x200;  #No point glitching to a stable voltage!
-skip=0x1;
+skip=1;
 
 trials=10
-#Time Range
+#Time Range, wide search.
 tstart=0x20;
 tstop=client.glitchstarttime();  #Really long; only use for initial investigation.
 #tstop=0x100;
 print "# AVRStart takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
+
+
 
 
 # #Restrict range to glitch 002a with v={0103,010F}
@@ -59,10 +62,10 @@ tstep=0x1; #Must be 1
 # stop=0x110
 
 #Restrict range to glitch at 39 {01e7, 01c1, 01da, 01d8, 01c4, 01d5}
-tstart=0x0039
-tstop=0x003a
-start=0x1c0
-stop=0x1f0
+#tstart=0x0039
+#tstop=0x0045
+#start=0x1c0
+#stop=0x1f0
 
 
 print "# %i trials/point, %i steps/point" % (trials, skip);
@@ -76,8 +79,11 @@ sys.stdout.flush()
 voltages=range(start,stop,skip);
 random.shuffle(voltages);
 for va in voltages:
+#for time in range(tstart,tstop,tstep):
     print "# Row %04x" % va;
+    #print "# Column %04x" % time;
     for time in range(tstart,tstop,tstep):
+    #for va in voltages:
         client.glitchVoltages(va, highv);  #Jump voltage.
         #client.glitchVoltages(va, va);    #Hold voltage.
         client.glitchRate(time);
@@ -96,16 +102,17 @@ for va in voltages:
             b=client.eeprompeek(0);
             c=client.eeprompeek(1);
             
-            if(a==0xFF):
+            if(a>0xFC):
+                print "# %04x: %02x %02x %02x" % (time, a,b,c);
                 gcount+=1;
-            if(b!=0 and b!=0xff):
-                print "# HELL YEAH! %02x %02x %02x" % (a,b,c);
+            if(b==secret):
+                print "# HELL YEAH! %04x: %02x %02x %02x" % (time, a,b,c);
                 sys.stdout.flush()
                 scount+=1;
             
         if(gcount>0 or scount>0):
             print "#Glitched from %04x at %04x" % (va,time);
-        print "%d, %f, %d, %d, %d" % (
+            print "%d, %f, %d, %d, %d" % (
                 va, va*(3.3/4096.0),time,
                 gcount, scount);
         sys.stdout.flush()

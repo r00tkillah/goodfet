@@ -66,6 +66,9 @@ void handle(unsigned char app,
   case JTAG:
     jtaghandle(app,verb,len);
     break;
+  case EJTAG:
+    ejtaghandle(app,verb,len);
+    break;
   case JTAG430: //Also JTAG430X, JTAG430X2
     jtag430x2handle(app,verb,len);
     break;

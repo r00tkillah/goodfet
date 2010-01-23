@@ -8,6 +8,7 @@
 #define I2CAPP 0x02
 #define JTAG 0x10
 #define JTAG430 0x11
+#define EJTAG 0x12
 #define CHIPCON 0x30
 #define SIF 0x31
 #define AVR 0x32

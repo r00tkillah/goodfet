@@ -107,7 +107,9 @@ extern int savedtclk;
 //Replace every "CLRTCK SETTCK" with this.
 #define TCKTOCK CLRTCK,SETTCK
 
+
 //16-bit MSP430 JTAG commands, bit-swapped
+//Rewrite these with MSP430 prefix.
 #define IR_CNTRL_SIG_16BIT         0xC8   // 0x13
 #define IR_CNTRL_SIG_CAPTURE       0x28   // 0x14
 #define IR_CNTRL_SIG_RELEASE       0xA8   // 0x15

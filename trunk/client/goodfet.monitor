@@ -16,7 +16,6 @@ if(len(sys.argv)==1):
     print "%s ramfill" % sys.argv[0];
     print "%s ramdepth" % sys.argv[0];
     print "%s info" % sys.argv[0];
-    print "%s info" % sys.argv[0];
     print "%s call 0x$start" % sys.argv[0];
     print "%s exec '0x35 0x00 0x..'" % sys.argv[0];
     sys.exit();

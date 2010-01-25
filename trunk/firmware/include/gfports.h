@@ -6,7 +6,9 @@
 #ifndef GFPORTS
 #define GFPORTS
 
+#ifdef MSP430
 #include <io.h>
+#endif
 
 // N.B., only asm-clean CPP definitions allowed.
 
@@ -29,6 +31,15 @@
 #define P5REN P5OUT
 #endif
 #endif
+
+//Use these instead of the explicit names.
+#ifdef MSP430
+#define gfout P5OUT
+#define gfin  P5IN
+#define gfdir P5DIR
+#define gfren P5REN
+#endif
+
 
 
 #endif //GFPORTS

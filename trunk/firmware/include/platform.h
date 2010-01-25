@@ -6,10 +6,6 @@
   definition file, such as msp430x1612.c or msp430x2618.c.
 */
 
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
-
 #include "gfports.h"
 
 unsigned char serial_rx();

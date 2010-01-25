@@ -89,7 +89,9 @@ void monitor_ram_pattern(){
   txdata(0x00,0x90,0);
   
   //Reboot
+  #ifdef MSP430
   asm("br &0xfffe");
+  #endif
 }
 
 //! Return the number of contiguous bytes 0xBEEF, to measure RAM usage.

@@ -74,7 +74,12 @@ extern unsigned char silent;
 #define OCT_CMP 0x90
 #define OCT_RES 0x91
 
+#ifdef GCC
 #define WEAKDEF __attribute__ ((weak))
+#else
+//Compiler doesn't support weak linking. :(
+#define WEAKDEF
+#endif
 
 //! Handle a plugin, weak-linked to error.
 extern int pluginhandle(unsigned char app,

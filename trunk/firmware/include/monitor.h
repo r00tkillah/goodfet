@@ -3,9 +3,11 @@
   \brief Debug monitor commands.
 */
 
+#ifdef MSP430
 #include <signal.h>
 #include <io.h>
 #include <iomacros.h>
+#endif
 
 // Generic Commands
 

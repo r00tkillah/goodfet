@@ -120,7 +120,7 @@ void delay(unsigned int count);
 //! MSDelay
 void msdelay(unsigned int ms);
 
-
+void jtag430_setr(u8 reg, u16 val);
 void monitorhandle(unsigned char, unsigned char, unsigned long);
 void spihandle(unsigned char, unsigned char, unsigned long);
 void i2chandle(unsigned char, unsigned char, unsigned long) WEAKDEF;

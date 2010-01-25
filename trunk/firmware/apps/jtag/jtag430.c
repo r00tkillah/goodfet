@@ -10,21 +10,29 @@
 
 unsigned int jtag430mode=MSP430X2MODE;
 
-//! Set the program counter.
-void jtag430_setpc(unsigned int adr){
+//! Set a register.
+void jtag430_setr(u8 reg, u16 val){
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x3401);// release low byte
   jtag_ir_shift8(IR_DATA_16BIT);
-  jtag_dr_shift16(0x4030);//Instruction to load PC
+  
+  //0x4030 is "MOV #foo, r0"
+  //Right-most field is register, so 0x4035 loads r5
+  jtag_dr_shift16(0x4030+reg);
   CLRTCLK;
   SETTCLK;
-  jtag_dr_shift16(adr);// Value for PC
+  jtag_dr_shift16(val);// Value for the register
   CLRTCLK;
   jtag_ir_shift8(IR_ADDR_CAPTURE);
   SETTCLK;
-  CLRTCLK ;// Now PC is set to "PC_Value"
+  CLRTCLK ;// Now reg is set to new value.
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x2401);// low byte controlled by JTAG
+}
+
+//! Set the program counter.
+void jtag430_setpc(unsigned int adr){
+  jtag430_setr(0,adr);
 }
 
 //! Halt the CPU
@@ -412,7 +420,16 @@ void jtag430handle(unsigned char app,
     jtag430_setpc(cmddataword[0]);
     txdata(app,verb,0);
     break;
-    
+  case JTAG430_SETREG:
+    jtag430_setr(cmddata[0],cmddataword[1]);
+    txdata(app,verb,0);
+    break;
+  case JTAG430_GETREG:
+    //jtag430_getr(cmddata[0]);
+    debugstr("JTAG430_GETREG not yet implemented.");
+    cmddataword[0]=0xDEAD;
+    txdata(app,verb,2);
+    break;
   case JTAG430_COREIP_ID:
   case JTAG430_DEVICE_ID:
     cmddataword[0]=0;

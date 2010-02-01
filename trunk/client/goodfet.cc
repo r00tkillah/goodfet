@@ -150,13 +150,10 @@ if(sys.argv[1]=="flash"):
      
      bcount = 0;
      
-     print "Wiping Flash."
-     #Wipe all of flash.
-     #client.CCchiperase();
      #Wipe the RAM buffer for the next flash page.
      client.CCeraseflashbuffer();
      for i in h._buf.keys():
-         while(i>page+pagelen):
+         while(i>=page+pagelen):
              if bcount>0:
                  client.CCflashpage(page);
                  #client.CCeraseflashbuffer();

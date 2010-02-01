@@ -19,6 +19,9 @@
 #define CCCMD_STEP_INSTR 0x5C
 #define CCCMD_DEBUG_INSTR 0x54
 
+//! Flash Word Size
+extern u8 flash_word_size;
+
 //! Erase a chipcon chip.
 void cc_chip_erase();
 //! Write the configuration byte.

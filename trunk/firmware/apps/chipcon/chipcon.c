@@ -216,7 +216,7 @@ void cchandle(unsigned char app,
     txdata(app,NOK,0);//TODO add me
     break;
   case CC_GET_CHIP_ID:
-    cc_get_chip_id();
+    cmddataword[0]=cc_get_chip_id();
     txdata(app,verb,2);
     break;
 
@@ -323,11 +323,28 @@ unsigned short cc_get_chip_id(){
   cmddata[0]=CCCMD_GET_CHIP_ID; //0x68
   cccmd(1);
   ccread(2);
+
+  
+  //Find the flash word size.
+  switch(cmddata[0]){
+  case 0x01://CC1110
+  case 0x81://CC2510
+  case 0x91://CC2511
+    flash_word_size=0x02;
+    //debugstr("2 bytes/flash word");
+    break;
+  default:
+    flash_word_size=0x04;
+    break;
+    //debugstr("Warning: Guessing flash word size.");
+  case 0x85://CC2430
+  case 0x89://CC2431
+    debugstr("4 bytes/flash word");
+    break;
+  }
   
   //Return the word.
-  toret=cmddata[1];
-  toret=(toret<<8)+cmddata[1];
-  return toret;
+  return cmddataword[0];
 }
 
 //! Populates flash buffer in xdata.
@@ -345,24 +362,50 @@ void cc_write_xdata(u16 adr, u8 *data, u16 len){
 
 
 //32-bit words, 2KB pages
+//0x20 0x00 for CC2430, CC1110
 #define HIBYTE_WORDS_PER_FLASH_PAGE 0x02
 #define LOBYTE_WORDS_PER_FLASH_PAGE 0x00
-#define FLASHPAGE_SIZE 0x800
 
-//32 bit words
-#define FLASH_WORD_SIZE 0x4
+/** Ugh, this varies by chip.
+    0x800 for CC2430
+    0x400 for CC1110
+*/
+//#define FLASHPAGE_SIZE 0x400
+#define MAXFLASHPAGE_SIZE 0x800
+#define MINFLASHPAGE_SIZE 0x400
+
+
+//32 bit words on CC2430
+//16 bit words on CC1110
+//#define FLASH_WORD_SIZE 0x2
+u8 flash_word_size = 0; //0x02;
+
+
+/* Flash Write Timing
+   MHZ | FWT (0xAB)
+   12  | 0x10
+   13  | 0x11
+   16  | 0x15
+   24  | 0x20
+   26  | 0x23  (IM ME)
+   32  | 0x2A  (Modula.si)
+*/
+//#define FWT 0x23
 
 const u8 flash_routine[] = {
+  //0:
   //MOV FADDRH, #imm; 
   0x75, 0xAD,
   0x00,//#imm=((address >> 8) / FLASH_WORD_SIZE) & 0x7E,
   
+  //0x75, 0xAB, 0x23, //Set FWT per clock
   0x75, 0xAC, 0x00,                                          //                 MOV FADDRL, #00; 
   /* Erase page. */
   0x75, 0xAE, 0x01,                                          //                 MOV FLC, #01H; // ERASE 
                                                              //                 ; Wait for flash erase to complete 
   0xE5, 0xAE,                                                // eraseWaitLoop:  MOV A, FLC; 
   0x20, 0xE7, 0xFB,                                          //                 JB ACC_BUSY, eraseWaitLoop; 
+  
   /* End erase page. */
                                                              //                 ; Initialize the data pointer 
   0x90, 0xF0, 0x00,                                          //                 MOV DPTR, #0F000H; 
@@ -371,7 +414,8 @@ const u8 flash_routine[] = {
   0x7E, LOBYTE_WORDS_PER_FLASH_PAGE,                         //                 MOV R6, #imm; 
   0x75, 0xAE, 0x02,                                          //                 MOV FLC, #02H; // WRITE 
                                                              //                     ; Inner loops 
-  0x7D, FLASH_WORD_SIZE,                                     // writeLoop:          MOV R5, #imm; 
+  //24:
+  0x7D, 0xde /*FLASH_WORD_SIZE*/,                                     // writeLoop:          MOV R5, #imm; 
   0xE0,                                                      // writeWordLoop:          MOVX A, @DPTR; 
   0xA3,                                                      //                         INC DPTR; 
   0xF5, 0xAF,                                                //                         MOV FWDATA, A;  
@@ -383,7 +427,7 @@ const u8 flash_routine[] = {
   0xDF, 0xEF,                                                //                 DJNZ R7, writeLoop; 
                                                              //                 ; Done, fake a breakpoint 
   0xA5                                                       //                 DB 0xA5; 
-}; 
+};
 
 
 //! Copies flash buffer to flash.
@@ -391,19 +435,25 @@ void cc_write_flash_page(u32 adr){
   //Assumes that page has already been written to XDATA 0xF000
   //debugstr("Flashing 2kb at 0xF000 to given adr.");
   
-  if(adr&(FLASHPAGE_SIZE-1)){
-    debugstr("Flash page address is not on a multiple of 2kB.  Aborting.");
+  if(adr&(MINFLASHPAGE_SIZE-1)){
+    debugstr("Flash page address is not on a page boundary.  Aborting.");
     return;
   }
   
   //Routine comes next
   //WRITE_XDATA_MEMORY(IN: 0xF000 + FLASH_PAGE_SIZE, sizeof(routine), routine);
-  cc_write_xdata(0xF000+FLASHPAGE_SIZE,
+  cc_write_xdata(0xF000+MAXFLASHPAGE_SIZE,
 		 (u8*) flash_routine, sizeof(flash_routine));
   //Patch routine's third byte with
   //((address >> 8) / FLASH_WORD_SIZE) & 0x7E
-  cc_pokedatabyte(0xF000+FLASHPAGE_SIZE+2,
-		  ((adr>>8)/FLASH_WORD_SIZE)&0x7E);
+  cc_pokedatabyte(0xF000+MAXFLASHPAGE_SIZE+2,
+		  ((adr>>8)/flash_word_size)&0x7E);
+  //Patch routine to define FLASH_WORD_SIZE
+  if(flash_routine[25]!=0xde)
+    debugstr("Ugly patching code failing in chipcon.c");
+  cc_pokedatabyte(0xF000+MAXFLASHPAGE_SIZE+25,
+		  flash_word_size);
+  
   //debugstr("Wrote flash routine.");
   
   
@@ -414,7 +464,7 @@ void cc_write_flash_page(u32 adr){
   cc_debug_instr(3);
   debugstr("Loaded bank info.");
   
-  cc_set_pc(0xf000+FLASHPAGE_SIZE);//execute code fragment
+  cc_set_pc(0xf000+MAXFLASHPAGE_SIZE);//execute code fragment
   cc_resume();
   
   debugstr("Executing.");

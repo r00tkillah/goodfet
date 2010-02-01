@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # GoodFET Chipcon Example
-#                                                                                                                                          
+#
 # (C) 2009 Travis Goodspeed <travis at radiantmachines.com>
-#                                                                                                                                          
-# This code is being rewritten and refactored.  You've been warned!                                                                                                                
+# No rights reserved.  Do what you will.
+#
+# This code is being rewritten and refactored.  You've been warned!
 
 import sys;
 import binascii;

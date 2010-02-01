@@ -153,7 +153,7 @@ if(sys.argv[1]=="flash"):
      #Wipe all of flash.
      #client.CCchiperase();
      #Wipe the RAM buffer for the next flash page.
-     #client.CCeraseflashbuffer();
+     client.CCeraseflashbuffer();
      for i in h._buf.keys():
          while(i>page+pagelen):
              if bcount>0:
@@ -227,7 +227,23 @@ if(sys.argv[1]=="peek"):
     while start<=stop:
         print "%04x: %02x" % (start,client.CCpeekirambyte(start));
         start=start+1;
-
+if(sys.argv[1]=="verify"):
+    f=sys.argv[2];
+    start=0;
+    stop=0xFFFF;
+    if(len(sys.argv)>3):
+        start=int(sys.argv[3],16);
+    if(len(sys.argv)>4):
+        stop=int(sys.argv[4],16);
+    
+    h = IntelHex(f);
+    for i in h._buf.keys():
+        if(i>=start and i<stop):
+            peek=client.CCpeekcodebyte(i)
+            if(h[i]!=peek):
+                print "ERROR at %04x, found %02x not %02x"%(i,peek,h[i]);
+            if(i%0x100==0):
+                print "%04x" % i;
 if(sys.argv[1]=="peekcode"):
     start=0x0000;
     if(len(sys.argv)>2):

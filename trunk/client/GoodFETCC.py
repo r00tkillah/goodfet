@@ -47,6 +47,11 @@ class GoodFETCC(GoodFET):
             if(pc!=self.CCgetPC()):
                 print "ERROR: PC changed during CCdebuginstr([NOP])!";
         
+        print "Checking pokes to XRAM."
+        for i in range(0xf000,0xf020):
+            self.CCpokedatabyte(i,0xde);
+            if(self.CCpeekdatabyte(i)!=0xde):
+                print "Error in XDATA at 0x%04x" % i;
         
         #print "Status: %s." % self.CCstatusstr();
         #Exit debugger

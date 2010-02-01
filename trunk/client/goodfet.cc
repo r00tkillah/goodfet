@@ -146,7 +146,8 @@ if(sys.argv[1]=="flash"):
    
      h = IntelHex(f);
      page = 0x0000;
-     pagelen = 2048; #2kB pages in 32-bit words
+     pagelen = client.CCpagesize(); #2048; #2kB pages in 32-bit words
+     
      bcount = 0;
      
      print "Wiping Flash."

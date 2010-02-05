@@ -61,7 +61,7 @@ int ps2handle(unsigned char app,
       
       //Transmit the data only if it is new.
       
-      if((cmddatalong[0]=clock-oldclock)>0x100)
+      if((cmddatalong[0]=clock-oldclock)>0x80)
 	txdata(app,verb,4);
       oldclock=clock;
     }

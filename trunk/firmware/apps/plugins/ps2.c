@@ -12,7 +12,7 @@
 #include "jtag.h"
 
 
-u16 mclock=0;
+u32 mclock=0;
 u32 clock=0;
 
 // Timer A0 interrupt service routine
@@ -38,6 +38,7 @@ u32 oldclock=0;
 int ps2handle(unsigned char app,
 	      unsigned char verb,
 	      unsigned int len){
+  
   switch(verb){
   case START:
     WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
@@ -60,10 +61,13 @@ int ps2handle(unsigned char app,
 	while((P5IN&TDI));// && P5IN&TDO));
       
       //Transmit the data only if it is new.
-      
-      if((cmddatalong[0]=clock-oldclock)>0x80)
+      if((clock-oldclock)>0x100){
+	cmddatalong[0]=clock;//-oldclock;
+	cmddatalong[0]-=oldclock;
+	oldclock=clock;
+	
 	txdata(app,verb,4);
-      oldclock=clock;
+      }
     }
     break;
   case STOP:

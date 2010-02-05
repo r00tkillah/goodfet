@@ -13,9 +13,6 @@
 #include "glitch.h"
 
 
-//LED on P1.0
-//IO on P5
-
 //! Initialize registers and all that jazz.
 void init(){
   int i;

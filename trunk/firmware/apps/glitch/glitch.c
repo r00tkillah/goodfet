@@ -23,8 +23,8 @@ void glitchprime(){
   TACTL|=TACLR;      //Clear TimerA Config
   TACTL|=
     TASSEL_SMCLK |   //SMCLK source,
-    MC_1;            //Count up to CCR0
-  //TAIE;            //Enable Interrupt
+    MC_1 |            //Count up to CCR0
+    TAIE;            //Enable Interrupt
   CCTL0 = CCIE;                         // CCR0 interrupt enabled
   CCR0 = glitchcount;
   

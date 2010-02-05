@@ -15,5 +15,6 @@
 
 #define OCT 0x70
 #define GLITCH 0x71
+#define PLUGIN 0x72
 
 #define DEBUGAPP 0xFF

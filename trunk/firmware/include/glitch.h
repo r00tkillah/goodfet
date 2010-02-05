@@ -32,6 +32,6 @@ void glitchvoltages(u16 low, u16 high);
 void glitchrate(u16 rate);
 
 //! Handles a monitor command.
-void glitchhandle(unsigned char app,
+extern void glitchhandle(unsigned char app,
 		  unsigned char verb,
-		  unsigned long len);
+		  unsigned long len) WEAKDEF;

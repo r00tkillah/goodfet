@@ -18,6 +18,7 @@
 
 //! Initialize registers and all that jazz.
 void init(){
+  int i;
   WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
   
   //LED out and on.
@@ -30,7 +31,11 @@ void init(){
   
   //DAC should be at full voltage if it exists.
   #ifdef DAC12IR
-  glitchvoltages(0xfff,0xfff);
+  //glitchvoltages(0xfff,0xfff);
+  ADC12CTL0 = REF2_5V + REFON;                  // Internal 2.5V ref on
+  for(i=0;i!=0xFFFF;i++) asm("nop");
+  DAC12_0CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
+  DAC12_0DAT = 0xFFF; //Max voltage
   #endif
   
   //Enable Interrupts.

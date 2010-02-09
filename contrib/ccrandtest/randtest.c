@@ -83,12 +83,14 @@ u8 halRfInit(void){
 }
 
 //! Get a random byte from the LFSR.
-u8 halRfGetRandomByte(void)
-{
-    // Clock the random generator
-    ADCCON1 |= 0x04;
-    
-    return RNDH;
+u8 halRfGetRandomByte(void){
+  // Clock the random generator
+  
+  /* PRNG
+  ADCCON1 |= 0x04;
+  return RNDH;
+  */
+  return ADCTSTH;
 }
 
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # GoodFET Chipcon Example
-#
+#                                                                                                                                          
 # (C) 2009 Travis Goodspeed <travis at radiantmachines.com>
-# No rights reserved.  Do what you will.
-#
-# This code is being rewritten and refactored.  You've been warned!
+#                                                                                                                                          
+# This code is being rewritten and refactored.  You've been warned!                                                                                                                
 
 import sys;
 import binascii;
@@ -45,6 +44,7 @@ while bytecount<0x20000:
         lastcount=randcount;
         for a in range(bytestart,bytestart+bytescount):
             file.write(chr(client.CCpeekirambyte(a)));
+            file.flush();
             bytecount=bytecount+1;
         print "Got 0x%06x bytes." % bytescount;
         print "%04x %04x: %02x%02x..." % (

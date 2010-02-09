@@ -331,13 +331,13 @@ unsigned short cc_get_chip_id(){
   case 0x81://CC2510
   case 0x91://CC2511
     flash_word_size=0x02;
-    debugstr("2 bytes/flash word");
+    //debugstr("2 bytes/flash word");
     break;
   default:
     debugstr("Warning: Guessing flash word size.");
   case 0x85://CC2430
   case 0x89://CC2431
-    debugstr("4 bytes/flash word");
+    //debugstr("4 bytes/flash word");
     flash_word_size=0x04;
     break;
   }

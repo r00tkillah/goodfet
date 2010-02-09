@@ -148,6 +148,8 @@ if(sys.argv[1]=="flash"):
      page = 0x0000;
      pagelen = client.CCpagesize(); #2048; #2kB pages in 32-bit words
      
+     print "page=%04x, pagelen=%04x" % (page,pagelen);
+     
      bcount = 0;
      
      #Wipe the RAM buffer for the next flash page.

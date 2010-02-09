@@ -331,15 +331,14 @@ unsigned short cc_get_chip_id(){
   case 0x81://CC2510
   case 0x91://CC2511
     flash_word_size=0x02;
-    //debugstr("2 bytes/flash word");
+    debugstr("2 bytes/flash word");
     break;
   default:
-    flash_word_size=0x04;
-    break;
-    //debugstr("Warning: Guessing flash word size.");
+    debugstr("Warning: Guessing flash word size.");
   case 0x85://CC2430
   case 0x89://CC2431
     debugstr("4 bytes/flash word");
+    flash_word_size=0x04;
     break;
   }
   
@@ -438,6 +437,11 @@ void cc_write_flash_page(u32 adr){
   if(adr&(MINFLASHPAGE_SIZE-1)){
     debugstr("Flash page address is not on a page boundary.  Aborting.");
     return;
+  }
+  
+  if(flash_word_size==0){
+    debugstr("Flash word size is wrong.");
+    while(1);
   }
   
   //Routine comes next

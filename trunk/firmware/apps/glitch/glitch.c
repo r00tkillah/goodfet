@@ -152,7 +152,7 @@ void glitchhandle(unsigned char app,
     while(1){
       P5OUT&=~BIT7;//Glitch
       //asm("nop");//asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
-      asm("nop");asm("nop");
+      asm("nop");
       P5OUT|=BIT7;//Normal
       asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
       asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");

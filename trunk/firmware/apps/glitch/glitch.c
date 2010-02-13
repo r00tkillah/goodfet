@@ -39,10 +39,10 @@ void glitchsetup(){
   //Set GSEL high to disable glitching.
 
   P5DIR|=0x80;
-  P6DIR|=0x40;  
+  P6DIR|=BIT6+BIT5;
   
   P5OUT|=0x80;
-  P6OUT|=0x40;
+  P6OUT|=BIT6+BIT5;
   
   glitchsetupdac();
 
@@ -101,9 +101,10 @@ void glitchvoltages(u16 low, u16 high){
   // Delay here for reference to settle.
   for(i=0;i!=0xFFFF;i++) asm("nop");
   DAC12_0CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
+  DAC12_1CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
   // 1.0V 0x0666, 2.5V 0x0FFF
   DAC12_0DAT = high;
-  //DAC12_0DAT = 0x0880;
+  DAC12_1DAT = low;
   #endif 
 }
 //! Set glitching rate.
@@ -145,6 +146,19 @@ void glitchhandle(unsigned char app,
     txdata(app,verb,2);
     break;
   case START:
+    glitchvoltages(0xFFF,0);//Inverted VCC and GND.
+    P5OUT|=BIT7;//Normal
+    P5DIR|=BIT7;
+    while(1){
+      P5OUT&=~BIT7;//Glitch
+      //asm("nop");//asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
+      asm("nop");asm("nop");
+      P5OUT|=BIT7;//Normal
+      asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
+      asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
+    }
+    txdata(app,verb,0);
+    break;
   case STOP:
   case GLITCHAPP:
   default:

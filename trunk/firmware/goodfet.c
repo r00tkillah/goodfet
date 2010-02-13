@@ -27,13 +27,29 @@ void init(){
   msp430_init_uart();
   
   //DAC should be at full voltage if it exists.
-  #ifdef DAC12IR
+#ifdef DAC12IR
   //glitchvoltages(0xfff,0xfff);
   ADC12CTL0 = REF2_5V + REFON;                  // Internal 2.5V ref on
   for(i=0;i!=0xFFFF;i++) asm("nop");
   DAC12_0CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
-  DAC12_0DAT = 0xFFF; //Max voltage
-  #endif
+  DAC12_0DAT = 0xFFF; //Max voltage 0xfff
+  DAC12_1CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
+  DAC12_1DAT = 0x000; //Min voltage 0x000
+#endif
+  
+  /** FIXME
+      
+      This part is really ugly.  GSEL (P5.7) must be high to select
+      normal voltage, but a lot of applications light to swing it low
+      to be a nuissance.  To get around this, we assume that anyone
+      with a glitching FET will also have a DAC, then we set that DAC
+      to a high voltage.
+      
+      At some point, each target must be sanitized to show that it
+      doesn't clear P5OUT or P5DIR.
+  */
+  P5DIR|=BIT7; P5OUT=BIT7; //Normal Supply
+  P5DIR&=~BIT7; //Glitch Supply
   
   //Enable Interrupts.
   //eint();

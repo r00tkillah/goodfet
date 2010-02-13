@@ -319,7 +319,6 @@ unsigned char cc_read_status(){
 
 //! Read the CHIP ID bytes.
 unsigned short cc_get_chip_id(){
-  unsigned short toret;
   cmddata[0]=CCCMD_GET_CHIP_ID; //0x68
   cccmd(1);
   ccread(2);

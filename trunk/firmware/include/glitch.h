@@ -17,8 +17,6 @@
 
 //! Setup glitching.
 void glitchsetup();
-//! Setup analog chain for glitching.
-void glitchsetupdac();
 //! Call this before the function to be glitched.
 void glitchprime();
 
@@ -27,7 +25,7 @@ extern u16 glitchH, glitchL, glitchstate, glitchcount;
 //! Glitch an application.
 void glitchapp(u8 app);
 //! Set glitching voltages.
-void glitchvoltages(u16 low, u16 high);
+void glitchvoltages(u16 gnd, u16 vcc);
 //! Set glitching rate.
 void glitchrate(u16 rate);
 

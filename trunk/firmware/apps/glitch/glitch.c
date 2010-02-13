@@ -15,8 +15,7 @@
 //! Call this before the function to be glitched.
 void glitchprime(){
 #ifdef DAC12IR
-  //Set to high voltage.
-  DAC12_0DAT = glitchH;
+  //Don't forget to call glitchvoltages().
   
   //Reconfigure TACTL.
   TACTL=0;           //Clear dividers.
@@ -43,8 +42,6 @@ void glitchsetup(){
   
   P5OUT|=0x80;
   P6OUT|=BIT6+BIT5;
-  
-  glitchsetupdac();
 
   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
   TACTL = TASSEL1 + TACLR;              // SMCLK, clear TAR
@@ -55,23 +52,12 @@ void glitchsetup(){
 #endif
 }
 
-//! Setup analog chain for glitching.
-void glitchsetupdac(){
-  glitchvoltages(glitchL,glitchH);
-}
-
 // Timer A0 interrupt service routine
 interrupt(TIMERA0_VECTOR) Timer_A (void)
 {
 #ifdef DAC12IR
-  //debugstr("Glitching.");
-  DAC12_0DAT = glitchL;
-  asm("nop");
-  asm("nop");
-  asm("nop");
-  asm("nop");
-  asm("nop");
-  DAC12_0DAT = glitchH;
+  P5OUT&=~BIT7;//Glitch
+  P5OUT|=BIT7;//Normal
 #endif
   TACTL |= MC0;                         // Stop Timer_A;
 }
@@ -89,11 +75,8 @@ void glitchapp(u8 app){
 
 
 //! Set glitching voltages.
-void glitchvoltages(u16 low, u16 high){
+void glitchvoltages(u16 gnd, u16 vcc){
   int i;
-  glitchH=high;
-  glitchL=low;
-  
   //debugstr("Set glitching voltages.");
   
   #ifdef DAC12IR
@@ -103,8 +86,8 @@ void glitchvoltages(u16 low, u16 high){
   DAC12_0CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
   DAC12_1CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
   // 1.0V 0x0666, 2.5V 0x0FFF
-  DAC12_0DAT = high;
-  DAC12_1DAT = low;
+  DAC12_0DAT = vcc; //high;
+  DAC12_1DAT = gnd; //low;
   #endif 
 }
 //! Set glitching rate.
@@ -152,7 +135,7 @@ void glitchhandle(unsigned char app,
     while(1){
       P5OUT&=~BIT7;//Glitch
       //asm("nop");//asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
-      asm("nop");
+      asm("nop"); //Not necessary.
       P5OUT|=BIT7;//Normal
       asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
       asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");

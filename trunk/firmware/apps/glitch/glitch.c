@@ -15,20 +15,11 @@
 //! Call this before the function to be glitched.
 void glitchprime(){
 #ifdef DAC12IR
-  //Don't forget to call glitchvoltages().
-  P5OUT|=0x80;
-  //Reconfigure TACTL.
-  TACTL=0;           //Clear dividers.
-  TACTL|=TACLR;      //Clear TimerA Config
-  TACTL|=
-    TASSEL_SMCLK |   //SMCLK source,
-    MC_1 |            //Count up to CCR0
-    TAIE;            //Enable Interrupt
-  CCTL0 = CCIE;                         // CCR0 interrupt enabled
-  CCR0 = glitchcount;
+  WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
   
-  //Enable general interrupts, just in case.
-  //_EINT();
+  glitchsetup();
+  _EINT();
+  return;
 #endif
 }
 
@@ -42,13 +33,12 @@ void glitchsetup(){
   
   P5OUT|=0x80;
   P6OUT|=BIT6+BIT5;
-
+  
   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
   TACTL = TASSEL1 + TACLR;              // SMCLK, clear TAR
   CCTL0 = CCIE;                         // CCR0 interrupt enabled
-  CCR0 = glitchcount;
-  TACTL |= MC1;                         // Start Timer_A in continuous mode
-  //TACTL |= MC0;                         // Stop Timer_A;
+  CCR0 = glitchcount+0x30; //clock divider
+  TACTL |= MC_3;
   _EINT();                              // Enable interrupts 
 #endif
 }
@@ -56,13 +46,13 @@ void glitchsetup(){
 // Timer A0 interrupt service routine
 interrupt(TIMERA0_VECTOR) Timer_A (void)
 {
+  P1OUT^=1;
   P5OUT&=~BIT7;//Glitch
   P5OUT|=BIT7;//Normal
-  TACTL |= MC0;                         // Stop Timer_A;
+  TACTL |= MC0;// Stop Timer_A;
+  P1OUT&=~1;
   return;
 }
-
-
 
 
 u16 glitchcount=0;
@@ -76,7 +66,9 @@ void glitchapp(u8 app){
 //! Set glitching voltages.
 void glitchvoltages(u16 gnd, u16 vcc){
   int i;
-  //debugstr("Set glitching voltages.");
+  //debugstr("Set glitching voltages: GND and VCC");
+  //debughex(gnd);
+  //debughex(vcc);
   
   #ifdef DAC12IR
   ADC12CTL0 = REF2_5V + REFON;                  // Internal 2.5V ref on
@@ -98,6 +90,7 @@ void glitchrate(u16 rate){
 void glitchhandle(unsigned char app,
 		  unsigned char verb,
 		  unsigned long len){
+  P1OUT&=~1;
   switch(verb){
   case GLITCHVOLTAGES:
     glitchvoltages(cmddataword[0],

@@ -2,9 +2,15 @@
 
 
 #Stability graph.
-set term post eps
-set output 'stability.eps'
-set xlabel "Voltage"
-set ylabel "P[identify]"
-set title "Atmel AVR Stability"
-plot 'stability.txt'
+set datafile separator "|"
+set term png
+set output 'eeprom_locked.png'
+set xlabel "Time"
+set ylabel "Voltage"
+set title "ATTiny45"
+
+plot "< sqlite3 glitch.sql 'select time,vcc,count from glitches where count>0;'" \
+title "Recover", \
+"< sqlite3 glitch.sql 'select time,vcc,count from glitches where count=0;'" \
+title "Error"
+

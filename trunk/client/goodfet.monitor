@@ -30,6 +30,9 @@ if(sys.argv[1]=="on"):
 if(sys.argv[1]=="off"):
     client.out(0x00);
 
+if(sys.argv[1]=="glitchtest"):
+    client.writecmd(client.GLITCHAPP,0x20,0,None);
+
 if(sys.argv[1]=="call"):
     adr=int(sys.argv[2],16);
     print "Calling %04x" % adr;

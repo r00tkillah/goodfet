@@ -1,9 +1,10 @@
 
 
-all: graphs report
 
-report:
-	sqlite3 -header -column glitch.sql "select time,sum(count) from glitches where count>0 group by time"
+all: graphs report 
+
+report: glitch.sql
+	sqlite3 -header -column glitch.sql "select time,sum(count) from glitches where count>0 group by time" | tee report/timecount.txt
 graphs:
 	gnuplot <graphs.gnuplot
 follow:

@@ -20,7 +20,7 @@ trials=10; #10,000 is smooth
 print "-- GoodFET EEPROM Unlock test."
 print "-- Count of reads with voltage glitch."
 
-client.glitchVoltages(0, 0xFFF);  #Jump voltage.
+client.glitchVoltages(0xff0, 0xFFF);  #Jump voltage.
 
 client.start();
 client.erase();
@@ -39,7 +39,7 @@ client.setlockbits(0xFC);
 
 #FFF is full voltage
 
-vstart=0x000;
+vstart=0xff0;
 vstop=0xfff;  #Smaller range sometimes helps.
 skip=1;
 
@@ -50,6 +50,8 @@ tstop=client.glitchstarttime();  #Really long; only use for initial investigatio
 print "-- AVRStart takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
 
+tstart=55;
+tstop=65;
 
 voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);

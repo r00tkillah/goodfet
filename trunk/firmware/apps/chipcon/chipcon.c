@@ -283,7 +283,7 @@ void cc_wr_config(unsigned char config){
 void cc_lockchip(){
   register int i;
   
-  debugstr("Locking chip.");
+  //debugstr("Locking chip.");
   cc_wr_config(1);//Select Info Flash 
   if(!(cc_rd_config()&1))
     debugstr("Config forgotten!");

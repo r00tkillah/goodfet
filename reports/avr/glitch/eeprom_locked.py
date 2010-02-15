@@ -50,8 +50,6 @@ tstop=client.glitchstarttime();  #Really long; only use for initial investigatio
 print "-- AVRStart takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
 
-tstart=55;
-tstop=65;
 
 voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);

@@ -4,11 +4,11 @@ import sys,binascii,time,random;
 
 sys.path.append('../../../trunk/client/')
 
-from GoodFETAVR import GoodFETAVR;
+from GoodFETCC import GoodFETCC;
 from intelhex import IntelHex16bit, IntelHex;
 
 #Initialize FET and set baud rate
-client=GoodFETAVR();
+client=GoodFETCC();
 client.serInit()
 
 #Connect to target
@@ -25,19 +25,19 @@ client.glitchVoltages(0xff0, 0xFFF);  #Jump voltage.
 client.start();
 client.erase();
 
-#secret=0x39
-secret=0x69
+secret=0x69;
 
 #Erase chip for baseline.
-while(client.eeprompeek(0)!=secret):
-    #print "Setting secret";
+while(client.CCpeekdatabyte(0xf800)!=secret):
+    print "-- Setting secret";
     client.start();
-    client.erase();
-    client.eeprompoke(0,secret);
-    client.eeprompoke(1,secret);
+    client.CCpokedatabyte(0xf800,secret);
+    client.CCpokedatabyte(0xf801,secret);
+    print "-- readback %02x" % client.CCpeekdatabyte(0xf800);
 
 #Lock chip to unlock it later.
 #client.setlockbits(0xFC);
+client.lock();
 
 #FFF is full voltage
 
@@ -49,7 +49,7 @@ skip=1;
 tstart=0;
 tstop=client.glitchstarttime();  #Really long; only use for initial investigation.
 #tstop=0x100;
-print "-- AVRStart takes %04x cycles." % tstop;
+print "-- Start takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
 
 
@@ -57,7 +57,7 @@ voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);
 
 #times=[61];
-trials=100;
+trials=1;
 
 #Self tests
 print "--"
@@ -90,18 +90,16 @@ for vcc in voltages:
             #Glitching AVR/Start
             client.glitchstart();
             
-            #Try to read *0, which is 0xDE if read works.
-            a=client.eeprompeek(0)
-            #a=client.lockbits();
+            #Try to read *0, which is secret if read works.
+            a=client.CCpeekdatabyte(0xf800);
+            b=client.CCstatus();
+            c=client.CCpeekdatabyte(0xf800);
             
-            b=client.eeprompeek(0);
-            c=client.eeprompeek(1);
-            
-            if(a>0 and a<0xFF):
+            if(a>0):
                 gcount+=1;
-                print "-- %04x: %02x %02x %02x" % (time, a,b,c);
+            print "-- %04x: %02x %02x %02x" % (time, a,b,c);
             if(a==secret):
-                print "-- HELL YEAH! %04x: %02x %02x %02x" % (time, a,b,c);
+                print "-- %04x: %02x %02x %02x HELL YEAH! " % (time, a,b,c);
                 sys.stdout.flush()
                 scount+=1;
             

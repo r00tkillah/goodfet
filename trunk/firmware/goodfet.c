@@ -49,7 +49,7 @@ void init(){
       doesn't clear P5OUT or P5DIR.
   */
   P5DIR|=BIT7; P5OUT=BIT7; //Normal Supply
-  P5DIR&=~BIT7; //Glitch Supply
+  //P5DIR&=~BIT7; //Glitch Supply
   
   //Enable Interrupts.
   //eint();

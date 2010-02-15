@@ -11,7 +11,7 @@
 #include <iomacros.h>
 
 #include "avr.h"
-#include "glitch.h"
+//#include "glitch.h"
 
 //! Setup the AVR pins.
 void avrsetup(){
@@ -22,17 +22,20 @@ void avrsetup(){
 void avrconnect(){
   //set I/O pins
   avrsetup(); //Cut this?
-  //delay(50);
+  
+  SETSS;
+  delay(50);
   
   //Pulse !RST (SS) at least twice while CLK is low.
   CLRCLK;
   CLRSS;
+  delay(5);
 
   SETSS;
   CLRCLK;
-  //delay(5);
+  delay(5);
   CLRSS;
-  //delay(5);
+  delay(5);
   
   //Enable programming
   avr_prgen();

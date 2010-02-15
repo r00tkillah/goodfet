@@ -15,7 +15,7 @@ client.serInit()
 client.start();
 
 #1,000 takes an hour
-trials=1; #10,000 is smooth
+trials=5; #10,000 is smooth
 
 print "# GoodFET EEPROM Unlock test."
 print "# Count of reads with voltage glitch."
@@ -48,7 +48,7 @@ vstop=0x900;  #Smaller range sometimes helps.
 skip=1;
 
 #Time Range, wide search.
-tstart=0x20;
+tstart=0x400;
 tstop=client.glitchstarttime();  #Really long; only use for initial investigation.
 #tstop=0x100;
 print "# AVRStart takes %04x cycles." % tstop;
@@ -58,11 +58,14 @@ tstep=0x1; #Must be 1
 
 
 #Restrict range to glitch at 39 {01e7, 01c1, 01da, 01d8, 01c4, 01d5}
-tstart=0x0039
-tstop=0x0100
-#start=0x1c0
-#stop=0x1f0
+#tstart=0x0039
+#tstop=0x0100
+#vstart=0x1c0
+#vstop=0x1f0
 
+
+vstart=0xFF0;
+vstop=0xFFF;
 
 #Self tests
 print "#"
@@ -81,7 +84,8 @@ voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);
 
 random.shuffle(voltages);
-random.shuffle(times);
+#random.shuffle(times);
+
 for va in voltages:
 #for time in times:
     print "# Row %04x" % va;
@@ -94,9 +98,10 @@ for va in voltages:
         scount=0;
         for i in range(0,trials):
             #Old start
-            #client.start();
+            client.start();
             #Glitching AVR/Start
-            client.glitchstart();
+            #client.glitchstart();
+            
             
             #Try to read *0, which is 0xDE if read works.
             #a=client.eeprompeek(0)

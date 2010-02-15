@@ -16,7 +16,7 @@
 void glitchprime(){
 #ifdef DAC12IR
   //Don't forget to call glitchvoltages().
-  
+  P5OUT|=0x80;
   //Reconfigure TACTL.
   TACTL=0;           //Clear dividers.
   TACTL|=TACLR;      //Clear TimerA Config
@@ -28,7 +28,7 @@ void glitchprime(){
   CCR0 = glitchcount;
   
   //Enable general interrupts, just in case.
-  _EINT();
+  //_EINT();
 #endif
 }
 
@@ -48,6 +48,7 @@ void glitchsetup(){
   CCTL0 = CCIE;                         // CCR0 interrupt enabled
   CCR0 = glitchcount;
   TACTL |= MC1;                         // Start Timer_A in continuous mode
+  //TACTL |= MC0;                         // Stop Timer_A;
   _EINT();                              // Enable interrupts 
 #endif
 }
@@ -55,11 +56,10 @@ void glitchsetup(){
 // Timer A0 interrupt service routine
 interrupt(TIMERA0_VECTOR) Timer_A (void)
 {
-#ifdef DAC12IR
   P5OUT&=~BIT7;//Glitch
   P5OUT|=BIT7;//Normal
-#endif
   TACTL |= MC0;                         // Stop Timer_A;
+  return;
 }
 
 

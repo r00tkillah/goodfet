@@ -33,7 +33,8 @@ file = open(f, mode='wb')
 
 print "Writing random data to %s" % f;
 
-while bytecount<0x20000:
+#while bytecount<0x20000:
+while 1:
     client.CChaltcpu();
     
     randcode=client.CCpeekiramword(0x08);

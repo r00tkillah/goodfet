@@ -65,8 +65,7 @@ interrupt(TIMERA0_VECTOR) Timer_A (void)
 
 
 
-u16 glitchH=0xfff, glitchL=0xfff,
-  glitchstate=2, glitchcount=0;
+u16 glitchcount=0;
 
 //! Glitch an application.
 void glitchapp(u8 app){

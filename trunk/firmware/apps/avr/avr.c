@@ -21,7 +21,8 @@ void avrsetup(){
 //! Initialized an attached AVR.
 void avrconnect(){
   //set I/O pins
-  avrsetup();
+  avrsetup(); //Cut this?
+  //delay(50);
   
   //Pulse !RST (SS) at least twice while CLK is low.
   CLRCLK;

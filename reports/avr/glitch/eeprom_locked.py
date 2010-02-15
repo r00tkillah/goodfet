@@ -37,13 +37,10 @@ while(client.eeprompeek(0)!=secret):
 #Lock chip to unlock it later.
 client.setlockbits(0xFC);
 
-#0xfff is full voltage
-#highv=0x900; #Works, but clock errors are common.
-highv=0xfff; #For dropping and not returning.
-#highv=0xA00;
+#FFF is full voltage
 
-vstart=0x0;
-vstop=0x900;  #Smaller range sometimes helps.
+vstart=0x000;
+vstop=0xfff;  #Smaller range sometimes helps.
 skip=1;
 
 #Time Range, wide search.
@@ -54,20 +51,14 @@ print "-- AVRStart takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
 
 
-#Restrict range to glitch at 39 {01e7, 01c1, 01da, 01d8, 01c4, 01d5}
-#tstart=0x0039
-#tstop=0x045
-
-
 voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);
+
 
 trials=100;
 
 #Self tests
 print "--"
-
-
 print "--"
 print "-- %i trials/point, %i steps/point" % (trials, skip);
 print "-- DAC Range %04x to %04x" % (vstart, vstop);

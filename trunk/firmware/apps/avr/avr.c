@@ -133,7 +133,6 @@ void avrhandle(unsigned char app,
 	       unsigned long len){
   unsigned long i;
   unsigned int at;
-  //static u8 connected=0;
   
   /*
   if(!avr_isready() && connected)

@@ -9,7 +9,7 @@ graphs:
 follow:
 	tail -f glitch.txt
 run:
-	./eeprom_locked.py | tee glitch.txt | sqlite3 glitch.sql
+	./eeprom_locked.py | tee -a glitch.txt | sqlite3 glitch.sql
 DOCS: stability.txt
 	#Docs are ready.
 

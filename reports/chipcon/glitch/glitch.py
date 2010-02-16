@@ -41,8 +41,8 @@ client.lock();
 
 #FFF is full voltage
 
-vstart=0x000;
-vstop=0xff;  #Smaller range sometimes helps.
+vstart=0;
+vstop=0x1000;  #Smaller range sometimes helps.
 skip=1;
 
 #Time Range, wide search.
@@ -57,7 +57,7 @@ voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);
 
 #times=[61];
-trials=1;
+trials=100;
 
 #Self tests
 print "--"
@@ -72,7 +72,7 @@ print "-- Secret %02x" % secret;
 sys.stdout.flush()
 
 
-random.shuffle(voltages);
+#random.shuffle(voltages);
 #random.shuffle(times);
 gnd=0; #TODO, glitch GND.
 
@@ -95,9 +95,9 @@ for vcc in voltages:
             b=client.CCstatus();
             c=client.CCpeekdatabyte(0xf800);
             
-            if(a>0):
+            if(a!=0 and a!=0xFF):
                 gcount+=1;
-            print "-- %04x: %02x %02x %02x" % (time, a,b,c);
+                print "-- %04x: %02x %02x %02x" % (time, a,b,c);
             if(a==secret):
                 print "-- %04x: %02x %02x %02x HELL YEAH! " % (time, a,b,c);
                 sys.stdout.flush()

@@ -53,10 +53,15 @@ void ccsetup(){
   P5OUT|=MOSI+SCK+RST;
   P5DIR|=MOSI+SCK+RST;
   //P5DIR&=~MISO;  //MOSI is MISO
+  
+  //P5REN=0xFF;
+  
 }
 
 //! Initialize the debugger
 void ccdebuginit(){
+  delay(30); //So the beginning is ready for glitching.
+  
   //Two positive debug clock pulses while !RST is low.
   //Take RST low, pulse twice, then high.
   P5OUT&=~SCK;

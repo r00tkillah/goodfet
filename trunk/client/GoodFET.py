@@ -124,6 +124,12 @@ class GoodFET:
         self.data=[app&0xff, verb&0xFF]+data;
         self.writecmd(self.GLITCHAPP,0x81,len(self.data),self.data);
         #return ord(self.data[0]);
+    def glitchstart(self):
+        """Glitch into the AVR application."""
+        self.glitchVerb(self.APP,0x20,None);
+    def glitchstarttime(self):
+        """Measure the timer of the START verb."""
+        return self.glitchTime(self.APP,0x20,None);
     def glitchTime(self,app,verb,data):
         """Time the execution of a verb."""
         if data==None: data=[];

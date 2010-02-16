@@ -11,6 +11,7 @@ from GoodFET import GoodFET;
 
 class GoodFETAVR(GoodFET):
     AVRAPP=0x32;
+    APP=AVRAPP;
     AVRVendors={0x1E: "Atmel",
                 0x00: "Locked",
                 };
@@ -67,12 +68,6 @@ class GoodFETAVR(GoodFET):
     def start(self):
         """Start the connection."""
         self.writecmd(self.AVRAPP,0x20,0,None);
-    def glitchstart(self):
-        """Glitch into the AVR application."""
-        self.glitchVerb(self.AVRAPP,0x20,None);
-    def glitchstarttime(self):
-        """Measure the timer of the START verb."""
-        return self.glitchTime(self.AVRAPP,0x20,None);
     def forcestart(self):
         """Forcibly start a connection."""
         

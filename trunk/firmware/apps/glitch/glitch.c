@@ -37,7 +37,7 @@ void glitchsetup(){
   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
   TACTL = TASSEL1 + TACLR;              // SMCLK, clear TAR
   CCTL0 = CCIE;                         // CCR0 interrupt enabled
-  CCR0 = glitchcount+0x30; //clock divider
+  CCR0 = glitchcount+0x15; //clock divider
   TACTL |= MC_3;
   _EINT();                              // Enable interrupts 
 #endif
@@ -46,11 +46,11 @@ void glitchsetup(){
 // Timer A0 interrupt service routine
 interrupt(TIMERA0_VECTOR) Timer_A (void)
 {
-  P1OUT^=1;
   P5OUT&=~BIT7;//Glitch
+  //P5DIR=BIT7; //All else high impedance.
   P5OUT|=BIT7;//Normal
   TACTL |= MC0;// Stop Timer_A;
-  P1OUT&=~1;
+  
   return;
 }
 

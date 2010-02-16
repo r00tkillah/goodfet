@@ -13,6 +13,8 @@ from intelhex import IntelHex;
 
 class GoodFETCC(GoodFET):
     """A GoodFET variant for use with Chipcon 8051 Zigbeema SoC."""
+    APP=0x30;
+    
     def CChaltcpu(self):
         """Halt the CPU."""
         self.writecmd(0x30,0x86,0,self.data);
@@ -72,6 +74,9 @@ class GoodFETCC(GoodFET):
     def CClockchip(self):
         """Set the flash lock bit in info mem."""
         self.writecmd(0x30, 0x9A, 0, None);
+    def lock(self):
+        """Set the flash lock bit in info mem."""
+        self.CClockchip();
     
 
     CCversions={0x0100:"CC1110",
@@ -162,6 +167,10 @@ class GoodFETCC(GoodFET):
     def CCchiperase(self):
         """Erase all of the target's memory."""
         self.writecmd(0x30,0x80,0,None);
+    def erase(self):
+        """Erase all of the target's memory."""
+        self.CCchiperase();
+    
     def CCstatus(self):
         """Check the status."""
         self.writecmd(0x30,0x84,0,None);
@@ -197,7 +206,7 @@ class GoodFETCC(GoodFET):
         """Start debugging."""
         self.writecmd(0x30,0x20,0,self.data);
         ident=self.CCidentstr();
-        print "Target identifies as %s." % ident;
+        #print "Target identifies as %s." % ident;
         #print "Status: %s." % self.CCstatusstr();
         self.CCreleasecpu();
         self.CChaltcpu();

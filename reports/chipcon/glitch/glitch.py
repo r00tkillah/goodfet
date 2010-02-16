@@ -72,11 +72,12 @@ print "-- Secret %02x" % secret;
 sys.stdout.flush()
 
 
-#random.shuffle(voltages);
+random.shuffle(voltages);
 #random.shuffle(times);
 gnd=0; #TODO, glitch GND.
 
-print "create table glitches(time,vcc,gnd,glitchcount,count);";
+print ";;;;;"
+print ";create table glitches(time,vcc,gnd,glitchcount,count);";
 for vcc in voltages:
     client.glitchVoltages(0, vcc);  #drop voltage target
     print "-- Row %04x" % vcc;

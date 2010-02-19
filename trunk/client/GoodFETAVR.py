@@ -55,7 +55,7 @@ class GoodFETAVR(GoodFET):
         };
     
     def setup(self):
-        """Move the FET into the SPI application."""
+        """Move the FET into the AVR application."""
         self.writecmd(self.AVRAPP,0x10,0,self.data); #SPI/SETUP
     
     def trans(self,data):

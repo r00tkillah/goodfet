@@ -90,6 +90,8 @@ if(sys.argv[1]=="dumpdata"):
     h.write_hex_file(f);
 if(sys.argv[1]=="status"):
     print "Status: %s" %client.CCstatusstr();
+if(sys.argv[1]=="info"):
+    print "%s" % client.CCidentstr();
 if(sys.argv[1]=="erase"):
     print "Status: %s" % client.CCstatusstr();
     client.CCchiperase();

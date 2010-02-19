@@ -140,3 +140,6 @@ void jtag430x2handle(unsigned char app, unsigned char verb,
 void avrhandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned long len);  
+int smartcardhandle(unsigned char app,
+		    unsigned char verb,
+		    unsigned int len);

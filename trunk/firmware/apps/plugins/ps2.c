@@ -11,7 +11,6 @@
 #include "ps2.h"
 #include "jtag.h"
 
-
 u32 mclock=0;
 u32 clock=0;
 

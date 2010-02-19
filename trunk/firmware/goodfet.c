@@ -90,6 +90,9 @@ void handle(unsigned char app,
   case JTAG430: //Also JTAG430X, JTAG430X2
     jtag430x2handle(app,verb,len);
     break;
+  case SMARTCARD:
+    smartcardhandle(app,verb,len);
+    break;
   default:
     if(pluginhandle){
       pluginhandle(app,verb,len);

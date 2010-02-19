@@ -16,5 +16,6 @@
 #define OCT 0x70
 #define GLITCH 0x71
 #define PLUGIN 0x72
+#define SMARTCARD 0x73
 
 #define DEBUGAPP 0xFF

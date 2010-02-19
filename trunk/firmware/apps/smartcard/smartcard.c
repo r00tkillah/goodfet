@@ -14,6 +14,9 @@ int smartcardhandle(unsigned char app,
 	      unsigned char verb,
 	      unsigned int len){
   switch(verb){
+  case SETUP:
+    debugstr("Unable to setup smart card.");
+    break;
   case START:
     debugstr("Unable to start smart card.");
     break;

@@ -14,8 +14,6 @@ client.serInit()
 #Connect to target
 client.start();
 
-#1,000 takes an hour
-trials=10; #10,000 is smooth
 
 print "-- GoodFET EEPROM Unlock test."
 print "-- Count of reads with voltage glitch."
@@ -52,6 +50,12 @@ tstop=client.glitchstarttime();  #Really long; only use for initial investigatio
 print "-- Start takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
 
+
+#restrict range here
+vstart=0;
+vstop=100;
+tstart=0;
+tstop=300;
 
 voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);

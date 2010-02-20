@@ -470,12 +470,12 @@ void cc_write_flash_page(u32 adr){
   cmddata[1]=0xc7;
   cmddata[2]=0x51;
   cc_debug_instr(3);
-  debugstr("Loaded bank info.");
+  //debugstr("Loaded bank info.");
   
   cc_set_pc(0xf000+MAXFLASHPAGE_SIZE);//execute code fragment
   cc_resume();
   
-  debugstr("Executing.");
+  //debugstr("Executing.");
   
   
   while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
@@ -483,7 +483,7 @@ void cc_write_flash_page(u32 adr){
   }
   
   
-  debugstr("Done flashing.");
+  //debugstr("Done flashing.");
   
   P1OUT&=~1;//clear LED
 }

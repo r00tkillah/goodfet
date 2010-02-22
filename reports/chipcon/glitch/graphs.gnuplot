@@ -49,8 +49,9 @@ replot
 set title "Chipcon CC1110 Glitching Metrics"
 set term png
 set output 'report/3d.png'
-set xlabel "VCC (DAC12)"
-set ylabel "Count"
+set xlabel "Time"
+set ylabel "VCC (DAC12)"
+set zlabel "Count"
 splot "< sqlite3 glitch.sql 'select time,vcc,glitchcount from glitches where count=0;'" \
 title "Errors", \
 "< sqlite3 glitch.sql 'select time,vcc,count from glitches where count>0;'" \

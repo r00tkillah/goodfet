@@ -26,22 +26,27 @@ client.erase();
 secret=0x69;
 
 #Erase chip for baseline.
-while(client.CCpeekdatabyte(0xf800)!=secret):
+while(client.CCpeekcodebyte(0)!=secret):
     print "-- Setting secret";
     client.start();
-    client.CCpokedatabyte(0xf800,secret);
-    client.CCpokedatabyte(0xf801,secret);
-    print "-- readback %02x" % client.CCpeekdatabyte(0xf800);
+    
+    #Flash the secret to the first two bytes of CODE memory.
+    client.CCeraseflashbuffer();
+    client.CCpokedatabyte(0xF000,secret);
+    client.CCpokedatabyte(0xF001,secret);
+    client.CCflashpage(0);
+    
+    print "-- readback %02x" % client.CCpeekcodebyte(0);
+    sys.stdout.flush()
 
 #Lock chip to unlock it later.
-#client.setlockbits(0xFC);
 client.lock();
 
 #FFF is full voltage
 
 vstart=0;
 vstop=0x1000;  #Smaller range sometimes helps.
-skip=1;
+skip=16;
 
 #Time Range, wide search.
 tstart=0;
@@ -53,9 +58,9 @@ tstep=0x1; #Must be 1
 
 #restrict range here
 vstart=0;
-vstop=100;
-tstart=0;
-tstop=300;
+vstop=130;
+#tstart=0;
+#tstop=300;
 
 voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);
@@ -76,29 +81,26 @@ print "-- Secret %02x" % secret;
 sys.stdout.flush()
 
 
-random.shuffle(voltages);
+#random.shuffle(voltages);
 #random.shuffle(times);
 gnd=0; #TODO, glitch GND.
 
 print ";;;;;"
 print ";create table glitches(time,vcc,gnd,glitchcount,count);";
-for vcc in voltages:
-    client.glitchVoltages(0, vcc);  #drop voltage target
-    print "-- Row %04x" % vcc;
-    for time in times:
-        client.glitchRate(time);
+for time in times:
+    client.glitchRate(time);
+    for vcc in voltages:
+        client.glitchVoltages(0, vcc);  #drop voltage target
         gcount=0;
         scount=0;
         for i in range(0,trials):
-            #Old start
             #client.start();
-            #Glitching AVR/Start
             client.glitchstart();
             
             #Try to read *0, which is secret if read works.
-            a=client.CCpeekdatabyte(0xf800);
+            a=client.CCpeekcodebyte(0x0);
             b=client.CCstatus();
-            c=client.CCpeekdatabyte(0xf800);
+            c=client.CCpeekcodebyte(0x0);
             
             if(a!=0 and a!=0xFF):
                 gcount+=1;

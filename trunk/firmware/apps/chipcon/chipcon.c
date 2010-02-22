@@ -37,7 +37,8 @@
 //This could be more accurate.
 //Does it ever need to be?
 #define CCSPEED 3
-#define CCDELAY(x) delay(x)
+//#define CCDELAY(x) delay(x)
+#define CCDELAY(x) 
 
 #define SETMOSI P5OUT|=MOSI
 #define CLRMOSI P5OUT&=~MOSI
@@ -67,15 +68,25 @@ void ccdebuginit(){
   P5OUT&=~SCK;
   P5OUT&=~RST;
   
-  //pulse twice
+  /*
+  //pulse twice, old code.
   CCDELAY(CCSPEED);
   P5OUT|=SCK;  //up
   CCDELAY(CCSPEED);
   P5OUT&=~SCK; //down
   CCDELAY(CCSPEED);
+  
   P5OUT|=SCK;  //up
   CCDELAY(CCSPEED);
   P5OUT&=~SCK; //down
+  CCDELAY(CCSPEED);
+  */
+
+  P5OUT^=SCK;
+  P5OUT^=SCK;
+  P5OUT^=SCK;
+  P5OUT^=SCK; //Unnecessary.
+  
   
   //Raise !RST.
   P5OUT|=RST;

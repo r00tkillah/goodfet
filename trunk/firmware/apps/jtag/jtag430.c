@@ -322,7 +322,8 @@ void jtag430handle(unsigned char app,
     P1OUT^=1;
   }
   P1OUT&=~1;
-    
+  
+  
   switch(verb){
   case START:
     //Enter JTAG mode.

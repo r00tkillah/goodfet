@@ -26,11 +26,6 @@ driver=sys.argv[1];
 print "Using driver %s" % driver;
 client=eval("%s()" % driver);
 console=GoodFETConsole(client);
-
-while 1:
-    sys.stdout.write("gf% ");
-    sys.stdout.flush();
-    cmd=sys.stdin.readline();
-    console.handle(cmd);
+console.run();
 
 sys.exit(0);

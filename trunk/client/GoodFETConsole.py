@@ -19,6 +19,13 @@ class GoodFETConsole():
         client.serInit();
         client.setup();
         client.start();
+    def run(self):
+        while 1:
+            sys.stdout.write("gf% ");
+            sys.stdout.flush();
+            cmd=sys.stdin.readline();
+            self.handle(cmd);
+
     def handle(self, str):
         """Handle a command string.  First word is command."""
         #Lines beginning with # are comments.

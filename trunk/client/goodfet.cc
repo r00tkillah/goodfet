@@ -9,12 +9,14 @@ import sys;
 import binascii;
 
 from GoodFETCC import GoodFETCC;
+from GoodFETConsole import GoodFETConsole;
 from intelhex import IntelHex;
 
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s test" % sys.argv[0];
+    print "%s term" % sys.argv[0];
     print "%s info" % sys.argv[0];
     print "%s dumpcode $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s dumpdata $foo.hex [0x$start 0x$stop]" % sys.argv[0];
@@ -36,6 +38,7 @@ client.serInit()
 client.setup();
 client.start();
 
+
 if(sys.argv[1]=="explore"):
     print "Exploring undefined commands."
     print "Status: %s" %client.status();
@@ -46,7 +49,8 @@ if(sys.argv[1]=="explore"):
         print "Status %02x: %s" % (foo,client.status());
     for foo in range(0,3):
         print "PC: %04x" % client.CCgetPC();
-        
+if(sys.argv[1]=="term"):
+    GoodFETConsole(client).run();
 if(sys.argv[1]=="test"):
     client.test();
 if(sys.argv[1]=="deadtest"):

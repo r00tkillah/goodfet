@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+# GoodFET Debugger
+# 
+# (C) 2009 Travis Goodspeed <travis at radiantmachines.com>
+#
+# This code is being rewritten and refactored.  You've been warned!
+
+import sys, os, readline, code, binascii;
+import rlcompleter;
+
+from GoodFETConsole import GoodFETConsole;
+from GoodFETCC import GoodFETCC;
+from GoodFETMSP430 import GoodFETMSP430;
+from GoodFET import GoodFET;
+
+from intelhex import IntelHex;
+
+if(len(sys.argv)==1):
+    print "Usage: %s driver\n" % sys.argv[0];
+    print "driver:= GoodFETCC GoodFETMSP430";
+    sys.exit(1);
+
+driver=sys.argv[1];
+print "Using driver %s" % driver;
+client=eval("%s()" % driver);
+console=GoodFETConsole(client);
+
+while 1:
+    sys.stdout.write("gf% ");
+    sys.stdout.flush();
+    cmd=sys.stdin.readline();
+    console.handle(cmd);
+
+sys.exit(0);

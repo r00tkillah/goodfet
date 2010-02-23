@@ -255,20 +255,29 @@ class GoodFET:
     
     
 
-    def I2Csetup(self):
-        """Move the FET into the I2C application."""
-        self.writecmd(0x02,0x10,0,self.data); #SPI/SETUP
-    def I2Cstart(self):
-        """Start an I2C transaction."""
-        self.writecmd(0x02,0x20,0,self.data); #SPI/SETUP
-    def I2Cstop(self):
-        """Stop an I2C transaction."""
-        self.writecmd(0x02,0x21,0,self.data); #SPI/SETUP
-    def I2Cread(self,len=1):
-        """Read len bytes by I2C."""
-        self.writecmd(0x02,0x00,1,[len]); #SPI/SETUP
-        return self.data;
-    def I2Cwrite(self,bytes):
-        """Write bytes by I2C."""
-        self.writecmd(0x02,0x01,len(bytes),bytes); #SPI/SETUP
-        return ord(self.data[0]);
+    def infostring(self):
+        a=self.peekbyte(0xff0);
+        b=self.peekbyte(0xff1);
+        return "%02x%02x" % (a,b);
+    def lock(self):
+        print "Locking Unsupported.";
+    def erase(self):
+        print "Erasure Unsupported.";
+    def setup(self):
+        return;
+    def start(self):
+        return;
+    def test(self):
+        return;
+    def status(self):
+        return;
+    
+    
+    def peek32(self,address, memory="vn"):
+        return (self.peek16(address,memory)+
+                (self.peek16(address+2,memory)<<16));
+    def peek16(self,address, memory="vn"):
+        return (self.peek8(address,memory)+
+                (self.peek8(address+1,memory)<<8));
+    def peek8(self,address, memory="vn"):
+        return 0xde;

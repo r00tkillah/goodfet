@@ -38,17 +38,17 @@ client.start();
 
 if(sys.argv[1]=="explore"):
     print "Exploring undefined commands."
-    print "Status: %s" %client.CCstatusstr();
+    print "Status: %s" %client.status();
     
     cmd=0x04; #read status
     for foo in range(0,0x5):
         client.CCcmd([(0x0F<<3)|(0x00)|0x03,0x09<<3]);
-        print "Status %02x: %s" % (foo,client.CCstatusstr());
+        print "Status %02x: %s" % (foo,client.status());
     for foo in range(0,3):
         print "PC: %04x" % client.CCgetPC();
         
 if(sys.argv[1]=="test"):
-    client.CCtest();
+    client.test();
 if(sys.argv[1]=="deadtest"):
     for i in range(1,10):
         print "IDENT as %s" % client.CCidentstr();
@@ -89,13 +89,13 @@ if(sys.argv[1]=="dumpdata"):
         i+=1;
     h.write_hex_file(f);
 if(sys.argv[1]=="status"):
-    print "Status: %s" %client.CCstatusstr();
+    print "Status: %s" %client.status();
 if(sys.argv[1]=="info"):
     print "%s" % client.CCidentstr();
 if(sys.argv[1]=="erase"):
-    print "Status: %s" % client.CCstatusstr();
+    print "Status: %s" % client.status();
     client.CCchiperase();
-    print "Status: %s" %client.CCstatusstr();
+    print "Status: %s" %client.status();
 
 if(sys.argv[1]=="peekinfo"):
     print "Select info flash."
@@ -176,9 +176,9 @@ if(sys.argv[1]=="flash"):
      print "Flashed final page at %06x" % page;
      
 if(sys.argv[1]=="lock"):
-    print "Status: %s" %client.CCstatusstr();
+    print "Status: %s" %client.status();
     client.CClockchip();
-    print "Status: %s" %client.CCstatusstr();
+    print "Status: %s" %client.status();
 if(sys.argv[1]=="flashpage"):
     target=0;
     if(len(sys.argv)>2):

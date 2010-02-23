@@ -45,9 +45,7 @@ if(sys.argv[1]=="exec"):
     client.execute(code);
     
 if(sys.argv[1]=="info"):
-    a=client.peekbyte(0xff0);
-    b=client.peekbyte(0xff1);
-    print "GoodFET with %02x%02x MCU" % (a,b);
+    print "GoodFET with %s MCU" % client.infostring();
 if(sys.argv[1]=="ramfill"):
     client.monitor_ram_pattern();
 if(sys.argv[1]=="ramdepth"):

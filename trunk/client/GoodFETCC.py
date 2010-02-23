@@ -21,7 +21,7 @@ class GoodFETCC(GoodFET):
     def CCreleasecpu(self):
         """Resume the CPU."""
         self.writecmd(0x30,0x87,0,self.data);
-    def CCtest(self):
+    def test(self):
         self.CCreleasecpu();
         self.CChaltcpu();
         #print "Status: %s" % self.CCstatusstr();
@@ -95,7 +95,8 @@ class GoodFETCC(GoodFET):
                  0xA5: 2048, #"CC2530", #page 52 of SWRU191
                  0xB5: 2048, #"CC2531",
                  0xFF: 0    } #"CCmissing"};
-
+    def infostring(self):
+        return self.CCidentstr();
     def CCidentstr(self):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);
@@ -131,6 +132,9 @@ class GoodFETCC(GoodFET):
     def CCdebuginstr(self,instr):
         self.writecmd(0x30,0x88,len(instr),instr);
         return ord(self.data[0]);
+    def peek8(self,address, memory="vn"):
+        return self.CCpeekcodebyte(address);
+
     def CCpeekcodebyte(self,adr):
         """Read the contents of code memory at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8];
@@ -192,7 +196,7 @@ class GoodFETCC(GoodFET):
                   0x01 : "sel_flash_info_page" #stricken from CC2530
                   };
                   
-    def CCstatusstr(self):
+    def status(self):
         """Check the status as a string."""
         status=self.CCstatus();
         str="";
@@ -207,10 +211,10 @@ class GoodFETCC(GoodFET):
         self.writecmd(0x30,0x20,0,self.data);
         ident=self.CCidentstr();
         #print "Target identifies as %s." % ident;
-        #print "Status: %s." % self.CCstatusstr();
+        #print "Status: %s." % self.status();
         self.CCreleasecpu();
         self.CChaltcpu();
-        #print "Status: %s." % self.CCstatusstr();
+        #print "Status: %s." % self.status();
         
     def stop(self):
         """Stop debugging."""

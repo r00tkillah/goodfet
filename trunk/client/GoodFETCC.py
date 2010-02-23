@@ -12,7 +12,7 @@ from GoodFET import GoodFET;
 from intelhex import IntelHex;
 
 class GoodFETCC(GoodFET):
-    """A GoodFET variant for use with Chipcon 8051 Zigbeema SoC."""
+    """A GoodFET variant for use with Chipcon 8051 Zigbee SoC."""
     APP=0x30;
     
     def CChaltcpu(self):
@@ -132,9 +132,15 @@ class GoodFETCC(GoodFET):
     def CCdebuginstr(self,instr):
         self.writecmd(0x30,0x88,len(instr),instr);
         return ord(self.data[0]);
-    def peek8(self,address, memory="vn"):
-        return self.CCpeekcodebyte(address);
-
+    def peek8(self,address, memory="code"):
+        if(memory=="code" or memory=="flash" or memory=="vn"):
+            return self.CCpeekcodebyte(address);
+        elif(memory=="data" or memory=="xdata" or memory=="ram"):
+            return self.CCpeekdatabyte(address);
+        elif(memory=="idata" or memory=="iram"):
+            return self.CCpeekirambyte(address);
+        print "%s is an unknown memory." % memory;
+        return 0xdead;
     def CCpeekcodebyte(self,adr):
         """Read the contents of code memory at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8];
@@ -233,3 +239,37 @@ class GoodFETCC(GoodFET):
               (adr>>24)&0xFF];
         print "Flashing buffer to 0x%06x" % adr;
         self.writecmd(0x30,0x95,4,data);
+
+    def flash(self,file):
+        """Flash an intel hex file to code memory."""
+        print "Flashing %s" % file;
+        
+        h = IntelHex(file);
+        page = 0x0000;
+        pagelen = self.CCpagesize(); #Varies by chip.
+        
+        #print "page=%04x, pagelen=%04x" % (page,pagelen);
+        
+        bcount = 0;
+        
+        #Wipe the RAM buffer for the next flash page.
+        self.CCeraseflashbuffer();
+        for i in h._buf.keys():
+            while(i>=page+pagelen):
+                if bcount>0:
+                    self.CCflashpage(page);
+                    #client.CCeraseflashbuffer();
+                    bcount=0;
+                    print "Flashed page at %06x" % page
+                page+=pagelen;
+                    
+            #Place byte into buffer.
+            self.CCpokedatabyte(0xF000+i-page,
+                                h[i]);
+            bcount+=1;
+            if(i%0x100==0):
+                print "Buffering %04x toward %06x" % (i,page);
+        #last page
+        self.CCflashpage(page);
+        print "Flashed final page at %06x" % page;
+                        

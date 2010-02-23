@@ -146,35 +146,7 @@ if(sys.argv[1]=="flash"):
      if(len(sys.argv)>4):
          stop=int(sys.argv[4],16);
    
-     h = IntelHex(f);
-     page = 0x0000;
-     pagelen = client.CCpagesize(); #2048; #2kB pages in 32-bit words
-     
-     print "page=%04x, pagelen=%04x" % (page,pagelen);
-     
-     bcount = 0;
-     
-     #Wipe the RAM buffer for the next flash page.
-     client.CCeraseflashbuffer();
-     for i in h._buf.keys():
-         while(i>=page+pagelen):
-             if bcount>0:
-                 client.CCflashpage(page);
-                 #client.CCeraseflashbuffer();
-                 bcount=0;
-                 print "Flashed page at %06x" % page
-             page+=pagelen;
-             
-         #Place byte into buffer.
-         client.CCpokedatabyte(0xF000+i-page,
-                               h[i]);
-         bcount+=1;
-         if(i%0x100==0):
-                print "Buffering %04x toward %06x" % (i,page);
-     #last page
-     client.CCflashpage(page);
-     print "Flashed final page at %06x" % page;
-     
+     client.flash(f);
 if(sys.argv[1]=="lock"):
     print "Status: %s" %client.status();
     client.CClockchip();

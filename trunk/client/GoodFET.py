@@ -254,6 +254,8 @@ class GoodFET:
         print "Self-test complete.";
     
     
+    # The following functions ought to be implemented in
+    # every client.
 
     def infostring(self):
         a=self.peekbyte(0xff0);
@@ -271,8 +273,9 @@ class GoodFET:
         return;
     def status(self):
         return;
-    
-    
+    def flash(self,file):
+        """Flash an intel hex file to code memory."""
+        print "Flash not implemented.";
     def peek32(self,address, memory="vn"):
         return (self.peek16(address,memory)+
                 (self.peek16(address+2,memory)<<16));

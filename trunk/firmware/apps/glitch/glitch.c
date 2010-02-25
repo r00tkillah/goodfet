@@ -27,11 +27,13 @@ void glitchprime(){
 void glitchsetup(){
 #ifdef DAC12IR
   //Set GSEL high to disable glitching.
-
-  P5DIR|=0x80;
-  P6DIR|=BIT6+BIT5;
   
-  P5OUT|=0x80;
+  //Normal voltage, use resistors instead of output.
+  P5DIR=0x80;   //ONLY glitch pin is output.
+  P5OUT|=0x80;  //It MUST begin high.
+  P5REN|=0xFF;  //Resistors pull high and low weakly.
+  
+  P6DIR|=BIT6+BIT5;
   P6OUT|=BIT6+BIT5;
   
   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
@@ -44,8 +46,7 @@ void glitchsetup(){
 }
 
 // Timer A0 interrupt service routine
-interrupt(TIMERA0_VECTOR) Timer_A (void)
-{
+interrupt(TIMERA0_VECTOR) Timer_A (void){
   P5OUT&=~BIT7;//Glitch
   //P5DIR=BIT7; //All else high impedance.
   P5OUT|=BIT7;//Normal
@@ -69,6 +70,12 @@ void glitchvoltages(u16 gnd, u16 vcc){
   //debugstr("Set glitching voltages: GND and VCC");
   //debughex(gnd);
   //debughex(vcc);
+  
+  /** N.B., because this is confusing as hell.  As per Page 86 of
+      SLAS541F, P6SEL is not what controls the use of the DAC0/DAC1
+      functions on P6.6 and P6.5.  Instead, CAPD or DAC12AMP>0 sets
+      the state.
+  */
   
   #ifdef DAC12IR
   ADC12CTL0 = REF2_5V + REFON;                  // Internal 2.5V ref on

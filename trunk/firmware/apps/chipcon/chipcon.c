@@ -53,14 +53,14 @@
 void ccsetup(){
   P5OUT|=MOSI+SCK+RST;
   P5DIR|=MOSI+SCK+RST;
-  //P5DIR&=~MISO;  //MOSI is MISO
-  
   //P5REN=0xFF;
-  
 }
 
 //! Initialize the debugger
 void ccdebuginit(){
+  //Port output BUT NOT DIRECTION is set at start.
+  P5OUT|=MOSI+SCK+RST;
+  
   delay(30); //So the beginning is ready for glitching.
   
   //Two positive debug clock pulses while !RST is low.
@@ -68,23 +68,10 @@ void ccdebuginit(){
   P5OUT&=~SCK;
   P5OUT&=~RST;
   
-  /*
-  //pulse twice, old code.
-  CCDELAY(CCSPEED);
-  P5OUT|=SCK;  //up
-  CCDELAY(CCSPEED);
-  P5OUT&=~SCK; //down
-  CCDELAY(CCSPEED);
-  
-  P5OUT|=SCK;  //up
-  CCDELAY(CCSPEED);
-  P5OUT&=~SCK; //down
-  CCDELAY(CCSPEED);
-  */
-
-  P5OUT^=SCK;
-  P5OUT^=SCK;
-  P5OUT^=SCK;
+  //Two rising edges.
+  P5OUT^=SCK; //up
+  P5OUT^=SCK; //down
+  P5OUT^=SCK; //up
   P5OUT^=SCK; //Unnecessary.
   
   
@@ -161,14 +148,13 @@ void cchandle(unsigned char app,
     if(cmddata[0]&0x4)
       ccread(1);
     txdata(app,verb,1);
-    
     break;
   case WRITE: //Write a command with no reply.
     cccmd(len);
     txdata(app,verb,0);
     break;
   case START://enter debugger
-    ccsetup();
+    //ccsetup(); //interferes with glitching
     ccdebuginit();
     txdata(app,verb,0);
     break;

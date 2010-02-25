@@ -7,6 +7,12 @@ sys.path.append('../../../trunk/client/')
 from GoodFETCC import GoodFETCC;
 from intelhex import IntelHex16bit, IntelHex;
 
+import sqlite3;
+
+#Database connection and tables.
+db=sqlite3.connect("glitch.db");
+db.execute("create table if not exists glitches(time,vcc,gnd,glitchcount,count)");
+
 #Initialize FET and set baud rate
 client=GoodFETCC();
 client.serInit()
@@ -74,8 +80,6 @@ print "-- Secret %02x" % secret;
 
 sys.stdout.flush()
 
-random.shuffle(voltages);
-random.shuffle(times);
 gnd=0;     #TODO, glitch GND.
 vcc=0xfff;
 
@@ -83,8 +87,10 @@ times=range(3,30);
 voltages=range(29,0x100);
 #voltages=range(0xff0,0xfff);
 
-print ";;;;;"
-print ";create table glitches(time,vcc,gnd,glitchcount,count);";
+
+random.shuffle(voltages);
+#random.shuffle(times);
+
 #for time in times:
 for vcc in voltages:
     #for vcc in voltages:
@@ -112,7 +118,8 @@ for vcc in voltages:
                 scount+=1;
             
         if(gcount>0 or scount>0):
-            print "insert into glitches(time,vcc,gnd,glitchcount,count)";
-            print "values (%i,%i,%i,%i,%i);" % (
-                time,vcc,gnd,gcount,scount);
+            db.execute("insert into glitches(time,vcc,gnd,glitchcount,count)"
+                       "values (%i,%i,%i,%i,%i);" % (
+                    time,vcc,gnd,gcount,scount));
+            db.commit();
         sys.stdout.flush()

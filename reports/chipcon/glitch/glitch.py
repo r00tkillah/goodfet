@@ -11,14 +11,8 @@ from intelhex import IntelHex16bit, IntelHex;
 client=GoodFETCC();
 client.serInit()
 
-#Connect to target
-client.start();
-
-
 print "-- GoodFET EEPROM Unlock test."
 print "-- Count of reads with voltage glitch."
-
-client.glitchVoltages(0xff0, 0xFFF);  #Jump voltage.
 
 client.start();
 client.erase();
@@ -40,18 +34,18 @@ while(client.CCpeekcodebyte(0)!=secret):
     sys.stdout.flush()
 
 #Lock chip to unlock it later.
-client.lock();
+#client.lock();
 
 #FFF is full voltage
 
 vstart=0;
 vstop=0x1000;  #Smaller range sometimes helps.
-skip=16;
+skip=1;
 
 #Time Range, wide search.
 tstart=0;
 tstop=client.glitchstarttime();  #Really long; only use for initial investigation.
-#tstop=0x100;
+
 print "-- Start takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
 
@@ -80,19 +74,26 @@ print "-- Secret %02x" % secret;
 
 sys.stdout.flush()
 
+random.shuffle(voltages);
+random.shuffle(times);
+gnd=0;     #TODO, glitch GND.
+vcc=0xfff;
 
-#random.shuffle(voltages);
-#random.shuffle(times);
-gnd=0; #TODO, glitch GND.
+times=range(3,30);
+voltages=range(29,0x100);
+#voltages=range(0xff0,0xfff);
 
 print ";;;;;"
 print ";create table glitches(time,vcc,gnd,glitchcount,count);";
-for time in times:
-    client.glitchRate(time);
-    for vcc in voltages:
-        client.glitchVoltages(0, vcc);  #drop voltage target
+#for time in times:
+for vcc in voltages:
+    #for vcc in voltages:
+    for time in times:
+        client.glitchRate(time);
+        client.glitchVoltages(gnd, vcc);  #drop voltage target
         gcount=0;
         scount=0;
+        print "-- (%i,%i)" % (time,vcc);
         for i in range(0,trials):
             #client.start();
             client.glitchstart();

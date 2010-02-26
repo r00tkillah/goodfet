@@ -35,7 +35,7 @@ class GoodFETCC(GoodFET):
             if e.localName=="Name" and e.childNodes: name= e.childNodes[0].nodeValue;
             elif e.localName=="Start": start=e.childNodes[0].nodeValue;
             elif e.localName=="Stop": stop=e.childNodes[0].nodeValue;
-        return "[%s:%s] %15s " % (start,stop,name);
+        return "   [%s:%s] %30s " % (start,stop,name);
     def SRF_radiostate(self):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);
@@ -58,7 +58,7 @@ class GoodFETCC(GoodFET):
                             if g.childNodes:
                                 description=g.childNodes[0].nodeValue;
                         elif g.localName=="Bitfield":
-                            bitfields+="%17s/* %10s */\n" % ("",self.SRF_bitfieldstr(g));
+                            bitfields+="%17s/* %-50s */\n" % ("",self.SRF_bitfieldstr(g));
                     #print "SFRX(%10s, %s); /* %50s */" % (name,address, description);
                     print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);

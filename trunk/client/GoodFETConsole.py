@@ -19,13 +19,18 @@ class GoodFETConsole():
         client.serInit();
         client.setup();
         client.start();
+    def prompt(self):
+        sys.stdout.write("gf% ");
+        sys.stdout.flush();
     def run(self):
+        self.prompt();
+        #for cmd in sys.stdin:
         while 1:
-            sys.stdout.write("gf% ");
-            sys.stdout.flush();
             cmd=sys.stdin.readline();
-            self.handle(cmd);
-
+            if not cmd: break;
+            if(cmd.strip()!=""):
+                self.handle(cmd);
+            self.prompt();
     def handle(self, str):
         """Handle a command string.  First word is command."""
         #Lines beginning with # are comments.
@@ -73,6 +78,14 @@ class GoodFETConsole():
     def CMDflash(self,args):
         file=args[1];
         self.client.flash(self.expandfilename(file));
+    def CMDchip(self,args):
+        cmd="self.client.CMD%s()" % args[1];
+        print cmd;
+        try:
+            eval(cmd);
+        except:
+            print sys.exc_info()[0];
+            print "Chip-specific command failed.";
     def expandfilename(self,filename):
         if(filename[0]=='~'):
             return "%s%s" % (os.environ.get("HOME"),filename.lstrip('~'));

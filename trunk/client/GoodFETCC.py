@@ -11,10 +11,41 @@ import binascii;
 from GoodFET import GoodFET;
 from intelhex import IntelHex;
 
+import xml.dom.minidom;
+
 class GoodFETCC(GoodFET):
     """A GoodFET variant for use with Chipcon 8051 Zigbee SoC."""
     APP=0x30;
-    
+    smartrfpath="/opt/smartrf7";
+    def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
+        fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
+        print "Opening %s" % fn;
+        return xml.dom.minidom.parse(fn)
+    def CMDrs(self,args=[]):
+        """Chip command to grab the radio state."""
+        self.SRF_radiostate();
+    def SRF_radiostate(self):
+        ident=self.CCident();
+        chip=self.CCversions.get(ident&0xFF00);
+        dom=self.SRF_chipdom(chip,"register_definition.xml");
+        for e in dom.getElementsByTagName("registerdefinition"):
+            for f in e.childNodes:
+                if f.localName=="DeviceName":
+                    print "// %s RadioState" % (f.childNodes[0].nodeValue);
+                elif f.localName=="Register":
+                    name="unknownreg";
+                    address="0xdead";
+                    description="";
+                    for g in f.childNodes:
+                        if g.localName=="Name":
+                            name=g.childNodes[0].nodeValue;
+                        elif g.localName=="Address":
+                            address=g.childNodes[0].nodeValue;
+                        elif g.localName=="Description":
+                            description=g.childNodes[0].nodeValue;
+                    #print "SFRX(%10s, %s); /* %50s */" % (name,address, description);
+                    print "%10s=0x%02x; /* %50s */" % (
+                        name,self.CCpeekdatabyte(eval(address)), description);
     def CChaltcpu(self):
         """Halt the CPU."""
         self.writecmd(0x30,0x86,0,self.data);
@@ -79,13 +110,13 @@ class GoodFETCC(GoodFET):
         self.CClockchip();
     
 
-    CCversions={0x0100:"CC1110",
-                0x8500:"CC2430",
-                0x8900:"CC2431",
-                0x8100:"CC2510",
-                0x9100:"CC2511",
-                0xA500:"CC2530", #page 52 of SWRU191
-                0xB500:"CC2531",
+    CCversions={0x0100:"cc1110",
+                0x8500:"cc2430",
+                0x8900:"cc2431",
+                0x8100:"cc2510",
+                0x9100:"cc2511",
+                0xA500:"cc2530", #page 52 of SWRU191
+                0xB500:"cc2531",
                 0xFF00:"CCmissing"};
     CCpagesizes={0x01: 1024, #"CC1110",
                  0x85: 2048, #"CC2430",
@@ -272,4 +303,4 @@ class GoodFETCC(GoodFET):
         #last page
         self.CCflashpage(page);
         print "Flashed final page at %06x" % page;
-                        
+

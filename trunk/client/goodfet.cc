@@ -18,6 +18,7 @@ if(len(sys.argv)==1):
     print "%s test" % sys.argv[0];
     print "%s term" % sys.argv[0];
     print "%s info" % sys.argv[0];
+    print "%s radioinfo" % sys.argv[0];
     print "%s dumpcode $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s dumpdata $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
@@ -96,6 +97,8 @@ if(sys.argv[1]=="status"):
     print "Status: %s" %client.status();
 if(sys.argv[1]=="info"):
     print "%s" % client.CCidentstr();
+if(sys.argv[1]=="radioinfo"):
+    client.CMDrs();
 if(sys.argv[1]=="erase"):
     print "Status: %s" % client.status();
     client.CCchiperase();

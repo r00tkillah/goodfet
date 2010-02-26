@@ -42,17 +42,17 @@ class GoodFETCC(GoodFET):
                         elif g.localName=="Address":
                             address=g.childNodes[0].nodeValue;
                         elif g.localName=="Description":
-                            if g.childNodes!=0:
+                            if g.childNodes:
                                 description=g.childNodes[0].nodeValue;
                     #print "SFRX(%10s, %s); /* %50s */" % (name,address, description);
                     print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);
     def CChaltcpu(self):
         """Halt the CPU."""
-        self.writecmd(0x30,0x86,0,self.data);
+        self.writecmd(self.APP,0x86,0,self.data);
     def CCreleasecpu(self):
         """Resume the CPU."""
-        self.writecmd(0x30,0x87,0,self.data);
+        self.writecmd(self.APP,0x87,0,self.data);
     def test(self):
         self.CCreleasecpu();
         self.CChaltcpu();
@@ -95,17 +95,17 @@ class GoodFETCC(GoodFET):
     def setup(self):
         """Move the FET into the CC2430/CC2530 application."""
         #print "Initializing Chipcon.";
-        self.writecmd(0x30,0x10,0,self.data);
+        self.writecmd(self.APP,0x10,0,self.data);
     def CCrd_config(self):
         """Read the config register of a Chipcon."""
-        self.writecmd(0x30,0x82,0,self.data);
+        self.writecmd(self.APP,0x82,0,self.data);
         return ord(self.data[0]);
     def CCwr_config(self,config):
         """Write the config register of a Chipcon."""
-        self.writecmd(0x30,0x81,1,[config&0xFF]);
+        self.writecmd(self.APP,0x81,1,[config&0xFF]);
     def CClockchip(self):
         """Set the flash lock bit in info mem."""
-        self.writecmd(0x30, 0x9A, 0, None);
+        self.writecmd(self.APP, 0x9A, 0, None);
     def lock(self):
         """Set the flash lock bit in info mem."""
         self.CClockchip();
@@ -135,13 +135,13 @@ class GoodFETCC(GoodFET):
         return "%s/r%02x" % (chip, ident&0xFF); 
     def CCident(self):
         """Get a chipcon's ID."""
-        self.writecmd(0x30,0x8B,0,None);
+        self.writecmd(self.APP,0x8B,0,None);
         chip=ord(self.data[0]);
         rev=ord(self.data[1]);
         return (chip<<8)+rev;
     def CCpagesize(self):
         """Get a chipcon's ID."""
-        self.writecmd(0x30,0x8B,0,None);
+        self.writecmd(self.APP,0x8B,0,None);
         chip=ord(self.data[0]);
         size=self.CCpagesizes.get(chip);
         if(size<10):
@@ -152,17 +152,17 @@ class GoodFETCC(GoodFET):
         return size;
     def CCgetPC(self):
         """Get a chipcon's PC."""
-        self.writecmd(0x30,0x83,0,None);
+        self.writecmd(self.APP,0x83,0,None);
         hi=ord(self.data[0]);
         lo=ord(self.data[1]);
         return (hi<<8)+lo;
     def CCcmd(self,phrase):
-        self.writecmd(0x30,0x00,len(phrase),phrase);
+        self.writecmd(self.APP,0x00,len(phrase),phrase);
         val=ord(self.data[0]);
         print "Got %02x" % val;
         return val;
     def CCdebuginstr(self,instr):
-        self.writecmd(0x30,0x88,len(instr),instr);
+        self.writecmd(self.APP,0x88,len(instr),instr);
         return ord(self.data[0]);
     def peek8(self,address, memory="code"):
         if(memory=="code" or memory=="flash" or memory=="vn"):
@@ -176,17 +176,17 @@ class GoodFETCC(GoodFET):
     def CCpeekcodebyte(self,adr):
         """Read the contents of code memory at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8];
-        self.writecmd(0x30,0x90,2,self.data);
+        self.writecmd(self.APP,0x90,2,self.data);
         return ord(self.data[0]);
     def CCpeekdatabyte(self,adr):
         """Read the contents of data memory at an address."""
         self.data=[adr&0xff, (adr&0xff00)>>8];
-        self.writecmd(0x30,0x91, 2, self.data);
+        self.writecmd(self.APP,0x91, 2, self.data);
         return ord(self.data[0]);
     def CCpeekirambyte(self,adr):
         """Read the contents of IRAM at an address."""
         self.data=[adr&0xff];
-        self.writecmd(0x30,0x02, 1, self.data);
+        self.writecmd(self.APP,0x02, 1, self.data);
         return ord(self.data[0]);
     def CCpeekiramword(self,adr):
         """Read the little-endian contents of IRAM at an address."""
@@ -198,24 +198,24 @@ class GoodFETCC(GoodFET):
     def CCpokeirambyte(self,adr,val):
         """Write the contents of IRAM at an address."""
         self.data=[adr&0xff, val&0xff];
-        self.writecmd(0x30,0x02, 2, self.data);
+        self.writecmd(self.APP,0x02, 2, self.data);
         return ord(self.data[0]);
     
     def CCpokedatabyte(self,adr,val):
         """Write a byte to data memory."""
         self.data=[adr&0xff, (adr&0xff00)>>8, val];
-        self.writecmd(0x30, 0x92, 3, self.data);
+        self.writecmd(self.APP, 0x92, 3, self.data);
         return ord(self.data[0]);
     def CCchiperase(self):
         """Erase all of the target's memory."""
-        self.writecmd(0x30,0x80,0,None);
+        self.writecmd(self.APP,0x80,0,None);
     def erase(self):
         """Erase all of the target's memory."""
         self.CCchiperase();
     
     def CCstatus(self):
         """Check the status."""
-        self.writecmd(0x30,0x84,0,None);
+        self.writecmd(self.APP,0x84,0,None);
         return ord(self.data[0])
     #Same as CC2530
     CCstatusbits={0x80 : "erase_busy",
@@ -246,7 +246,8 @@ class GoodFETCC(GoodFET):
         return str;
     def start(self):
         """Start debugging."""
-        self.writecmd(0x30,0x20,0,self.data);
+        self.setup();
+        self.writecmd(self.APP,0x20,0,self.data);
         ident=self.CCidentstr();
         #print "Target identifies as %s." % ident;
         #print "Status: %s." % self.status();
@@ -256,13 +257,13 @@ class GoodFETCC(GoodFET):
         
     def stop(self):
         """Stop debugging."""
-        self.writecmd(0x30,0x21,0,self.data);
+        self.writecmd(self.APP,0x21,0,self.data);
     def CCstep_instr(self):
         """Step one instruction."""
-        self.writecmd(0x30,0x89,0,self.data);
+        self.writecmd(self.APP,0x89,0,self.data);
     def CCeraseflashbuffer(self):
         """Erase the 2kB flash buffer"""
-        self.writecmd(0x30,0x99);
+        self.writecmd(self.APP,0x99);
     def CCflashpage(self,adr):
         """Flash 2kB a page of flash from 0xF000 in XDATA"""
         data=[adr&0xFF,
@@ -270,7 +271,7 @@ class GoodFETCC(GoodFET):
               (adr>>16)&0xFF,
               (adr>>24)&0xFF];
         print "Flashing buffer to 0x%06x" % adr;
-        self.writecmd(0x30,0x95,4,data);
+        self.writecmd(self.APP,0x95,4,data);
 
     def flash(self,file):
         """Flash an intel hex file to code memory."""

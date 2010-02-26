@@ -24,6 +24,18 @@ class GoodFETCC(GoodFET):
     def CMDrs(self,args=[]):
         """Chip command to grab the radio state."""
         self.SRF_radiostate();
+    def SRF_bitfieldstr(self,bf):
+        name="unused";
+        start=0;
+        stop=0;
+        access="";
+        reset="0x00";
+        description="";
+        for e in bf.childNodes:
+            if e.localName=="Name" and e.childNodes: name= e.childNodes[0].nodeValue;
+            elif e.localName=="Start": start=e.childNodes[0].nodeValue;
+            elif e.localName=="Stop": stop=e.childNodes[0].nodeValue;
+        return "[%s:%s] %15s " % (start,stop,name);
     def SRF_radiostate(self):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);
@@ -36,6 +48,7 @@ class GoodFETCC(GoodFET):
                     name="unknownreg";
                     address="0xdead";
                     description="";
+                    bitfields="";
                     for g in f.childNodes:
                         if g.localName=="Name":
                             name=g.childNodes[0].nodeValue;
@@ -44,9 +57,12 @@ class GoodFETCC(GoodFET):
                         elif g.localName=="Description":
                             if g.childNodes:
                                 description=g.childNodes[0].nodeValue;
+                        elif g.localName=="Bitfield":
+                            bitfields+="%17s/* %10s */\n" % ("",self.SRF_bitfieldstr(g));
                     #print "SFRX(%10s, %s); /* %50s */" % (name,address, description);
                     print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);
+                    if bitfields!="": print bitfields.rstrip();
     def CChaltcpu(self):
         """Halt the CPU."""
         self.writecmd(self.APP,0x86,0,self.data);

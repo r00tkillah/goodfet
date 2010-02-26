@@ -45,7 +45,7 @@ class GoodFETCC(GoodFET):
                             if g.childNodes!=0:
                                 description=g.childNodes[0].nodeValue;
                     #print "SFRX(%10s, %s); /* %50s */" % (name,address, description);
-                    print "%10s=0x%02x; /* %50s */" % (
+                    print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);
     def CChaltcpu(self):
         """Halt the CPU."""

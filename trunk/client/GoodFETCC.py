@@ -42,7 +42,8 @@ class GoodFETCC(GoodFET):
                         elif g.localName=="Address":
                             address=g.childNodes[0].nodeValue;
                         elif g.localName=="Description":
-                            description=g.childNodes[0].nodeValue;
+                            if g.childNodes!=0:
+                                description=g.childNodes[0].nodeValue;
                     #print "SFRX(%10s, %s); /* %50s */" % (name,address, description);
                     print "%10s=0x%02x; /* %50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);

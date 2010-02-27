@@ -3,7 +3,7 @@
 import sys;
 import binascii;
 
-from GoodFET import GoodFET;
+from GoodFET.GoodFET import GoodFET;
 from intelhex import IntelHex16bit;
 
 if(len(sys.argv)==1):

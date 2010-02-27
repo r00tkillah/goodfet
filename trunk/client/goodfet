@@ -8,10 +8,9 @@
 import sys, os, readline, code, binascii;
 import rlcompleter;
 
-from GoodFETConsole import GoodFETConsole;
-from GoodFETCC import GoodFETCC;
-from GoodFETMSP430 import GoodFETMSP430;
-from GoodFET import GoodFET;
+import GoodFET;
+from GoodFET.GoodFETConsole import GoodFETConsole;
+#from GoodFET import *;
 
 from intelhex import IntelHex;
 
@@ -24,8 +23,9 @@ if(len(sys.argv)==1):
 
 driver=sys.argv[1];
 print "Using driver %s" % driver;
-client=eval("%s()" % driver);
-console=GoodFETConsole(client);
+#client=eval("%s()" % driver);
+client=GoodFET.getClient(driver);
+console=client.getConsole();
 console.run();
 
 sys.exit(0);

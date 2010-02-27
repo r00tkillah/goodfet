@@ -3,9 +3,8 @@
 import sys;
 import binascii;
 
-from GoodFETMSP430 import GoodFETMSP430;
+from GoodFET.GoodFETMSP430 import GoodFETMSP430;
 from intelhex import IntelHex16bit, IntelHex;
-
 
 
 if(len(sys.argv)==1):

@@ -15,6 +15,10 @@ class GoodFET:
     
     def __init__(self, *args, **kargs):
         self.data=[0];
+        
+    def getConsole(self):
+        from GoodFETConsole import GoodFETConsole;
+        return GoodFETConsole(self);
     def timeout(self):
         print "timeout\n";
     def serInit(self, port=None):

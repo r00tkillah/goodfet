@@ -3,7 +3,7 @@
 import sys;
 import binascii;
 
-from GoodFET.GoodFETAVR import GoodFETAVR;
+from GoodFETAVR import GoodFETAVR;
 from intelhex import IntelHex16bit, IntelHex;
 
 if(len(sys.argv)==1):

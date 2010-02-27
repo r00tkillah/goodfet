@@ -10,7 +10,7 @@ import sys;
 import binascii;
 import array;
 
-from GoodFET.GoodFETSPI import GoodFETSPIFlash;
+from GoodFETSPI import GoodFETSPIFlash;
 from intelhex import IntelHex;
 
 if(len(sys.argv)==1):

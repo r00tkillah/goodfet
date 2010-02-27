@@ -8,7 +8,7 @@
 import sys;
 import binascii;
 
-from GoodFET.GoodFETCC import GoodFETCC;
+from GoodFETCC import GoodFETCC;
 
 
 if(len(sys.argv)==1):

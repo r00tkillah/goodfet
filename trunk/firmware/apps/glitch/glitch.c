@@ -46,10 +46,9 @@ void glitchsetup(){
 
 // Timer A0 interrupt service routine
 interrupt(TIMERA0_VECTOR) Timer_A (void){
-  P5OUT&=~BIT7;//Glitch
+  P5OUT^=BIT7;//Glitch
   //P5DIR=BIT7; //All else high impedance.
-  P5OUT|=BIT7;//Normal
-  TACTL |= MC0;// Stop Timer_A;
+  P5OUT^=BIT7;//Normal
   return;
 }
 
@@ -109,6 +108,7 @@ void glitchhandle(unsigned char app,
     //FIXME parameters don't work yet.
     glitchprime();
     handle(cmddata[0],cmddata[1],0);
+    TACTL |= MC0;// Stop Timer_A;
     break;
   case GLITCHTIME:
     _DINT();//disable interrupts

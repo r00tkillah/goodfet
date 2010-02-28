@@ -39,7 +39,7 @@ void glitchsetup(){
   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
   TACTL = TASSEL1 + TACLR;              // SMCLK, clear TAR
   CCTL0 = CCIE;                         // CCR0 interrupt enabled
-  CCR0 = glitchcount+0x15;              // Compare Value
+  CCR0 = glitchcount+0x10;              // Compare Value
   TACTL |= MC_2;                        // continuous mode.
 #endif
 }
@@ -95,7 +95,6 @@ void glitchrate(u16 rate){
 void glitchhandle(unsigned char app,
 		  unsigned char verb,
 		  unsigned long len){
-  P1OUT&=~1;
   switch(verb){
   case GLITCHVOLTAGES:
     glitchvoltages(cmddataword[0],

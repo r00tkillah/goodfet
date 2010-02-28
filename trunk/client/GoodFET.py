@@ -7,6 +7,17 @@
 
 import sys, time, string, cStringIO, struct, glob, serial, os;
 
+def getClient(name="GoodFET"):
+    import GoodFET, GoodFETCC, GoodFETAVR, GoodFETSPI, GoodFETMSP430;
+    if(name=="GoodFET" or name=="monitor"): return GoodFET.GoodFET();
+    elif name=="cc" or name=="chipcon": return GoodFETCC.GoodFETCC();
+    elif name=="avr": return GoodFETAVR.GoodFETAVR();
+    elif name=="spi": return GoodFETSPI.GoodFETSPI();
+    elif name=="msp430": return GoodFETSPI.GoodFETMSP430();
+    
+    print "Unsupported target: %s" % name;
+    sys.exit(0);
+
 
 class GoodFET:
     """GoodFET Client Library"""
@@ -15,7 +26,8 @@ class GoodFET:
     
     def __init__(self, *args, **kargs):
         self.data=[0];
-        
+    
+
     def getConsole(self):
         from GoodFETConsole import GoodFETConsole;
         return GoodFETConsole(self);

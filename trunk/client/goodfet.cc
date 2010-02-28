@@ -39,6 +39,8 @@ client.serInit()
 client.setup();
 client.start();
 
+#Get SmartRF Studio regs if they exist.
+#client.loadsymbols(); 
 
 if(sys.argv[1]=="explore"):
     print "Exploring undefined commands."

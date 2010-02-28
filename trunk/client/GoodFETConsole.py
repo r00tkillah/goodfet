@@ -19,6 +19,7 @@ class GoodFETConsole():
         client.serInit();
         client.setup();
         client.start();
+        client.loadsymbols();
     def prompt(self):
         sys.stdout.write("gf% ");
         sys.stdout.flush();
@@ -74,11 +75,15 @@ class GoodFETConsole():
     def CMDresume(self,args):
         print self.client.resume();
     def CMDpeek(self,args):
-        adr=eval(args[1]);
+        adr=args[1];
         memory="vn";
         if(len(args)>2):
             memory=args[2];
-        print "0x%08x:= 0x%04x" % (adr, self.client.peek16(adr,memory));
+        adr= self.client.name2adr(adr);
+        #print "%i" % adr;
+        print "0x%08x:= 0x%04x" % (
+            adr, self.client.peek16(adr,
+                                    memory));
     def CMDflash(self,args):
         file=args[1];
         self.client.flash(self.expandfilename(file));

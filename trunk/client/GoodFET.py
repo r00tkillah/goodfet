@@ -6,6 +6,7 @@
 # This code is being rewritten and refactored.  You've been warned!
 
 import sys, time, string, cStringIO, struct, glob, serial, os;
+import sqlite3;
 
 def getClient(name="GoodFET"):
     import GoodFET, GoodFETCC, GoodFETAVR, GoodFETSPI, GoodFETMSP430;
@@ -18,19 +19,45 @@ def getClient(name="GoodFET"):
     print "Unsupported target: %s" % name;
     sys.exit(0);
 
+class SymbolTable:
+    """GoodFET Symbol Table"""
+    db=sqlite3.connect(":memory:");
+    
+    def __init__(self, *args, **kargs):
+        self.db.execute("create table if not exists symbols(adr,name,memory,size,comment);");
+    def get(self,name):
+        self.db.commit();
+        c=self.db.cursor();
+        try:
+            c.execute("select adr,memory from symbols where name=?",(name,));
+            for row in c:
+                #print "Found it.";
+                sys.stdout.flush();
+                return row[0];
+            #print "No dice.";
+        except:# sqlite3.OperationalError:
+            #print "SQL error.";
+            return eval(name);
+        return eval(name);
+    def define(self,adr,name,comment="",memory="vn",size=16):
+        self.db.execute("insert into symbols(adr,name,memory,size,comment)"
+                        "values(?,?,?,?,?);", (
+                adr,name,memory,size,comment));
+        #print "Set %s=%s." % (name,adr);
 
 class GoodFET:
     """GoodFET Client Library"""
     
     GLITCHAPP=0x71;
+    symbols=SymbolTable();
     
     def __init__(self, *args, **kargs):
         self.data=[0];
-    
-
     def getConsole(self):
         from GoodFETConsole import GoodFETConsole;
         return GoodFETConsole(self);
+    def name2adr(self,name):
+        return self.symbols.get(name);
     def timeout(self):
         print "timeout\n";
     def serInit(self, port=None):
@@ -315,3 +342,5 @@ class GoodFET:
                 (self.peek8(address+1,memory)<<8));
     def peek8(self,address, memory="vn"):
         return self.peekbyte(address); #monitor
+    def loadsymbols(self):
+        return;

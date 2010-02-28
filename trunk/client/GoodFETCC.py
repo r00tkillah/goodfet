@@ -17,6 +17,8 @@ class GoodFETCC(GoodFET):
     """A GoodFET variant for use with Chipcon 8051 Zigbee SoC."""
     APP=0x30;
     smartrfpath="/opt/smartrf7";
+    def loadsymbols(self):
+        self.SRF_loadsymbols();
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
         print "Opening %s" % fn;
@@ -63,6 +65,29 @@ class GoodFETCC(GoodFET):
                     print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);
                     if bitfields!="": print bitfields.rstrip();
+    def SRF_loadsymbols(self):
+        ident=self.CCident();
+        chip=self.CCversions.get(ident&0xFF00);
+        dom=self.SRF_chipdom(chip,"register_definition.xml");
+        for e in dom.getElementsByTagName("registerdefinition"):
+            for f in e.childNodes:
+                if f.localName=="Register":
+                    name="unknownreg";
+                    address="0xdead";
+                    description="";
+                    bitfields="";
+                    for g in f.childNodes:
+                        if g.localName=="Name":
+                            name=g.childNodes[0].nodeValue;
+                        elif g.localName=="Address":
+                            address=g.childNodes[0].nodeValue;
+                        elif g.localName=="Description":
+                            if g.childNodes:
+                                description=g.childNodes[0].nodeValue;
+                        elif g.localName=="Bitfield":
+                            bitfields+="%17s/* %-50s */\n" % ("",self.SRF_bitfieldstr(g));
+                    #print "SFRX(%10s, %s); /* %50s */" % (name,address, description);
+                    self.symbols.define(eval(address),name,description,"data");
     def halt(self):
         """Halt the CPU."""
         self.CChaltcpu();

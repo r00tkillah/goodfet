@@ -314,4 +314,4 @@ class GoodFET:
         return (self.peek8(address,memory)+
                 (self.peek8(address+1,memory)<<8));
     def peek8(self,address, memory="vn"):
-        return 0xde;
+        return self.peekbyte(address); #monitor

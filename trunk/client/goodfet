@@ -10,13 +10,12 @@ import rlcompleter;
 
 from GoodFET import GoodFET, getClient;
 from GoodFETConsole import GoodFETConsole;
-#from GoodFET import *;
 
 from intelhex import IntelHex;
 
 if(len(sys.argv)==1):
     print "Usage: %s driver\n" % sys.argv[0];
-    print "driver:= GoodFETCC GoodFETMSP430";
+    print "driver:= monitor | cc | avr | spi | msp430";
     print;
     print "This is an unfinished client.  You probably want goodfet.$chip instead.";
     sys.exit(1);

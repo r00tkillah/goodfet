@@ -15,7 +15,7 @@ set ylabel "Voltage (DAC12)"
 plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where glitchcount>0;'" \
 title "Errors", \
 "< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0;'" \
-title "HELL YES"
+title "Success"
 set term postscript
 set output 'report/timevcc.eps'
 replot
@@ -26,9 +26,9 @@ set term png
 set output 'report/region.png'
 set xlabel "Time (16MHz Cycles)"
 set ylabel "VCC"
-plot "< sqlite3 glitch.db 'select time,vcc from glitches where count<80 order by time asc;'" with lines \
+plot "< sqlite3 glitch.db 'select time,vcc from glitches where count<80 order by time asc;'"  \
 title "Out of Range", \
- "< sqlite3 glitch.db 'select time,vcc from glitches where count<98 and count>80  order by time asc;'" with lines \
+ "< sqlite3 glitch.db 'select time,vcc from glitches where count<98 and count>80  order by time asc;'"  \
 title "Minimal read"
 set term postscript
 set output 'report/region.eps'
@@ -42,7 +42,7 @@ set ylabel "Count"
 plot "< sqlite3 glitch.db 'select time,glitchcount from glitches where glitchcount>0;'" \
 title "Errors", \
 "< sqlite3 glitch.db 'select time,count from glitches where count>0;'" \
-title "HELL YES"
+title "Success"
 set term postscript
 set output 'report/timecount.eps'
 replot
@@ -56,7 +56,7 @@ set ylabel "Count"
 plot "< sqlite3 glitch.db 'select vcc,glitchcount from glitches where glitchcount>0;'" \
 title "Errors", \
 "< sqlite3 glitch.db 'select vcc,count from glitches where count>0;'" \
-title "HELL YES"
+title "Success"
 set term postscript
 set output 'report/vcccount.eps'
 replot
@@ -70,7 +70,7 @@ set zlabel "Count"
 splot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where glitchcount>0;'" \
 title "Errors", \
 "< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0 and count<100;'" \
-title "HELL YES"
+title "Success"
 set term postscript
 set output 'report/3d.eps'
 replot

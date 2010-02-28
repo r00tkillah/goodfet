@@ -11,7 +11,7 @@ import sqlite3;
 
 #Database connection and tables.
 db=sqlite3.connect("glitch.db");
-db.execute("create table if not exists glitches(time,vcc,gnd,glitchcount,count)");
+db.execute("create table if not exists glitches(time,vcc,gnd,trials,glitchcount,count)");
 
 #Initialize FET and set baud rate
 client=GoodFETCC();
@@ -45,7 +45,7 @@ while(client.CCpeekcodebyte(0)!=secret):
 #FFF is full voltage
 
 vstart=0;
-vstop=0x1000;  #Smaller range sometimes helps.
+vstop=300;  #Smaller range sometimes helps.
 skip=1;
 
 #Time Range, wide search.
@@ -56,17 +56,12 @@ print "-- Start takes %04x cycles." % tstop;
 tstep=0x1; #Must be 1
 
 
-#restrict range here
-vstart=0;
-vstop=130;
-#tstart=0;
-#tstop=300;
 
 voltages=range(vstart,vstop,skip);
 times=range(tstart,tstop,tstep);
 
 #times=[61];
-trials=100;
+trials=50;
 
 #Self tests
 print "--"
@@ -83,8 +78,7 @@ sys.stdout.flush()
 gnd=0;     #TODO, glitch GND.
 vcc=0xfff;
 
-#times=range(3,30);
-voltages=range(0,0x100);
+
 
 random.shuffle(voltages);
 #random.shuffle(times);
@@ -98,6 +92,7 @@ for vcc in voltages:
         gcount=0;
         scount=0;
         print "-- (%i,%i)" % (time,vcc);
+        sys.stdout.flush();
         for i in range(0,trials):
             #client.start();
             client.glitchstart();
@@ -114,11 +109,10 @@ for vcc in voltages:
                 #print "-- %04x: %02x %02x %02x HELL YEAH! " % (time, a,b,c);
                 scount+=1;
             
-        if(gcount>0 or scount>0):
-            print "values (%i,%i,%i,%i,%i);" % (
-                    time,vcc,gnd,gcount,scount);
-            db.execute("insert into glitches(time,vcc,gnd,glitchcount,count)"
-                       "values (%i,%i,%i,%i,%i);" % (
-                    time,vcc,gnd,gcount,scount));
+        print "values (%i,%i,%i,%i,%i);" % (
+            time,vcc,gnd,gcount,scount);
+        db.execute("insert into glitches(time,vcc,gnd,trials,glitchcount,count)"
+                   "values (%i,%i,%i,%i,%i,%i);" % (
+                time,vcc,gnd,trials,gcount,scount));
         db.commit();
     sys.stdout.flush()

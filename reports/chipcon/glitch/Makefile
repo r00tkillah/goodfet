@@ -11,7 +11,7 @@ graphs:
 follow:
 	tail -f glitch.txt
 run:
-	./glitch.py | tee -a glitch.txt | sqlite3 glitch.db
+	./glitch.py | tee -a glitch.txt 
 DOCS: stability.txt
 	#Docs are ready.
 

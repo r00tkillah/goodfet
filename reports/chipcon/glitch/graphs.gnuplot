@@ -26,9 +26,9 @@ set term png
 set output 'report/region.png'
 set xlabel "Time (16MHz Cycles)"
 set ylabel "VCC"
-plot "< sqlite3 glitch.db 'select time,vcc from glitches where count<80 order by time asc;'"  \
+plot "< sqlite3 glitch.db 'select time,vcc from glitches where count<trials/2 order by time asc;'"  \
 title "Out of Range", \
- "< sqlite3 glitch.db 'select time,vcc from glitches where count<98 and count>80  order by time asc;'"  \
+ "< sqlite3 glitch.db 'select time,vcc from glitches where count>trials/2 and count<trials-2  order by time asc;'"  \
 title "Minimal read"
 set term postscript
 set output 'report/region.eps'

@@ -20,6 +20,20 @@ set term postscript
 set output 'report/timevcc.eps'
 replot
 
+
+set title "Chipcon CC1110 Glitching Region"
+set term png
+set output 'report/region.png'
+set xlabel "Time (16MHz Cycles)"
+set ylabel "VCC"
+plot "< sqlite3 glitch.db 'select time,vcc from glitches where count<80 order by time asc;'" with lines \
+title "Out of Range", \
+ "< sqlite3 glitch.db 'select time,vcc from glitches where count<98 and count>80  order by time asc;'" with lines \
+title "Minimal read"
+set term postscript
+set output 'report/region.eps'
+replot
+
 set title "Chipcon CC1110 Glitching Metrics"
 set term png
 set output 'report/timecount.png'
@@ -32,6 +46,7 @@ title "HELL YES"
 set term postscript
 set output 'report/timecount.eps'
 replot
+
 
 set title "Chipcon CC1110 Glitching Metrics"
 set term png

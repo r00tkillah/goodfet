@@ -16,42 +16,70 @@ class GoodFETAVR(GoodFET):
                 0x00: "Locked",
                 };
     
-    #List from avr910.asm and other sources.
-    #More devices at http://avr.fenceline.de/device_data.html
+    #List imported from http://avr.fenceline.de/device_data.html
     AVRDevices={
-        0x9003: "tiny10",
-        0x9004: "tiny11",
-        0x9005: "tiny12",
-        0x9006: "tiny15",
-        0x9007: "tiny13",
-        0x9108: "tiny25",
-        0x930B: "tiny85",
-        0x9206: "tiny45",
-        
-        0x9001: "S1200",
-        
-        0x9101: "S1213",
-        0x9102: "S2323",
-        0x9105: "S2333",
-        0x9103: "S2343",
-        
-        0x9201: "S4414",
-        0x9203: "S4433",
-        0x9202: "S4434",
-        
-        0x9301: "S8515",
-        0x9303: "S8535",
-        
-        0x9305: "mega83",
-        0x930a: "mega88",
-        0x9701: "mega103",
-        0x9401: "mega161",
-        0x9402: "mega163",
-        0x9406: "mega168",
-        
-        0x950f: "mega328",
-        0x950d: "mega325",
-        0x9508: "mega32"
+        0x9003: "ATtiny10",
+        0x9004: "ATtiny11",
+        0x9005: "ATtiny12",
+        0x9007: "ATtiny13",
+        0x9006: "ATtiny15",
+        0x9106: "ATtiny22",
+        0x910A: "ATtiny2313",
+        0x9108: "ATtiny25",
+        0x9109: "ATtiny26",
+        0x9107: "ATtiny28",
+        0x9206: "ATtiny45",
+        0x930B: "ATtiny85",
+        0x9304: "AT90C8534",
+        0x9001: "AT90S1200",
+        0x9101: "AT90S2313",
+        0x9102: "AT90S2323",
+        0x9105: "AT90S2333",
+        0x9103: "AT90S2343",
+        0x9201: "AT90S4414",
+        0x9203: "AT90S4433",
+        0x9202: "AT90S4434",
+        0x9301: "AT90S8515",
+        0x9303: "AT90S8535",
+        0x9381: "AT90PWM2",
+        0x9381: "AT90PWM3",
+        0x9781: "AT90CAN128",
+        0x9205: "ATmega48",
+        0x9306: "ATmega8515",
+        0x9308: "ATmega8535",
+        0x9307: "ATmega8",
+        0x930A: "ATmega88",
+        0x9403: "ATmega16",
+        0x9401: "ATmega161",
+        0x9404: "ATmega162",
+        0x9402: "ATmega163",
+        0x9407: "ATmega165",
+        0x9406: "ATmega168",
+        0x9405: "ATmega169",
+        0x9502: "ATmega32",
+        0x9501: "ATmega323",
+        0x9503: "ATmega325",
+        0x9504: "ATmega3250",
+        0x9503: "ATmega329",
+        0x9504: "ATmega3290",
+        0x9507: "ATmega406",
+        0x9602: "ATmega64",
+        0x9607: "ATmega640",
+        0x9603: "ATmega645",
+        0x9604: "ATmega6450",
+        0x9603: "ATmega649",
+        0x9604: "ATmega6490",
+        0x0101: "ATmega103",
+        0x9701: "ATmega103",
+        0x9702: "ATmega128",
+        0x9703: "ATmega1280",
+        0x9704: "ATmega1281",
+        0x9801: "ATmega2560",
+        0x9802: "ATmega2561",
+        0x9002: "ATtiny19",
+        0x9302: "ATmega85",
+        0x9305: "ATmega83",
+        0x9601: "ATmega603",
         };
     
     def setup(self):
@@ -96,13 +124,13 @@ class GoodFETAVR(GoodFET):
                       );#little-endian address
         return ord(self.data[0]);
     def flashpeek(self, adr):
-        """Read a byte of the target's EEPROM."""
+        """Read a byte of the target's Flash memory."""
         self.writecmd(self.AVRAPP,0x02 ,2,
                       [ (adr&0xFF), (adr>>8)]
                       );#little-endian address
         return ord(self.data[0]);
     def flashpeekblock(self, adr):
-        """Read a byte of the target's EEPROM."""
+        """Read a byte of the target's Flash memory."""
         self.writecmd(self.AVRAPP,0x02 ,4,
                       [ (adr&0xFF), (adr>>8) &0xFF, 0x80, 0x00]
                       );

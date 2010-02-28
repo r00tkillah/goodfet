@@ -295,6 +295,18 @@ class GoodFETCC(GoodFET):
               (adr>>24)&0xFF];
         print "Flashing buffer to 0x%06x" % adr;
         self.writecmd(self.APP,0x95,4,data);
+    def dump(self,file,start=0,stop=0xffff):
+        """Dump an intel hex file from code memory."""
+        print "Dumping code from %04x to %04x as %s." % (start,stop,file);
+        h = IntelHex(None);
+        i=start;
+        while i<=stop:
+            h[i]=self.CCpeekcodebyte(i);
+            if(i%0x100==0):
+                print "Dumped %04x."%i;
+                h.write_hex_file(file); #buffer to disk.
+            i+=1;
+        h.write_hex_file(file);
 
     def flash(self,file):
         """Flash an intel hex file to code memory."""

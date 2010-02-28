@@ -282,10 +282,8 @@ class GoodFET:
     def erase(self):
         print "Erasure Unsupported.";
     def setup(self):
-        print "Unimplemented.";
         return;
     def start(self):
-        print "Unimplemented.";
         return;
     def test(self):
         print "Unimplemented.";
@@ -305,6 +303,10 @@ class GoodFET:
     def flash(self,file):
         """Flash an intel hex file to code memory."""
         print "Flash not implemented.";
+    def dump(self,file,start=0,stop=0xffff):
+        """Dump an intel hex file from code memory."""
+        print "Dump not implemented.";
+
     def peek32(self,address, memory="vn"):
         return (self.peek16(address,memory)+
                 (self.peek16(address+2,memory)<<16));

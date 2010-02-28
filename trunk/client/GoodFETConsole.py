@@ -82,6 +82,9 @@ class GoodFETConsole():
     def CMDflash(self,args):
         file=args[1];
         self.client.flash(self.expandfilename(file));
+    def CMDdump(self,args):
+        file=args[1];
+        self.client.dump(self.expandfilename(file));
     def CMDwhere(self,args):
         pc=self.client.getpc();
         print "PC=0x%04X" % pc;

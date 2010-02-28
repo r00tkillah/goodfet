@@ -10,7 +10,7 @@ import binascii;
 
 from GoodFETCC import GoodFETCC;
 from GoodFETConsole import GoodFETConsole;
-
+from intelhex import IntelHex;
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];

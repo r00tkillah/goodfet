@@ -29,9 +29,9 @@ void glitchsetup(){
   //Set GSEL high to disable glitching.
   
   //Normal voltage, use resistors instead of output.
-  P5DIR=0x80;   //ONLY glitch pin is output.
+  //P5DIR=0x80;   //ONLY glitch pin is output.
   P5OUT|=0x80;  //It MUST begin high.
-  P5REN|=0xFF;  //Resistors pull high and low weakly.
+  //P5REN|=0x7F;  //Resistors pull high and low weakly.
   
   P6DIR|=BIT6+BIT5;
   P6OUT|=BIT6+BIT5;
@@ -41,7 +41,6 @@ void glitchsetup(){
   CCTL0 = CCIE;                         // CCR0 interrupt enabled
   CCR0 = glitchcount+0x15; //clock divider
   TACTL |= MC_3;
-  _EINT();                              // Enable interrupts 
 #endif
 }
 
@@ -51,7 +50,6 @@ interrupt(TIMERA0_VECTOR) Timer_A (void){
   //P5DIR=BIT7; //All else high impedance.
   P5OUT|=BIT7;//Normal
   TACTL |= MC0;// Stop Timer_A;
-  
   return;
 }
 

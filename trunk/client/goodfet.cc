@@ -9,6 +9,7 @@ import sys;
 import binascii;
 
 from GoodFETCC import GoodFETCC;
+from GoodFETConsole import GoodFETConsole;
 
 
 if(len(sys.argv)==1):

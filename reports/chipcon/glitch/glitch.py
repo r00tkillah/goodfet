@@ -83,10 +83,8 @@ sys.stdout.flush()
 gnd=0;     #TODO, glitch GND.
 vcc=0xfff;
 
-times=range(3,30);
-voltages=range(29,0x100);
-#voltages=range(0xff0,0xfff);
-
+#times=range(3,30);
+voltages=range(0,0x100);
 
 random.shuffle(voltages);
 #random.shuffle(times);
@@ -109,17 +107,18 @@ for vcc in voltages:
             b=client.CCstatus();
             c=client.CCpeekcodebyte(0x0);
             
-            if(a!=0 and a!=0xFF):
+            if(a!=0 and a!=0xFF and a!=secret):
                 gcount+=1;
-                print "-- %04x: %02x %02x %02x" % (time, a,b,c);
+                #print "-- %04x: %02x %02x %02x" % (time, a,b,c);
             if(a==secret):
-                print "-- %04x: %02x %02x %02x HELL YEAH! " % (time, a,b,c);
-                sys.stdout.flush()
+                #print "-- %04x: %02x %02x %02x HELL YEAH! " % (time, a,b,c);
                 scount+=1;
             
         if(gcount>0 or scount>0):
+            print "values (%i,%i,%i,%i,%i);" % (
+                    time,vcc,gnd,gcount,scount);
             db.execute("insert into glitches(time,vcc,gnd,glitchcount,count)"
                        "values (%i,%i,%i,%i,%i);" % (
                     time,vcc,gnd,gcount,scount));
-            db.commit();
-        sys.stdout.flush()
+        db.commit();
+    sys.stdout.flush()

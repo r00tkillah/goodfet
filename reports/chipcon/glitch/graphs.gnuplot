@@ -12,9 +12,9 @@ set term png
 set output 'report/timevcc.png'
 set xlabel "Time (16MHz Cycles)"
 set ylabel "Voltage (DAC12)"
-plot "< sqlite3 glitch.sql 'select time,vcc,glitchcount from glitches where count=0;'" \
+plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where glitchcount>0;'" \
 title "Errors", \
-"< sqlite3 glitch.sql 'select time,vcc,count from glitches where count>0;'" \
+"< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0;'" \
 title "HELL YES"
 set term postscript
 set output 'report/timevcc.eps'
@@ -25,9 +25,9 @@ set term png
 set output 'report/timecount.png'
 set xlabel "Time (16MHz Cycles)"
 set ylabel "Count"
-plot "< sqlite3 glitch.sql 'select time,glitchcount from glitches where count=0;'" \
+plot "< sqlite3 glitch.db 'select time,glitchcount from glitches where glitchcount>0;'" \
 title "Errors", \
-"< sqlite3 glitch.sql 'select time,count from glitches where count>0;'" \
+"< sqlite3 glitch.db 'select time,count from glitches where count>0;'" \
 title "HELL YES"
 set term postscript
 set output 'report/timecount.eps'
@@ -38,9 +38,9 @@ set term png
 set output 'report/vcccount.png'
 set xlabel "VCC (DAC12)"
 set ylabel "Count"
-plot "< sqlite3 glitch.sql 'select vcc,glitchcount from glitches where count=0;'" \
+plot "< sqlite3 glitch.db 'select vcc,glitchcount from glitches where glitchcount>0;'" \
 title "Errors", \
-"< sqlite3 glitch.sql 'select vcc,count from glitches where count>0;'" \
+"< sqlite3 glitch.db 'select vcc,count from glitches where count>0;'" \
 title "HELL YES"
 set term postscript
 set output 'report/vcccount.eps'
@@ -52,9 +52,9 @@ set output 'report/3d.png'
 set xlabel "Time"
 set ylabel "VCC (DAC12)"
 set zlabel "Count"
-splot "< sqlite3 glitch.sql 'select time,vcc,glitchcount from glitches where count=0;'" \
+splot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where glitchcount>0;'" \
 title "Errors", \
-"< sqlite3 glitch.sql 'select time,vcc,count from glitches where count>0;'" \
+"< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0 and count<100;'" \
 title "HELL YES"
 set term postscript
 set output 'report/3d.eps'

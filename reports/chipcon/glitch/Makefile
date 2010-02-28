@@ -3,15 +3,15 @@
 
 all: graphs rep
 
-rep: glitch.sql
-	#sqlite3 -header -column glitch.sql "select time,sum(count),1.0*sum(count)/sum(glitchcount)  from glitches where count>0 group by time" | tee report/timecount.txt
-	#sqlite3 -header -column glitch.sql "select time,vcc,1.0*count/glitchcount as signoise, count, glitchcount from glitches order by signoise desc limit 10;" | tee report/topten.txt
+rep: glitch.db
+	#sqlite3 -header -column glitch.db "select time,sum(count),1.0*sum(count)/sum(glitchcount)  from glitches where count>0 group by time" | tee report/timecount.txt
+	#sqlite3 -header -column glitch.db "select time,vcc,1.0*count/glitchcount as signoise, count, glitchcount from glitches order by signoise desc limit 10;" | tee report/topten.txt
 graphs:
 	gnuplot <graphs.gnuplot
 follow:
 	tail -f glitch.txt
 run:
-	./glitch.py | tee -a glitch.txt | sqlite3 glitch.sql
+	./glitch.py | tee -a glitch.txt | sqlite3 glitch.db
 DOCS: stability.txt
 	#Docs are ready.
 

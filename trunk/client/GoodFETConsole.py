@@ -69,6 +69,11 @@ class GoodFETConsole():
     def CMDstatus(self,args):
         print self.client.status();
         return;
+    def CMDhalt(self,args):
+        print self.client.halt();
+    def CMDresume(self,args):
+        print self.client.resume();
+
     def CMDpeek(self,args):
         adr=eval(args[1]);
         memory="vn";

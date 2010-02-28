@@ -63,9 +63,14 @@ class GoodFETCC(GoodFET):
                     print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);
                     if bitfields!="": print bitfields.rstrip();
+    def halt(self):
+        """Halt the CPU."""
+        self.CChaltcpu();
     def CChaltcpu(self):
         """Halt the CPU."""
         self.writecmd(self.APP,0x86,0,self.data);
+    def resume(self):
+        self.CCreleasecpu();
     def CCreleasecpu(self):
         """Resume the CPU."""
         self.writecmd(self.APP,0x87,0,self.data);

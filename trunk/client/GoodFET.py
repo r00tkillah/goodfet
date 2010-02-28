@@ -289,6 +289,10 @@ class GoodFET:
         return;
     def status(self):
         return;
+    def halt(self):
+        return;
+    def resume(self):
+        return;
     def flash(self,file):
         """Flash an intel hex file to code memory."""
         print "Flash not implemented.";

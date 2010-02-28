@@ -61,7 +61,7 @@ void ccdebuginit(){
   //Port output BUT NOT DIRECTION is set at start.
   P5OUT|=MOSI+SCK+RST;
   
-  delay(30); //So the beginning is ready for glitching.
+  //delay(30); //So the beginning is ready for glitching.
   
   //Two positive debug clock pulses while !RST is low.
   //Take RST low, pulse twice, then high.
@@ -154,7 +154,6 @@ void cchandle(unsigned char app,
     txdata(app,verb,0);
     break;
   case START://enter debugger
-    //ccsetup(); //interferes with glitching
     ccdebuginit();
     txdata(app,verb,0);
     break;

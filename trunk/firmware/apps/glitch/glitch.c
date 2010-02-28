@@ -39,8 +39,8 @@ void glitchsetup(){
   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
   TACTL = TASSEL1 + TACLR;              // SMCLK, clear TAR
   CCTL0 = CCIE;                         // CCR0 interrupt enabled
-  CCR0 = glitchcount+0x15; //clock divider
-  TACTL |= MC_3;
+  CCR0 = glitchcount+0x15;              // Compare Value
+  TACTL |= MC_2;                        // continuous mode.
 #endif
 }
 
@@ -116,7 +116,7 @@ void glitchhandle(unsigned char app,
     TACTL=0; //clear dividers
     TACTL|=TACLR; //clear config
     TACTL|=TASSEL_SMCLK| //smclk source
-      MC_2; //continuout mode.
+      MC_2; //continuous mode.
     
     //perform the function
     silent++;//Don't want the function to return anything.
@@ -126,6 +126,7 @@ void glitchhandle(unsigned char app,
     txdata(app,verb,2);
     break;
   case START:
+    //Testing mode, for looking at the glitch waveform.
     glitchvoltages(0xFFF,0);//Inverted VCC and GND.
     P5OUT|=BIT7;//Normal
     P5DIR|=BIT7;

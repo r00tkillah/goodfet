@@ -171,6 +171,8 @@ class GoodFETCC(GoodFET):
             sys.exit(1);
             #return 2048;
         return size;
+    def getpc(self):
+        return self.CCgetPC();
     def CCgetPC(self):
         """Get a chipcon's PC."""
         self.writecmd(self.APP,0x83,0,None);

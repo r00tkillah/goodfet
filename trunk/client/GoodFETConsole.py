@@ -73,7 +73,6 @@ class GoodFETConsole():
         print self.client.halt();
     def CMDresume(self,args):
         print self.client.resume();
-
     def CMDpeek(self,args):
         adr=eval(args[1]);
         memory="vn";
@@ -83,6 +82,9 @@ class GoodFETConsole():
     def CMDflash(self,args):
         file=args[1];
         self.client.flash(self.expandfilename(file));
+    def CMDwhere(self,args):
+        pc=self.client.getpc();
+        print "PC=0x%04X" % pc;
     def CMDchip(self,args):
         cmd="self.client.CMD%s()" % args[1];
         print cmd;

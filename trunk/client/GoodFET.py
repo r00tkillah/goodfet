@@ -282,18 +282,25 @@ class GoodFET:
     def erase(self):
         print "Erasure Unsupported.";
     def setup(self):
+        print "Unimplemented.";
         return;
     def start(self):
+        print "Unimplemented.";
         return;
     def test(self):
+        print "Unimplemented.";
         return;
     def status(self):
+        print "Unimplemented.";
         return;
     def halt(self):
+        print "Unimplemented.";
         return;
     def resume(self):
+        print "Unimplemented.";
         return;
     def getpc(self):
+        print "Unimplemented.";
         return 0xdead;
     def flash(self,file):
         """Flash an intel hex file to code memory."""

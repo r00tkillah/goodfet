@@ -30,6 +30,7 @@ void glitchsetup(){
   
   //Normal voltage, use resistors instead of output.
   //P5DIR=0x80;   //ONLY glitch pin is output.
+  P5DIR|=0x80;   //glitch pin is output.
   P5OUT|=0x80;  //It MUST begin high.
   //P5REN|=0x7F;  //Resistors pull high and low weakly.
   
@@ -46,9 +47,18 @@ void glitchsetup(){
 
 // Timer A0 interrupt service routine
 interrupt(TIMERA0_VECTOR) Timer_A (void){
+  //This oughtn't be necessary, but glitches repeat without it.
+  TACTL=0; //disable counter.
+  
+  
   P5OUT^=BIT7;//Glitch
-  //P5DIR=BIT7; //All else high impedance.
+  //asm("nop"); //delay deepens glitch.
   P5OUT^=BIT7;//Normal
+  
+  //This oughtn't be necessary, but glitches repeat without it.
+  //TACTL=0; //disable counter.
+  
+  //P5OUT^=BIT7;//Normal
   return;
 }
 

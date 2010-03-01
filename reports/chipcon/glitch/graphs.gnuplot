@@ -5,9 +5,7 @@
 set datafile separator "|"
 
 
-
-
-set title "Chipcon CC1110 Glitching Metrics"
+set title "Chipcon CC1110 Glitching Points"
 set term png
 set output 'report/timevcc.png'
 set xlabel "Time (16MHz Cycles)"

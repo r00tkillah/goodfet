@@ -56,6 +56,22 @@ void ccsetup(){
   //P5REN=0xFF;
 }
 
+
+/* 33 cycle critical region
+0000000e <ccdebuginit>:
+   e:	f2 d0 0d 00 	bis.b	#13,	&0x0031	;5 cycles
+  12:	31 00 
+  14:	f2 c2 31 00 	bic.b	#8,	&0x0031	;4 cycles
+  18:	d2 c3 31 00 	bic.b	#1,	&0x0031	;4
+  1c:	f2 e2 31 00 	xor.b	#8,	&0x0031	;4
+  20:	f2 e2 31 00 	xor.b	#8,	&0x0031	;4
+  24:	f2 e2 31 00 	xor.b	#8,	&0x0031	;4
+  28:	f2 e2 31 00 	xor.b	#8,	&0x0031	;4
+  2c:	d2 d3 31 00 	bis.b	#1,	&0x0031	;4
+  30:	30 41       	ret			
+*/
+
+/*
 //! Initialize the debugger
 void ccdebuginit(){
   //Port output BUT NOT DIRECTION is set at start.
@@ -78,6 +94,10 @@ void ccdebuginit(){
   //Raise !RST.
   P5OUT|=RST;
 }
+*/
+
+//! Initialize the debugger.
+void ccdebuginit(); 
 
 //! Read and write a CC bit.
 unsigned char cctrans8(unsigned char byte){

@@ -107,6 +107,7 @@ void glitchhandle(unsigned char app,
   case GLITCHVERB:
     //FIXME parameters don't work yet.
     glitchprime();
+    TAR=0; //Reset clock.
     handle(cmddata[0],cmddata[1],0);
     TACTL |= MC0;// Stop Timer_A;
     break;
@@ -119,9 +120,10 @@ void glitchhandle(unsigned char app,
     
     //perform the function
     silent++;//Don't want the function to return anything.
+    TAR=0;
     handle(cmddata[0],cmddata[1],0);
-    silent--;
     cmddataword[0]=TAR; //Return counter.
+    silent--;
     txdata(app,verb,2);
     break;
   case START:
@@ -132,7 +134,7 @@ void glitchhandle(unsigned char app,
     while(1){
       P5OUT&=~BIT7;//Glitch
       //asm("nop");//asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
-      asm("nop"); //Not necessary.
+      //asm("nop"); //Not necessary.
       P5OUT|=BIT7;//Normal
       asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
       asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");

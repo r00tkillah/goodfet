@@ -9,16 +9,38 @@ from intelhex import IntelHex16bit, IntelHex;
 
 import sqlite3;
 
+#Learning phase
+trials=1;
+lock=0;  #1 locks, 0 unlocked
+vstart=0;
+vstop=1000;  #Smaller range sometimes helps.
+vstep=1;
+tstart=0;
+tstop=-1; #<0 defaults to full range
+tstep=0x1; #Must be 1
+
+
+
+#Exploiting phase
+
+
+
+
+
 #Database connection and tables.
 db=sqlite3.connect("glitch.db");
-db.execute("create table if not exists glitches(time,vcc,gnd,trials,glitchcount,count)");
+db.execute("create table if not exists glitches(time,vcc,gnd,trials,glitchcount,count,lock)");
 
 #Initialize FET and set baud rate
 client=GoodFETAVR();
 client.serInit()
 
-print "-- GoodFET EEPROM Unlock test."
+print "-- GoodFET Unlock test."
 print "-- Count of reads with voltage glitch."
+
+if tstop<0:
+    tstop=client.glitchstarttime();  #Really long; only use for initial investigation.
+    print "-- Start takes %04i cycles." % tstop;
 
 client.start();
 client.erase();
@@ -39,29 +61,16 @@ while(client.eeprompeek(0)!=secret):
     sys.stdout.flush()
 
 #Lock chip to unlock it later.
-client.lock();
+if lock>0:
+    client.lock();
 
 #FFF is full voltage
-
-vstart=0;
-vstop=30;  #Smaller range sometimes helps.
-vstep=1;
-
-#Time Range, wide search.
-tstart=0;
-tstop=client.glitchstarttime();  #Really long; only use for initial investigation.
-#tstop=100; #By experiment, not sure where the other 80 cycles come from.
-tstop=150;
-
-print "-- Start takes %04i cycles." % tstop;
-tstep=0x1; #Must be 1
-
 
 voltages=range(vstart,vstop,vstep);
 times=range(tstart,tstop,tstep);
 
 #times=[61];
-trials=1000;
+
 
 #Self tests
 print "--"
@@ -75,13 +84,15 @@ print "-- Secret %02x" % secret;
 
 sys.stdout.flush()
 
-gnd=0xFFF;     #TODO, glitch GND.
+gnd=0;     #TODO, glitch GND.
 vcc=0xfff;
 
 
 
 random.shuffle(voltages);
-#random.shuffle(times);
+random.shuffle(times);
+
+commitcount=0;
 
 #for time in times:
 for vcc in voltages:
@@ -94,23 +105,28 @@ for vcc in voltages:
         print "-- (%i,%i)" % (time,vcc);
         sys.stdout.flush();
         for i in range(0,trials):
-            #client.start();
+            commitcount+=1;
             client.glitchstart();
             
             #Try to read *0, which is secret if read works.
             a=client.eeprompeek(0x0);
-            
-            if(a!=0 and a!=0xFF and a!=secret):
-                gcount+=1;
-                #print "-- %04x: %02x " % (time, a);
-            if(a==secret):
-                print "-- %04x: %02x HELL YEAH! " % (time, a);
-                scount+=1;
-            
+            if lock>0: #locked
+                if(a!=0 and a!=0xFF and a!=secret):
+                    gcount+=1;
+                if(a==secret):
+                    print "-- %04x: %02x HELL YEAH! " % (time, a);
+                    scount+=1;
+            else: #unlocked
+                if(a!=secret):
+                    gcount+=1;
+                if(a==secret):
+                    scount+=1;
         print "values (%i,%i,%i,%i,%i);" % (
             time,vcc,gnd,gcount,scount);
-        db.execute("insert into glitches(time,vcc,gnd,trials,glitchcount,count)"
-                   "values (%i,%i,%i,%i,%i,%i);" % (
-                time,vcc,gnd,trials,gcount,scount));
-        db.commit();
+        db.execute("insert into glitches(time,vcc,gnd,trials,glitchcount,count,lock)"
+                   "values (%i,%i,%i,%i,%i,%i,%i);" % (
+                time,vcc,gnd,trials,gcount,scount,lock));
+        if commitcount>50:
+            db.commit();
+            commitcount=0;
     sys.stdout.flush()

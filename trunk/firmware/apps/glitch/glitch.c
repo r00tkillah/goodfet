@@ -56,7 +56,7 @@ interrupt(TIMERA0_VECTOR) Timer_A (void){
   P5OUT^=BIT7;//Normal
   
   //This oughtn't be necessary, but glitches repeat without it.
-  //TACTL=0; //disable counter.
+  TACTL=0; //disable counter.
   
   //P5OUT^=BIT7;//Normal
   return;
@@ -138,13 +138,14 @@ void glitchhandle(unsigned char app,
     break;
   case START:
     //Testing mode, for looking at the glitch waveform.
-    glitchvoltages(0xFFF,0);//Inverted VCC and GND.
+    glitchvoltages(0,0xFFF);//Minimum glitch, for noise test.
+    //glitchvoltages(0,0);//Drop VCC
+    //glitchvoltages(0xFFF,0xFFF);//Raise Ground
     P5OUT|=BIT7;//Normal
     P5DIR|=BIT7;
     while(1){
       P5OUT&=~BIT7;//Glitch
-      //asm("nop");//asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
-      //asm("nop"); //Not necessary.
+      //asm("nop"); //Not Necessary
       P5OUT|=BIT7;//Normal
       asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");
       asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");asm("nop");

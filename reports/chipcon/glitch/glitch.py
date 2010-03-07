@@ -40,7 +40,7 @@ while(client.CCpeekcodebyte(0)!=secret):
     sys.stdout.flush()
 
 #Lock chip to unlock it later.
-client.lock();
+#client.lock();
 
 #FFF is full voltage
 
@@ -62,8 +62,7 @@ voltages=range(vstart,vstop,vstep);
 times=range(tstart,tstop,tstep);
 
 #times=[61];
-trials=100;
-#trials=1;
+trials=1;
 
 #Self tests
 print "--"

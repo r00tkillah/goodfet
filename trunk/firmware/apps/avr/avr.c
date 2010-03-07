@@ -24,18 +24,18 @@ void avrconnect(){
   avrsetup(); //Cut this?
   
   SETSS;
-  delay(50);
+  //delay(50);
   
   //Pulse !RST (SS) at least twice while CLK is low.
   CLRCLK;
   CLRSS;
-  delay(5);
+  //delay(5);
 
   SETSS;
   CLRCLK;
-  delay(5);
+  //delay(5);
   CLRSS;
-  delay(5);
+  //delay(5);
   
   //Enable programming
   avr_prgen();

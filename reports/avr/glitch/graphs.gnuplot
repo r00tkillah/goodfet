@@ -10,6 +10,7 @@ set term png
 set output 'report/timevcc.png'
 set xlabel "Time (16MHz Cycles)"
 set ylabel "Voltage (DAC12)"
+set yrange [0 to 1100]
 plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where count=0;'" \
 with dots \
 title "Scanned", \
@@ -20,7 +21,7 @@ title "Success", \
 with dots \
 title "Exploited"
 
-set term postscript
+set term postscript enhanced color 
 set output 'report/timevcc.eps'
 replot
 
@@ -35,7 +36,7 @@ plot "< sqlite3 glitch.db 'select time,glitchcount from glitches where count=0;'
 title "Errors", \
 "< sqlite3 glitch.db 'select time,count from glitches where count>0;'" \
 title "Success"
-set term postscript
+set term postscript enhanced color
 set output 'report/timecount.eps'
 replot
 
@@ -49,7 +50,7 @@ plot "< sqlite3 glitch.db 'select vcc,glitchcount from glitches where count=0;'"
 title "Errors", \
 "< sqlite3 glitch.db 'select vcc,count from glitches where count>0;'" \
 title "Success"
-set term postscript
+set term postscript enhanced color
 set output 'report/vcccount.eps'
 replot
 
@@ -63,7 +64,7 @@ splot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where coun
 title "Errors", \
 "< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0 and count<100;'" \
 title "Success"
-set term postscript
+set term postscript enhanced color
 set output 'report/3d.eps'
 replot
 

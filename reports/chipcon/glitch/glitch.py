@@ -45,7 +45,7 @@ client.lock();
 #FFF is full voltage
 
 vstart=0;
-vstop=30;  #Smaller range sometimes helps.
+vstop=900;  #Smaller range sometimes helps.
 vstep=1;
 
 #Time Range, wide search.
@@ -62,7 +62,8 @@ voltages=range(vstart,vstop,vstep);
 times=range(tstart,tstop,tstep);
 
 #times=[61];
-trials=1000;
+trials=100;
+#trials=1;
 
 #Self tests
 print "--"

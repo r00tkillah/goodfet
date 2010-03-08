@@ -11,6 +11,23 @@ import binascii;
 from GoodFET import GoodFET;
 from intelhex import IntelHex;
 
+
+#grep CMD GoodFETConsole.py | grep def | sed s/\(sel.\*// | sed 's/def CMD//'
+commands="""
+    info
+    lock
+    erase
+    test
+    status
+    halt
+    resume
+    peek
+    flash
+    dump
+    where
+    chip
+"""
+
 class GoodFETConsole():
     """An interactive goodfet driver."""
     

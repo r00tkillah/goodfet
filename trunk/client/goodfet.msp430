@@ -24,12 +24,12 @@ client=GoodFETMSP430();
 client.serInit()
 
 #Connect to target
-client.MSP430setup();
+client.setup();
 #print "setup"
 
 #Identify model number.
-client.MSP430start();
-client.MSP430haltcpu();
+client.start();
+
 #print "started"
 
 if(sys.argv[1]=="info"):

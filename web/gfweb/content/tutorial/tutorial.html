@@ -1,12 +1,100 @@
 <h1>GoodFET Tutorials</h1>
 
 <!--June 2009-->
-
+<!-- Outdated stuff
 <p>The <a href="http://travisgoodspeed.blogspot.com/2009/06/goodfet-msp430-tutorial.html">
 GoodFET MSP430 Tutorial</a> details compiling the GoodFET firmware, loading it
 into hardware, and using the <a href="/clients/goodfet.msp430/">goodfet.msp430</a> client.</p>
-
 <p>The <a href="http://travisgoodspeed.blogspot.com/2009/06/spi-client-tutorial-for-goodfet.html">
 SPI Client Tutorial for the GoodFET</a> explains how to write a GoodFET client.</p>
+-->
 
+<!--huseby: 1. Here's how to build it: (solder this here, solder that
+here...here's how to tell which way the LED's should go)-->
+<h3>Construction</h3>
+<p>Construct your GoodFET as described in its Hardware page.  As of
+March 2010, you probably want a GoodFET3x for embedded systems
+development or a GoodFET2x for voltage glitching security research.
+All previous models are still supported by the programming
+software.</p>
+
+<p><i>(A full construction article is in the works.)</i></p>
+
+<!--huseby: 2. Now that it's built, here's how to verify it is built correctly-->
+<h3>Verification</h3>
+
+<p>If your GoodFET is properly assembled, you should see a notice in
+dmesg that an FTDI USB/Serial adapter has been added on insertion of
+the device.  The device name varies with operating system, but it's probably
+one of /dev/ttyUSB0, /dev/ttyU0, or /dev/tty/cu.usbserial-*.</p>
+
+<p>You should also see the RX/TX LEDs blink briefly when inserting the
+device.  If they do not, their polarity is likely wrong and you will
+need to desolder and rotate them.  For those without an SMD rework
+station, it might be easier to burn the LEDs off and apply fresh
+ones.</p>
+
+<!--huseby: 3. Now that you know it is built correctly, here's how to
+grab the software and firmware -->
+<h3>Software</h3>
+
+<p>Until a first version of the GoodFET software is released, you will
+need to track the project by svn.  This makes upgrading a breeze, but
+you will not be able to install the software by your favorite Linux
+distribution's package manager.</p>
+
+<p>Running the following commands will download the latest version
+of the project to ~/svn/goodfet and link the client scripts into
+/usr/local/bin/.  Optionally, you may add the client directory to
+your $PATH if you do not have sudo privileges.</p>
+
+<p><pre>mkdir ~/svn
+cd ~/svn
+svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet
+cd goodfet/trunk/client
+sudo make link
+</pre><br/></p>
+
+<p><i>(TODO: Describe the installation of prerequisite packages
+such as Gnuplot-py, py-sqlite3, py-serial, etc here.)</i></p>
+
+<p>Now that the software is installed, dump the info flash of your
+GoodFET to a text file for safekeeping.  This information is destroyed
+when flashing the device, and in the rare even that it is needed, it
+is very handy to have.  If you have the time, it would be nice to
+email a copy of this file to Travis Goodspeed &lt;travis at
+radiantmachines.com&gt;.</p>
+
+<p><pre>goodfet.bsl --dumpinfo &gt;infoflash.txt
+</pre><br/></p>
+
+<p>Once this backup has been made, you can use goodfet.bsl to install
+a recent version of the firmware from the Internet.  This is faster
+than building the firmware from scratch, which is described in the
+next session.</p>
+
+<p><pre>goodfet.bsl --fromweb
+goodfet.monitor test
+</pre><br/></p>
+
+<!--huseby: 4. here's now to load the firmware you want-->
+<h3>Firmware</h3>
+
+<p>There are two ways to get the firmware.  By far the fastest is to
+use the web version by 'goodfet.bsl --fromweb', but participation in
+development of the project will require you to build it from
+scratch.</p>
+
+<p>The <a href="http://mspgcc.sourceforge.net/">mspgcc</a> compiler is
+preferred for the project.  You will need a recent build from CVS in
+order to build the project, and most prebuilt versions floating around
+the Internet are too old to be of use.  Grab the version from
+<a href="http://goodserv.cis.upenn.edu/mspgcc/">http://goodserv.cis.upenn.edu/mspgcc/</a>
+that matches your operating system, then extract it in /opt/ and add
+/opt/mspgcc/bin to your $PATH.</p>
+
+<!--huseby: 5. here's how to use it-->
+<h3>Use</h3>
+
+<p><i>(TODO: Write this section.)</i></p>
 

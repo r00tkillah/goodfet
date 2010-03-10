@@ -26,13 +26,13 @@ class GoodFETGlitch(GoodFET):
     
     def __init__(self, *args, **kargs):
         print "Initializing GoodFET Glitcher."
-        #Database connection and tables.
-        self.db=sqlite3.connect("glitch.db");
+        #Database connection w/ 30 second timeout.
+        self.db=sqlite3.connect("glitch.db",30000);
         self.db.execute("create table if not exists glitches(time,vcc,gnd,trials,glitchcount,count,lock)");
         self.client=0;
     def setup(self,arch="avr"):
         self.client=getClient(arch);
-    def graph(self):
+    def graphx11(self):
         try:
             import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils
         except ImportError:
@@ -51,6 +51,25 @@ class GoodFETGlitch(GoodFET):
         while 1==1:
             time.sleep(30);
             g('replot');
+
+        
+    def graph(self):
+        #try:
+        import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils
+        #except ImportError:
+        #    print "py-gnuplot or py-numpy is missing.  Can't graph."
+        #    return;
+        g = Gnuplot.Gnuplot(debug=1);
+        
+        g('\nset term png');
+        g.title('Glitch Training Set');
+        g.xlabel('Time (16MHz)');
+        g.ylabel('VCC (DAC12)');
+        
+        g('set datafile separator "|"');
+        g('set term png');
+        g('set output "timevcc.png"');
+        g(script_timevcc);
         
     def learn(self):
         #Learning phase
@@ -97,17 +116,28 @@ class GoodFETGlitch(GoodFET):
         random.shuffle(voltages);
         #random.shuffle(times);
         
-        count=0; #Commit counter.
         for vcc in voltages:
-            for time in times:
-                self.scanat(trials,vcc,gnd,time)
-                sys.stdout.flush()
-                count+=trials;
-                if count>100:
-                    count=0;
-                    self.db.commit();
-                        
-
+            if not self.vccexplored(vcc):
+                print "Exploring vcc=%i" % vcc;
+                sys.stdout.flush();
+                for time in times:
+                    self.scanat(trials,vcc,gnd,time)
+                    sys.stdout.flush()
+                self.db.commit();
+            else:
+                print "Voltage %i already explored." % vcc;
+                sys.stdout.flush();
+    def vccexplored(self,vcc):
+        c=self.db.cursor();
+        c.execute("select vcc from glitches where vcc=? limit 1;",[vcc]);
+        rows=c.fetchall();
+        try:
+            c.next(); 
+            #This voltage has been explored, because no complete exception has been thrown.
+            return True;
+        except: #Voltage hasn't been explored
+            return False;
+        
     def scanat(self,trials,vcc,gnd,time):
         client=self.client;
         db=self.db;
@@ -115,8 +145,8 @@ class GoodFETGlitch(GoodFET):
         client.glitchVoltages(gnd, vcc);  #drop voltage target
         gcount=0;
         scount=0;
-        print "-- (%5i,%5i)" % (time,vcc);
-        sys.stdout.flush();
+        #print "-- (%5i,%5i)" % (time,vcc);
+        #sys.stdout.flush();
         for i in range(0,trials):
             client.glitchstart();
             

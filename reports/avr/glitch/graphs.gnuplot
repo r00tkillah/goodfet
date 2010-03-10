@@ -5,29 +5,22 @@
 set datafile separator "|"
 
 
-set title "Atmel AVR Glitching Points"
+set title "Atmel ATTiny45 Glitching Points"
 set term png
 set output 'report/timevcc.png'
 set xlabel "Time (16MHz Cycles)"
 set ylabel "Voltage (DAC12)"
-set yrange [0 to 1100]
-plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where count=0;'" \
-with dots \
+plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where count=0;'" with dots \
 title "Scanned", \
-"< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0;'" \
-with dots \
-title "Success", \
-"< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0 and lock>0;'" \
-with dots \
-title "Exploited"
-
-set term postscript enhanced color 
+"< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0;'" with dots \
+title "Success"
+set term postscript
 set output 'report/timevcc.eps'
 replot
 
 
 
-set title "Atmel AVR Glitching Metrics"
+set title "Atmel ATTiny45 Glitching Metrics"
 set term png
 set output 'report/timecount.png'
 set xlabel "Time (16MHz Cycles)"
@@ -36,12 +29,12 @@ plot "< sqlite3 glitch.db 'select time,glitchcount from glitches where count=0;'
 title "Errors", \
 "< sqlite3 glitch.db 'select time,count from glitches where count>0;'" \
 title "Success"
-set term postscript enhanced color
+set term postscript
 set output 'report/timecount.eps'
 replot
 
 
-set title "Atmel AVR Glitching Metrics"
+set title "Atmel ATTiny45 Glitching Metrics"
 set term png
 set output 'report/vcccount.png'
 set xlabel "VCC (DAC12)"
@@ -50,11 +43,11 @@ plot "< sqlite3 glitch.db 'select vcc,glitchcount from glitches where count=0;'"
 title "Errors", \
 "< sqlite3 glitch.db 'select vcc,count from glitches where count>0;'" \
 title "Success"
-set term postscript enhanced color
+set term postscript
 set output 'report/vcccount.eps'
 replot
 
-set title "Atmel AVR Glitching Metrics"
+set title "Atmel ATTiny45 Glitching Metrics"
 set term png
 set output 'report/3d.png'
 set xlabel "Time"
@@ -64,7 +57,7 @@ splot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where coun
 title "Errors", \
 "< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0 and count<100;'" \
 title "Success"
-set term postscript enhanced color
+set term postscript
 set output 'report/3d.eps'
 replot
 

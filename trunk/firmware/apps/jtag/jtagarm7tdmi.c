@@ -114,10 +114,9 @@ void jtag_reset_to_runtest_idle() {
 
 void jtag_arm_tcktock() {
   CLRTCK; 
-  PLEDOUT^=PLEDPIN; 
-  delay(5);
+  //PLEDOUT^=PLEDPIN; 
   SETTCK; 
-  PLEDOUT^=PLEDPIN;
+  //PLEDOUT^=PLEDPIN;
 }
 
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
@@ -158,9 +157,9 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
   unsigned long high = 1;
   unsigned long mask;
 
-  for (bit=(bitcount-1)/8; bit>0; bit--)
-    high <<= 8;
-  high <<= ((bitcount-1)%8);
+  for (bit=(bitcount-1)/16; bit>0; bit--)
+    high <<= 16;
+  high <<= ((bitcount-1)%16);
 
   mask = high-1;
 
@@ -216,9 +215,130 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
 
 
 
-//! push an instruction into the pipeline  - Assumes scan-chain 1 is already INTEST
-unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){               // PROVEN
+/************************************************************************
+* ARM7TDMI core has 6 primary registers to be connected between TDI/TDO
+*   * Bypass Register
+*   * ID Code Register
+*   * Scan Chain Select Register    (4 bits_lsb)
+*   * Scan Chain 0                  (64+* bits: 32_databits_lsb + ctrlbits + 32_addrbits_msb)
+*   * Scan Chain 1                  (33 bits: 32_bits + BREAKPT)
+*   * Scan Chain 2                  (38 bits: rw + 5_regbits_msb + 32_databits_msb)
+************************************************************************/
+
+
+
+/************************** Basic JTAG Verb Commands *******************************/
+//! Grab the core ID.
+unsigned long jtagarm7tdmi_idcode(){               // PROVEN
+  SHIFT_IR;
+  jtagarmtransn(ARM7TDMI_IR_IDCODE, 4, LSB, END, RETIDLE);
+  SHIFT_DR;
+  return jtagarmtransn(0,32, LSB, END, RETIDLE);
+}
+
+//!  Connect Bypass Register to TDO/TDI
+unsigned char jtagarm7tdmi_bypass(){               // PROVEN
+  SHIFT_IR;
+  return jtagarmtransn(ARM7TDMI_IR_BYPASS, 4, LSB, END, NORETIDLE);
+}
+//!  INTEST verb - do internal test
+unsigned char jtagarm7tdmi_intest() { 
+  SHIFT_IR;
+  return jtagarmtransn(ARM7TDMI_IR_INTEST, 4, LSB, END, NORETIDLE); 
+}
+
+//!  EXTEST verb
+unsigned char jtagarm7tdmi_extest() { 
+  SHIFT_IR;
+  return jtagarmtransn(ARM7TDMI_IR_EXTEST, 4, LSB, END, NORETIDLE);
+}
+
+//!  SAMPLE verb
+//unsigned long jtagarm7tdmi_sample() { 
+//  jtagarm7tdmi_ir_shift4(ARM7TDMI_IR_SAMPLE);        // ???? same here.
+//  return jtagtransn(0,32);
+//}
+
+//!  RESTART verb
+unsigned char jtagarm7tdmi_restart() { 
+  SHIFT_IR;
+  return jtagarmtransn(ARM7TDMI_IR_RESTART, 4, LSB, END, RETIDLE); 
+}
+
+//!  ARM7TDMI_IR_CLAMP               0x5
+unsigned long jtagarm7tdmi_clamp() { 
+  SHIFT_IR;
+  jtagarmtransn(ARM7TDMI_IR_CLAMP, 4, LSB, END, NORETIDLE);
+  SHIFT_DR;
+  return jtagarmtransn(0, 32, LSB, END, RETIDLE);
+}
+
+//!  ARM7TDMI_IR_HIGHZ               0x7
+unsigned char jtagarm7tdmi_highz() { 
+  SHIFT_IR;
+  return jtagarmtransn(ARM7TDMI_IR_HIGHZ, 4, LSB, END, NORETIDLE);
+}
+
+//! define ARM7TDMI_IR_CLAMPZ              0x9
+unsigned char jtagarm7tdmi_clampz() { 
+  SHIFT_IR;
+  return jtagarmtransn(ARM7TDMI_IR_CLAMPZ, 4, LSB, END, NORETIDLE);
+}
+
+
+//!  Connect the appropriate scan chain to TDO/TDI.  SCAN_N, INTEST, ENDS IN SHIFT_DR!!!!!
+unsigned long jtagarm7tdmi_scan(int chain, int testmode) {               // PROVEN
+/*
+When selecting a scan chain the “Run Test/Idle” state should never be reached, other-
+wise, when in debug state, the core will not be correctly isolated and intrusive
+commands occur. Therefore, it is recommended to pass directly from the “Update”
+state” to the “Select DR” state each time the “Update” state is reached.
+*/
+  jtagarm7tdmi_resettap();  // assume already sane?
   unsigned long retval;
+  //if (current_chain != chain) {     // breaks shit when going from idcode back to scan chain
+  SHIFT_IR;
+  jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
+  SHIFT_DR;
+  retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
+  current_chain = chain;
+  //}    else
+  //  retval = current_chain;
+  // put in test mode...
+  SHIFT_IR;
+  jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
+  return(retval);
+}
+
+
+//!  Connect the appropriate scan chain to TDO/TDI.  SCAN_N, INTEST, ENDS IN SHIFT_DR!!!!!
+unsigned long jtagarm7tdmi_scan_intest(int chain) {               // PROVEN
+  return jtagarm7tdmi_scan(chain, ARM7TDMI_IR_INTEST);
+}
+
+/*  unsigned long retval;
+  if (current_chain == chain)
+    return current_chain;
+  jtagarm7tdmi_resettap();  // assumed already sane?
+  SHIFT_IR;
+  jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
+  SHIFT_DR;
+  retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
+  current_chain = chain;
+  jtagarm7tdmi_intest();
+  //SHIFT_DR;
+  return(retval);
+}
+*/
+
+
+
+//! push an instruction into the pipeline  - Assumes scan-chain 1 is already INTEST
+unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){
+  unsigned long retval;
+  // TOTALLY TESTING: FIXME: THIS IS NOT AS IT WANTS TO BE
+  jtagarm7tdmi_scan_intest(1);
+  ////////////////////////////////////////////////////////
   SHIFT_DR;
   // if the next instruction is to run using MCLK (master clock), set TDI
   if (breakpt)
@@ -311,101 +431,11 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
 
 
 
-/************************************************************************
-* ARM7TDMI core has 6 primary registers to be connected between TDI/TDO
-*   * Bypass Register
-*   * ID Code Register
-*   * Scan Chain Select Register    (4 bits_lsb)
-*   * Scan Chain 0                  (64+* bits: 32_databits_lsb + ctrlbits + 32_addrbits_msb)
-*   * Scan Chain 1                  (33 bits: 32_bits + BREAKPT)
-*   * Scan Chain 2                  (38 bits: rw + 5_regbits_msb + 32_databits_msb)
-************************************************************************/
-
-
-
-/************************** Basic JTAG Verb Commands *******************************/
-//! Grab the core ID.
-unsigned long jtagarm7tdmi_idcode(){               // PROVEN
-  SHIFT_IR;
-  jtagarmtransn(ARM7TDMI_IR_IDCODE, 4, LSB, END, RETIDLE);
-  SHIFT_DR;
-  return jtagarmtransn(0,32, LSB, END, RETIDLE);
-}
-
-//!  Connect Bypass Register to TDO/TDI
-unsigned char jtagarm7tdmi_bypass(){               // PROVEN
-  SHIFT_IR;
-  return jtagarmtransn(ARM7TDMI_IR_BYPASS, 4, LSB, END, NORETIDLE);
-}
-//!  INTEST verb - do internal test
-unsigned char jtagarm7tdmi_intest() { 
-  SHIFT_IR;
-  return jtagarmtransn(ARM7TDMI_IR_INTEST, 4, LSB, END, NORETIDLE); 
-}
-
-//!  EXTEST verb
-unsigned char jtagarm7tdmi_extest() { 
-  SHIFT_IR;
-  return jtagarmtransn(ARM7TDMI_IR_EXTEST, 4, LSB, END, NORETIDLE);
-}
-
-//!  SAMPLE verb
-//unsigned long jtagarm7tdmi_sample() { 
-//  jtagarm7tdmi_ir_shift4(ARM7TDMI_IR_SAMPLE);        // ???? same here.
-//  return jtagtransn(0,32);
-//}
-
-//!  RESTART verb
-unsigned char jtagarm7tdmi_restart() { 
-  SHIFT_IR;
-  return jtagarmtransn(ARM7TDMI_IR_RESTART, 4, LSB, END, RETIDLE); 
-}
-
-//!  ARM7TDMI_IR_CLAMP               0x5
-unsigned long jtagarm7tdmi_clamp() { 
-  SHIFT_IR;
-  jtagarmtransn(ARM7TDMI_IR_CLAMP, 4, LSB, END, NORETIDLE);
-  SHIFT_DR;
-  return jtagarmtransn(0, 32, LSB, END, RETIDLE);
-}
-
-//!  ARM7TDMI_IR_HIGHZ               0x7
-unsigned char jtagarm7tdmi_highz() { 
-  SHIFT_IR;
-  return jtagarmtransn(ARM7TDMI_IR_HIGHZ, 4, LSB, END, NORETIDLE);
-}
-
-//! define ARM7TDMI_IR_CLAMPZ              0x9
-unsigned char jtagarm7tdmi_clampz() { 
-  SHIFT_IR;
-  return jtagarmtransn(ARM7TDMI_IR_CLAMPZ, 4, LSB, END, NORETIDLE);
-}
-
-
-//!  Connect the appropriate scan chain to TDO/TDI.  SCAN_N, INTEST, ENDS IN SHIFT_DR!!!!!
-unsigned long jtagarm7tdmi_scan_intest(int chain) {               // PROVEN
-  unsigned long retval;
-  if (current_chain == chain)
-    return current_chain;
-  jtagarm7tdmi_resettap();  // assumed already sane?
-  SHIFT_IR;
-  jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
-  SHIFT_DR;
-  retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
-  current_chain = chain;
-  jtagarm7tdmi_intest();
-  //SHIFT_DR;
-  return(retval);
-}
-
-
-
-
 /************************* ICEBreaker/EmbeddedICE Stuff ******************************/
 //! Grab debug register
 unsigned long jtagarm7tdmi_get_dbgstate() {       // ICE Debug register, *NOT* ARM register DSCR    //    PROVEN
   jtagarm7tdmi_resettap();
-  jtagarm7tdmi_scan_intest(2);                         // select ICEBreaker
+  jtagarm7tdmi_scan(2, ARM7TDMI_IR_INTEST);                         // select ICEBreaker
   return eice_read(EICE_DBGSTATUS);
 }
 
@@ -976,15 +1006,8 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     break;
   case 0xD1:          // Set Scan Chain
     jtagarm7tdmi_resettap();
-    cmddatalong[1] = jtagarm7tdmi_scan_intest(cmddataword[0]);
-    SHIFT_DR;
-    cmddatalong[0] = jtagarmtransn(cmddataword[2], 32, LSB, END, RETIDLE);
-    
-    txdata(app,verb,8);
-    break;
-  case 0xD2:          // DBGSTATE
-    cmddatalong[0] = jtagarm7tdmi_get_dbgstate();
-    txdata(app,verb,4);
+    cmddatalong[0] = test_exec(cmddatalong[0], EXECNOPARM, 0);
+    txdata(app,verb,52);
     break;
   case 0xD3:          // EXECUTE
     jtagarm7tdmi_resettap();
@@ -1027,11 +1050,11 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   case 0xDA:          // TEST MSB THROUGH CHAIN0 and CHAIN1
     jtagarm7tdmi_resettap();
     jtagarm7tdmi_scan_intest(0);
-    cmddatalong[0] = jtagarmtransn(0x41414141, 32, MSB, NOEND, NORETIDLE);
+    cmddatalong[0] = jtagarmtransn(0x41414141, 32, LSB, NOEND, NORETIDLE);
     cmddatalong[1] = jtagarmtransn(0x42424242, 32, MSB, NOEND, NORETIDLE);
     cmddatalong[2] = jtagarmtransn(0x43434343,  9, MSB, NOEND, NORETIDLE);
     cmddatalong[3] = jtagarmtransn(0x44444444, 32, MSB, NOEND, NORETIDLE);
-    cmddatalong[4] = jtagarmtransn(cmddatalong[0], 32, MSB, NOEND, NORETIDLE);
+    cmddatalong[4] = jtagarmtransn(cmddatalong[0], 32, LSB, NOEND, NORETIDLE);
     cmddatalong[5] = jtagarmtransn(cmddatalong[1], 32, MSB, NOEND, NORETIDLE);
     cmddatalong[6] = jtagarmtransn(cmddatalong[2],  9, MSB, NOEND, NORETIDLE);
     cmddatalong[7] = jtagarmtransn(cmddatalong[3], 32, MSB, END, RETIDLE);
@@ -1042,14 +1065,6 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     cmddatalong[10] = jtagarmtransn(cmddatalong[8], 32, MSB, NOEND, NORETIDLE);
     cmddatalong[11] = jtagarmtransn(cmddatalong[9],  1, MSB, END, RETIDLE);
     txdata(app,verb,48);
-    break;
-  case 0xDB:          // WHATEVER IR, READ 32
-    jtagarm7tdmi_resettap();
-    SHIFT_IR;
-    jtagarmtransn(cmddata[0], 4, LSB, END, NORETIDLE);
-    SHIFT_DR;
-    cmddatalong[0] = jtagarmtransn(cmddatalong[1], 32, LSB, END, RETIDLE);
-    txdata(app,verb,8);
     break;
     
   default:

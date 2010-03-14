@@ -30,6 +30,7 @@ class GoodFETGlitch(GoodFET):
         self.db=sqlite3.connect("glitch.db",30000);
         self.db.execute("create table if not exists glitches(time,vcc,gnd,trials,glitchcount,count,lock)");
         self.db.execute("create index if not exists glitchvcc on glitches(vcc);");
+        self.db.execute("create index if not exists glitchtime on glitches(time);");
         self.client=0;
     def setup(self,arch="avr"):
         self.client=getClient(arch);

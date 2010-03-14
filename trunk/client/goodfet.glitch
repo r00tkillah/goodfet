@@ -17,6 +17,7 @@ if(len(sys.argv)==1):
     print "Usage: %s chip verb [objects]\n" % sys.argv[0];
     print "%s avr learn" % sys.argv[0];
     print "%s avr graph" % sys.argv[0];
+    print "%s avr graphx11" % sys.argv[0];
     print """
 This populates a database, glitch.db, with a record of all attempted
 glitches.  Graphs can then be generated from the results, allowing
@@ -30,5 +31,9 @@ glitcher.setup(sys.argv[1]);
 
 if(sys.argv[2]=="learn"):
     glitcher.learn();
+
+if(sys.argv[2]=="graphx11"):
+    glitcher.graphx11();
+
 if(sys.argv[2]=="graph"):
     glitcher.graph();

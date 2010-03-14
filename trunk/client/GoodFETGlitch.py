@@ -22,6 +22,17 @@ with dots \
 title "Exploited"
 """;
 
+script_timevccrange="""
+plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where count=0;'" \
+with dots \
+title "Scanned", \
+"< sqlite3 glitch.db 'select time,vcc,count from glitches where count>0;'" \
+with dots \
+title "Success", \
+"< sqlite3 glitch.db 'select time,max(vcc),count from glitches where count=0 group by time ;'" with lines title "Max", \
+"< sqlite3 glitch.db 'select time,min(vcc),count from glitches where count>0 group by time ;'" with lines title "Min"
+""";
+
 class GoodFETGlitch(GoodFET):
     
     def __init__(self, *args, **kargs):
@@ -50,9 +61,10 @@ class GoodFETGlitch(GoodFET):
         g('set datafile separator "|"');
         
         g(script_timevcc);
+        print "^C to exit.";
         while 1==1:
             time.sleep(30);
-            g('replot');
+        #    g('replot');
 
         
     def graph(self):

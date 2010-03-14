@@ -29,6 +29,7 @@ class GoodFETGlitch(GoodFET):
         #Database connection w/ 30 second timeout.
         self.db=sqlite3.connect("glitch.db",30000);
         self.db.execute("create table if not exists glitches(time,vcc,gnd,trials,glitchcount,count,lock)");
+        self.db.execute("create index if not exists glitchvcc on glitches(vcc);");
         self.client=0;
     def setup(self,arch="avr"):
         self.client=getClient(arch);
@@ -76,7 +77,7 @@ class GoodFETGlitch(GoodFET):
         trials=1;
         lock=0;  #1 locks, 0 unlocked
         vstart=0;
-        vstop=1024;  #Could be as high as 0xFFF
+        vstop=0xfff;  #Could be as high as 0xFFF
         vstep=1;
         tstart=0;
         tstop=-1; #<0 defaults to full range
@@ -131,13 +132,9 @@ class GoodFETGlitch(GoodFET):
         c=self.db.cursor();
         c.execute("select vcc from glitches where vcc=? limit 1;",[vcc]);
         rows=c.fetchall();
-        try:
-            c.next(); 
-            #This voltage has been explored, because no complete exception has been thrown.
+        for a in rows:
             return True;
-        except: #Voltage hasn't been explored
-            return False;
-        
+        return False; 
     def scanat(self,trials,vcc,gnd,time):
         client=self.client;
         db=self.db;

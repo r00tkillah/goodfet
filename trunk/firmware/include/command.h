@@ -133,9 +133,9 @@ void cchandle(unsigned char, unsigned char, unsigned long) WEAKDEF;
 void jtaghandle(unsigned char, unsigned char, unsigned long);
 void jtag430handle(unsigned char, unsigned char, unsigned long);
 void ejtaghandle(unsigned char, unsigned char, unsigned long);
+void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len);
 
-void jtag430x2handle(unsigned char app, unsigned char verb,
-		     unsigned long len);
+void jtag430x2handle(unsigned char app, unsigned char verb, unsigned long len);
 
 void avrhandle(unsigned char app,
 	       unsigned char verb,

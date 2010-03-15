@@ -121,6 +121,7 @@ void jtag_arm_tcktock() {
 
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
 unsigned long jtagarm7tdmi_start() {
+  debugstr("_start");
   jtagsetup();
   //Known-good starting position.
   //Might be unnecessary.
@@ -141,13 +142,14 @@ unsigned long jtagarm7tdmi_start() {
   */
   delay(0xFF);
   jtagarm7tdmi_resettap();
-  current_chain = 3;
   return jtagarm7tdmi_idcode();
 }
 
 
 //! Reset TAP State Machine       
 void jtagarm7tdmi_resettap(){               // PROVEN
+  debugstr("_resettap");
+  current_chain = -1;
   jtag_reset_to_runtest_idle();
 }
 
@@ -156,6 +158,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
   unsigned int bit;
   unsigned long high = 1;
   unsigned long mask;
+  debugstr("_transn");
 
   for (bit=(bitcount-1)/16; bit>0; bit--)
     high <<= 16;
@@ -230,6 +233,8 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
 /************************** Basic JTAG Verb Commands *******************************/
 //! Grab the core ID.
 unsigned long jtagarm7tdmi_idcode(){               // PROVEN
+  debugstr("_idcode");
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   jtagarmtransn(ARM7TDMI_IR_IDCODE, 4, LSB, END, RETIDLE);
   SHIFT_DR;
@@ -238,35 +243,45 @@ unsigned long jtagarm7tdmi_idcode(){               // PROVEN
 
 //!  Connect Bypass Register to TDO/TDI
 unsigned char jtagarm7tdmi_bypass(){               // PROVEN
+  debugstr("_bypass");
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_BYPASS, 4, LSB, END, NORETIDLE);
 }
 //!  INTEST verb - do internal test
 unsigned char jtagarm7tdmi_intest() { 
+  debugstr("_intest");
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_INTEST, 4, LSB, END, NORETIDLE); 
 }
 
 //!  EXTEST verb
 unsigned char jtagarm7tdmi_extest() { 
+  debugstr("_extest");
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_EXTEST, 4, LSB, END, NORETIDLE);
 }
 
 //!  SAMPLE verb
 //unsigned long jtagarm7tdmi_sample() { 
+//  debugstr("_sample");
 //  jtagarm7tdmi_ir_shift4(ARM7TDMI_IR_SAMPLE);        // ???? same here.
 //  return jtagtransn(0,32);
 //}
 
 //!  RESTART verb
 unsigned char jtagarm7tdmi_restart() { 
+  debugstr("_restart");
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_RESTART, 4, LSB, END, RETIDLE); 
 }
 
 //!  ARM7TDMI_IR_CLAMP               0x5
 unsigned long jtagarm7tdmi_clamp() { 
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   jtagarmtransn(ARM7TDMI_IR_CLAMP, 4, LSB, END, NORETIDLE);
   SHIFT_DR;
@@ -275,12 +290,14 @@ unsigned long jtagarm7tdmi_clamp() {
 
 //!  ARM7TDMI_IR_HIGHZ               0x7
 unsigned char jtagarm7tdmi_highz() { 
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_HIGHZ, 4, LSB, END, NORETIDLE);
 }
 
 //! define ARM7TDMI_IR_CLAMPZ              0x9
 unsigned char jtagarm7tdmi_clampz() { 
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_CLAMPZ, 4, LSB, END, NORETIDLE);
 }
@@ -288,25 +305,30 @@ unsigned char jtagarm7tdmi_clampz() {
 
 //!  Connect the appropriate scan chain to TDO/TDI.  SCAN_N, INTEST, ENDS IN SHIFT_DR!!!!!
 unsigned long jtagarm7tdmi_scan(int chain, int testmode) {               // PROVEN
+  debugstr("_scan");
 /*
 When selecting a scan chain the “Run Test/Idle” state should never be reached, other-
 wise, when in debug state, the core will not be correctly isolated and intrusive
 commands occur. Therefore, it is recommended to pass directly from the “Update”
 state” to the “Select DR” state each time the “Update” state is reached.
 */
-  jtagarm7tdmi_resettap();  // assume already sane?
+  //jtagarm7tdmi_resettap();  // assume already sane?
+  if (current_chain == chain) {
+    return chain;
+  }
+
   unsigned long retval;
-  //if (current_chain != chain) {     // breaks shit when going from idcode back to scan chain
   SHIFT_IR;
   jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
   SHIFT_DR;
   retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
   current_chain = chain;
-  //}    else
-  //  retval = current_chain;
   // put in test mode...
   SHIFT_IR;
   jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
+
+  current_chain = chain;
+
   return(retval);
 }
 
@@ -316,20 +338,11 @@ unsigned long jtagarm7tdmi_scan_intest(int chain) {               // PROVEN
   return jtagarm7tdmi_scan(chain, ARM7TDMI_IR_INTEST);
 }
 
-/*  unsigned long retval;
-  if (current_chain == chain)
-    return current_chain;
-  jtagarm7tdmi_resettap();  // assumed already sane?
-  SHIFT_IR;
-  jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
-  SHIFT_DR;
-  retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
-  current_chain = chain;
-  jtagarm7tdmi_intest();
-  //SHIFT_DR;
-  return(retval);
+
+//!  Connect the appropriate scan chain to TDO/TDI.  SCAN_N, INTEST, ENDS IN SHIFT_DR!!!!!
+unsigned long jtagarm7tdmi_scan_extest(int chain) {               // PROVEN
+  return jtagarm7tdmi_scan(chain, ARM7TDMI_IR_EXTEST);
 }
-*/
 
 
 
@@ -356,10 +369,16 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){
   
   // Now shift in the 32 bits
   retval = jtagarmtransn(instr, 32, MSB, END, RETIDLE);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
-  jtag_arm_tcktock();
+  //jtag_arm_tcktock();
   return(retval);
   
 }
+
+//! push a NOP instruction into the pipeline
+unsigned long jtagarm7tdmi_nop(char breakpt){
+  return jtagarm7tdmi_nop(breakpt);
+}
+
 
 /*    stolen from ARM DDI0029G documentation, translated using ARM Architecture Reference Manual (14128.pdf)
 STR R0, [R0]; Save R0 before use
@@ -434,22 +453,22 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
 /************************* ICEBreaker/EmbeddedICE Stuff ******************************/
 //! Grab debug register
 unsigned long jtagarm7tdmi_get_dbgstate() {       // ICE Debug register, *NOT* ARM register DSCR    //    PROVEN
-  jtagarm7tdmi_resettap();
-  jtagarm7tdmi_scan(2, ARM7TDMI_IR_INTEST);                         // select ICEBreaker
+  //jtagarm7tdmi_resettap();
+  //jtagarm7tdmi_scan(2, ARM7TDMI_IR_INTEST);                         // select ICEBreaker
   return eice_read(EICE_DBGSTATUS);
 }
 
 //! Grab debug register
 unsigned long jtagarm7tdmi_get_dbgctrl() {
-  jtagarm7tdmi_resettap();
-  jtagarm7tdmi_scan_intest(2);                        // select ICEBreaker
+  //jtagarm7tdmi_resettap();
+  //jtagarm7tdmi_scan_intest(2);                        // select ICEBreaker
   return eice_read(EICE_DBGCTRL);
 }
 
 //! Update debug register
 unsigned long jtagarm7tdmi_set_dbgctrl(unsigned long bits) {
-  jtagarm7tdmi_resettap();
-  jtagarm7tdmi_scan_intest(2);                        // select ICEBreaker
+  //jtagarm7tdmi_resettap();
+  //jtagarm7tdmi_scan_intest(2);                        // select ICEBreaker
   return eice_write(EICE_DBGCTRL, bits);
 }
 
@@ -477,7 +496,7 @@ void jtagarm7tdmi_set_watchpoint0(unsigned long addr, unsigned long addrmask, un
 //!  Set and Enable Watchpoint 1
 void jtagarm7tdmi_set_watchpoint1(unsigned long addr, unsigned long addrmask, unsigned long data, unsigned long datamask, unsigned long ctrl, unsigned long ctrlmask){
   // select ICEBreaker
-  jtagarm7tdmi_scan_intest(2);
+  //jtagarm7tdmi_scan_intest(2);
   // store watchpoint info?  - not right now
   // write 0 in watchpoint 1 address
   eice_write(EICE_WP1ADDR, addr);
@@ -496,7 +515,7 @@ void jtagarm7tdmi_set_watchpoint1(unsigned long addr, unsigned long addrmask, un
 //!  Disable Watchpoint 0
 void jtagarm7tdmi_disable_watchpoint0(){
   // select ICEBreaker
-  jtagarm7tdmi_scan_intest(2);
+  //jtagarm7tdmi_scan_intest(2);
   // write 0 in watchpoint 0 control value - disables watchpoint 0
   eice_write(EICE_WP0CTRL, 0x0);
 }
@@ -504,7 +523,7 @@ void jtagarm7tdmi_disable_watchpoint0(){
 //!  Disable Watchpoint 1
 void jtagarm7tdmi_disable_watchpoint1(){
   // select ICEBreaker
-  jtagarm7tdmi_scan_intest(2);
+  //jtagarm7tdmi_scan_intest(2);
   // write 0 in watchpoint 0 control value - disables watchpoint 0
   eice_write(EICE_WP1CTRL, 0x0);
 }
@@ -517,19 +536,19 @@ void jtagarm7tdmi_disable_watchpoint1(){
 unsigned long test_exec(unsigned long instr, unsigned long parameter, unsigned char systemspeed) {
   unsigned long retval;
   // select chain 1
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
 
-  cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP,systemspeed);
+  cmddatalong[1] = jtagarm7tdmi_nop(0);
+  cmddatalong[2] = jtagarm7tdmi_nop(systemspeed);
   // write 32-bit instruction code into DR
   cmddatalong[3] = jtagarm7tdmi_instr_primitive(instr, 0);
-  cmddatalong[4] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[5] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[4] = jtagarm7tdmi_nop(0);
+  cmddatalong[5] = jtagarm7tdmi_nop(0);
   // inject long
   cmddatalong[6] = jtagarm7tdmi_instr_primitive(parameter, 0);
-  cmddatalong[7] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[8] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[9] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[7] = jtagarm7tdmi_nop(0);
+  cmddatalong[8] = jtagarm7tdmi_nop(0);
+  cmddatalong[9] = jtagarm7tdmi_nop(0);
   retval = cmddatalong[9];
 
   return(retval);
@@ -541,20 +560,20 @@ unsigned long test_exec(unsigned long instr, unsigned long parameter, unsigned c
 unsigned long jtagarm7tdmi_exec(unsigned long instr, unsigned long parameter, unsigned char systemspeed) {
   unsigned long retval;
   // select chain 1
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
 
-  cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP,systemspeed);
+  cmddatalong[1] = jtagarm7tdmi_nop(0);
+  cmddatalong[2] = jtagarm7tdmi_nop(systemspeed);
   // write 32-bit instruction code into DR
   cmddatalong[3] = jtagarm7tdmi_instr_primitive(instr, 0);
-  cmddatalong[4] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[5] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[4] = jtagarm7tdmi_nop(0);
+  cmddatalong[5] = jtagarm7tdmi_nop(0);
   // inject long
   cmddatalong[6] = jtagarm7tdmi_instr_primitive(parameter, 0);
-  cmddatalong[7] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  retval = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[9] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[8] = retval;
+  retval = jtagarm7tdmi_nop(0);
+  cmddatalong[8] = jtagarm7tdmi_nop(0);
+  cmddatalong[9] = jtagarm7tdmi_nop(0);
+  cmddatalong[7] = retval;
 
   return(retval);
 }
@@ -564,24 +583,24 @@ unsigned long jtagarm7tdmi_get_register(unsigned char reg) {
   unsigned long retval = 0, instr;
   //JTAGARM7TDMI_RESETTAP();
   // select chain 1, automatically put in INTEST
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
   instr = ARM_INSTR_STR_Rx_r14 + ((reg<<12)&0xf00);
   //retval = jtagarm7tdmi_exec(instr, 0);
   // push STR_Rx, [R14] into pipeline
-  cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_LDR_R1_r0_4, 0);
+  cmddatalong[1] = jtagarm7tdmi_instr_primitive(instr, 0);
   // push nop into pipeline - fetched
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[2] = jtagarm7tdmi_nop(0);
   // push nop into pipeline - decoded
-  cmddatalong[3] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[3] = jtagarm7tdmi_nop(0);
   // push nop into pipeline - executed 
-  cmddatalong[4] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[4] = jtagarm7tdmi_nop(0);
   // recover 32-bit word
   //retval = jtagarmtransn(0, 32, LSB, END, RETIDLE);
-  retval = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  retval = jtagarm7tdmi_nop(0);
   cmddatalong[5] = retval;
-  cmddatalong[6] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[7] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[8] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[6] = jtagarm7tdmi_nop(0);
+  cmddatalong[7] = jtagarm7tdmi_nop(0);
+  cmddatalong[8] = jtagarm7tdmi_nop(0);
   return retval;
 }
 
@@ -590,26 +609,26 @@ unsigned long jtagarm7tdmi_set_register(unsigned char reg, unsigned long val) {
   unsigned long retval = 0, instr;
   //jtagarm7tdmi_resettap();
   // select chain 1
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
   instr = ARM_INSTR_LDR_Rx_r14 + ((reg<<12)&0xf00);
   //retval = jtagarm7tdmi_exec(instr, 0);
   // push STR_Rx, [R14] into pipeline
   cmddatalong[1] = jtagarm7tdmi_instr_primitive(instr, 0);
   // push nop into pipeline - fetched
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[2] = jtagarm7tdmi_nop(0);
   // push nop into pipeline - decoded
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[2] = jtagarm7tdmi_nop(0);
   
   // push 32-bit word on data bus - execute state
   //retval = jtagarmtransn(val, 32, LSB, END, RETIDLE);
   cmddatalong[3] = jtagarm7tdmi_instr_primitive(val, 0);
   // push nop into pipeline - executed 
-  cmddatalong[4] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[4] = jtagarm7tdmi_nop(0);
   if (reg == ARM_REG_PC){
-    cmddatalong[5] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-    cmddatalong[6] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+    cmddatalong[5] = jtagarm7tdmi_nop(0);
+    cmddatalong[6] = jtagarm7tdmi_nop(0);
   }
-  retval = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  retval = jtagarm7tdmi_nop(0);
   cmddatalong[7] = retval;
   return(retval);
 }
@@ -618,27 +637,27 @@ unsigned long jtagarm7tdmi_set_register(unsigned char reg, unsigned long val) {
 
 //! Get all registers.  Return an array
 unsigned long* jtagarm7tdmi_get_registers() {
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
   cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_SKANKREGS,0);
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[3] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[4] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[5] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[6] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[7] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[8] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[9] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[10] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[11] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[12] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[13] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[14] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[15] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[16] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[17] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[18] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[19] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
-  cmddatalong[20] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[2] = jtagarm7tdmi_nop(0);
+  cmddatalong[3] = jtagarm7tdmi_nop(0);
+  cmddatalong[4] = jtagarm7tdmi_nop(0);
+  cmddatalong[5] = jtagarm7tdmi_nop(0);
+  cmddatalong[6] = jtagarm7tdmi_nop(0);
+  cmddatalong[7] = jtagarm7tdmi_nop(0);
+  cmddatalong[8] = jtagarm7tdmi_nop(0);
+  cmddatalong[9] = jtagarm7tdmi_nop(0);
+  cmddatalong[10] = jtagarm7tdmi_nop(0);
+  cmddatalong[11] = jtagarm7tdmi_nop(0);
+  cmddatalong[12] = jtagarm7tdmi_nop(0);
+  cmddatalong[13] = jtagarm7tdmi_nop(0);
+  cmddatalong[14] = jtagarm7tdmi_nop(0);
+  cmddatalong[15] = jtagarm7tdmi_nop(0);
+  cmddatalong[16] = jtagarm7tdmi_nop(0);
+  cmddatalong[17] = jtagarm7tdmi_nop(0);
+  cmddatalong[18] = jtagarm7tdmi_nop(0);
+  cmddatalong[19] = jtagarm7tdmi_nop(0);
+  cmddatalong[20] = jtagarm7tdmi_nop(0);
   return registers;
 }
 
@@ -646,19 +665,19 @@ unsigned long* jtagarm7tdmi_get_registers() {
 unsigned long jtagarm7tdmi_get_regCPSR() {
   unsigned long retval = 0;
   // select chain 1
-  cmddatalong[1] = jtagarm7tdmi_scan_intest(1);
+  //cmddatalong[1] = jtagarm7tdmi_scan_intest(1);
 
   // push STR_Rx, [R14] into pipeline
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_MRS_R0_CPSR, 0);
+  cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_MRS_R0_CPSR, 0);
   // push nop into pipeline - fetched
-  cmddatalong[3] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[2] = jtagarm7tdmi_nop(0);
   // push nop into pipeline - decoded
-  cmddatalong[4] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[3] = jtagarm7tdmi_nop(0);
   // push nop into pipeline - executed 
-  cmddatalong[5] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[4] = jtagarm7tdmi_nop(0);
   // recover 32-bit word
   retval = jtagarmtransn(0, 32, LSB, END, RETIDLE);
-  cmddatalong[6] = retval;
+  cmddatalong[5] = retval;
   return retval;
 }
 
@@ -666,19 +685,19 @@ unsigned long jtagarm7tdmi_get_regCPSR() {
 unsigned long jtagarm7tdmi_set_regCPSR(unsigned long val) {
   unsigned long retval = 0;
   // select chain 1
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
 
   // push MSR cpsr_cxsf, R0 into pipeline
   cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_MSR_cpsr_cxsf_R0, 0);
   // push nop into pipeline - fetched
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[2] = jtagarm7tdmi_nop(0);
   // push nop into pipeline - decoded
-  cmddatalong[3] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[3] = jtagarm7tdmi_nop(0);
   
   // push 32-bit word on data bus
   retval = jtagarmtransn(val, 32, LSB, END, RETIDLE);
   // push nop into pipeline - executed 
-  cmddatalong[5] = jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  cmddatalong[5] = jtagarm7tdmi_nop(0);
   cmddatalong[4] = retval;
   return(retval);
 }
@@ -687,7 +706,7 @@ unsigned long jtagarm7tdmi_set_regCPSR(unsigned long val) {
 unsigned long jtagarm7tdmi_writemem(unsigned long adr, unsigned long data){
   unsigned long r0=0, r1=-1;
   // select chain 1
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
 
   // store R0 and R1
   r0 = jtagarm7tdmi_get_register(0);
@@ -698,13 +717,13 @@ unsigned long jtagarm7tdmi_writemem(unsigned long adr, unsigned long data){
   jtagarm7tdmi_set_register(1, data);
   //retval = jtagarm7tdmi_exec(ARM_INSTR_LDR_R1_r0_4,1);
   // push nop into pipeline to "clean" it ???
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  jtagarm7tdmi_nop(0);
   // push nop into pipeline with BREAKPT set
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 1);
+  jtagarm7tdmi_nop(1);
   // push LDR R1, R0, #4 into instruction pipeline
   jtagarm7tdmi_instr_primitive(ARM_INSTR_LDR_R1_r0_4, 0);
   // push nop into pipeline
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  jtagarm7tdmi_nop(0);
   // restore R0 and R1 
   jtagarm7tdmi_set_register(1, r1);
   jtagarm7tdmi_set_register(0, r0);
@@ -717,7 +736,7 @@ unsigned long jtagarm7tdmi_readmem(unsigned long adr){
   unsigned long r0=0, r1=-1;
   int waitcount = 0xfff;
   // select chain 1
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
 
   // select chain 2
   // store R0 and R1  - not yet...
@@ -726,13 +745,13 @@ unsigned long jtagarm7tdmi_readmem(unsigned long adr){
   // write address into R0
   jtagarm7tdmi_set_register(0, adr);
   // push nop into pipeline to "clean" it ???
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  jtagarm7tdmi_nop(0);
   // push nop into pipeline with BREAKPT set
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 1);
+  jtagarm7tdmi_nop(1);
   // push LDR R1, R0, #4 into instruction pipeline
   jtagarm7tdmi_instr_primitive(ARM_INSTR_LDR_R1_r0_4, 0);
   // push nop into pipeline
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, 0);
+  jtagarm7tdmi_nop(0);
   // SHIFT_IR with RESTART instruction
   jtagarm7tdmi_restart();
   // Poll the Debug Status Register for DBGACK and nMREQ to be HIGH
@@ -804,13 +823,13 @@ unsigned long jtagarm7tdmi_releasecpu(){
   int waitcount = 0xfff;
   unsigned long instr;
   // somehow determine what PC should be (a couple ways possible, calculations required)
-  jtagarm7tdmi_scan_intest(1);
+  //jtagarm7tdmi_scan_intest(1);
   // NOP
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP,0);
+  jtagarm7tdmi_nop(0);
   // NOP/BREAKPT
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP,1);
+  jtagarm7tdmi_nop(1);
 
-  if (last_halt_debug_state & JTAG_ARM7TDMI_DBG_TBIT){      // FIXME:  FORKED.
+  if (last_halt_debug_state & JTAG_ARM7TDMI_DBG_TBIT){
     instr = ARM_INSTR_BX_PC + 0x1000000 - (count_dbgspd_instr_since_debug) - (count_sysspd_instr_since_debug*3);  //FIXME: make this right  - can't we just do an a7solute b/bx?
     jtagarm7tdmi_instr_primitive(instr,0);
   } else {
@@ -852,8 +871,10 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   unsigned int i,val;
   unsigned long at;
   
-  //jtagarm7tdmi_resettap();
- 
+  jtagarm7tdmi_resettap();
+  debugstr("Classic ARM JTAG handler.");
+
+  //PLEDOUT^=PLEDPIN; 
   switch(verb){
   case START:
     //Enter JTAG mode.
@@ -888,6 +909,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
 	jtagarm7tdmi_resettap();
     cmddatalong[0] = jtagarm7tdmi_idcode();
     txdata(app,verb,4);
+    PLEDOUT^=PLEDPIN; 
     break;
 
 

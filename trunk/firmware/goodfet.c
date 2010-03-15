@@ -93,6 +93,9 @@ void handle(unsigned char app,
   case SMARTCARD:
     smartcardhandle(app,verb,len);
     break;
+  case JTAGARM7TDMI:
+    jtagarm7tdmihandle(app,verb,len);
+    break;
   default:
     if(pluginhandle){
       pluginhandle(app,verb,len);

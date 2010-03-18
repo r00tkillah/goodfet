@@ -16,14 +16,21 @@ glitcher=GoodFETGlitch();
 if(len(sys.argv)==1):
     print "Usage: %s chip verb [objects]\n" % sys.argv[0];
     print "%s avr learn" % sys.argv[0];
+    print "%s avr explore" % sys.argv[0];
     print "%s avr graph" % sys.argv[0];
     print "%s avr graphx11" % sys.argv[0];
     print """
 This populates a database, glitch.db, with a record of all attempted
 glitches.  Graphs can then be generated from the results, allowing
 results to be replicated on different hardware and models.  The general
-sequence for a new chip is to first run 'goodfet $foo learn' for an evening,
-then to FINISHME"""
+sequence for a new chip is as follows.
+
+On a sample chip for the same model as the target,
+1) Run 'goodfet $chip learn' in order to learn the glitching voltages.
+2) Run 'goodfet $chip explore' to find a time at which to glitch.
+
+Then on a chip to be extracted,
+3) Run 'goodfet $chip exploit' to exploit a chip and recover its firmware."""
     sys.exit();
 
 
@@ -31,6 +38,10 @@ glitcher.setup(sys.argv[1]);
 
 if(sys.argv[2]=="learn"):
     glitcher.learn();
+if(sys.argv[2]=="explore"):
+    glitcher.explore();
+if(sys.argv[2]=="exploit"):
+    print "Coming soon.";
 
 if(sys.argv[2]=="graphx11"):
     glitcher.graphx11();

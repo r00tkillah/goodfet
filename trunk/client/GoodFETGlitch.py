@@ -11,8 +11,8 @@ import sqlite3;
 from GoodFET import *;
 
 
-# YScale should be to "select max(vcc) from glitches where count=0;"
-
+# After four million points, this kills 32-bit gnuplot.
+# Dumping to a bitmap might be preferable.
 script_timevcc="""
 plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where count=0;'" \
 with dots \
@@ -24,7 +24,6 @@ title "Success", \
 with dots \
 title "Exploited"
 """;
-
 script_timevccrange="""
 plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where count=0;'" \
 with dots \
@@ -42,12 +41,40 @@ class GoodFETGlitch(GoodFET):
         print "Initializing GoodFET Glitcher."
         #Database connection w/ 30 second timeout.
         self.db=sqlite3.connect("glitch.db",30000);
-        self.db.execute("create table if not exists glitches(time,vcc,gnd,trials,glitchcount,count,lock)");
+        
+        #Training
+        self.db.execute("create table if not exists glitches(time,vcc,gnd,trials,glitchcount,count,lock);");
         self.db.execute("create index if not exists glitchvcc on glitches(vcc);");
         self.db.execute("create index if not exists glitchtime on glitches(time);");
+        
+        #Exploitation record, to be built from the training table.
+        self.db.execute("create table if not exists exploits(time,vcc,gnd,trials,count);");
+        self.db.execute("create index if not exists exploitvcc on exploits(vcc);");
+        self.db.execute("create index if not exists exploittime on exploits(time);");
+        
         self.client=0;
     def setup(self,arch="avr"):
         self.client=getClient(arch);
+        self.client.serInit();
+
+    def glitchvoltages(self,time):
+        """Returns list of voltages to train at."""
+        c=self.db.cursor();
+        c.execute("""select
+                     (select min(vcc) from glitches where time=? and count=1),
+                     (select max(vcc) from glitches where time=? and count=0);""",
+                  [time, time]);
+        rows=c.fetchall();
+        for r in rows:
+            min=r[0];
+            max=r[1];
+            if(min==None or max==None): return [];
+
+            spread=max-min;
+            return range(min,max,1);
+        #If we get here, there are no points.  Return empty set.
+        return [];
+    
     def graphx11(self):
         try:
             import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils
@@ -67,15 +94,10 @@ class GoodFETGlitch(GoodFET):
         print "^C to exit.";
         while 1==1:
             time.sleep(30);
-        #    g('replot');
 
         
     def graph(self):
-        #try:
         import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils
-        #except ImportError:
-        #    print "py-gnuplot or py-numpy is missing.  Can't graph."
-        #    return;
         g = Gnuplot.Gnuplot(debug=1);
         
         g('\nset term png');
@@ -87,31 +109,41 @@ class GoodFETGlitch(GoodFET):
         g('set term png');
         g('set output "timevcc.png"');
         g(script_timevcc);
-        
+    def explore(self,tstart=0,tstop=-1, trials=5):
+        """Exploration phase.  Uses thresholds to find exploitable points."""
+        gnd=0;
+        self.scansetup(1); #Lock the chip, place key in eeprom.
+        if tstop<0:
+            tstop=self.client.glitchstarttime();
+        times=range(tstart,tstop);
+        random.shuffle(times);
+        for t in times:
+            voltages=self.glitchvoltages(t);
+            print "Exploring %04i points in t=%04i." % (len(voltages),t);
+            sys.stdout.flush();
+            for vcc in voltages:
+                self.scanat(1,trials,vcc,gnd,t);
     def learn(self):
-        #Learning phase
+        """Learning phase.  Finds thresholds at which the chip screws up."""
         trials=1;
         lock=0;  #1 locks, 0 unlocked
         vstart=0;
-        vstop=0xfff;  #Could be as high as 0xFFF
+        vstop=1024;  #Could be as high as 0xFFF, but upper range is useless
         vstep=1;
         tstart=0;
-        tstop=-1; #<0 defaults to full range
+        tstop=self.client.glitchstarttime();
         tstep=0x1; #Must be 1
-        self.scan(lock,trials,vstart,vstop,tstart,tstop);
-
-    def scan(self,lock,trials=1,vstart=0,vstop=0xfff,tstart=0,tstop=-1):
+        self.scan(lock,trials,range(vstart,vstop),range(tstart,tstop));
+        print "Learning phase complete, beginning to expore.";
+        self.explore();
+        
+    def scansetup(self,lock):
         client=self.client;
-        self.lock=lock;
-        client.serInit();
-        if tstop<0:
-            tstop=client.glitchstarttime();  #Really long; only use for initial investigation.
-            print "-- Start takes %04i cycles." % tstop;
         client.start();
         client.erase();
         
         self.secret=0x69;
-
+        
         while(client.eeprompeek(0)!=self.secret):
             print "-- Setting secret";
             client.start();
@@ -125,25 +157,29 @@ class GoodFETGlitch(GoodFET):
         #Lock chip to unlock it later.
         if lock>0:
             client.lock();
-        voltages=range(vstart,vstop,1);
-        times=range(tstart,tstop,1);
         
-        gnd=0;     #TODO, glitch GND.
-        vcc=0xfff;
+
+    def scan(self,lock,trials,voltages,times):
+        """Scan many voltages and times."""
+        client=self.client;
+        self.scansetup(lock);
+        gnd=0;
         random.shuffle(voltages);
         #random.shuffle(times);
         
         for vcc in voltages:
-            if not self.vccexplored(vcc):
+            if lock<0 and not self.vccexplored(vcc):
                 print "Exploring vcc=%i" % vcc;
                 sys.stdout.flush();
                 for time in times:
-                    self.scanat(trials,vcc,gnd,time)
+                    self.scanat(lock,trials,vcc,gnd,time)
                     sys.stdout.flush()
                 self.db.commit();
             else:
                 print "Voltage %i already explored." % vcc;
                 sys.stdout.flush();
+ 
+ 
     def vccexplored(self,vcc):
         c=self.db.cursor();
         c.execute("select vcc from glitches where vcc=? limit 1;",[vcc]);
@@ -151,7 +187,7 @@ class GoodFETGlitch(GoodFET):
         for a in rows:
             return True;
         return False; 
-    def scanat(self,trials,vcc,gnd,time):
+    def scanat(self,lock,trials,vcc,gnd,time):
         client=self.client;
         db=self.db;
         client.glitchRate(time);
@@ -165,11 +201,11 @@ class GoodFETGlitch(GoodFET):
             
             #Try to read *0, which is secret if read works.
             a=client.eeprompeek(0x0);
-            if self.lock>0: #locked
+            if lock>0: #locked
                 if(a!=0 and a!=0xFF and a!=self.secret):
                     gcount+=1;
                 if(a==self.secret):
-                    print "-- %04x: %02x HELL YEAH! " % (time, a);
+                    print "-- %06i: %02x HELL YEAH! " % (time, a);
                     scount+=1;
             else: #unlocked
                 if(a!=self.secret):
@@ -178,6 +214,11 @@ class GoodFETGlitch(GoodFET):
                     scount+=1;
         #print "values (%i,%i,%i,%i,%i);" % (
         #    time,vcc,gnd,gcount,scount);
-        self.db.execute("insert into glitches(time,vcc,gnd,trials,glitchcount,count,lock)"
+        if(lock>0):
+            self.db.execute("insert into glitches(time,vcc,gnd,trials,glitchcount,count,lock)"
                    "values (%i,%i,%i,%i,%i,%i,%i);" % (
-                time,vcc,gnd,trials,gcount,scount,self.lock));
+                time,vcc,gnd,trials,gcount,scount,lock));
+        else:
+            self.db.execute("insert into exploits(time,vcc,gnd,trials,count)"
+                   "values (%i,%i,%i,%i,%i);" % (
+                time,vcc,gnd,trials,scount));

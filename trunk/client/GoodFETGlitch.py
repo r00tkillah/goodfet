@@ -10,6 +10,9 @@ import sqlite3;
 
 from GoodFET import *;
 
+
+# YScale should be to "select max(vcc) from glitches where count=0;"
+
 script_timevcc="""
 plot "< sqlite3 glitch.db 'select time,vcc,glitchcount from glitches where count=0;'" \
 with dots \

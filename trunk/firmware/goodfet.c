@@ -158,7 +158,7 @@ int main(void)
       handle(app,verb,len);
     }else{
       //Listen to the blaberring.
-      for(i-0;i<len;i++)
+      for(i=0;i<len;i++)
 	serial_rx();
       //Reply with an error.
       debugstr("Buffer length exceeded.");

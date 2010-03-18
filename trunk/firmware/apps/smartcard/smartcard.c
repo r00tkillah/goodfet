@@ -74,4 +74,5 @@ int smartcardhandle(unsigned char app,
     debugstr("Unknown smartcard verb.");
     txdata(app,NOK,0);
   }
+  return 0;
 }

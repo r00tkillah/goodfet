@@ -34,6 +34,13 @@ Then on a chip to be extracted,
     sys.exit();
 
 
+if(sys.argv[2]=="graphx11"):
+    glitcher.graphx11();
+    exit();
+if(sys.argv[2]=="graph"):
+    glitcher.graph();
+    exit();
+
 glitcher.setup(sys.argv[1]);
 
 if(sys.argv[2]=="learn"):
@@ -43,8 +50,3 @@ if(sys.argv[2]=="explore"):
 if(sys.argv[2]=="exploit"):
     print "Coming soon.";
 
-if(sys.argv[2]=="graphx11"):
-    glitcher.graphx11();
-
-if(sys.argv[2]=="graph"):
-    glitcher.graph();

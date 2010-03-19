@@ -60,10 +60,11 @@ class GoodFETGlitch(GoodFET):
     def glitchvoltages(self,time):
         """Returns list of voltages to train at."""
         c=self.db.cursor();
-        c.execute("""select
-                     (select min(vcc) from glitches where time=? and count=1),
-                     (select max(vcc) from glitches where time=? and count=0);""",
-                  [time, time]);
+        #c.execute("""select
+        #             (select min(vcc) from glitches where time=? and count=1),
+        #             (select max(vcc) from glitches where time=? and count=0);""",
+        #          [time, time]);
+        c.execute("select min,max from glitchrange where time=? and max-min>0;",[time]);
         rows=c.fetchall();
         for r in rows:
             min=r[0];
@@ -74,7 +75,15 @@ class GoodFETGlitch(GoodFET):
             return range(min,max,1);
         #If we get here, there are no points.  Return empty set.
         return [];
-    
+    def buildglitchvoltages(self):
+        """This builds tables for glitching voltage ranges from the training set."""
+        print "Precomputing glitching ranges.  This might take a while.";
+        sys.stdout.flush();
+        self.db.execute("create temporary table glitchrange(time integer primary key asc,max,min);");
+        self.db.execute("insert into glitchrange(time,max,min) select distinct time, 0, 0 from glitches;");
+        self.db.execute("update glitchrange set max=(select max(vcc) from glitches where glitches.time=glitchrange.time and count=0);");
+        self.db.execute("update glitchrange set min=(select min(vcc) from glitches where glitches.time=glitchrange.time and count>0);");
+        
     def graphx11(self):
         try:
             import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils
@@ -117,9 +126,13 @@ class GoodFETGlitch(GoodFET):
             tstop=self.client.glitchstarttime();
         times=range(tstart,tstop);
         random.shuffle(times);
+        self.buildglitchvoltages();
+        count=0.0;
+        total=1.0*len(t);
         for t in times:
             voltages=self.glitchvoltages(t);
-            print "Exploring %04i points in t=%04i." % (len(voltages),t);
+            count=count+1.0;
+            print "%02.02f Exploring %04i points in t=%04i." % (count/total,len(voltages),t);
             sys.stdout.flush();
             for vcc in voltages:
                 self.scanat(1,trials,vcc,gnd,t);

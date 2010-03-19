@@ -121,7 +121,6 @@ void jtag_arm_tcktock() {
 
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
 unsigned long jtagarm7tdmi_start() {
-  debugstr("_start");
   jtagsetup();
   //Known-good starting position.
   //Might be unnecessary.
@@ -161,7 +160,6 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
   unsigned int bit;
   unsigned long high = 1;
   unsigned long mask;
-  debugstr("_transn");
 
   for (bit=(bitcount-1)/16; bit>0; bit--)
     high <<= 16;
@@ -265,7 +263,6 @@ unsigned char jtagarm7tdmi_extest() {
 
 //!  SAMPLE verb
 //unsigned long jtagarm7tdmi_sample() { 
-//  debugstr("_sample");
 //  jtagarm7tdmi_ir_shift4(ARM7TDMI_IR_SAMPLE);        // ???? same here.
 //  return jtagtransn(0,32);
 //}
@@ -303,7 +300,6 @@ unsigned char jtagarm7tdmi_clampz() {
 
 //!  Connect the appropriate scan chain to TDO/TDI.  SCAN_N, INTEST, ENDS IN SHIFT_DR!!!!!
 unsigned long jtagarm7tdmi_scan(int chain, int testmode) {               // PROVEN
-  debugstr("_scan");
 /*
 When selecting a scan chain the “Run Test/Idle” state should never be reached, other-
 wise, when in debug state, the core will not be correctly isolated and intrusive
@@ -322,9 +318,6 @@ state” to the “Select DR” state each time the “Update” state is reache
   // put in test mode...
   SHIFT_IR;
   jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
-
-  current_chain = chain;
-
   return(retval);
 }
 
@@ -408,7 +401,7 @@ unsigned long eice_write(unsigned char reg, unsigned long data){
   SHIFT_DR;
   retval = jtagarmtransn(data, 32, LSB, NOEND, NORETIDLE);          // send in the data - 32-bits lsb
   temp = jtagarmtransn(reg, 5, LSB, NOEND, NORETIDLE);              // send in the register address - 5 bits lsb
-  jtagarmtransn(1, 1, LSB, END, RETIDLE);              // send in the register address - 5 bits lsb
+  jtagarmtransn(1, 1, LSB, END, RETIDLE);                           // send in the WRITE bit
   
   //SETTMS;   // Last Bit - Exit UPDATE_DR
   //// is this update a read/write or just read?
@@ -640,7 +633,7 @@ unsigned long jtagarm7tdmi_get_regCPSR() {
   // push nop into pipeline - clean out the pipeline...
   cmddatalong[1] = jtagarm7tdmi_nop( 0);
   // push MRS_R0, CPSR into pipeline
-  cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_MRS_R0_CPSR, 0);
+  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_MRS_R0_CPSR, 0);
   // push nop into pipeline - fetched
   cmddatalong[3] = jtagarm7tdmi_nop( 0);
   // push nop into pipeline - decoded
@@ -649,7 +642,7 @@ unsigned long jtagarm7tdmi_get_regCPSR() {
   cmddatalong[5] = jtagarm7tdmi_nop( 0);
   // recover 32-bit word
   retval = jtagarm7tdmi_nop( 0);
-  cmddatalong[5] = retval;
+  cmddatalong[6] = retval;
   return retval;
 }
 
@@ -795,7 +788,7 @@ unsigned long jtagarm7tdmi_releasecpu(){
   // NOP/BREAKPT
   jtagarm7tdmi_nop(1);
 
-  if (last_halt_debug_state & JTAG_ARM7TDMI_DBG_TBIT){
+  if (last_halt_debug_state & JTAG_ARM7TDMI_DBG_TBIT){      // FIXME:  FORKED.
     instr = ARM_INSTR_BX_PC + 0x1000000 - (count_dbgspd_instr_since_debug) - (count_sysspd_instr_since_debug*3);  //FIXME: make this right  - can't we just do an a7solute b/bx?
     jtagarm7tdmi_instr_primitive(instr,0);
   } else {
@@ -828,16 +821,16 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   unsigned long at;
   
   jtagarm7tdmi_resettap();
-  debugstr("Classic ARM JTAG handler.");
-
-  //PLEDOUT^=PLEDPIN; 
+ 
   switch(verb){
   case START:
     //Enter JTAG mode.
     cmddatalong[0] = jtagarm7tdmi_start();
-    cmddatalong[1] = jtagarm7tdmi_haltcpu();
+    cmddatalong[2] = jtagarm7tdmi_haltcpu();
+    cmddatalong[1] = jtagarm7tdmi_get_dbgstate();
+
     //jtagarm7tdmi_resettap();
-    txdata(app,verb,0x8);
+    txdata(app,verb,0xc);
     break;
   case JTAGARM7TDMI_READMEM:
   case PEEK:
@@ -865,7 +858,6 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
 	jtagarm7tdmi_resettap();
     cmddatalong[0] = jtagarm7tdmi_idcode();
     txdata(app,verb,4);
-    PLEDOUT^=PLEDPIN; 
     break;
 
 

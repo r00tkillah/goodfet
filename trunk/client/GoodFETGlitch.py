@@ -83,12 +83,15 @@ class GoodFETGlitch(GoodFET):
         self.db.execute("drop table if exists glitchrange;");
         self.db.execute("create table glitchrange(time integer primary key asc,max,min);");
         self.db.execute("insert into glitchrange(time,max,min) select distinct time, 0, 0 from glitches;");
+        self.db.commit();
         print "Maximums...";
         sys.stdout.flush();
         self.db.execute("update glitchrange set max=(select max(vcc) from glitches where glitches.time=glitchrange.time and count=0);");
+        self.db.commit();
         print "Minimums...";
         sys.stdout.flush();
         self.db.execute("update glitchrange set min=(select min(vcc) from glitches where glitches.time=glitchrange.time and count>0);");
+        self.db.commit();
         print "Ranges calculated.";
     def graphx11(self):
         try:

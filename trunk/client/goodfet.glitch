@@ -27,7 +27,8 @@ sequence for a new chip is as follows.
 
 On a sample chip for the same model as the target,
 1) Run 'goodfet $chip learn' in order to learn the glitching voltages.
-2) Run 'goodfet $chip explore' to find a time at which to glitch.
+2) Run 'goodfet $chip crunch' in order to precompute glitching ranges.
+3) Run 'goodfet $chip explore' to find a time at which to glitch.
 
 Then on a chip to be extracted,
 3) Run 'goodfet $chip exploit' to exploit a chip and recover its firmware."""
@@ -39,6 +40,10 @@ if(sys.argv[2]=="graphx11"):
     exit();
 if(sys.argv[2]=="graph"):
     glitcher.graph();
+    exit();
+
+if(sys.argv[2]=="crunch"):
+    glitcher.crunch();
     exit();
 
 glitcher.setup(sys.argv[1]);

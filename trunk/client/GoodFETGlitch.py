@@ -75,15 +75,21 @@ class GoodFETGlitch(GoodFET):
             return range(min,max,1);
         #If we get here, there are no points.  Return empty set.
         return [];
-    def buildglitchvoltages(self):
+    def crunch(self):
         """This builds tables for glitching voltage ranges from the training set."""
-        print "Precomputing glitching ranges.  This might take a while.";
+        print "Precomputing glitching ranges.  This might take a long while.";
+        print "Times...";
         sys.stdout.flush();
-        self.db.execute("create temporary table glitchrange(time integer primary key asc,max,min);");
+        self.db.execute("drop table if exists glitchrange;");
+        self.db.execute("create table glitchrange(time integer primary key asc,max,min);");
         self.db.execute("insert into glitchrange(time,max,min) select distinct time, 0, 0 from glitches;");
+        print "Maximums...";
+        sys.stdout.flush();
         self.db.execute("update glitchrange set max=(select max(vcc) from glitches where glitches.time=glitchrange.time and count=0);");
+        print "Minimums...";
+        sys.stdout.flush();
         self.db.execute("update glitchrange set min=(select min(vcc) from glitches where glitches.time=glitchrange.time and count>0);");
-        
+        print "Ranges calculated.";
     def graphx11(self):
         try:
             import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils
@@ -126,9 +132,9 @@ class GoodFETGlitch(GoodFET):
             tstop=self.client.glitchstarttime();
         times=range(tstart,tstop);
         random.shuffle(times);
-        self.buildglitchvoltages();
+        #self.crunch();
         count=0.0;
-        total=1.0*len(t);
+        total=1.0*len(times);
         for t in times:
             voltages=self.glitchvoltages(t);
             count=count+1.0;

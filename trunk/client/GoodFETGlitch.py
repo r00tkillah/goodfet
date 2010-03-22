@@ -138,8 +138,15 @@ class GoodFETGlitch(GoodFET):
         #self.crunch();
         count=0.0;
         total=1.0*len(times);
-        for t in times:
-            voltages=self.glitchvoltages(t);
+        
+        c=self.db.cursor();
+        c.execute("select time,min,max from glitchrange where max-min>0;");
+        rows=c.fetchall();
+        for r in rows:
+            t=r[0];
+            min=r[1];
+            max=r[2];
+            voltages=range(min,max,1);
             count=count+1.0;
             print "%02.02f Exploring %04i points in t=%04i." % (count/total,len(voltages),t);
             sys.stdout.flush();

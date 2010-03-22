@@ -1,5 +1,4 @@
 /*! \file jtagarm7tdmi.h
-  \author Matthew Carpenter <matt@inguardians.com>
   \brief JTAG handler functions for the ARM7TDMI family of processors
 */
 
@@ -184,8 +183,8 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define ARM_INSTR_STM_R0_r0_r15     0x 
 #define ARM_INSTR_STMIA_R14_r0_rx   0xE88E0000      // add up to 65k to indicate which registers...
 //   #define ARM_INSTR_STMIA_R14_r0_rx   0x00008ee8      // add up to 65k to indicate which registers...
-#define ARM_INSTR_SKANKREGS         0xE88Effff      // add up to 65k to indicate which registers...
 #define ARM_STORE_MULTIPLE          ARM_INSTR_STMIA_R14_r0-rx
+#define ARM_INSTR_SKANKREGS         0xE88Effff      // add up to 65k to indicate which registers...
 
 #define ARM_INSTR_B_PC              0xea000000
 #define ARM_INSTR_BX_PC             0xe1200010      // need to set r0 to the desired address

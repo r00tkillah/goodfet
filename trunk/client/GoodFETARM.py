@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # GoodFET Client Library
 # 
-# (C) 2009 Matthew Carpenter <matt at inguardians.com>
 #
 # Good luck with alpha / beta code.
 # Contributions and bug reports welcome.

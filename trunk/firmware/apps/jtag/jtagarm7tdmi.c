@@ -1,5 +1,4 @@
 /*! \file jtagarm7tdmi.c
-  \author Matthew Carpenter <matt@inguardians.com>
   \brief ARM7TDMI JTAG (AT91R40008)
 */
 
@@ -139,7 +138,7 @@ unsigned long jtagarm7tdmi_start() {
   /*
   P5DIR &=~RST;
   */
-  delay(0xFF);
+  delay(0xF);
   jtagarm7tdmi_resettap();
   return jtagarm7tdmi_idcode();
 }
@@ -278,27 +277,27 @@ unsigned char jtagarm7tdmi_restart() {
 }
 
 //!  ARM7TDMI_IR_CLAMP               0x5
-unsigned long jtagarm7tdmi_clamp() { 
-  jtagarm7tdmi_resettap();
-  SHIFT_IR;
-  jtagarmtransn(ARM7TDMI_IR_CLAMP, 4, LSB, END, NORETIDLE);
-  SHIFT_DR;
-  return jtagarmtransn(0, 32, LSB, END, RETIDLE);
-}
+//unsigned long jtagarm7tdmi_clamp() { 
+//  jtagarm7tdmi_resettap();
+//  SHIFT_IR;
+//  jtagarmtransn(ARM7TDMI_IR_CLAMP, 4, LSB, END, NORETIDLE);
+//  SHIFT_DR;
+//  return jtagarmtransn(0, 32, LSB, END, RETIDLE);
+//}
 
 //!  ARM7TDMI_IR_HIGHZ               0x7
-unsigned char jtagarm7tdmi_highz() { 
-  jtagarm7tdmi_resettap();
-  SHIFT_IR;
-  return jtagarmtransn(ARM7TDMI_IR_HIGHZ, 4, LSB, END, NORETIDLE);
-}
+//unsigned char jtagarm7tdmi_highz() { 
+//  jtagarm7tdmi_resettap();
+//  SHIFT_IR;
+//  return jtagarmtransn(ARM7TDMI_IR_HIGHZ, 4, LSB, END, NORETIDLE);
+//}
 
 //! define ARM7TDMI_IR_CLAMPZ              0x9
-unsigned char jtagarm7tdmi_clampz() { 
-  jtagarm7tdmi_resettap();
-  SHIFT_IR;
-  return jtagarmtransn(ARM7TDMI_IR_CLAMPZ, 4, LSB, END, NORETIDLE);
-}
+//unsigned char jtagarm7tdmi_clampz() { 
+//  jtagarm7tdmi_resettap();
+//  SHIFT_IR;
+//  return jtagarmtransn(ARM7TDMI_IR_CLAMPZ, 4, LSB, END, NORETIDLE);
+//}
 
 
 //!  Connect the appropriate scan chain to TDO/TDI.  SCAN_N, INTEST, ENDS IN SHIFT_DR!!!!!
@@ -459,18 +458,12 @@ void jtagarm7tdmi_set_watchpoint0(unsigned long addr, unsigned long addrmask, un
   // store watchpoint info?  - not right now
     // FIXME: store info
 
-  // write 0 in watchpoint 0 address
-  eice_write(EICE_WP0ADDR, addr);
-  // write 0xffffffff in watchpoint 0 address mask
-  eice_write(EICE_WP0ADDRMASK, addrmask);
-  // write 0 in watchpoint 0 data
-  eice_write(EICE_WP0DATA, data);
-  // write 0xffffffff in watchpoint 0 data mask
-  eice_write(EICE_WP0DATAMASK, datamask);
-  // write 0x00000100 in watchpoint 0 control value register (enables watchpoint)
-  eice_write(EICE_WP0CTRL, ctrlmask);
-  // write 0xfffffff7 in watchpoint 0 control mask - only detect the fetch instruction
-  eice_write(EICE_WP0CTRLMASK, ctrlmask);
+  eice_write(EICE_WP0ADDR, addr);           // write 0 in watchpoint 0 address
+  eice_write(EICE_WP0ADDRMASK, addrmask);   // write 0xffffffff in watchpoint 0 address mask
+  eice_write(EICE_WP0DATA, data);           // write 0 in watchpoint 0 data
+  eice_write(EICE_WP0DATAMASK, datamask);   // write 0xffffffff in watchpoint 0 data mask
+  eice_write(EICE_WP0CTRL, ctrlmask);       // write 0x00000100 in watchpoint 0 control value register (enables watchpoint)
+  eice_write(EICE_WP0CTRLMASK, ctrlmask);   // write 0xfffffff7 in watchpoint 0 control mask - only detect the fetch instruction
 }
 
 //!  Set and Enable Watchpoint 1
@@ -478,30 +471,22 @@ void jtagarm7tdmi_set_watchpoint1(unsigned long addr, unsigned long addrmask, un
   // store watchpoint info?  - not right now
     // FIXME: store info
 
-  // write 0 in watchpoint 1 address
-  eice_write(EICE_WP1ADDR, addr);
-  // write 0xffffffff in watchpoint 1 address mask
-  eice_write(EICE_WP1ADDRMASK, addrmask);
-  // write 0 in watchpoint 1 data
-  eice_write(EICE_WP1DATA, data);
-  // write 0xffffffff in watchpoint 1 data mask
-  eice_write(EICE_WP1DATAMASK, datamask);
-  // write 0x00000100 in watchpoint 1 control value register (enables watchpoint)
-  eice_write(EICE_WP1CTRL, ctrl);
-  // write 0xfffffff7 in watchpoint 1 control mask - only detect the fetch instruction
-  eice_write(EICE_WP1CTRLMASK, ctrlmask);
+  eice_write(EICE_WP1ADDR, addr);           // write 0 in watchpoint 1 address
+  eice_write(EICE_WP1ADDRMASK, addrmask);   // write 0xffffffff in watchpoint 1 address mask
+  eice_write(EICE_WP1DATA, data);           // write 0 in watchpoint 1 data
+  eice_write(EICE_WP1DATAMASK, datamask);   // write 0xffffffff in watchpoint 1 data mask
+  eice_write(EICE_WP1CTRL, ctrl);           // write 0x00000100 in watchpoint 1 control value register (enables watchpoint)
+  eice_write(EICE_WP1CTRLMASK, ctrlmask);   // write 0xfffffff7 in watchpoint 1 control mask - only detect the fetch instruction
 }
 
 //!  Disable Watchpoint 0
 void jtagarm7tdmi_disable_watchpoint0(){
-  // write 0 in watchpoint 0 control value - disables watchpoint 0
-  eice_write(EICE_WP0CTRL, 0x0);
+  eice_write(EICE_WP0CTRL, 0x0); // write 0 in watchpoint 0 control value - disables watchpoint 0
 }
   
 //!  Disable Watchpoint 1
 void jtagarm7tdmi_disable_watchpoint1(){
-  // write 0 in watchpoint 0 control value - disables watchpoint 0
-  eice_write(EICE_WP1CTRL, 0x0);
+  eice_write(EICE_WP1CTRL, 0x0);            // write 0 in watchpoint 0 control value - disables watchpoint 0
 }
 
 
@@ -514,12 +499,10 @@ unsigned long test_exec(unsigned long instr, unsigned long parameter, unsigned c
 
   cmddatalong[1] = jtagarm7tdmi_nop( 0);
   cmddatalong[2] = jtagarm7tdmi_nop(systemspeed);
-  // write 32-bit instruction code into DR
-  cmddatalong[3] = jtagarm7tdmi_instr_primitive(instr, 0);
+  cmddatalong[3] = jtagarm7tdmi_instr_primitive(instr, 0);      // write 32-bit instruction code into DR
   cmddatalong[4] = jtagarm7tdmi_nop( 0);
   cmddatalong[5] = jtagarm7tdmi_nop( 0);
-  // inject long
-  cmddatalong[6] = jtagarm7tdmi_instr_primitive(parameter, 0);
+  cmddatalong[6] = jtagarm7tdmi_instr_primitive(parameter, 0);  // inject long
   cmddatalong[7] = jtagarm7tdmi_nop( 0);
   cmddatalong[8] = jtagarm7tdmi_nop( 0);
   cmddatalong[9] = jtagarm7tdmi_nop( 0);
@@ -536,12 +519,10 @@ unsigned long jtagarm7tdmi_exec(unsigned long instr, unsigned long parameter, un
 
   cmddatalong[1] = jtagarm7tdmi_nop( 0);
   cmddatalong[2] = jtagarm7tdmi_nop(systemspeed);
-  // write 32-bit instruction code into DR
-  cmddatalong[3] = jtagarm7tdmi_instr_primitive(instr, 0);
+  cmddatalong[3] = jtagarm7tdmi_instr_primitive(instr, 0);      // write 32-bit instruction code into DR
   cmddatalong[4] = jtagarm7tdmi_nop( 0);
   cmddatalong[5] = jtagarm7tdmi_nop( 0);
-  // inject long
-  cmddatalong[6] = jtagarm7tdmi_instr_primitive(parameter, 0);
+  cmddatalong[6] = jtagarm7tdmi_instr_primitive(parameter, 0);  // inject long
   cmddatalong[7] = jtagarm7tdmi_nop( 0);
   retval = jtagarm7tdmi_nop( 0);
   cmddatalong[9] = jtagarm7tdmi_nop( 0);
@@ -556,12 +537,12 @@ unsigned long jtagarm7tdmi_get_register(unsigned char reg) {
   // push nop into pipeline - clean out the pipeline...
   cmddatalong[2] = jtagarm7tdmi_nop( 0);
 
-  instr = ARM_READ_REG | (reg<<12);      // push STR Rx, [R14] into pipeline
+  instr = ARM_READ_REG | (reg<<12);                     // push STR Rx, [R14] into pipeline
   cmddatalong[1] = jtagarm7tdmi_instr_primitive(instr, 0);
-  cmddatalong[2] = jtagarm7tdmi_nop( 0); // push nop into pipeline - fetched
-  cmddatalong[3] = jtagarm7tdmi_nop( 0); // push nop into pipeline - decoded
-  cmddatalong[4] = jtagarm7tdmi_nop( 0); // push nop into pipeline - executed 
-  retval = jtagarm7tdmi_nop( 0);         // recover 32-bit word
+  cmddatalong[2] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
+  cmddatalong[3] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - decoded
+  cmddatalong[4] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - executed 
+  retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
   cmddatalong[5] = retval;
   cmddatalong[6] = jtagarm7tdmi_nop( 0);
   cmddatalong[7] = jtagarm7tdmi_nop( 0);

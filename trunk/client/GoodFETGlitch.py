@@ -127,7 +127,7 @@ class GoodFETGlitch(GoodFET):
         g('set term png');
         g('set output "timevcc.png"');
         g(script_timevcc);
-    def explore(self,tstart=0,tstop=-1, trials=5):
+    def explore(self,tstart=0,tstop=-1, trials=1):
         """Exploration phase.  Uses thresholds to find exploitable points."""
         gnd=0;
         self.scansetup(1); #Lock the chip, place key in eeprom.
@@ -142,6 +142,8 @@ class GoodFETGlitch(GoodFET):
         c=self.db.cursor();
         c.execute("select time,min,max from glitchrange where max-min>0;");
         rows=c.fetchall();
+        c.close();
+        random.shuffle(rows);
         for r in rows:
             t=r[0];
             min=r[1];
@@ -215,10 +217,10 @@ class GoodFETGlitch(GoodFET):
         rows=c.fetchall();
         for a in rows:
             return True;
+        c.close();
         return False; 
     def scanat(self,lock,trials,vcc,gnd,time):
         client=self.client;
-        db=self.db;
         client.glitchRate(time);
         client.glitchVoltages(gnd, vcc);  #drop voltage target
         gcount=0;
@@ -243,7 +245,7 @@ class GoodFETGlitch(GoodFET):
                     scount+=1;
         #print "values (%i,%i,%i,%i,%i);" % (
         #    time,vcc,gnd,gcount,scount);
-        if(lock>0):
+        if(lock==0):
             self.db.execute("insert into glitches(time,vcc,gnd,trials,glitchcount,count,lock)"
                    "values (%i,%i,%i,%i,%i,%i,%i);" % (
                 time,vcc,gnd,trials,gcount,scount,lock));

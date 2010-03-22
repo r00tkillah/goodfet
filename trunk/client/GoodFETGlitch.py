@@ -249,7 +249,9 @@ class GoodFETGlitch(GoodFET):
             self.db.execute("insert into glitches(time,vcc,gnd,trials,glitchcount,count,lock)"
                    "values (%i,%i,%i,%i,%i,%i,%i);" % (
                 time,vcc,gnd,trials,gcount,scount,lock));
-        else:
+        elif scount>0:
+            print "INSERTING AN EXPLOIT point, t=%i and vcc=%i" % (time,vcc);
             self.db.execute("insert into exploits(time,vcc,gnd,trials,count)"
                    "values (%i,%i,%i,%i,%i);" % (
                 time,vcc,gnd,trials,scount));
+            self.db.commit(); #Don't leave a lock open.

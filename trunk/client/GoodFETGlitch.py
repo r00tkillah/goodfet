@@ -112,8 +112,6 @@ class GoodFETGlitch(GoodFET):
         print "^C to exit.";
         while 1==1:
             time.sleep(30);
-
-        
     def graph(self):
         import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils
         g = Gnuplot.Gnuplot(debug=1);
@@ -127,6 +125,10 @@ class GoodFETGlitch(GoodFET):
         g('set term png');
         g('set output "timevcc.png"');
         g(script_timevcc);
+    
+    #GnuPlot sucks for large sets.  Switch to viewpoints soon.
+    # sqlite3 glitch.db "select time,vcc,count from glitches where count=0" | vp -l -d "|" -I
+    
     def explore(self,tstart=0,tstop=-1, trials=1):
         """Exploration phase.  Uses thresholds to find exploitable points."""
         gnd=0;

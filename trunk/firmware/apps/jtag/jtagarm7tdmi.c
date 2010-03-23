@@ -126,18 +126,30 @@ void jtag_arm_tcktock() {
   PLEDOUT^=PLEDPIN;
 }
 
+//! Set up the pins for JTAG mode.
+void armjtagsetup(){
+  P5DIR|=MOSI+SCK+TMS;
+  P5DIR&=~MISO;
+  P5OUT|=0xFFFF;
+  P5OUT=0;
+  P4DIR|=TST;
+  P2DIR|=RST;
+  msdelay(10);
+}
+
+
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
 unsigned long jtagarm7tdmi_start() {
-  jtagsetup();
+  armjtagsetup();
   //Known-good starting position.
   //Might be unnecessary.
   SETTST;
   SETRST;
   
-  delay(0xF);
+  delay(0x2);
   
   CLRRST;
-  delay(20);
+  delay(2);
   CLRTST;
 
   msdelay(10);
@@ -145,7 +157,7 @@ unsigned long jtagarm7tdmi_start() {
   /*
   P5DIR &=~RST;
   */
-  delay(0xF);
+  delay(0x2);
   jtagarm7tdmi_resettap();
   return jtagarm7tdmi_idcode();
 }
@@ -167,9 +179,9 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
   unsigned long high = 1;
   unsigned long mask;
 
-  for (bit=(bitcount-1)/16; bit>0; bit--)
-    high <<= 16;
-  high <<= ((bitcount-1)%16);
+  for (bit=(bitcount-1)/8; bit>0; bit--)
+    high <<= 8;
+  high <<= ((bitcount-1)%8);
 
   mask = high-1;
 
@@ -193,7 +205,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
       }
     }
   } else {
-    for (bit=bitcount; bit>0; bit++) {
+    for (bit = bitcount; bit > 0; bit--) {
       /* write MOSI on trailing edge of previous clock */
       if (word & high)
         {SETMOSI;}
@@ -367,6 +379,9 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){
 
 
 unsigned long jtagarm7tdmi_nop(char breakpt){
+  //jtagarm7tdmi_scan_intest(1);
+  //SHIFT_DR
+  //return jtagarmtransn(ARM_INSTR_NOP, 32, LSB, END, NORETIDLE);
   return jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, breakpt);
 }
 
@@ -392,7 +407,6 @@ unsigned long jtagarm7tdmi_setMode_ARM(){               // PROVEN
     cmddataword[4] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_BX_PC,0);
     cmddataword[5] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_NOP,0);
     cmddataword[6] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_NOP,0);
-    delay(10);
     jtagarm7tdmi_resettap();                  // seems necessary for some reason.  ugh.
   }
   return(retval);
@@ -549,6 +563,7 @@ unsigned long jtagarm7tdmi_get_register(unsigned char reg) {
   cmddatalong[2] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
   cmddatalong[3] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - decoded
   cmddatalong[4] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - executed 
+  //retval = jtagarmtransn(ARM_INSTR_NOP, 32, LSB, END, NORETIDLE); //DEBUGGING NOT FOR RESALE!
   retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
   cmddatalong[5] = retval;
   cmddatalong[6] = jtagarm7tdmi_nop( 0);
@@ -711,7 +726,7 @@ unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
 
   // poll until debug status says the cpu is in debug mode
   while (!(jtagarm7tdmi_get_dbgstate() & 0x1)   && waitcount-- > 0){
-    delay(5);
+    delay(1);
   }
   eice_write(EICE_WP1CTRL, 0x0);            // write 0 in watchpoint 0 control value - disables watchpoint 0
 
@@ -725,6 +740,7 @@ unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
   while (jtagarm7tdmi_get_dbgstate() & JTAG_ARM7TDMI_DBG_TBIT && waitcount-- > 0) {
     jtagarm7tdmi_setMode_ARM();
   }
+  jtagarm7tdmi_resettap();
   return waitcount;
 }
 
@@ -739,7 +755,7 @@ unsigned long jtagarm7tdmi_releasecpu(){
     instr = ARM_INSTR_B_PC + 0x1000001 - (count_dbgspd_instr_since_debug) - (count_sysspd_instr_since_debug*3);  //FIXME: make this right  - can't we just do an a7solute b/bx?
     jtagarm7tdmi_instr_primitive(instr,0);
   } else {
-    instr = ARM_INSTR_B_PC + 0x1000000 - (count_dbgspd_instr_since_debug) - (count_sysspd_instr_since_debug*3);  //FIXME: make this right  - can't we just do an absolute b/bx?
+    instr = ARM_INSTR_B_PC + 0x1000000 - (count_dbgspd_instr_since_debug*4) - (count_sysspd_instr_since_debug*12);
     jtagarm7tdmi_instr_primitive(instr,0);
   }
 
@@ -748,7 +764,7 @@ unsigned long jtagarm7tdmi_releasecpu(){
 
   // wait until restart-bit set in debug state register
   while ((jtagarm7tdmi_get_dbgstate() & JTAG_ARM7TDMI_DBG_DBGACK) && waitcount > 0){
-    //delay(1);
+    msdelay(1);
     waitcount --;
   }
   last_halt_debug_state = -1;
@@ -764,7 +780,7 @@ unsigned long jtagarm7tdmi_releasecpu(){
 void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len){
   register char blocks;
   
-  unsigned int i,val;
+  unsigned int i,val,mlop;
   unsigned long at;
   
   jtagarm7tdmi_resettap();
@@ -776,7 +792,12 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     cmddatalong[2] = jtagarm7tdmi_haltcpu();
     //jtagarm7tdmi_resettap();
     cmddatalong[1] = jtagarm7tdmi_get_dbgstate();
-
+    
+    // DEBUG: FIXME: NOT PART OF OPERATIONAL CODE
+    //for (mlop=2;mlop<4;mlop++){
+    //  jtagarm7tdmi_set_register(mlop, 0x43424140);
+    //} 
+    /////////////////////////////////////////////
     txdata(app,verb,0xc);
     break;
   case JTAGARM7TDMI_READMEM:
@@ -875,7 +896,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     cmddataword[0] = jtagarm7tdmi_exec(cmddataword[0], cmddataword[1], cmddata[9]);
     txdata(app,verb,80);
     break;
-  case JTAGARM7TDMI_STEP_INSTR:
+  //case JTAGARM7TDMI_STEP_INSTR:
 /*  case JTAGARM7TDMI_READ_CODE_MEMORY:
   case JTAGARM7TDMI_WRITE_FLASH_PAGE:
   case JTAGARM7TDMI_READ_FLASH_PAGE:
@@ -944,6 +965,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     cmddatalong[9] = jtagarmtransn(0x44444444,  1, MSB, NOEND, NORETIDLE);
     cmddatalong[10] = jtagarmtransn(cmddatalong[8], 32, MSB, NOEND, NORETIDLE);
     cmddatalong[11] = jtagarmtransn(cmddatalong[9],  1, MSB, END, RETIDLE);
+    jtagarm7tdmi_resettap();
     txdata(app,verb,48);
     break;
     

@@ -572,6 +572,25 @@ unsigned long jtagarm7tdmi_get_register(unsigned char reg) {
   return retval;
 }
 
+//! Retrieve a 32-bit Register value
+unsigned long test_get_register(unsigned char reg) {
+  unsigned long retval = 0, instr;
+  // push nop into pipeline - clean out the pipeline...
+  cmddatalong[2] = jtagarm7tdmi_nop( 0);
+
+  instr = ARM_WRITE_REG | (reg<<12);                     // push STR Rx, [R14] into pipeline
+  cmddatalong[1] = jtagarm7tdmi_instr_primitive(instr, 0);
+  cmddatalong[2] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
+  cmddatalong[3] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - decoded
+  cmddatalong[4] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - executed 
+  retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
+  cmddatalong[5] = retval;
+  cmddatalong[6] = jtagarm7tdmi_nop( 0);
+  cmddatalong[7] = jtagarm7tdmi_nop( 0);
+  cmddatalong[8] = jtagarm7tdmi_nop( 0);
+  return retval;
+}
+
 //! Set a 32-bit Register value
 unsigned long jtagarm7tdmi_set_register(unsigned char reg, unsigned long val) {
   unsigned long retval = 0, instr;
@@ -590,6 +609,29 @@ unsigned long jtagarm7tdmi_set_register(unsigned char reg, unsigned long val) {
     cmddatalong[7] = jtagarm7tdmi_nop( 0);
   }
   cmddatalong[8] = jtagarm7tdmi_nop( 0);
+
+  retval = cmddatalong[5];
+  return(retval);
+}
+
+//! Set a 32-bit Register value
+unsigned long test_set_register(unsigned char reg, unsigned long val) {
+  unsigned long retval = 0, instr;
+  cmddatalong[1] = jtagarm7tdmi_nop( 0); // push nop into pipeline - clean out the pipeline...
+
+  instr = ARM_READ_REG | (reg<<12);     // push LDR Rx, [R14] into pipeline
+  cmddatalong[2] = jtagarm7tdmi_instr_primitive(instr, 0);
+  
+  cmddatalong[3] = jtagarm7tdmi_instr_primitive(val+32, 0); // push 32-bit word on data bus - execute state
+  cmddatalong[4] = jtagarm7tdmi_instr_primitive(val+16, 0); // push 32-bit word on data bus - execute state
+  cmddatalong[5] = jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus - execute state
+  cmddatalong[6] = jtagarm7tdmi_instr_primitive(val-16, 0); // push 32-bit word on data bus - execute state
+
+  if (reg == ARM_REG_PC){
+    cmddatalong[7] = jtagarm7tdmi_nop( 0);
+    cmddatalong[8] = jtagarm7tdmi_nop( 0);
+  }
+  cmddatalong[9] = jtagarm7tdmi_instr_primitive(val-32, 0); // push 32-bit word on data bus - execute state
 
   retval = cmddatalong[5];
   return(retval);
@@ -876,13 +918,15 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   //case JTAGARM7TDMI_SET_WATCHPOINT:
   case JTAGARM7TDMI_GET_REGISTER:
 	jtagarm7tdmi_resettap();
-    cmddatalong[0] = jtagarm7tdmi_get_register(cmddata[0]);
+    //cmddatalong[0] = jtagarm7tdmi_get_register(cmddata[0]);
+    cmddatalong[0] = test_get_register(cmddata[0]);
     txdata(app,verb,96);
     break;
   case JTAGARM7TDMI_SET_REGISTER:
 	jtagarm7tdmi_resettap();
     cmddatalong[0] = cmddatalong[1];
-    jtagarm7tdmi_set_register(cmddata[0], cmddatalong[1]);
+    test_set_register(cmddata[0], cmddatalong[1]);
+    //jtagarm7tdmi_set_register(cmddata[0], cmddatalong[1]);
     txdata(app,verb,96);
     break;
   case JTAGARM7TDMI_GET_REGISTERS:

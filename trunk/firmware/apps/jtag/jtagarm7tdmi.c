@@ -354,6 +354,7 @@ unsigned long jtagarm7tdmi_scan_intest(int chain) {               // PROVEN
 //! push an instruction into the pipeline  - Assumes scan-chain 1 is already INTEST
 unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){
   unsigned long retval;
+  //jtagarm7tdmi_resettap();                  // FIXME: DEBUG: seems necessary for some reason.  ugh.
   jtagarm7tdmi_scan_intest(1);
 
   SHIFT_DR;
@@ -563,7 +564,6 @@ unsigned long jtagarm7tdmi_get_register(unsigned char reg) {
   cmddatalong[2] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
   cmddatalong[3] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - decoded
   cmddatalong[4] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - executed 
-  //retval = jtagarmtransn(ARM_INSTR_NOP, 32, LSB, END, NORETIDLE); //DEBUGGING NOT FOR RESALE!
   retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
   cmddatalong[5] = retval;
   cmddatalong[6] = jtagarm7tdmi_nop( 0);
@@ -691,12 +691,12 @@ unsigned long jtagarm7tdmi_readmem(unsigned long adr){
     delay(1);
     waitcount --;
   }
-  if (waitcount == 0xffff){
+  if (waitcount == 0){
     return (-1);
   } else {
     retval = jtagarm7tdmi_get_register(1);  // read memory value from R1 register
-  jtagarm7tdmi_set_register(1, r1);         // restore R0 and R1 
-  jtagarm7tdmi_set_register(0, r0);
+    jtagarm7tdmi_set_register(1, r1);         // restore R0 and R1 
+    jtagarm7tdmi_set_register(0, r0);
   }
   return retval;
 }

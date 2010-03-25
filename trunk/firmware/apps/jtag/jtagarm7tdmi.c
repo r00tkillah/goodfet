@@ -126,21 +126,10 @@ void jtag_arm_tcktock() {
   PLEDOUT^=PLEDPIN;
 }
 
-//! Set up the pins for JTAG mode.
-void armjtagsetup(){
-  P5DIR|=MOSI+SCK+TMS;
-  P5DIR&=~MISO;
-  P5OUT|=0xFFFF;
-  P5OUT=0;
-  P4DIR|=TST;
-  P2DIR|=RST;
-  msdelay(10);
-}
-
 
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
 unsigned long jtagarm7tdmi_start() {
-  armjtagsetup();
+  jtagsetup();
   //Known-good starting position.
   //Might be unnecessary.
   SETTST;
@@ -264,20 +253,20 @@ unsigned long jtagarm7tdmi_idcode(){               // PROVEN
 
 //!  Connect Bypass Register to TDO/TDI
 unsigned char jtagarm7tdmi_bypass(){               // PROVEN
-  jtagarm7tdmi_resettap();
+  //jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_BYPASS, 4, LSB, END, NORETIDLE);
 }
 //!  INTEST verb - do internal test
 unsigned char jtagarm7tdmi_intest() { 
-  jtagarm7tdmi_resettap();
+  //jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_INTEST, 4, LSB, END, NORETIDLE); 
 }
 
 //!  EXTEST verb
 unsigned char jtagarm7tdmi_extest() { 
-  jtagarm7tdmi_resettap();
+  //jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_EXTEST, 4, LSB, END, NORETIDLE);
 }
@@ -290,7 +279,7 @@ unsigned char jtagarm7tdmi_extest() {
 
 //!  RESTART verb
 unsigned char jtagarm7tdmi_restart() { 
-  jtagarm7tdmi_resettap();
+  //jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_RESTART, 4, LSB, END, RETIDLE); 
 }
@@ -351,7 +340,7 @@ unsigned long jtagarm7tdmi_scan_intest(int chain) {               // PROVEN
 
 
 
-//! push an instruction into the pipeline  - Assumes scan-chain 1 is already INTEST
+//! push an instruction into the pipeline
 unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){
   unsigned long retval;
   //jtagarm7tdmi_resettap();                  // FIXME: DEBUG: seems necessary for some reason.  ugh.
@@ -380,9 +369,6 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){
 
 
 unsigned long jtagarm7tdmi_nop(char breakpt){
-  //jtagarm7tdmi_scan_intest(1);
-  //SHIFT_DR
-  //return jtagarmtransn(ARM_INSTR_NOP, 32, LSB, END, NORETIDLE);
   return jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, breakpt);
 }
 
@@ -578,7 +564,7 @@ unsigned long test_get_register(unsigned char reg) {
   // push nop into pipeline - clean out the pipeline...
   cmddatalong[2] = jtagarm7tdmi_nop( 0);
 
-  instr = ARM_WRITE_REG | (reg<<12);                     // push STR Rx, [R14] into pipeline
+  instr = ARM_READ_REG | (reg<<12);                     // push STR Rx, [R14] into pipeline
   cmddatalong[1] = jtagarm7tdmi_instr_primitive(instr, 0);
   cmddatalong[2] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
   cmddatalong[3] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - decoded
@@ -594,21 +580,23 @@ unsigned long test_get_register(unsigned char reg) {
 //! Set a 32-bit Register value
 unsigned long jtagarm7tdmi_set_register(unsigned char reg, unsigned long val) {
   unsigned long retval = 0, instr;
-  cmddatalong[2] = jtagarm7tdmi_nop( 0); // push nop into pipeline - clean out the pipeline...
+  cmddatalong[1] = jtagarm7tdmi_nop( 0); // push nop into pipeline - clean out the pipeline...
 
   instr = ARM_WRITE_REG | (reg<<12);     // push LDR Rx, [R14] into pipeline
-  cmddatalong[1] = jtagarm7tdmi_instr_primitive(instr, 0);
-  cmddatalong[2] = jtagarm7tdmi_nop( 0); // push nop into pipeline - fetched
-  cmddatalong[3] = jtagarm7tdmi_nop( 0); // push nop into pipeline - decoded
+  cmddatalong[2] = jtagarm7tdmi_instr_primitive(instr, 0); // push nop into pipeline - fetch
+  cmddatalong[3] = jtagarm7tdmi_nop( 0); // push nop into pipeline - decode
+  cmddatalong[4] = jtagarm7tdmi_instr_primitive(val-16, 0); // push 32-bit word on data bus
+  //cmddatalong[4] = jtagarm7tdmi_nop( 0); // push nop into pipeline - execute
   
-  cmddatalong[4] = jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus - execute state
-  cmddatalong[5] = jtagarm7tdmi_nop( 0); // push nop into pipeline - executed 
+  cmddatalong[5] = jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
+  cmddatalong[6] = jtagarm7tdmi_instr_primitive(val+16, 0); // push 32-bit word on data bus
+  //cmddatalong[6] = jtagarm7tdmi_nop( 0); // push nop into pipeline - executed 
 
   if (reg == ARM_REG_PC){
-    cmddatalong[6] = jtagarm7tdmi_nop( 0);
     cmddatalong[7] = jtagarm7tdmi_nop( 0);
+    cmddatalong[8] = jtagarm7tdmi_nop( 0);
   }
-  cmddatalong[8] = jtagarm7tdmi_nop( 0);
+  cmddatalong[9] = jtagarm7tdmi_nop( 0);
 
   retval = cmddatalong[5];
   return(retval);
@@ -619,7 +607,7 @@ unsigned long test_set_register(unsigned char reg, unsigned long val) {
   unsigned long retval = 0, instr;
   cmddatalong[1] = jtagarm7tdmi_nop( 0); // push nop into pipeline - clean out the pipeline...
 
-  instr = ARM_READ_REG | (reg<<12);     // push LDR Rx, [R14] into pipeline
+  instr = ARM_WRITE_REG | (reg<<12);     // push LDR Rx, [R14] into pipeline
   cmddatalong[2] = jtagarm7tdmi_instr_primitive(instr, 0);
   
   cmddatalong[3] = jtagarm7tdmi_instr_primitive(val+32, 0); // push 32-bit word on data bus - execute state
@@ -636,6 +624,7 @@ unsigned long test_set_register(unsigned char reg, unsigned long val) {
   retval = cmddatalong[5];
   return(retval);
 }
+
 
 
 
@@ -661,6 +650,30 @@ unsigned long* jtagarm7tdmi_get_registers() {
   cmddatalong[18] = jtagarm7tdmi_nop( 0);
   cmddatalong[19] = jtagarm7tdmi_nop( 0);
   cmddatalong[20] = jtagarm7tdmi_nop( 0);
+  return registers;
+}
+
+//! Get all registers.  Return an array
+unsigned long* jtagarm7tdmi_set_registers() {
+  cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_SKANKREGS,0);
+  cmddatalong[2] = jtagarm7tdmi_nop( 0);
+  cmddatalong[3] = jtagarm7tdmi_nop( 0);
+  cmddatalong[4] = jtagarm7tdmi_instr_primitive(0x40,0);
+  cmddatalong[5] = jtagarm7tdmi_instr_primitive(0x41,0);
+  cmddatalong[6] = jtagarm7tdmi_instr_primitive(0x42,0);
+  cmddatalong[7] = jtagarm7tdmi_instr_primitive(0x43,0);
+  cmddatalong[8] = jtagarm7tdmi_instr_primitive(0x44,0);
+  cmddatalong[9] = jtagarm7tdmi_instr_primitive(0x45,0);
+  cmddatalong[10] = jtagarm7tdmi_instr_primitive(0x46,0);
+  cmddatalong[11] = jtagarm7tdmi_instr_primitive(0x47,0);
+  cmddatalong[12] = jtagarm7tdmi_instr_primitive(0x48,0);
+  cmddatalong[13] = jtagarm7tdmi_instr_primitive(0x49,0);
+  cmddatalong[14] = jtagarm7tdmi_instr_primitive(0x4a,0);
+  cmddatalong[15] = jtagarm7tdmi_instr_primitive(0x4b,0);
+  cmddatalong[16] = jtagarm7tdmi_instr_primitive(0x4c,0);
+  cmddatalong[17] = jtagarm7tdmi_instr_primitive(0x4d,0);
+  cmddatalong[18] = jtagarm7tdmi_instr_primitive(0x4e,0);
+  cmddatalong[19] = jtagarm7tdmi_instr_primitive(0x4f,0);
   return registers;
 }
 
@@ -918,23 +931,27 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   //case JTAGARM7TDMI_SET_WATCHPOINT:
   case JTAGARM7TDMI_GET_REGISTER:
 	jtagarm7tdmi_resettap();
-    //cmddatalong[0] = jtagarm7tdmi_get_register(cmddata[0]);
-    cmddatalong[0] = test_get_register(cmddata[0]);
+    cmddatalong[0] = jtagarm7tdmi_get_register(cmddata[0]);
+    //cmddatalong[0] = test_get_register(cmddata[0]);
     txdata(app,verb,96);
     break;
-  case JTAGARM7TDMI_SET_REGISTER:
+  case JTAGARM7TDMI_SET_REGISTER:           // FIXME: NOT AT ALL CORRECT, THIS IS TESTING CODE ONLY
 	jtagarm7tdmi_resettap();
     cmddatalong[0] = cmddatalong[1];
-    test_set_register(cmddata[0], cmddatalong[1]);
-    //jtagarm7tdmi_set_register(cmddata[0], cmddatalong[1]);
+    jtagarm7tdmi_set_register(cmddata[0], cmddatalong[1]);
+    //test_set_register(cmddata[0], cmddatalong[1]);
     txdata(app,verb,96);
     break;
   case JTAGARM7TDMI_GET_REGISTERS:
 	jtagarm7tdmi_resettap();
     jtagarm7tdmi_get_registers();
-    txdata(app,verb,80);
+    txdata(app,verb,200);
     break;
-  //case JTAGARM7TDMI_SET_REGISTERS:
+  case JTAGARM7TDMI_SET_REGISTERS:
+	jtagarm7tdmi_resettap();
+    jtagarm7tdmi_set_registers();
+    txdata(app,verb,200);
+    break;
   case JTAGARM7TDMI_DEBUG_INSTR:
 	jtagarm7tdmi_resettap();
     cmddataword[0] = jtagarm7tdmi_exec(cmddataword[0], cmddataword[1], cmddata[9]);

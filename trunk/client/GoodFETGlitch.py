@@ -82,17 +82,38 @@ class GoodFETGlitch(GoodFET):
         sys.stdout.flush();
         self.db.execute("drop table if exists glitchrange;");
         self.db.execute("create table glitchrange(time integer primary key asc,max,min);");
-        self.db.execute("insert into glitchrange(time,max,min) select distinct time, 0, 0 from glitches;");
         self.db.commit();
-        print "Maximums...";
+        print "Calculating ranges...";
         sys.stdout.flush();
-        self.db.execute("update glitchrange set max=(select max(vcc) from glitches where glitches.time=glitchrange.time and count=0);");
+        
+        maxes={};
+        mins={};
+        
+        c=self.db.cursor();
+        c.execute("select time,vcc,count from glitches;"); #Limit 10000 for testing.
+        progress=0;
+        for r in c:
+            progress=progress+1;
+            if progress % 1000000==0: print "%09i rows crunched." % progress;
+            t=r[0];
+            v=r[1];
+            count=r[2];
+            if count==0:
+                try: oldmax=maxes[t];
+                except: oldmax=-1;
+                if v>oldmax: maxes[t]=v;
+            elif count==1:
+                try: oldmin=mins[t];
+                except: oldmin=0x10000;
+                if v<oldmin: mins[t]=v;
+        print "List complete.  Inserting.";
+        for t in maxes:
+            max=maxes[t];
+            try: min=mins[t];
+            except: min=0;
+            self.db.execute("insert into glitchrange(time,max,min) values (?,?,?)",(t,max,min));
         self.db.commit();
-        print "Minimums...";
-        sys.stdout.flush();
-        self.db.execute("update glitchrange set min=(select min(vcc) from glitches where glitches.time=glitchrange.time and count>0);");
-        self.db.commit();
-        print "Ranges calculated.";
+        print "Done, database crunched.";
     def graphx11(self):
         try:
             import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils

@@ -1,0 +1,74 @@
+<h1>FAQ</h1>
+
+<h3>Hardware</h3>
+
+<p><i>Which model do I want?</i><br/>
+The GoodFET2x boards provide support for analog voltage glitching, a rather difficult
+technique which can expose the firmware of some microcontrollers by bypassing the
+fuse check.  If you do not need this feature, the GoodFET3x series is a lot easier to
+solder and runs the same firmware.</p>
+
+<p><i>Do I use a 47K pull-up resistor or a 74K resistor for the !RST line?</i><br/>
+74K is a typo, but anything from 1K to 100K ought to work.  The !RST pull-up
+resistor has been removed from recent models, and it can probably be omitted
+in older models.</p>
+
+<p><i>I would like a GoodFET, but I am unable to solder.  Will you send me an assembled
+unit?</i><br/>
+Unless you are willing to pay an absurd markup, it is best to build your own.  Bring
+the components to your local <a href="http://hackerspaces.org">hackerspace</a>, and
+ask a neighbor to help you out.</p>
+
+<h3>Distribution</h3>
+
+<p><i>What license does this project use?  Can I fork it, package it, or trade
+it for battle umbrellas?</i><br/>
+The GoodFET firmware and client software are 3-clause BSD licensed, and you are free to
+redistribute anything the in GoodFET repository without any unneighborly
+restrictions.</p>
+
+<p><i>Where can I get the latest version of the code?</i><br/>
+svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet
+</p>
+
+<p><i>Is a zip archive available that's just a little more stable</i><br/>
+<a href="http://goodfet.sourceforge.net/dist/goodfet.zip">http://goodfet.sourceforge.net/dist/goodfet.zip</a>
+</p>
+
+<h3>Software</h3>
+
+<p><i>Will the client run on my operating system?</i><br/>
+While the software is developed in unix, you ought to be able to run it
+under Windows with Cygwin and Python.</p>
+
+<p><i>Which python packages are required?</i><br/>
+python-serial, python-sqlite</p>
+
+<p><i>Where do I get MSPGCC?</i><br/>
+For OpenBSD, Linux, and Darwin, precompiled versions of mspgcc can be found
+<a href="http://goodserv.cis.upenn.edu/mspgcc/">here</a>.  The TinyOS builds
+are too dated, and they cannot compile the GoodFET firmware reliably.</p>
+
+<p><i>Can I install the firmware without MSPGCC?</i><br/>
+Sure.  'goodfet.bsl --fromweb' will download the most recent firmware from
+the website.</p>
+
+<h3>Development</h3>
+
+<p><i>Would you like patches for the $foo architecture?</i><br/>
+Yes!  Email travis at radiantmachines.com or join us in #goodfet
+on Freenode to discuss it.</p>
+
+<p><i>Will you write support for $foo?</i><br/>
+There's a long queue of chips to support.  Getting pushed to the front
+won't be easy.</p>
+
+<p><i>Who builds the GoodFET?</i><br/>
+The project was begun by <a href="http://travisgoodspeed.blogspot.com/">Travis
+Goodspeed</a> in early 2009.  Other neighbors contribute regularly.</p>
+
+<p><i>Can the firmware be ported?</i><br/>
+Yes.  Ports are underway for the <a href="http://zolertia.sourceforge.net/">Zolertia Z1</a>,
+Telos B, and other MSP430 devices.  In the longer term, a port is planned to the
+Chipcon 8051 radios.</p>
+

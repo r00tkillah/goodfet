@@ -83,7 +83,14 @@ PIN.11 (RTCK) JTAG retimed clock.Implemented on certain ASIC ARM implementations
 *PIN.17 (DBGRQ) Asynchronous debug request.  DBGRQ allows an external signal to force the ARM core into debug mode, should be pull down to GND.
 PIN.19 (DBGACK) Debug acknowledge. The ARM core acknowledges debug-mode inresponse to a DBGRQ input.
 
+
+-----------  SAMPLE TIMES  -----------
+
+TDI and TMS are sampled on the rising edge of TCK and TDO transitions appear on the falling edge of TCK. Therefore, TDI and TMS must be written after the falling edge of TCK and TDO must be read after the rising edge of TCK.
+
+for this module, we keep tck high for all changes/sampling, and then bounce it.
 ****************************************************************/
+
 
 
 /************************** JTAGARM7TDMI Primitives ****************************/
@@ -565,11 +572,11 @@ unsigned long test_get_register(unsigned char reg) {
   cmddatalong[2] = jtagarm7tdmi_nop( 0);
 
   instr = ARM_READ_REG | (reg<<12);                     // push STR Rx, [R14] into pipeline
-  cmddatalong[1] = jtagarm7tdmi_instr_primitive(instr, 0);
-  cmddatalong[2] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
-  cmddatalong[3] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - decoded
-  cmddatalong[4] = jtagarm7tdmi_nop( 0);                // push nop into pipeline - executed 
-  retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
+  cmddatalong[1] = jtagarm7tdmi_instr_primitive(instr, 0);      // fetch
+  cmddatalong[2] = jtagarm7tdmi_nop( 0);                        // decode
+  cmddatalong[3] = jtagarm7tdmi_nop( 0);                        // execute
+  cmddatalong[4] = jtagarm7tdmi_nop( 0);                        // ??? what happens here ???
+  retval = jtagarm7tdmi_nop( 0);                                // recover 32-bit word
   cmddatalong[5] = retval;
   cmddatalong[6] = jtagarm7tdmi_nop( 0);
   cmddatalong[7] = jtagarm7tdmi_nop( 0);
@@ -1034,3 +1041,297 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     jtaghandle(app,verb,len);
   }
 }
+
+
+
+
+/*****************************
+Captured from FlySwatter against AT91SAM7S, to be used by me for testing.  ignore
+
+> arm reg
+System and User mode registers
+      r0: 300000df       r1: 00000000       r2: 58000000       r3: 00200a75
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 000000fc
+    cpsr: 00000093
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000000 spsr_abt: e00000ff
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df
+> 
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Supervisor
+cpsr: 0x00000093 pc: 0x00000100
+System and User mode registers
+      r0: 300000df       r1: 00000000       r2: 00200000       r3: 00200a75 
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c 
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000 
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000100 
+    cpsr: 00000093 
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000 
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb 
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3 
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000000 spsr_abt: e00000ff 
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b 
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df 
+> 
+ step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75 
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c 
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000 
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010 
+    cpsr: 00000097 
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000 
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb 
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3 
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093 
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b 
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df 
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75 
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c 
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000 
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010 
+    cpsr: 00000097 
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000 
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb 
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3 
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093 
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b 
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df 
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010
+    cpsr: 00000097
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010
+    cpsr: 00000097
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010
+    cpsr: 00000097
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010
+    cpsr: 00000097
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010
+    cpsr: 00000097
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010
+    cpsr: 00000097
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df
+> step;arm reg
+target state: halted
+target halted in ARM state due to single-step, current mode: Abort
+cpsr: 0x00000097 pc: 0x00000010
+System and User mode registers
+      r0: 300000e3       r1: 00000000       r2: 00200000       r3: 00200a75
+      r4: fffb0000       r5: 00000002       r6: 00000000       r7: 00200f6c
+      r8: 00000000       r9: 00000000      r10: ffffffff      r11: 00000000
+     r12: 00000009   sp_usr: 00000000   lr_usr: 00000000       pc: 00000010
+    cpsr: 00000097
+
+FIQ mode shadow registers
+  r8_fiq: 00000000   r9_fiq: fffcc000  r10_fiq: fffff400  r11_fiq: fffff000
+ r12_fiq: 00200f44   sp_fiq: 00000000   lr_fiq: 00000000 spsr_fiq: f00000fb
+
+Supervisor mode shadow registers
+  sp_svc: 00201f78   lr_svc: 00200a75 spsr_svc: 400000b3
+
+Abort mode shadow registers
+  sp_abt: 00000000   lr_abt: 00000108 spsr_abt: 00000093
+
+IRQ mode shadow registers
+  sp_irq: 00000000   lr_irq: 00000000 spsr_irq: f000003b
+
+Undefined instruction mode shadow registers
+  sp_und: 00000000   lr_und: 00000000 spsr_und: 300000df
+>
+

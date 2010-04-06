@@ -1,0 +1,34 @@
+#Make sure that you've installed the following:
+# XCode
+# MacPorts
+# FTDI Virtual COM Driver
+
+#Now install some ports.
+sudo port install py26-serial python_select wget subversion
+
+# Code
+mkdir -p ~/svn; cd /svn
+svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet
+
+# Client
+cd ~/svn/goodfet/trunk/client
+sudo make link
+
+# Python, other tools.
+sudo python_select python26
+
+# Load firmware, not yet building it locally.
+goodfet.bsl --fromweb
+goodfet.monitor test
+
+
+# Now that we've got it working, let's
+# install the compiler for building firmware.
+sudo mkdir -p /opt
+cd /opt
+curl http://goodserv.cis.upenn.edu/mspgcc/mspgcc-osx.tar.bz2 | sudo tar -xjv
+# Add it to the $PATH.
+echo 'export PATH=/opt/mspgcc/bin:$PATH' >~/.profile
+
+# And then build the firmware
+cd ~/svn/goodfet/trunk/firmware

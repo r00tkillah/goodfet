@@ -31,6 +31,9 @@ app= goodfet
 
 all: $(app).hex
 
+lib/.o:
+	./configure
+	false
 lib/RUNCONFIG.o:
 	./configure
 	false

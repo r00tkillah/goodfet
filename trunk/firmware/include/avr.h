@@ -34,7 +34,7 @@ u8 avr_pokeeeprom(u16 adr, u8 val);
 u8 avr_isready();
 
 //Command codes.
-//! Performa  chip erase.
+//! Perform a chip erase.
 #define AVR_ERASE 0xF0
 //! Fetch RDY/!BSY byte.
 #define AVR_RDYBSY 0xF1

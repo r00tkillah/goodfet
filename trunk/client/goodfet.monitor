@@ -20,7 +20,7 @@ if(len(sys.argv)==1):
     print "%s exec '0x35 0x00 0x..'" % sys.argv[0];
     sys.exit();
 
-#Initailize FET and set baud rate
+#Initialize FET and set baud rate
 client=GoodFET();
 client.serInit()
 

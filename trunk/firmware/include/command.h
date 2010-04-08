@@ -126,6 +126,19 @@ void delay(unsigned int count);
 void msdelay(unsigned int ms);
 
 
+//! Prepare Timer A; call before using delay_ms or delay_us.
+void prep_timer();
+
+//! Delay for specified number of milliseconds (given 16 MHz clock)
+void delay_ms( unsigned int ms );
+
+//! Delay for specified number of microseconds (given 16 MHz clock)
+void delay_us( unsigned int us );
+
+//! Delay for specified number of clock ticks (16 MHz clock implies 62.5 ns per tick).
+void delay_ticks( unsigned int num_ticks );
+
+
 void monitorhandle(unsigned char, unsigned char, unsigned long);
 void spihandle(unsigned char, unsigned char, unsigned long);
 void i2chandle(unsigned char, unsigned char, unsigned long) WEAKDEF;
@@ -143,3 +156,7 @@ void avrhandle(unsigned char app,
 int smartcardhandle(unsigned char app,
 		    unsigned char verb,
 		    unsigned int len);
+
+void pichandle( unsigned char app,
+				unsigned char verb,
+				unsigned long len );

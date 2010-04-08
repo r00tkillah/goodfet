@@ -47,6 +47,13 @@ class SymbolTable:
 
 class GoodFET:
     """GoodFET Client Library"""
+
+    besilent=0;
+    app=0;
+    verb=0;
+    count=0;
+    data="";
+    verbose=False
     
     GLITCHAPP=0x71;
     symbols=SymbolTable();
@@ -60,7 +67,7 @@ class GoodFET:
         return self.symbols.get(name);
     def timeout(self):
         print "timeout\n";
-    def serInit(self, port=None):
+    def serInit(self, port=None, timeout=None):
         """Open the serial port"""
         
         if port is None and os.environ.get("GOODFET")!=None:
@@ -80,11 +87,9 @@ class GoodFET:
             port,
             #9600,
             115200,
-            parity = serial.PARITY_NONE
+            parity = serial.PARITY_NONE,
+            timeout=timeout
             )
-        
-        #This might cause problems, but it makes failure graceful.
-        #self.serialport._timeout = 5;
         
         #Explicitly set RTS and DTR to halt board.
         self.serialport.setRTS(1);
@@ -116,6 +121,9 @@ class GoodFET:
         #little endian 16-bit length
         self.serialport.write(chr(count&0xFF));
         self.serialport.write(chr(count>>8));
+
+        if self.verbose:
+            print "Tx: ( 0x%02x, 0x%02x, 0x%04x )" % ( app, verb, count )
         
         #print "count=%02x, len(data)=%04x" % (count,len(data));
         
@@ -128,34 +136,39 @@ class GoodFET:
             outstr=''.join(data);
             self.serialport.write(outstr);
         if not self.besilent:
-            self.readcmd();
-        
-    besilent=0;
-    app=0;
-    verb=0;
-    count=0;
-    data="";
+            return self.readcmd()
+        else:
+            return []
 
     def readcmd(self):
         """Read a reply from the GoodFET."""
-        while 1:
-            #print "Reading...";
-            self.app=ord(self.serialport.read(1));
-            #print "APP=%2x" % self.app;
-            self.verb=ord(self.serialport.read(1));
-            #print "VERB=%02x" % self.verb;
-            self.count=(
-                ord(self.serialport.read(1))
-                +(ord(self.serialport.read(1))<<8)
-                );
+        while 1:#self.serialport.inWaiting(): # Loop while input data is available
+            try:
+                #print "Reading...";
+                self.app=ord(self.serialport.read(1));
+                #print "APP=%2x" % self.app;
+                self.verb=ord(self.serialport.read(1));
+                #print "VERB=%02x" % self.verb;
+                self.count=(
+                    ord(self.serialport.read(1))
+                    +(ord(self.serialport.read(1))<<8)
+                    );
+
+                if self.verbose:
+                    print "Rx: ( 0x%02x, 0x%02x, 0x%04x )" % ( self.app, self.verb, self.count )
             
-            #Debugging string; print, but wait.
-            if self.app==0xFF and self.verb==0xFF:
-                print "# DEBUG %s" % self.serialport.read(self.count);
-                sys.stdout.flush();
-            else:
-                self.data=self.serialport.read(self.count);
-                return self.data;
+                #Debugging string; print, but wait.
+                if self.app==0xFF and self.verb==0xFF:
+                    print "# DEBUG %s" % self.serialport.read(self.count);
+                    sys.stdout.flush();
+                    return []
+                else:
+                    self.data=self.serialport.read(self.count);
+                    return self.data;
+            except TypeError:
+                print "Error: waiting for serial read timed out (most likely)."
+                sys.exit(-1)
+
     #Glitching stuff.
     def glitchApp(self,app):
         """Glitch into a device by its application."""

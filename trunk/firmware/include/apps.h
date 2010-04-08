@@ -14,6 +14,8 @@
 #define AVR 0x32
 #define JTAGARM7TDMI 0x33
 
+#define PIC 0x34
+
 #define OCT 0x70
 #define GLITCH 0x71
 #define PLUGIN 0x72

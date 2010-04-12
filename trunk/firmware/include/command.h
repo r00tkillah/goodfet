@@ -115,10 +115,14 @@ void txlong(unsigned long l);
 //! Transmit a word.
 void txword(unsigned int l);
 
+//! Transmit a debug sequence of bytes
+void debugbytes(const char *bytes, unsigned int len);
 //! Transmit a debug string.
 void debugstr(const char *str);
 //! brief Debug a hex word string.
 void debughex(u16 v);
+//! brief Debug a hex long string.
+void debughex32(u32 v);
 
 //! Delay for a count.
 void delay(unsigned int count);

@@ -7,6 +7,7 @@
 #
 
 import sys, binascii, struct
+import atlasutils.smartprint as asp
 
 #Global Commands
 READ  = 0x00
@@ -151,30 +152,34 @@ class GoodFETARM(GoodFET):
     def ARMget_register(self, reg):
         """Get an ARM's Register"""
         self.writecmd(0x33,GET_REGISTER,1,[reg&0xff])
-        print "DEBUG:GET_REGISTER: %s"%repr(self.data)
+        print "DEBUG:GET_REGISTER: %s"%asp.hexText(self.data)
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMset_register(self, reg, val):
         """Get an ARM's Register"""
-        self.writecmd(0x33,GET_REGISTER,8,[reg,0,0,0,val>>24, (val>>16)&0xff, (val>>8)&0xff, val&0xff])
-        print "DEBUG:SET_REGISTER: %s"%repr(self.data)
+        self.writecmd(0x33,GET_REGISTER,20,[reg,0,0,0,val>>24, (val>>16)&0xff, (val>>8)&0xff, val&0xff,9,8,7,6,5,4,3,2,1,0,2,3])
+        print "DEBUG:SET_REGISTER: %s"%asp.hexText(self.data)
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMget_registers(self):
         """Get an ARM's Register"""
-        self.writecmd(0x33,GET_REGISTERS,0,[])
-        print "DEBUG:GET_REGISTER: %s"%repr(self.data)
+        clear = [x for x in range(20)]
+        self.writecmd(0x33,GET_REGISTERS,20,clear)
+        print "DEBUG:GET_REGISTER: %s"%asp.hexText(self.data)
+        retval = []
+        for x in range(0,len(self.data), 4):
+          retval.append(struct.unpack("<L", self.data[x:x+4])[0])
         #retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMset_registers(self, regs):
         """Get an ARM's Register"""
         regarry = []
         for reg in regs:
-          regarray.merge([reg>>24, (reg>>16)&0xff, (reg>>8)&0xff, reg&0xff])
-        self.writecmd(0x33,GET_REGISTER,16*4,regarray)
-        print "DEBUG:SET_REGISTER: %s"%repr(self.data)
-        retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
-        return retval
+          regarry.extend([reg>>24, (reg>>16)&0xff, (reg>>8)&0xff, reg&0xff])
+        self.writecmd(0x33,GET_REGISTER,16*4,regarry)
+        print "DEBUG:SET_REGISTER: %s"%asp.hexText(self.data)
+        #retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
+        #return retval
     def ARMcmd(self,phrase):
         self.writecmd(0x33,READ,len(phrase),phrase)
         val=ord(self.data[0])

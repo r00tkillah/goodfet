@@ -8,6 +8,8 @@
 import sys, time, string, cStringIO, struct, glob, serial, os;
 import sqlite3;
 
+fmt = ("B", "<H", None, "<L")
+
 def getClient(name="GoodFET"):
     import GoodFET, GoodFETCC, GoodFETAVR, GoodFETSPI, GoodFETMSP430;
     if(name=="GoodFET" or name=="monitor"): return GoodFET.GoodFET();
@@ -159,10 +161,12 @@ class GoodFET:
                     print "Rx: ( 0x%02x, 0x%02x, 0x%04x )" % ( self.app, self.verb, self.count )
             
                 #Debugging string; print, but wait.
-                if self.app==0xFF and self.verb==0xFF:
-                    print "# DEBUG %s" % self.serialport.read(self.count);
+                if self.app==0xFF:
+                    if self.verb==0xFF:
+                        print "# DEBUG %s" % self.serialport.read(self.count)
+               	    elif self.verb==0xFE:
+                        print "# DEBUG 0x%x" % struct.unpack(fmt[self.count-1], self.serialport.read(self.count))[0]
                     sys.stdout.flush();
-                    return []
                 else:
                     self.data=self.serialport.read(self.count);
                     return self.data;

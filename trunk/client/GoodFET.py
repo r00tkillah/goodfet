@@ -103,7 +103,8 @@ class GoodFET:
         #time.sleep(1);
         self.readcmd(); #Read the first command.
         if(self.verb!=0x7F):
-            print "Verb %02x is wrong.  Incorrect firmware?" % self.verb;
+            print "Verb %02x is wrong.  Incorrect firmware or bad Info guess?" % self.verb;
+            print "http://goodfet.sf.net/faq/";
         #print "Connected."
     def getbuffer(self,size=0x1c00):
         writecmd(0,0xC2,[size&0xFF,(size>>16)&0xFF]);

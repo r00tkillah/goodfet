@@ -1,5 +1,18 @@
 <h1>FAQ</h1>
 
+<h3>BSL</h3>
+
+<p><i>What does ``Verb FF is wrong.  Incorrect firmware or bad Info guess?'' mean?</i><br/>
+See Travis Goodspeed's blog post on the
+<a href="http://travisgoodspeed.blogspot.com/2009/10/msp430-info-flash.html">MSP430
+Info Flash</a> for a full explanation of how the GoodFET guesses at timing
+values when no crystal is available.  The default values ought to work for
+most models, but when they don't work you will get this error message.
+To get around this, run ``goodfet.bsl -e -p $foo; goodfet.bsl -p
+<a href="http://goodfet.sourceforge.net/dist/">goodfet.hex</a>'' for each *.txt
+in contrib/infos of the subversion repository.
+</p>
+
 <h3>Hardware</h3>
 
 <p><i>Which model do I want?</i><br/>

@@ -15,7 +15,6 @@
 
 
 
-unsigned long registers[16];   // constant array 
 unsigned char current_chain;
 unsigned char last_halt_debug_state = -1;
 unsigned long last_halt_pc = -1;
@@ -42,7 +41,7 @@ unsigned long jtagarm7tdmi_haltcpu();
 unsigned long jtagarm7tdmi_releasecpu();
 
 //! Set the program counter.
-unsigned long jtagarm7tdmi_setpc(unsigned long adr);
+void jtagarm7tdmi_setpc(unsigned long adr);
 
 //! Write data to address.
 unsigned long jtagarm7tdmi_writeflash(unsigned long adr, unsigned long data);
@@ -170,28 +169,28 @@ The least significant bit of the instruction register is scanned in and scanned 
 
 // for deeper understanding, read the instruction cycle timing section of: 
 //      http://www.atmel.com/dyn/resources/prod_documents/DDI0029G_7TDMI_R3_trm.pdf
-#define EXECNOPARM                  0xe1a00000
-#define ARM_INSTR_NOP               0xe1a00000
-#define ARM_INSTR_STR_Rx_r14        0xe58e0000
+#define EXECNOPARM                  0xe1a00000L
+#define ARM_INSTR_NOP               0xe1a00000L
+#define ARM_INSTR_STR_Rx_r14        0xe58e0000L
 #define ARM_READ_REG                ARM_INSTR_STR_Rx_r14
-#define ARM_INSTR_LDR_Rx_r14        0xe59e0000
+#define ARM_INSTR_LDR_Rx_r14        0xe59e0000L
 #define ARM_WRITE_REG               ARM_INSTR_LDR_Rx_r14
-#define ARM_INSTR_LDR_R1_r0_4       0xe4901004
+#define ARM_INSTR_LDR_R1_r0_4       0xe4901004L
 #define ARM_READ_MEM                ARM_INSTR_LDR_R1_r0_4
-#define ARM_INSTR_MRS_R0_CPSR       0xf10f0000
-#define ARM_INSTR_MSR_cpsr_cxsf_R0  0xe12ff000
-#define ARM_INSTR_STM_R0_r0_r15     0x 
-#define ARM_INSTR_STMIA_R14_r0_rx   0xE88E0000      // add up to 65k to indicate which registers...
+#define ARM_INSTR_MRS_R0_CPSR       0xf10f0000L
+#define ARM_INSTR_MSR_cpsr_cxsf_R0  0xe12ff000L
+#define ARM_INSTR_STMIA_R14_r0_rx   0xE88E0000L      // add up to 65k to indicate which registers...
 #define ARM_STORE_MULTIPLE          ARM_INSTR_STMIA_R14_r0-rx
-#define ARM_INSTR_SKANKREGS         0xE88Effff
-#define ARM_INSTR_CLOBBEREGS        0xE88Effff
+#define ARM_INSTR_SKANKREGS1        0xE88E00ffL
+#define ARM_INSTR_SKANKREGS2        0xE88Eff00L
+#define ARM_INSTR_CLOBBEREGS        0xE89EffffL
 
-#define ARM_INSTR_B_PC              0xea000000
-#define ARM_INSTR_BX_PC             0xe1200010      // need to set r0 to the desired address
-#define THUMB_INSTR_STR_R0_r0       0x60006000
-#define THUMB_INSTR_MOV_R0_PC       0x46b846b8
-#define THUMB_INSTR_BX_PC           0x47784778
-#define THUMB_INSTR_NOP             0x1c001c00
+#define ARM_INSTR_B_PC              0xea000000L
+#define ARM_INSTR_BX_PC             0xe1200010L      // need to set r0 to the desired address
+#define THUMB_INSTR_STR_R0_r0       0x60006000L
+#define THUMB_INSTR_MOV_R0_PC       0x46b846b8L
+#define THUMB_INSTR_BX_PC           0x47784778L
+#define THUMB_INSTR_NOP             0x1c001c00L
 #define ARM_REG_PC                  15
 
 #define JTAG_ARM7TDMI_DBG_DBGACK    1

@@ -74,7 +74,7 @@ class GoodFETARM(GoodFET):
     def ARMtest(self):
         self.ARMreleasecpu()
         self.ARMhaltcpu()
-        #print "Status: %s" % self.ARMstatusstr()
+        print "Status: %s" % self.ARMstatusstr()
         
         #Grab ident three times, should be equal.
         ident1=self.ARMident()
@@ -84,9 +84,27 @@ class GoodFETARM(GoodFET):
             print "Error, repeated ident attempts unequal."
             print "%04x, %04x, %04x" % (ident1, ident2, ident3)
         
+        #Set and Check Registers
+        regs = [1024+x for x in range(1,15)]
+        regr = []
+        for x in range(len(regs)):
+            self.ARMset_register(x, regs[x])
+
+        for x in range(len(regs)):
+            regr.append(self.ARMget_register(x))
+        
+        for x in range(len(regs)):
+            if regs[x] != regr[x]:
+                print "Error, R%d fail: %x != %x"%(x,regs[x],regr[x])
+
+        return
+
+
+
+
         #Single step, printing PC.
         print "Tracing execution at startup."
-        for i in range(1,15):
+        for i in range(15):
             pc=self.ARMgetPC()
             byte=self.ARMpeekcodebyte(i)
             #print "PC=%04x, %02x" % (pc, byte)
@@ -116,8 +134,6 @@ class GoodFETARM(GoodFET):
         self.writecmd(0x33,SETUP,0,self.data)
     def ARMget_dbgstate(self):
         """Read the config register of an ARM."""
-        self.writecmd(0x33,GET_DEBUG_STATE,0,self.data)
-        print "DEBUGGING get_dbgstate:  %s"%repr(self.data)
         retval = struct.unpack("<L", self.data[:4])[0]
         return retval
     def ARMget_dbgctrl(self):
@@ -152,34 +168,29 @@ class GoodFETARM(GoodFET):
     def ARMget_register(self, reg):
         """Get an ARM's Register"""
         self.writecmd(0x33,GET_REGISTER,1,[reg&0xff])
-        print "DEBUG:GET_REGISTER: %s"%asp.hexText(self.data)
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMset_register(self, reg, val):
         """Get an ARM's Register"""
-        self.writecmd(0x33,GET_REGISTER,20,[reg,0,0,0,val>>24, (val>>16)&0xff, (val>>8)&0xff, val&0xff,9,8,7,6,5,4,3,2,1,0,2,3])
-        print "DEBUG:SET_REGISTER: %s"%asp.hexText(self.data)
+        self.writecmd(0x33,SET_REGISTER,8,[reg,0,0,0,val&0xff, (val>>8)&0xff, (val>>16)&0xff, val>>24])
+        #self.writecmd(0x33,SET_REGISTER,8,[reg,0,0,0, (val>>16)&0xff, val>>24, val&0xff, (val>>8)&0xff])
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMget_registers(self):
-        """Get an ARM's Register"""
-        clear = [x for x in range(20)]
-        self.writecmd(0x33,GET_REGISTERS,20,clear)
-        print "DEBUG:GET_REGISTER: %s"%asp.hexText(self.data)
+        """Get ARM Registers"""
+        self.writecmd(0x33,GET_REGISTERS,0, [])
         retval = []
         for x in range(0,len(self.data), 4):
           retval.append(struct.unpack("<L", self.data[x:x+4])[0])
-        #retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMset_registers(self, regs):
-        """Get an ARM's Register"""
+        """Set ARM Registers"""
         regarry = []
         for reg in regs:
-          regarry.extend([reg>>24, (reg>>16)&0xff, (reg>>8)&0xff, reg&0xff])
-        self.writecmd(0x33,GET_REGISTER,16*4,regarry)
-        print "DEBUG:SET_REGISTER: %s"%asp.hexText(self.data)
-        #retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
-        #return retval
+          regarry.extend([reg&0xff, (reg>>8)&0xff, (reg>>16)&0xff, reg>>24])
+        self.writecmd(0x33,SET_REGISTERS,16*4,regarry)
+        retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
+        return retval
     def ARMcmd(self,phrase):
         self.writecmd(0x33,READ,len(phrase),phrase)
         val=ord(self.data[0])

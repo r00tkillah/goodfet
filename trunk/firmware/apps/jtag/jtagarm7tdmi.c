@@ -519,88 +519,101 @@ unsigned long jtagarm7tdmi_exec(unsigned long instr, unsigned long parameter, un
   debughex32(jtagarm7tdmi_nop( 0));
   debughex32(jtagarm7tdmi_nop( 0));
   debughex32(jtagarm7tdmi_instr_primitive(parameter, 0));  // inject long
-  debughex32(jtagarm7tdmi_nop( 0));
   retval = jtagarm7tdmi_nop( 0);
   debughex32(retval);
+  debughex32(jtagarm7tdmi_nop( 0));
   debughex32(jtagarm7tdmi_nop( 0));
 
   return(retval);
 }
 
 //! Retrieve a 32-bit Register value
-unsigned long jtagarm7tdmi_get_register(unsigned char reg) {
+unsigned long jtagarm7tdmi_get_register(unsigned long reg) {
   unsigned long retval = 0, instr;
   // push nop into pipeline - clean out the pipeline...
-  instr = ARM_READ_REG | (reg<<12);                     // push STR Rx, [R14] into pipeline
+  instr = (unsigned long)(reg<<12) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
+  //instr = (unsigned long)(((unsigned long)reg<<12) | ARM_READ_REG); 
+  debughex32(instr);
 
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_instr_primitive(instr, 0));
-  debughex32(jtagarm7tdmi_nop( 0));                // push nop into pipeline - fetched
-  debughex32(jtagarm7tdmi_nop( 0));                // push nop into pipeline - decoded
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_instr_primitive(instr, 0);
+  jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
+  jtagarm7tdmi_nop( 0);                // push nop into pipeline - decoded
   jtagarm7tdmi_nop( 0);                // push nop into pipeline - executed 
   retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
   debughex32(retval);
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
   return retval;
 }
 
 //! Set a 32-bit Register value
-unsigned long jtagarm7tdmi_set_register(unsigned char reg, unsigned long val) {
-  unsigned long retval = 0, instr;
-  instr = ARM_WRITE_REG | (reg<<12);                // push LDR Rx, [R14] into pipeline
-
-  debughex32(jtagarm7tdmi_nop( 0));            // push nop into pipeline - clean out the pipeline...
-  debughex32(jtagarm7tdmi_instr_primitive(instr, 0)); // push nop into pipeline - fetch
-  debughex32(jtagarm7tdmi_nop( 0));            // push nop into pipeline - decode
-  debughex32(jtagarm7tdmi_nop( 0));            // push nop into pipeline - execute
+void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {
+  unsigned long instr;
+  instr = (unsigned long)(((unsigned long)reg<<12) | ARM_WRITE_REG); //  LDR Rx, [R14]
+  debugstr("Writing:");
+  debughex32(instr);
+  debughex32(val);
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
+  jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - decode
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
   
-  debughex32(jtagarm7tdmi_instr_primitive(val, 0)); // push 32-bit word on data bus
-  debughex32(jtagarm7tdmi_nop( 0));            // push nop into pipeline - executed 
+  //debughex32(jtagarm7tdmi_instr_primitive(val, 0)); // push 32-bit word on data bus
+  jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
 
   //if (reg == ARM_REG_PC){
-    debughex32(jtagarm7tdmi_nop( 0));
-    debughex32(jtagarm7tdmi_nop( 0));
+    jtagarm7tdmi_nop( 0);
+    jtagarm7tdmi_nop( 0);
   //}
-  debughex32(jtagarm7tdmi_nop( 0));
-
-  retval = cmddatalong[5];
-  return(retval);
+  jtagarm7tdmi_nop( 0);
 }
 
 
 
-//! Get all registers.  Return an array
-unsigned long* jtagarm7tdmi_get_registers() {
-  debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_SKANKREGS,0));
+//! Get all registers, placing them into cmddatalong[0-15]
+void jtagarm7tdmi_get_registers() {
+  debughex32(ARM_INSTR_SKANKREGS1);
+  debughex32(jtagarm7tdmi_nop( 0));
+  debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_SKANKREGS1,0));
   debughex32(jtagarm7tdmi_nop( 0));
   debughex32(jtagarm7tdmi_nop( 0));
+  cmddatalong[ 0] = jtagarm7tdmi_nop( 0);
+  cmddatalong[ 1] = jtagarm7tdmi_nop( 0);
+  cmddatalong[ 2] = jtagarm7tdmi_nop( 0);
+  cmddatalong[ 3] = jtagarm7tdmi_nop( 0);
+  cmddatalong[ 4] = jtagarm7tdmi_nop( 0);
+  cmddatalong[ 5] = jtagarm7tdmi_nop( 0);
+  cmddatalong[ 6] = jtagarm7tdmi_nop( 0);
+  cmddatalong[ 7] = jtagarm7tdmi_nop( 0);
+  debughex32(ARM_INSTR_SKANKREGS2);
+  debughex32(jtagarm7tdmi_nop( 0));
+  //jtagarm7tdmi_nop( 0);
+  debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_SKANKREGS2,0));
   debughex32(jtagarm7tdmi_nop( 0));
   debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  return registers;
+  //jtagarm7tdmi_nop( 0);
+  //jtagarm7tdmi_nop( 0);
+  cmddatalong[ 8] = jtagarm7tdmi_nop( 0);
+  cmddatalong[ 9] = jtagarm7tdmi_nop( 0);
+  cmddatalong[10] = jtagarm7tdmi_nop( 0);
+  cmddatalong[11] = jtagarm7tdmi_nop( 0);
+  cmddatalong[12] = jtagarm7tdmi_nop( 0);
+  cmddatalong[13] = jtagarm7tdmi_nop( 0);
+  cmddatalong[14] = jtagarm7tdmi_nop( 0);
+  cmddatalong[15] = jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
 }
 
-//! Get all registers.  Return an array
-unsigned long* jtagarm7tdmi_set_registers() {   //FIXME: BORKEN... TOTALLY TRYING TO BUY A VOWEL
-  debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_SKANKREGS,0));
-  debughex32(jtagarm7tdmi_nop( 0));
-  debughex32(jtagarm7tdmi_nop( 0));
+//! Set all registers from cmddatalong[0-15]
+void jtagarm7tdmi_set_registers() {   //FIXME: BORKEN... TOTALLY TRYING TO BUY A VOWEL
+  debughex32(ARM_INSTR_CLOBBEREGS);
+  jtagarm7tdmi_nop( 0);
+  debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_CLOBBEREGS,0));
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
   debughex32(jtagarm7tdmi_instr_primitive(0x40,0));
   debughex32(jtagarm7tdmi_instr_primitive(0x41,0));
   debughex32(jtagarm7tdmi_instr_primitive(0x42,0));
@@ -617,20 +630,19 @@ unsigned long* jtagarm7tdmi_set_registers() {   //FIXME: BORKEN... TOTALLY TRYIN
   debughex32(jtagarm7tdmi_instr_primitive(0x4d,0));
   debughex32(jtagarm7tdmi_instr_primitive(0x4e,0));
   debughex32(jtagarm7tdmi_instr_primitive(0x4f,0));
-  return registers;
 }
 
 //! Retrieve the CPSR Register value
 unsigned long jtagarm7tdmi_get_regCPSR() {
   unsigned long retval = 0;
 
-  cmddatalong[1] = jtagarm7tdmi_nop( 0); // push nop into pipeline - clean out the pipeline...
-  cmddatalong[2] = jtagarm7tdmi_instr_primitive(ARM_INSTR_MRS_R0_CPSR, 0); // push MRS_R0, CPSR into pipeline
-  cmddatalong[3] = jtagarm7tdmi_nop( 0); // push nop into pipeline - fetched
-  cmddatalong[4] = jtagarm7tdmi_nop( 0); // push nop into pipeline - decoded
-  cmddatalong[5] = jtagarm7tdmi_nop( 0); // push nop into pipeline - executed 
+  debughex32(jtagarm7tdmi_nop( 0)); // push nop into pipeline - clean out the pipeline...
+  debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_MRS_R0_CPSR, 0)); // push MRS_R0, CPSR into pipeline
+  debughex32(jtagarm7tdmi_nop( 0)); // push nop into pipeline - fetched
+  debughex32(jtagarm7tdmi_nop( 0)); // push nop into pipeline - decoded
+  debughex32(jtagarm7tdmi_nop( 0)); // push nop into pipeline - executed 
   retval = jtagarm7tdmi_nop( 0);        // recover 32-bit word
-  cmddatalong[6] = retval;
+  debughex32(retval);
   return retval;
 }
 
@@ -638,14 +650,14 @@ unsigned long jtagarm7tdmi_get_regCPSR() {
 unsigned long jtagarm7tdmi_set_regCPSR(unsigned long val) {
   unsigned long retval = 0;
 
-  cmddatalong[1] = jtagarm7tdmi_nop( 0);        // push nop into pipeline - clean out the pipeline...
-  cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_MSR_cpsr_cxsf_R0, 0); // push MSR cpsr_cxsf, R0 into pipeline
-  cmddatalong[2] = jtagarm7tdmi_nop( 0);        // push nop into pipeline - fetched
-  cmddatalong[3] = jtagarm7tdmi_nop( 0);        // push nop into pipeline - decoded
+  debughex32(jtagarm7tdmi_nop( 0));        // push nop into pipeline - clean out the pipeline...
+  debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_MSR_cpsr_cxsf_R0, 0)); // push MSR cpsr_cxsf, R0 into pipeline
+  debughex32(jtagarm7tdmi_nop( 0));        // push nop into pipeline - fetched
+  debughex32(jtagarm7tdmi_nop( 0));        // push nop into pipeline - decoded
   
   retval = jtagarm7tdmi_instr_primitive(val, 0);// push 32-bit word on data bus
-  cmddatalong[5] = jtagarm7tdmi_nop( 0);        // push nop into pipeline - executed 
-  cmddatalong[4] = retval;
+  debughex32(jtagarm7tdmi_nop( 0));        // push nop into pipeline - executed 
+  debughex32(retval);
   return(retval);
 }
 
@@ -706,8 +718,8 @@ unsigned long jtagarm7tdmi_getpc(){
 }
 
 //! Set Program Counter
-unsigned long jtagarm7tdmi_setpc(unsigned long adr){
-  return jtagarm7tdmi_set_register(ARM_REG_PC, adr);
+void jtagarm7tdmi_setpc(unsigned long adr){
+  jtagarm7tdmi_set_register(ARM_REG_PC, adr);
 }
 
 //! Halt CPU - returns 0xffff if the operation fails to complete within 
@@ -778,7 +790,7 @@ unsigned long jtagarm7tdmi_releasecpu(){
 void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len){
   register char blocks;
   
-  unsigned int i,val,mlop;
+  unsigned int i,val;
   unsigned long at;
   
   jtagarm7tdmi_resettap();
@@ -786,17 +798,17 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   switch(verb){
   case START:
     //Enter JTAG mode.
-    cmddatalong[0] = jtagarm7tdmi_start();
-    cmddatalong[2] = jtagarm7tdmi_haltcpu();
+    debughex32(jtagarm7tdmi_start());
+    debughex32(jtagarm7tdmi_haltcpu());
     //jtagarm7tdmi_resettap();
-    cmddatalong[1] = jtagarm7tdmi_get_dbgstate();
+    debughex32(jtagarm7tdmi_get_dbgstate());
     
     // DEBUG: FIXME: NOT PART OF OPERATIONAL CODE
     //for (mlop=2;mlop<4;mlop++){
     //  jtagarm7tdmi_set_register(mlop, 0x43424140);
     //} 
     /////////////////////////////////////////////
-    txdata(app,verb,0xc);
+    txdata(app,verb,0x4);
     break;
   case JTAGARM7TDMI_READMEM:
   case PEEK:
@@ -850,8 +862,8 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   //case JTAGARM7TDMI_WRITEFLASH:
   //case JTAGARM7TDMI_ERASEFLASH:
   case JTAGARM7TDMI_SET_PC:
-    cmddatalong[0] = jtagarm7tdmi_setpc(cmddatalong[0]);
-    txdata(app,verb,4);
+    jtagarm7tdmi_setpc(cmddatalong[0]);
+    txdata(app,verb,0);
     break;
   case JTAGARM7TDMI_GET_DEBUG_CTRL:
     cmddatalong[0] = jtagarm7tdmi_get_dbgctrl();
@@ -874,26 +886,25 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   //case JTAGARM7TDMI_SET_WATCHPOINT:
   case JTAGARM7TDMI_GET_REGISTER:
 	jtagarm7tdmi_resettap();
-    cmddatalong[0] = jtagarm7tdmi_get_register(cmddata[0]);
-    //cmddatalong[0] = test_get_register(cmddata[0]);
-    txdata(app,verb,96);
+    val = cmddata[0];
+    cmddatalong[0] = jtagarm7tdmi_get_register(val);
+    txdata(app,verb,4);
     break;
   case JTAGARM7TDMI_SET_REGISTER:           // FIXME: NOT AT ALL CORRECT, THIS IS TESTING CODE ONLY
 	jtagarm7tdmi_resettap();
-    cmddatalong[0] = cmddatalong[1];
     jtagarm7tdmi_set_register(cmddata[0], cmddatalong[1]);
-    //test_set_register(cmddata[0], cmddatalong[1]);
-    txdata(app,verb,96);
+    cmddatalong[0] = cmddatalong[1];
+    txdata(app,verb,4);
     break;
   case JTAGARM7TDMI_GET_REGISTERS:
 	jtagarm7tdmi_resettap();
     jtagarm7tdmi_get_registers();
-    txdata(app,verb,200);
+    txdata(app,verb,64);
     break;
   case JTAGARM7TDMI_SET_REGISTERS:
 	jtagarm7tdmi_resettap();
     jtagarm7tdmi_set_registers();
-    txdata(app,verb,200);
+    txdata(app,verb,64);
     break;
   case JTAGARM7TDMI_DEBUG_INSTR:
 	jtagarm7tdmi_resettap();

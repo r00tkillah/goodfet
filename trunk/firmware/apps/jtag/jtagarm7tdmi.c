@@ -127,8 +127,10 @@ void jtag_reset_to_runtest_idle() {
 }
 
 void jtag_arm_tcktock() {
+  delay(1);
   CLRTCK; 
   PLEDOUT^=PLEDPIN; 
+  delay(1);
   SETTCK; 
   PLEDOUT^=PLEDPIN;
 }
@@ -260,20 +262,18 @@ unsigned long jtagarm7tdmi_idcode(){               // PROVEN
 
 //!  Connect Bypass Register to TDO/TDI
 unsigned char jtagarm7tdmi_bypass(){               // PROVEN
-  //jtagarm7tdmi_resettap();
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_BYPASS, 4, LSB, END, NORETIDLE);
 }
 //!  INTEST verb - do internal test
 unsigned char jtagarm7tdmi_intest() { 
-  //jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_INTEST, 4, LSB, END, NORETIDLE); 
 }
 
 //!  EXTEST verb
 unsigned char jtagarm7tdmi_extest() { 
-  //jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_EXTEST, 4, LSB, END, NORETIDLE);
 }
@@ -286,7 +286,7 @@ unsigned char jtagarm7tdmi_extest() {
 
 //!  RESTART verb
 unsigned char jtagarm7tdmi_restart() { 
-  //jtagarm7tdmi_resettap();
+  jtagarm7tdmi_resettap();
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_RESTART, 4, LSB, END, RETIDLE); 
 }
@@ -324,13 +324,15 @@ commands occur. Therefore, it is recommended to pass directly from the “Update
 state” to the “Select DR” state each time the “Update” state is reached.
 */
   unsigned long retval;
-  if (current_chain != chain) {     // breaks shit when going from idcode back to scan chain
+  if (current_chain != chain) {
+    debugstr("===change chains===");
     SHIFT_IR;
     jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
     SHIFT_DR;
     retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
     current_chain = chain;
   }    else
+    debugstr("===NOT change chains===");
     retval = current_chain;
   // put in test mode...
   SHIFT_IR;
@@ -348,9 +350,8 @@ unsigned long jtagarm7tdmi_scan_intest(int chain) {               // PROVEN
 
 
 //! push an instruction into the pipeline
-unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){
+unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  // PROVEN
   unsigned long retval;
-  //jtagarm7tdmi_resettap();                  // FIXME: DEBUG: seems necessary for some reason.  ugh.
   jtagarm7tdmi_scan_intest(1);
 
   SHIFT_DR;
@@ -369,13 +370,12 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){
   
   // Now shift in the 32 bits
   retval = jtagarmtransn(instr, 32, MSB, END, RETIDLE);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
-  //jtag_arm_tcktock();
   return(retval);
   
 }
 
-
-unsigned long jtagarm7tdmi_nop(char breakpt){
+//! push NOP into the instruction pipeline
+unsigned long jtagarm7tdmi_nop(char breakpt){  // PROVEN
   return jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, breakpt);
 }
 
@@ -390,8 +390,10 @@ NOP
 NOP
 
 */
+
 //! set the current mode to ARM, returns PC (FIXME).  Should be used by haltcpu(), which should also store PC and the THUMB state, for use by releasecpu();
 unsigned long jtagarm7tdmi_setMode_ARM(){               // PROVEN
+  debugstr("=== Thumb Mode... Switching to ARM mode ===");
   unsigned long retval = 0xff;
   while ((jtagarm7tdmi_get_dbgstate() & JTAG_ARM7TDMI_DBG_TBIT)&& retval-- > 0){
     cmddataword[6] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_NOP,0);
@@ -413,6 +415,9 @@ unsigned long jtagarm7tdmi_setMode_ARM(){               // PROVEN
 //! shifter for writing to chain2 (EmbeddedICE). 
 unsigned long eice_write(unsigned char reg, unsigned long data){
   unsigned long retval, temp;
+  debugstr("eice_write");
+  debughex(reg);
+  debughex32(data);
   jtagarm7tdmi_scan_intest(2);
   // Now shift in the 32 bits
   SHIFT_DR;
@@ -430,7 +435,9 @@ unsigned long eice_write(unsigned char reg, unsigned long data){
 
 //! shifter for reading from chain2 (EmbeddedICE).
 unsigned long eice_read(unsigned char reg){               // PROVEN
-  unsigned long temp;
+  unsigned long temp, retval;
+  debugstr("eice_read");
+  debughex(reg);
   jtagarm7tdmi_scan_intest(2);
 
   // send in the register address - 5 bits LSB
@@ -442,7 +449,9 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
   
   SHIFT_DR;
   // Now shift out the 32 bits
-  return(jtagarmtransn(0, 32, LSB, END, RETIDLE));   // atmel arm jtag docs pp.10-11: LSB first
+  retval = jtagarmtransn(0, 32, LSB, END, RETIDLE);   // atmel arm jtag docs pp.10-11: LSB first
+  debughex32(retval);
+  return(retval);   // atmel arm jtag docs pp.10-11: LSB first
   
 }
 
@@ -533,7 +542,8 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {
   // push nop into pipeline - clean out the pipeline...
   instr = (unsigned long)(reg<<12) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
   //instr = (unsigned long)(((unsigned long)reg<<12) | ARM_READ_REG); 
-  debughex32(instr);
+  //debugstr("Reading:");
+  //debughex32(instr);
 
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_instr_primitive(instr, 0);
@@ -554,13 +564,14 @@ void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {
   instr = (unsigned long)(((unsigned long)reg<<12) | ARM_WRITE_REG); //  LDR Rx, [R14]
   debugstr("Writing:");
   debughex32(instr);
-  debughex32(val);
+  //debughex32(val);
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
   jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - decode
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
   
   //debughex32(jtagarm7tdmi_instr_primitive(val, 0)); // push 32-bit word on data bus
+  jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
   jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
 
@@ -726,19 +737,32 @@ void jtagarm7tdmi_setpc(unsigned long adr){
 unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
   int waitcount = 0xfff;
 
+/********  OLD WAY  ********/
   // store watchpoint info?  - not right now
   eice_write(EICE_WP1ADDR, 0);              // write 0 in watchpoint 1 address
   eice_write(EICE_WP1ADDRMASK, 0xffffffff); // write 0xffffffff in watchpoint 1 address mask
   eice_write(EICE_WP1DATA, 0);              // write 0 in watchpoint 1 data
   eice_write(EICE_WP1DATAMASK, 0xffffffff); // write 0xffffffff in watchpoint 1 data mask
-  eice_write(EICE_WP1CTRL, 0x100);          //!!!!! WTF!  THIS IS SUPPOSED TO BE 9 bits wide?!?  // write 0x00000100 in watchpoint 1 control value register (enables watchpoint)
-  eice_write(EICE_WP1CTRLMASK, 0xfffffff7); //!!!!! WTF!  THIS IS SUPPOSED TO BE 8 bits wide?!?  // write 0xfffffff7 in watchpoint 1 control mask - only detect the fetch instruction
+  eice_write(EICE_WP1CTRL, 0x100);          // write 0x00000100 in watchpoint 1 control value register (enables watchpoint)
+  eice_write(EICE_WP1CTRLMASK, 0xfffffff7); // write 0xfffffff7 in watchpoint 1 control mask - only detect the fetch instruction
+/***************************/
+
+/********  NEW WAY  *********/
+//  eice_write(EICE_DBGCTRL, JTAG_ARM7TDMI_DBG_DBGRQ);  // r/o register?
+/****************************/
 
   // poll until debug status says the cpu is in debug mode
   while (!(jtagarm7tdmi_get_dbgstate() & 0x1)   && waitcount-- > 0){
     delay(1);
   }
+
+/********  OLD WAY  ********/
   eice_write(EICE_WP1CTRL, 0x0);            // write 0 in watchpoint 0 control value - disables watchpoint 0
+/***************************/
+
+/********  NEW WAY  ********/
+//  eice_write(EICE_DBGCTRL, 0);        // r/o register?
+/***************************/
 
   // store the debug state
   last_halt_debug_state = jtagarm7tdmi_get_dbgstate();

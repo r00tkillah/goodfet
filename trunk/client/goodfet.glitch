@@ -20,6 +20,7 @@ if(len(sys.argv)==1):
     print "%s avr graph" % sys.argv[0];
     print "%s avr graphx11" % sys.argv[0];
     print "%s avr points" % sys.argv[0];
+    print "%s avr npoints" % sys.argv[0];
     print """
 This populates a database, glitch.db, with a record of all attempted
 glitches.  Graphs can then be generated from the results, allowing
@@ -44,6 +45,9 @@ if(sys.argv[2]=="graph"):
     exit();
 if(sys.argv[2]=="points"):
     glitcher.points();
+    exit();
+if(sys.argv[2]=="npoints"):
+    glitcher.npoints();
     exit();
 
 if(sys.argv[2]=="crunch"):

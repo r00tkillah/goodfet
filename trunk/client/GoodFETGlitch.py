@@ -152,6 +152,12 @@ class GoodFETGlitch(GoodFET):
         print "time vcc gnd glitchcount count";
         for r in c:
             print "%i %i %i %i %i" % r;
+    def npoints(self):
+        c=self.db.cursor();
+        c.execute("select time,vcc,gnd,glitchcount,count from glitches where lock=0 and count=0;");
+        print "time vcc gnd glitchcount count";
+        for r in c:
+            print "%i %i %i %i %i" % r;
     #GnuPlot sucks for large sets.  Switch to viewpoints soon.
     # sqlite3 glitch.db "select time,vcc,count from glitches where count=0" | vp -l -d "|" -I
     

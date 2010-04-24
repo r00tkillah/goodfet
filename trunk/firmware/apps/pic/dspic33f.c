@@ -228,7 +228,6 @@ unsigned int pic33f_getid()
 
 	// Read application ID.
 	pic33f_six( 0x04, 0x0200 ); // goto 0x200 (i.e. reset)
-	pic33f_six( 0x04, 0x0200 ); // goto 0x200 (i.e. reset)
 	pic33f_six( 0x00, 0x0000 ); // nop
 	pic33f_six( 0x20, 0x0800 ); // mov #0x80, W0
 	pic33f_six( 0x88, 0x0190 ); // mov W0, TBLPAG

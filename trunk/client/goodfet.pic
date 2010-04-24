@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # PIC client (currently only supports dsPIC33F/PIC24H.)
 #
+# Note that a verify operation only considers addresses specified in
+# the given Intel hex file ($foo.hex).
+# 
+# sixfile expects a plain text file, one instruction per line.
+#
+#
 # Scott Livingston  <slivingston at caltech.edu>
 #
 # March, April 2010.
@@ -33,6 +39,8 @@ cfg_table = { 0xF80000 : "FBS",
               0xF80014 : "FUID2",
               0xF80016 : "FUID3",
               "width" : 7 } # For pretty printing.
+
+#cfg_bitmask_table = { 
 
 
 #############
@@ -140,22 +148,22 @@ Returns [-1] on failure."""
 #############
 
 if len(sys.argv) == 1:
-    print "Usage: %s verb [objects]" % sys.argv[0]
-    print "Warning: only supports dsPIC33F/PIC24H (maybe)...\n"
+    print "Usage: %s verb [objects]\n" % sys.argv[0]
     print "%s devid" % sys.argv[0]
     print "%s read 0x$addr" % sys.argv[0]
     print "%s dump $foo.hex [0x$start 0x$stop] [pretty]" % sys.argv[0]
     print "%s config" % sys.argv[0]
     print "%s program $foo.hex" % sys.argv[0]
-    print "%s verify $foo.hex (NOTE: only addresses in $foo.hex are verified.)" % sys.argv[0]
-    print "%s write $0xADDRESS $0xVALUE" % sys.argv[0]
-    print "%s write_config $REG_NAME [$0x0000]" % sys.argv[0]
+    print "%s verify $foo.hex" % sys.argv[0]
+    print "%s write 0x$address 0x$value" % sys.argv[0]
+    print "%s write_config 0x$reg_address (or $reg_name) [$0x0000]" % sys.argv[0]
     print "%s erase [0x$page]" % sys.argv[0] # bulk or page erase
     print "%s six [instruction]" % sys.argv[0]
-    print "%s sixfile [$foo.txt] (NOTE: plaintext, one instruction per line.)" % sys.argv[0]
+    print "%s sixfile [$foo.txt]" % sys.argv[0]
     print "%s regout" % sys.argv[0]
     print """
 Note: use - for stdout.
+Warning: only supports dsPIC33F/PIC24H (maybe)...
 """
     sys.exit()
 
@@ -192,8 +200,6 @@ if sys.argv[1] == "devid": #0x81
     #print "\n(Note that -1 indicates failure to read a value.)"
 
 elif sys.argv[1] == "config": # Dump configuration registers
-    startICSP()
-
     prep_cmd_li = [0x040200, # GOTO 0x0200
                    0x040200, # GOTO 0x0200
                    0x000000, # NOP
@@ -205,6 +211,7 @@ elif sys.argv[1] == "config": # Dump configuration registers
     rd_cmd_li = [0xBA0BB6, # TBLRDL [W6++], [W7]
                  0x000000, # NOP
                  0x000000] # NOP
+    startICSP()
     print "Dumping configuration registers..."
     for instr in prep_cmd_li:
         data = client.writecmd( PICAPP, 0x82, 3, [instr & 0xff,
@@ -480,10 +487,13 @@ elif sys.argv[1] == "write_config":
         new_val = 0xFF # Assume new value
     else:
         new_val = int(float.fromhex(sys.argv[3]))
-    if sys.argv[2] not in cfg_table.values():
-        print "Given register, %s, not recognized." % sys.argv[2]
-        exit(1)
-    reg_addr = cfg_table.keys()[cfg_table.values().index(sys.argv[2])]
+    try:
+        reg_addr = int(float.fromhex(sys.argv[2]))
+    except ValueError:
+        if sys.argv[2] not in cfg_table.values():
+            print "Given register, %s, not recognized." % sys.argv[2]
+            exit(1)
+        reg_addr = cfg_table.keys()[cfg_table.values().index(sys.argv[2])]
     
     wr_cfg_li = [0x040200, # GOTO 0x0200
                  0x040200, # GOTO 0x0200
@@ -562,20 +572,37 @@ elif sys.argv[1] == "dump": # Read section of program memory
         # Assume all of program memory (including unimplemented sections,
         # which will be read as zeroes.
         start_addr = 0x0
-        stop_addr = 0xFFFFFE #
+        stop_addr = 0xFFFFFE
 
-    readpm_cmd_li = [0x200000,                         # MOV #addr<23:16>, W0
-                     0x880190,                         # MOV W0, TBLPAG
-                     0x200006,                         # MOV #addr<15:0>, W6
-                     0xEB0380,                         # CLR W7
-                     0xEB0080,                         # CLR W1
-                     0x000000,                         # NOP
-                     0xBA1B96,                         # TBLRDL [W6], [W7++]
-                     0x000000,                         # NOP
-                     0x000000,                         # NOP
-                     0xBACB96,                         # TBLRDH.B [W6], [W7]
-                     0x000000,                         # NOP
-                     0x000000]                         # NOP
+    readpm_cmd_li = [0x200000, # MOV #addr<23:16>, W0
+                     0x880190, # MOV W0, TBLPAG
+                     0x200006, # MOV #addr<15:0>, W6
+                     0xEB0380, # CLR W7
+                     0x000000, # NOP
+                     0xBA1B96, # TBLRDL [W6], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBADBB6, # TBLRDH.B [W6++], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBADBD6, # TBLRDH.B [++W6], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBA1BB6, # TBLRDL [W6++], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBA1B96, # TBLRDL [W6], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBADBB6, # TBLRDH.B [W6++], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBADBD6, # TBLRDH.B [++W6], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBA0BB6, # TBLRDL [W6++], [W7]
+                     0x000000, # NOP
+                     0x000000] # NOP
 
     dumphex = IntelHex()
 
@@ -586,18 +613,35 @@ elif sys.argv[1] == "dump": # Read section of program memory
     client.writecmd( PICAPP, 0x82, 3, [0x00,0x02,0x04] ) #GOTO 0x200 (reset)
     client.writecmd( PICAPP, 0x82, 3, [0x00,0x02,0x04] ) #GOTO 0x200 (reset)
     client.writecmd( PICAPP, 0x82, 3, [0x00,0x00,0x00] ) #NOP (pump clock)
-    for addr in range( start_addr, stop_addr+2, 2 ):
-        specify_addr_cmd = [readpm_cmd_li[0] + ((addr & 0xff0000)>>12),
-                            readpm_cmd_li[1],
-                            readpm_cmd_li[2] + ((addr & 0xffff)<<4)]
+
+    last_highb = -1 # Only set TBLPAG when needed.
+    packed_instr_list = [0,0,0,0,0,0] # For packing 4 (24-bit) instructions in 6 (16-bit) words
+    for addr in range( start_addr&0xfffff8, stop_addr+8, 8 ):
+        if (addr>>16)&0xff != last_highb: 
+            last_highb = (addr>>16)&0xff;
+            specify_addr_cmd = [readpm_cmd_li[0] + ((addr & 0xff0000)>>12),
+                                readpm_cmd_li[1],
+                                readpm_cmd_li[2] + ((addr & 0xffff)<<4)]
+        else:
+            specify_addr_cmd = [readpm_cmd_li[2] + ((addr & 0xffff)<<4)]
         runlist( specify_addr_cmd + readpm_cmd_li[3:] )
-        loww = readreg(0)  # Read W0, which has lower 16 bits
-        highb = readreg(1) # Read W1, which has high 8 bits
-        result = (highb<<16) | loww
-        dumphex.puts( (addr&0xffffff)*2,
-                      chr(result&0xff)+chr((result>>8)&0xff)+chr((result>>16)&0xff)+chr(0) )
-        if print_term:
-            print "0x%06X    0x%06X" % (addr,result)
+
+        for reg_num in range(6): # Read W0:5, to get packed instructions
+            packed_instr_list[reg_num] = readreg( reg_num )
+        instr_list = words2instr( packed_instr_list )
+
+        for offset in range(4): # Print result
+            if addr+offset*2 < start_addr:
+                continue
+            if addr+offset*2 > stop_addr:
+                break
+            dumphex.puts( ((addr+offset*2)&0xffffff)*2,
+                          chr(instr_list[offset]&0xff)
+                          +chr((instr_list[offset]>>8)&0xff)
+                          +chr((instr_list[offset]>>16)&0xff)
+                          +chr(0) )
+            if print_term:
+                print "0x%06X    0x%06X" % (addr+offset*2,instr_list[offset])
     
     if not print_term:
         if fname == "-":
@@ -607,7 +651,7 @@ elif sys.argv[1] == "dump": # Read section of program memory
 
     stopICSP()
 
-elif sys.argv[1] == "erase": # Bulk erase (all program memory)
+elif sys.argv[1] == "erase": # Bulk (all program memory) or page erase
 
     if len(sys.argv) == 3:
         addr = int(float.fromhex(sys.argv[2]))
@@ -626,6 +670,7 @@ elif sys.argv[1] == "erase": # Bulk erase (all program memory)
                         0x000000, # NOP
                         0x000000] # NOP
     else: # Page erase
+        print "Erasing page of 0x%06X" % addr
         erase_cmd_li = [0x040200, # GOTO 0x0200
                         0x040200, # GOTO 0x0200
                         0x000000, # NOP
@@ -633,7 +678,7 @@ elif sys.argv[1] == "erase": # Bulk erase (all program memory)
                         0x883B0A, # MOV W10, NVMCON
                         0x200000+((addr & 0xff0000)>>12), # MOV #addr<23:16>, W0
                         0x880190, # MOV W0, TBLPAG
-                        0x200001+((addr&0xffff)<<4), # MOV 0x0, W1
+                        0x200001+((addr&0xffff)<<4), # MOV addr<15:0>, W1
                         0x000000, # NOP
                         0xBB0881, # TBLTWL W1, [W1]
                         0x000000, # NOP

@@ -150,17 +150,17 @@ void cchandle(unsigned char, unsigned char, unsigned long) WEAKDEF;
 void jtaghandle(unsigned char, unsigned char, unsigned long);
 void jtag430handle(unsigned char, unsigned char, unsigned long);
 void ejtaghandle(unsigned char, unsigned char, unsigned long);
-void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len);
+WEAKDEF void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len);
 
 void jtag430x2handle(unsigned char app, unsigned char verb, unsigned long len);
 
-void avrhandle(unsigned char app,
-	       unsigned char verb,
-	       unsigned long len);  
-int smartcardhandle(unsigned char app,
-		    unsigned char verb,
-		    unsigned int len);
+WEAKDEF void avrhandle(unsigned char app,
+		       unsigned char verb,
+		       unsigned long len);  
+WEAKDEF int smartcardhandle(unsigned char app,
+			    unsigned char verb,
+			    unsigned int len);
 
-void pichandle( unsigned char app,
-				unsigned char verb,
-				unsigned long len );
+WEAKDEF void pichandle( unsigned char app,
+			unsigned char verb,
+			unsigned long len );

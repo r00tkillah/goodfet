@@ -122,6 +122,86 @@ def dumpVISI():
     result = readVISI()
     print "VISI: 0x%04X" % result
 
+def dump_pm( start_addr, stop_addr, pretty=False ):
+    """Dump routine, now encapsulated in a function.
+Returns an instance of IntelHex corresponding to result.
+
+Note that we start and stop an ICSP session here! This means an
+existing session will be broken."""
+    readpm_cmd_li = [0x200000, # MOV #addr<23:16>, W0
+                     0x880190, # MOV W0, TBLPAG
+                     0x200006, # MOV #addr<15:0>, W6
+                     0xEB0380, # CLR W7
+                     0x000000, # NOP
+                     0xBA1B96, # TBLRDL [W6], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBADBB6, # TBLRDH.B [W6++], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBADBD6, # TBLRDH.B [++W6], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBA1BB6, # TBLRDL [W6++], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBA1B96, # TBLRDL [W6], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBADBB6, # TBLRDH.B [W6++], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBADBD6, # TBLRDH.B [++W6], [W7++]
+                     0x000000, # NOP
+                     0x000000, # NOP
+                     0xBA0BB6, # TBLRDL [W6++], [W7]
+                     0x000000, # NOP
+                     0x000000] # NOP
+
+    dumphex = IntelHex()
+
+    startICSP()
+
+    print "Reading program memory 0x%06X:0x%06X ..." % ( start_addr, stop_addr )
+    # Prep device
+    client.writecmd( PICAPP, 0x82, 3, [0x00,0x02,0x04] ) #GOTO 0x200 (reset)
+    client.writecmd( PICAPP, 0x82, 3, [0x00,0x02,0x04] ) #GOTO 0x200 (reset)
+    client.writecmd( PICAPP, 0x82, 3, [0x00,0x00,0x00] ) #NOP (pump clock)
+
+    last_highb = -1 # Only set TBLPAG when needed.
+    packed_instr_list = [0,0,0,0,0,0] # For packing 4 (24-bit) instructions in 6 (16-bit) words
+    for addr in range( start_addr&0xfffff8, stop_addr+8, 8 ):
+        if (addr>>16)&0xff != last_highb: 
+            last_highb = (addr>>16)&0xff;
+            specify_addr_cmd = [readpm_cmd_li[0] + ((addr & 0xff0000)>>12),
+                                readpm_cmd_li[1],
+                                readpm_cmd_li[2] + ((addr & 0xffff)<<4)]
+        else:
+            specify_addr_cmd = [readpm_cmd_li[2] + ((addr & 0xffff)<<4)]
+        runlist( specify_addr_cmd + readpm_cmd_li[3:] )
+
+        for reg_num in range(6): # Read W0:5, to get packed instructions
+            packed_instr_list[reg_num] = readreg( reg_num )
+        instr_list = words2instr( packed_instr_list )
+
+        for offset in range(4): # Print result
+            if addr+offset*2 < start_addr:
+                continue
+            if addr+offset*2 > stop_addr:
+                break
+            dumphex.puts( ((addr+offset*2)&0xffffff)*2,
+                          chr(instr_list[offset]&0xff)
+                          +chr((instr_list[offset]>>8)&0xff)
+                          +chr((instr_list[offset]>>16)&0xff)
+                          +chr(0) )
+            if pretty:
+                print "0x%06X    0x%06X" % (addr+offset*2,instr_list[offset])
+
+    stopICSP()
+
+    return dumphex
+
+    
 def instr2words( instr_list ):
     """Convert a list of 4 24-bit instructions to a list of 6 words
 (16-bit width).
@@ -384,60 +464,34 @@ elif sys.argv[1] == "verify":
         print "Error while attempting to read from %s" % sys.argv[2]
         exit(-1)
 
-    readpm_cmd_li = [0x040200, # GOTO 0x0200
-                     0x000000, #
-                     0x200000, # MOV #addr_pm<23:16>, W0
-                     0x880190, # MOV W0, TBLPAG
-                     0x200006, # MOV #addr_pm<15:0>, W6
-                     0xEB0380, # CLR W7
-                     0xEB0080, # CLR W1
-                     0x000000, # NOP
-                     0xBA1B96, # TBLRDL [W6], [W7++]
-                     0x000000, # NOP
-                     0x000000, # NOP
-                     0xBACB96, # TBLRDH.B [W6], [W7]
-                     0x000000, # NOP
-                     0x000000] # NOP
-
     print "WARNING: verifying config registers not yet supported."
 
-    startICSP()
+    for addr in proghex.addresses():
+        if addr % 4 != 0 or (addr>>1) < 0x200:
+            continue
+        #elif first_addr == None:
+        #    first_addr = addr>>1
+        if (addr>>1) >= 0xf80000:
+            break
+        last_addr = addr>>1
+    dumphex = dump_pm( (proghex.addresses()[0]>>1),
+                       last_addr )
 
     # Step through addresses in HEX file and compare to those in target PIC
     for addr in proghex.addresses():
-        # Ignore non-aligned steps
-        if addr % 4 != 0:
-            continue
-
-        # Configuration registers must be treated separately
-        if (addr>>1) >= 0xf80000 and (addr>>1) <= 0xf80017:
-            # Need to read datasheets to see which bits are masked.
-            # Then add dictionary to handle this.
-            # (Straightforward but tedious.)
-            continue
-        else: 
-            # Build instruction from 3 separate bytes
-            instr = proghex[addr]
-            instr |= proghex[addr+1] << 8
-            instr |= proghex[addr+2] << 16
-
-        # Change HEX file address to actual program memory address
-        addr_pm = addr >> 1
-        
-        runlist( readpm_cmd_li[:2] + [readpm_cmd_li[2]+((addr_pm&0xff0000)>>12)]
-                 + [readpm_cmd_li[3]] + [readpm_cmd_li[4]+((addr_pm&0xffff)<<4)]
-                 + readpm_cmd_li[5:] )
-        loww = readreg(0)  # Read W0, which has lower 16 bits
-        highb = readreg(1) # Read W1, which has high 8 bits
-        result = (highb<<16) | loww
-        
+        if addr>>1 >= 0xF80000:
+            break # verifying config registers not yet supported
         # Compare; fail if mismatch
-        if instr != result:
-            print "Fail at address 0x%06X: found 0x%06X, expected 0x%06X." % (addr_pm, result, instr )
-            stopICSP()
+        if proghex[addr] != dumphex[addr]:
+            addr &= addr&0xfffffffc
+            found_instr = dumphex[addr]
+            found_instr |= dumphex[addr+1]<<8
+            found_instr |= dumphex[addr+2]<<16
+            exp_instr = proghex[addr]
+            exp_instr |= proghex[addr+1]<<8
+            exp_instr |= proghex[addr+2]<<16
+            print "Fail at address 0x%06X: found 0x%06X, expected 0x%06X." % ( addr>>1, found_instr, exp_instr )
             exit(-1)
-
-    stopICSP()
 
     print "PASSED" # Be verbose.
 
@@ -611,82 +665,14 @@ elif sys.argv[1] == "dump": # Read section of program memory
         start_addr = 0x0
         stop_addr = 0xFFFFFE
 
-    readpm_cmd_li = [0x200000, # MOV #addr<23:16>, W0
-                     0x880190, # MOV W0, TBLPAG
-                     0x200006, # MOV #addr<15:0>, W6
-                     0xEB0380, # CLR W7
-                     0x000000, # NOP
-                     0xBA1B96, # TBLRDL [W6], [W7++]
-                     0x000000, # NOP
-                     0x000000, # NOP
-                     0xBADBB6, # TBLRDH.B [W6++], [W7++]
-                     0x000000, # NOP
-                     0x000000, # NOP
-                     0xBADBD6, # TBLRDH.B [++W6], [W7++]
-                     0x000000, # NOP
-                     0x000000, # NOP
-                     0xBA1BB6, # TBLRDL [W6++], [W7++]
-                     0x000000, # NOP
-                     0x000000, # NOP
-                     0xBA1B96, # TBLRDL [W6], [W7++]
-                     0x000000, # NOP
-                     0x000000, # NOP
-                     0xBADBB6, # TBLRDH.B [W6++], [W7++]
-                     0x000000, # NOP
-                     0x000000, # NOP
-                     0xBADBD6, # TBLRDH.B [++W6], [W7++]
-                     0x000000, # NOP
-                     0x000000, # NOP
-                     0xBA0BB6, # TBLRDL [W6++], [W7]
-                     0x000000, # NOP
-                     0x000000] # NOP
-
-    dumphex = IntelHex()
-
-    startICSP()
-
-    print "Reading program memory 0x%06X:0x%06X ..." % ( start_addr, stop_addr )
-    # Prep device
-    client.writecmd( PICAPP, 0x82, 3, [0x00,0x02,0x04] ) #GOTO 0x200 (reset)
-    client.writecmd( PICAPP, 0x82, 3, [0x00,0x02,0x04] ) #GOTO 0x200 (reset)
-    client.writecmd( PICAPP, 0x82, 3, [0x00,0x00,0x00] ) #NOP (pump clock)
-
-    last_highb = -1 # Only set TBLPAG when needed.
-    packed_instr_list = [0,0,0,0,0,0] # For packing 4 (24-bit) instructions in 6 (16-bit) words
-    for addr in range( start_addr&0xfffff8, stop_addr+8, 8 ):
-        if (addr>>16)&0xff != last_highb: 
-            last_highb = (addr>>16)&0xff;
-            specify_addr_cmd = [readpm_cmd_li[0] + ((addr & 0xff0000)>>12),
-                                readpm_cmd_li[1],
-                                readpm_cmd_li[2] + ((addr & 0xffff)<<4)]
-        else:
-            specify_addr_cmd = [readpm_cmd_li[2] + ((addr & 0xffff)<<4)]
-        runlist( specify_addr_cmd + readpm_cmd_li[3:] )
-
-        for reg_num in range(6): # Read W0:5, to get packed instructions
-            packed_instr_list[reg_num] = readreg( reg_num )
-        instr_list = words2instr( packed_instr_list )
-
-        for offset in range(4): # Print result
-            if addr+offset*2 < start_addr:
-                continue
-            if addr+offset*2 > stop_addr:
-                break
-            dumphex.puts( ((addr+offset*2)&0xffffff)*2,
-                          chr(instr_list[offset]&0xff)
-                          +chr((instr_list[offset]>>8)&0xff)
-                          +chr((instr_list[offset]>>16)&0xff)
-                          +chr(0) )
-            if print_term:
-                print "0x%06X    0x%06X" % (addr+offset*2,instr_list[offset])
-    
+    dumphex = dump_pm( start_addr, stop_addr, print_term )
+        
     if not print_term:
         if fname == "-":
             dumphex.tofile( sys.stdout, format="hex" )
         else:
             dumphex.tofile( fname, format="hex" )
 
-    stopICSP()
 
 elif sys.argv[1] == "erase": # Bulk (all program memory) or page erase
 

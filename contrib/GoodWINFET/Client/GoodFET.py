@@ -70,6 +70,9 @@ class GoodFET:
     def timeout(self):
         print "timeout\n";
     def serInit(self, port=None, timeout=None):
+        """Find the Serial Port in Windows"""
+        # Use scanwin32.py to find correct COM # for GoodFET, return back to serInit and define as PORT
+        
         """Open the serial port"""
 
         if port is None and os.environ.get("FTDI")!=None:
@@ -84,10 +87,12 @@ class GoodFET:
 
         if port is None:
             #glob_list = glob.glob("/dev/ttyUSB*");
-            glob_list = glob.glob("COM6");
+            glob_list = glob.glob("COM6");      # THIS DOESNT EVEN WORK
             if len(glob_list) > 0:
                 port = glob_list[0];
 
+        # Debug
+        # Check PySerial to see if I can get tuple of active COMs in Windows
         print port
         print glob_list
         

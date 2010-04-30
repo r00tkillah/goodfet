@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<glade-interface>
+  <!-- interface-requires gtk+ 2.16 -->
+  <!-- interface-naming-policy project-wide -->
+  <widget class="GtkWindow" id="MainWindow">
+    <property name="width_request">440</property>
+    <property name="height_request">250</property>
+    <property name="visible">True</property>
+    <property name="resizable">False</property>
+    <property name="window_position">center</property>
+    <child>
+      <widget class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <widget class="GtkMenuBar" id="menubar1">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkFixed" id="fixed1">
+            <property name="visible">True</property>
+            <child>
+              <widget class="GtkButton" id="btnOpen">
+                <property name="label" translatable="yes">Open</property>
+                <property name="width_request">80</property>
+                <property name="height_request">30</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="xalign">0.54000002145767212</property>
+                <property name="yalign">0.50999999046325684</property>
+                <signal name="clicked" handler="on_btnOpen_clicked"/>
+              </widget>
+              <packing>
+                <property name="x">8</property>
+                <property name="y">10</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="btnProgram">
+                <property name="label" translatable="yes">Program</property>
+                <property name="width_request">80</property>
+                <property name="height_request">30</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_btnProgram_clicked"/>
+              </widget>
+              <packing>
+                <property name="x">264</property>
+                <property name="y">191</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkEntry" id="fileEntry">
+                <property name="width_request">346</property>
+                <property name="height_request">30</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="editable">False</property>
+                <property name="invisible_char">&#x25CF;</property>
+                <property name="text" translatable="yes">Select a firmware file....</property>
+              </widget>
+              <packing>
+                <property name="x">93</property>
+                <property name="y">10</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkTextView" id="statusText">
+                <property name="width_request">410</property>
+                <property name="height_request">104</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="editable">False</property>
+                <property name="justification">center</property>
+                <property name="left_margin">2</property>
+                <property name="right_margin">2</property>
+              </widget>
+              <packing>
+                <property name="x">16</property>
+                <property name="y">58</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="label1">
+                <property name="width_request">208</property>
+                <property name="height_request">20</property>
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="yalign">0</property>
+                <property name="label" translatable="yes">Goodfet GUI Programmer V1.0</property>
+              </widget>
+              <packing>
+                <property name="x">12</property>
+                <property name="y">166</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="btnErase">
+                <property name="label" translatable="yes">Erase</property>
+                <property name="width_request">80</property>
+                <property name="height_request">30</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_btnErase_clicked"/>
+              </widget>
+              <packing>
+                <property name="x">349</property>
+                <property name="y">191</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="btnVerify">
+                <property name="label" translatable="yes">Verify</property>
+                <property name="width_request">80</property>
+                <property name="height_request">30</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_btnVerify_clicked"/>
+              </widget>
+              <packing>
+                <property name="x">180</property>
+                <property name="y">191</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="position">-1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkStatusbar" id="statusbar">
+            <property name="visible">True</property>
+            <property name="spacing">2</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+</glade-interface>

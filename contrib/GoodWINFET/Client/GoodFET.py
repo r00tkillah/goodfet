@@ -71,22 +71,28 @@ class GoodFET:
         print "timeout\n";
     def serInit(self, port=None, timeout=None):
         """Open the serial port"""
-        
-        if port is None and os.environ.get("GOODFET")!=None:
-            glob_list = glob.glob(os.environ.get("GOODFET"));
+
+        if port is None and os.environ.get("FTDI")!=None:
+            glob_list = glob.glob(os.environ.get("FTDI"));
             if len(glob_list) > 0:
                 port = glob_list[0];
+
         if port is None:
             glob_list = glob.glob("/dev/tty.usbserial*");
             if len(glob_list) > 0:
                 port = glob_list[0];
+
         if port is None:
-            glob_list = glob.glob("/dev/ttyUSB*");
+            #glob_list = glob.glob("/dev/ttyUSB*");
+            glob_list = glob.glob("COM6");
             if len(glob_list) > 0:
                 port = glob_list[0];
+
+        print port
+        print glob_list
         
         self.serialport = serial.Serial(
-            port,
+            'COM6',
             #9600,
             115200,
             parity = serial.PARITY_NONE,

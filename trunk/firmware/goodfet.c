@@ -134,7 +134,7 @@ int main(void)
     app=serial_rx();
 
 	// If the app is the reset byte (0x80) increment and loop
-	if (app == 0x80) {
+	if (app == RESET) {
 		reset_count++;
 
 		if (reset_count > 4) {

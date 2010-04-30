@@ -140,6 +140,7 @@ CALDCO_16MHZ 0x96 CALBC1_16MHZ 0x8f   2619-001.txt
 
 //! Initialize the MSP430 clock.
 void msp430_init_dco() {
+    P8SEL = 0; // disable XT2 on P8.7/8
   if(CALBC1_16MHZ!=0xFF){
     //Info is intact, use it.
     BCSCTL1 = CALBC1_16MHZ;

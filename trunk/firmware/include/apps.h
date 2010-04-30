@@ -21,4 +21,6 @@
 #define PLUGIN 0x72
 #define SMARTCARD 0x73
 
+#define RESET 0x80	// not a real app -- causes firmware to reset
+
 #define DEBUGAPP 0xFF

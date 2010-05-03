@@ -212,9 +212,10 @@ def comports(available_only=True):
 
 if __name__ == '__main__':
     import serial
-    print "-"*78
-    print "Serial ports"
-    print "-"*78
+    #print "-"*78
+    #print "Serial ports"
+    #print "-"*78
+    """
     for order, port, desc, hwid in sorted(comports()):
         print "%-10s: %s (%s) ->" % (port, desc, hwid),
         try:
@@ -224,9 +225,23 @@ if __name__ == '__main__':
         else:
             print "Ready"
     print
-    # list of all ports the system knows
+    """
+
+    print "test"
+    aList = []
+    for order, port, desc, hwid in comports():
+        aList.append(port)
+        aList.append(desc)
+        aList.append(hwid)
+        print aList
+        
+    #
+    # List of all ports the system knows (registry)
+    #
+    """
     print "-"*78
     print "All serial ports (registry)"
     print "-"*78
     for order, port, desc, hwid in sorted(comports(False)):
         print "%-10s: %s (%s)" % (port, desc, hwid)
+    """

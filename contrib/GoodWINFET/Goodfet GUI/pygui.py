@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#Riley Porter
-#Rileyporter @ gmail .com
-#This was 1 hour of lame pygtk skills.
+# 
+# Original GUI by: Rileyporter @ gmail .com
+# Modified for GoodWINFET by: q @ theqlabs.com
+#
 
 import sys
 import time

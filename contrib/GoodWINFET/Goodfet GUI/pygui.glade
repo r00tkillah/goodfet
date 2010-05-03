@@ -17,6 +17,7 @@
             <property name="visible">True</property>
           </widget>
           <packing>
+            <property name="expand">False</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -117,7 +118,7 @@
             </child>
             <child>
               <widget class="GtkButton" id="btnVerify">
-                <property name="label" translatable="yes">Verify</property>
+                <property name="label" translatable="yes">Verify_TEST</property>
                 <property name="width_request">80</property>
                 <property name="height_request">30</property>
                 <property name="visible">True</property>

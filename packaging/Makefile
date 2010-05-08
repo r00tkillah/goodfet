@@ -23,7 +23,7 @@ all:
 	cp $(fwpath)/goodfet.hex dist/msp430x2274.hex >/dev/null
 	cp $(clientpath)/*.py $(clientpath)/goodfet.* dist
 	cp distreadme.txt dist/README.txt
-	cp $(hwpath)/*.sch $(hwpath)/*.brd dist/
+	#cp $(hwpath)/*.sch $(hwpath)/*.brd dist/
 	cd dist && zip goodfet.zip *
 clean:
 	rm -f *.hex *~ $(gfpath)

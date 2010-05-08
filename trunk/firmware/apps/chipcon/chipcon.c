@@ -71,7 +71,7 @@ void ccsetup(){
   30:	30 41       	ret			
 */
 
-/*
+
 //! Initialize the debugger
 void ccdebuginit(){
   //Port output BUT NOT DIRECTION is set at start.
@@ -94,10 +94,6 @@ void ccdebuginit(){
   //Raise !RST.
   P5OUT|=RST;
 }
-*/
-
-//! Initialize the debugger.
-void ccdebuginit(); 
 
 //! Read and write a CC bit.
 unsigned char cctrans8(unsigned char byte){

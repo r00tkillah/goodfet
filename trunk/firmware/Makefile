@@ -27,7 +27,10 @@ moreapps?=apps/i2c/i2c.o apps/chipcon/chipcon.o apps/glitch/glitch.o apps/jtag/s
 # should include apps/jtag/jtagarm7tdmi.o to build jtag for ARM7
 
 apps= $(moreapps) apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o apps/jtag/ejtag.o apps/jtag/jtagxscale.o
-libs= lib/$(mcu).o lib/command.o apps/jtag/jtag430asm.o apps/chipcon/chipconasm.o
+
+#apps/chipcon/chipconasm.o removed
+libs= lib/$(mcu).o lib/command.o apps/jtag/jtag430asm.o 
+
 app= goodfet
 
 all: $(app).hex

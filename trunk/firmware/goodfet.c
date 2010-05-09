@@ -124,7 +124,7 @@ int main(void)
   void (*reboot_function)(void) = (void *) 0xFFFE;
   
   init();
-
+  
   txstring(MONITOR,OK,"http://goodfet.sf.net/");
   
   
@@ -132,25 +132,25 @@ int main(void)
   while(1){
     //Magic 3
     app=serial_rx();
+    
+    // If the app is the reset byte (0x80) increment and loop
+    if (app == RESET) {
+      reset_count++;
 
-	// If the app is the reset byte (0x80) increment and loop
-	if (app == RESET) {
-		reset_count++;
-
-		if (reset_count > 4) {
-			// We could trigger the WDT with either:
-			// WDTCTL = 0;
-			// or
-			// WDTCTL = WDTPW + WDTCNTCL + WDTSSEL + 0x00;
-			// but instead we'll jump to our reboot function pointer
-			(*reboot_function)();
-		}
-
-		continue;
-	} else {
-		reset_count = 0;
-	}
-
+      if (reset_count > 4) {
+	// We could trigger the WDT with either:
+	// WDTCTL = 0;
+	// or
+	// WDTCTL = WDTPW + WDTCNTCL + WDTSSEL + 0x00;
+	// but instead we'll jump to our reboot function pointer
+	(*reboot_function)();
+      }
+      
+      continue;
+    } else {
+      reset_count = 0;
+    }
+    
     verb=serial_rx();
     //len=serial_rx();
     len=rxword();

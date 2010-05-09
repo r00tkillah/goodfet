@@ -6,7 +6,8 @@ MEMORY
   text   (rx)       : ORIGIN = 0x3100,     LENGTH = 0xcec0
   fartext(rx)       : ORIGIN = 0x10000,    LENGTH = 0x10000
 /*  data   (rwx)      : ORIGIN = 0x1100,     LENGTH = 8192 Top half not on 2619 */
-  data   (rwx)      : ORIGIN = 0x1100,     LENGTH = 4096
+/* Leave one word free at 0x1100 and reduce length to that of 2619 */
+  data   (rwx)      : ORIGIN = 0x1102,     LENGTH = 4094
   vectors (rw)      : ORIGIN = 0xffc0,     LENGTH = 64
   bootloader(rx)    : ORIGIN = 0x0c00,     LENGTH = 1K
   infomem(rx)       : ORIGIN = 0x1000,     LENGTH = 256

@@ -77,50 +77,32 @@ void setbaud(unsigned char rate){
 //! Set the baud rate of the second uart.
 void setbaud1(unsigned char rate){
   
-  //http://mspgcc.sourceforge.net/baudrate.html
-  switch(rate){
-  case 1://9600 baud
-    
-    break;
-  case 2://19200 baud
-    break;
-  case 3://38400 baud
-    
-    break;
-  case 4://57600 baud
-    
-    break;
-  default:
-  case 5://115200 baud
-    
-    break;
-  }
 }
 
 #define BAUD0EN 0x41
 #define BAUD1EN 0x03
 
 void msp430_init_uart(){
-
+  
   // Serial on P3.4, P3.5
   P3SEL |= BIT4 + BIT5;
   P3DIR |= BIT4;
-
+  
   //UCA0CTL1 |= UCSWRST;                    /* disable UART */
-
+  
   UCA0CTL0 = 0x00;
   //UCA0CTL0 |= UCMSB ;
-
+  
   UCA0CTL1 |= UCSSEL_2;                     // SMCLK
-
+  
   //UCA0BR0 = BAUD0EN;                        // 115200
   //UCA0BR1 = BAUD1EN;
   setbaud(5);//default baud, 115200
-
+  
   UCA0MCTL = 0;                             // Modulation UCBRSx = 5
   UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
-
-
+  
+  
   //Leave this commented!
   //Interrupt is handled by target code, not by bootloader.
   //IE2 |= UCA0RXIE;
@@ -140,6 +122,7 @@ CALDCO_16MHZ 0x96 CALBC1_16MHZ 0x8f   2619-001.txt
 
 //! Initialize the MSP430 clock.
 void msp430_init_dco() {
+  char *choice=(char *) 0x200; //First word of RAM.
   #ifdef __MSP430_HAS_PORT8__
   P8SEL = 0; // disable XT2 on P8.7/8
   #endif
@@ -150,18 +133,25 @@ void msp430_init_dco() {
     DCOCTL = CALDCO_16MHZ;
   }else{
     //Info is missing, guess at a good value.
-    switch(*((int*)0xff0)){
+    #define CHOICES 4
+    DCOCTL = 0x00; //clear DCO
+    switch(choice[0]++%CHOICES){
     default:
-    case 0x6ff2:        //f26f, the MSP430F2618
-      DCOCTL = 0x00;
-      #ifndef DCOVAL
-      #define DCOVAL 0x8f
-      #endif
-      BCSCTL1 = DCOVAL;   //CALBC1_16MHZ at 0x10f9
-      /** Observed DCOCTL values:
-	  2618: 7f, 97
-      */
+    case 0:
+      BCSCTL1 = 0x8f;   //CALBC1_16MHZ at 0x10f9
       DCOCTL = 0x83;    //CALDCO_16MHZ at 0x10f8
+      break;
+    case 1:
+      BCSCTL1 = 0x8f;
+      DCOCTL = 0x95;
+      break;
+    case 2:
+      BCSCTL1 = 0x8f;
+      DCOCTL = 0x6c;
+      break;
+    case 3:
+      BCSCTL1 = 0x8e;
+      DCOCTL = 0xdc;
       break;
     }
   }

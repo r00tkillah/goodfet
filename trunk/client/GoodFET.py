@@ -69,8 +69,9 @@ class GoodFET:
         return self.symbols.get(name);
     def timeout(self):
         print "timeout\n";
-    def serInit(self, port=None, timeout=None):
+    def serInit(self, port=None, timeout=1):
         """Open the serial port"""
+        # Make timeout None to wait forever, 0 for non-blocking mode.
         
         if port is None and os.environ.get("GOODFET")!=None:
             glob_list = glob.glob(os.environ.get("GOODFET"));
@@ -93,21 +94,23 @@ class GoodFET:
             timeout=timeout
             )
         
-        #Explicitly set RTS and DTR to halt board.
-        self.serialport.setRTS(1);
-        self.serialport.setDTR(1);
-        #Drop DTR, which is !RST, low to begin the app.
-        self.serialport.setDTR(0);
-        self.serialport.flushInput()
-        self.serialport.flushOutput()
+        self.verb=0;
+        while self.verb!=0x7F:
+            #Explicitly set RTS and DTR to halt board.
+            self.serialport.setRTS(1);
+            self.serialport.setDTR(1);
+            #Drop DTR, which is !RST, low to begin the app.
+            self.serialport.setDTR(0);
+            self.serialport.flushInput()
+            self.serialport.flushOutput()
         
-        #Read and handle the initial command.
-        #time.sleep(1);
-        self.readcmd(); #Read the first command.
-        if(self.verb!=0x7F):
-            print "Verb %02x is wrong.  Incorrect firmware or bad Info guess?" % self.verb;
-            print "http://goodfet.sf.net/faq/";
-        #print "Connected."
+            #Read and handle the initial command.
+            #time.sleep(1);
+            self.readcmd(); #Read the first command.
+            #if(self.verb!=0x7F):
+            #    print "Verb %02x is wrong.  Incorrect firmware or bad Info guess?" % self.verb;
+            #    print "http://goodfet.sf.net/faq/";
+        print "Connected."
     def getbuffer(self,size=0x1c00):
         writecmd(0,0xC2,[size&0xFF,(size>>16)&0xFF]);
         print "Got %02x%02x buffer size." % (self.data[1],self.data[0]);

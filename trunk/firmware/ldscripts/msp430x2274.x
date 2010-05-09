@@ -4,7 +4,7 @@ OUTPUT_ARCH(msp:22)
 MEMORY
 {
   text   (rx)       : ORIGIN = 0xc000,     LENGTH = 0x3fe0
-  data   (rwx)      : ORIGIN = 0x0200,     LENGTH = 512
+  data   (rwx)      : ORIGIN = 0x0202,     LENGTH = 510
   vectors (rw)      : ORIGIN = 0xffe0,     LENGTH = 32
   bootloader(rx)    : ORIGIN = 0x0c00,     LENGTH = 1K
   infomem(rx)       : ORIGIN = 0x1000,     LENGTH = 256

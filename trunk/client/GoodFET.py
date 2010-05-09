@@ -69,7 +69,7 @@ class GoodFET:
         return self.symbols.get(name);
     def timeout(self):
         print "timeout\n";
-    def serInit(self, port=None, timeout=0.5):
+    def serInit(self, port=None, timeout=2):
         """Open the serial port"""
         # Make timeout None to wait forever, 0 for non-blocking mode.
         

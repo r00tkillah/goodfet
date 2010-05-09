@@ -142,6 +142,13 @@ void msp430_init_uart(){
 }
  */
 
+
+//! Initialization is correct.
+void msp430_init_dco_done(){
+  //Nothing to do for the 1612.
+}
+
+
 void msp430_init_dco() {
 /* This code taken from the FU Berlin sources and reformatted. */
   //

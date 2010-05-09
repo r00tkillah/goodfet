@@ -58,6 +58,7 @@ extern unsigned char silent;
 #define MONITOR_IN  0xA2
 
 #define MONITOR_SILENT 0xB0
+#define MONITOR_CONNECTED 0xB1
 
 #define MONITOR_READBUF 0xC0
 #define MONITOR_WRITEBUF 0xC1

@@ -75,6 +75,10 @@ void monitorhandle(unsigned char app,
     silent=cmddata[0];
     txdata(app,verb,1);
     break;
+  case MONITOR_CONNECTED:
+    msp430_init_dco_done();
+    txdata(app,verb,0);
+    break;
   }
 }
 

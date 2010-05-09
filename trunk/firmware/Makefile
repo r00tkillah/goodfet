@@ -1,10 +1,10 @@
 
 #include `uname`.mak
-GOODFET?=/dev/ttyUSB0
+#GOODFET?=/dev/ttyUSB0
 
 
 #For tos-bsl, use --invert-reset --invert-test
-BSL?=goodfet.bsl -c $(GOODFET) --speed=38400
+BSL?=goodfet.bsl --speed=38400
 
 
 #One of these should be defined explicitly.

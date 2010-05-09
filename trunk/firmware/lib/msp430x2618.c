@@ -8,7 +8,6 @@
 #include <io.h>
 #include <iomacros.h>
 
-
 //! Receive a byte.
 unsigned char serial_rx(){
   char c;
@@ -120,8 +119,15 @@ CALDCO_16MHZ 0x87 CALBC1_16MHZ 0x8f   2618-006.txt
 CALDCO_16MHZ 0x96 CALBC1_16MHZ 0x8f   2619-001.txt
 */
 
+//! Initialization is correct.
+void msp430_init_dco_done(){
+  char *choice=(char *) 0x200; //First word of RAM.
+  choice[0]--;
+}
+
 //! Initialize the MSP430 clock.
 void msp430_init_dco() {
+  int i=1000;
   char *choice=(char *) 0x200; //First word of RAM.
   #ifdef __MSP430_HAS_PORT8__
   P8SEL = 0; // disable XT2 on P8.7/8
@@ -132,7 +138,15 @@ void msp430_init_dco() {
     BCSCTL1 = CALBC1_16MHZ;
     DCOCTL = CALDCO_16MHZ;
   }else{
-    //Info is missing, guess at a good value.
+    /*
+      Info is missing, guess at a good value.
+      
+      For now, the choice doesn't jump backward after a successful
+      connection.  For that reason, keep this list as small as possible.
+      Future revisions will subtract one from choice[0] after a successful
+      connection, keeping choice[1] as the target.
+    */
+      
     #define CHOICES 4
     DCOCTL = 0x00; //clear DCO
     switch(choice[0]++%CHOICES){
@@ -155,6 +169,9 @@ void msp430_init_dco() {
       break;
     }
   }
+  
+  //Minor delay.
+  while(i--);
   
   return;
 }

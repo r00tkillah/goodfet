@@ -69,7 +69,7 @@ class GoodFET:
         return self.symbols.get(name);
     def timeout(self):
         print "timeout\n";
-    def serInit(self, port=None, timeout=1):
+    def serInit(self, port=None, timeout=0.5):
         """Open the serial port"""
         # Make timeout None to wait forever, 0 for non-blocking mode.
         
@@ -95,7 +95,10 @@ class GoodFET:
             )
         
         self.verb=0;
+        attempts=0;
         while self.verb!=0x7F:
+            self.serialport.flushInput()
+            self.serialport.flushOutput()
             #Explicitly set RTS and DTR to halt board.
             self.serialport.setRTS(1);
             self.serialport.setDTR(1);
@@ -103,14 +106,13 @@ class GoodFET:
             self.serialport.setDTR(0);
             self.serialport.flushInput()
             self.serialport.flushOutput()
-        
-            #Read and handle the initial command.
-            #time.sleep(1);
+            #time.sleep(.1);
+            attempts=attempts+1;
             self.readcmd(); #Read the first command.
-            #if(self.verb!=0x7F):
-            #    print "Verb %02x is wrong.  Incorrect firmware or bad Info guess?" % self.verb;
-            #    print "http://goodfet.sf.net/faq/";
-        #print "Connected."
+            
+        #print "Connected after %02i attempts." % attempts;
+        self.mon_connected();
+        
     def getbuffer(self,size=0x1c00):
         writecmd(0,0xC2,[size&0xFF,(size>>16)&0xFF]);
         print "Got %02x%02x buffer size." % (self.data[1],self.data[0]);
@@ -221,7 +223,9 @@ class GoodFET:
         self.besilent=s;
         print "besilent is %i" % self.besilent;
         self.writecmd(0,0xB0,1,[s]);
-        
+    def mon_connected(self):
+        """Announce to the monitor that the connection is good."""
+        self.writecmd(0,0xB1,0,[]);
     def out(self,byte):
         """Write a byte to P5OUT."""
         self.writecmd(0,0xA1,1,[byte]);

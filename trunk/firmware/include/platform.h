@@ -21,6 +21,8 @@ void setbaud1(unsigned char);
 void msp430_init_uart();
 //! Initialize the DCO Clock
 void msp430_init_dco();
+//! Called by monitor() when the DCO is correct and communication established.
+void msp430_init_dco_done();
 
 //LED on P1.0
 #define PLEDOUT P1OUT

@@ -25,6 +25,7 @@ CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -DGCC $(GCCINC) -I include $(CC
 #Define extra modules here.
 moreapps?=apps/i2c/i2c.o apps/chipcon/chipcon.o apps/glitch/glitch.o apps/jtag/sbw.o apps/smartcard/smartcard.o
 # should include apps/jtag/jtagarm7tdmi.o to build jtag for ARM7
+# should include apps/pic/dspic33f.o to build support for PIC24H/dsPIC33F
 
 apps= $(moreapps) apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o apps/jtag/ejtag.o apps/jtag/jtagxscale.o
 

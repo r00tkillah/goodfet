@@ -7,10 +7,9 @@ Scott Livingston <slivingston AT caltech.edu>
 Currently targeted at dsPIC33F/PIC24H chip family and tested on
 
 dsPIC33FJ128GP710,
-dsPIC33FJ128GP708
+dsPIC33FJ128GP708,
+PIC24HJ12GP201.
 
-(i.e. similar chip, differing in footprint: former is 100-TQFP, latter
-is 80-TQFP).
 
 For the 14-pin GoodFET port (size 2x7), the pinout is
 3 -> PGD

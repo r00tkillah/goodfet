@@ -73,7 +73,7 @@ void glitchapp(u8 app){
 
 //! Set glitching voltages.
 void glitchvoltages(u16 gnd, u16 vcc){
-  int i;
+  
   //debugstr("Set glitching voltages: GND and VCC");
   //debughex(gnd);
   //debughex(vcc);
@@ -85,6 +85,7 @@ void glitchvoltages(u16 gnd, u16 vcc){
   */
   
   #ifdef DAC12IR
+  int i;
   ADC12CTL0 = REF2_5V + REFON;                  // Internal 2.5V ref on
   // Delay here for reference to settle.
   for(i=0;i!=0xFFFF;i++) asm("nop");

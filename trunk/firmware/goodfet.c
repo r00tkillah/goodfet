@@ -15,7 +15,10 @@
 
 //! Initialize registers and all that jazz.
 void init(){
+  #ifdef DAC12IR
   int i;
+  #endif
+  
   WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
   
   //LED out and on.
@@ -93,7 +96,9 @@ void handle(unsigned char app,
     ejtaghandle(app,verb,len);
     break;
   case JTAG430: //Also JTAG430X, JTAG430X2
-    jtag430x2handle(app,verb,len);
+    //Revert this when X2 support returns.
+    //jtag430x2handle(app,verb,len);
+    jtag430handle(app,verb,len);
     break;
   case SMARTCARD:
     smartcardhandle(app,verb,len);

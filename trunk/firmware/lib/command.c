@@ -115,7 +115,7 @@ void txword(unsigned int l){
 
 //! Delay for a count.
 void delay(unsigned int count){
-  volatile unsigned int i=count*2;
+  volatile unsigned int i=count;
   while(i--) asm("nop");
 }
 //! MSDelay

@@ -115,7 +115,7 @@ void txword(unsigned int l){
 
 //! Delay for a count.
 void delay(unsigned int count){
-  volatile unsigned int i=count;
+  volatile unsigned int i=count*2;
   while(i--) asm("nop");
 }
 //! MSDelay
@@ -140,45 +140,45 @@ void msdelay(unsigned int ms){
    delaying slightly longer than requested. */
 void prep_timer()
 {
-	BCSCTL2 = 0x00; /* In particular, use DCOCLK as SMCLK source with
-					   divider 1. Hence, Timer A ticks with system
-					   clock at 16 MHz. */
+  BCSCTL2 = 0x00; /* In particular, use DCOCLK as SMCLK source with
+		     divider 1. Hence, Timer A ticks with system
+		     clock at 16 MHz. */
 
-	TACTL = 0x0204; /* Driven by SMCLK; disable Timer A interrupts;
-					   reset timer in case it was previously in use */
+  TACTL = 0x0204; /* Driven by SMCLK; disable Timer A interrupts;
+		     reset timer in case it was previously in use */
 }
 
 //! Delay for specified number of milliseconds (given 16 MHz clock)
 void delay_ms( unsigned int ms )
 {
-	// 16000 ticks = 1 ms
-	TACTL |= 0x20; // Start timer!
-	while (ms--) {
-		while (TAR < 16000)
-			asm( "nop" );
-		TACTL = 0x0224;
-	}
-	TACTL = 0x0204; // Reset Timer A, till next time
+  // 16000 ticks = 1 ms
+  TACTL |= 0x20; // Start timer!
+  while (ms--) {
+    while (TAR < 16000)
+      asm( "nop" );
+    TACTL = 0x0224;
+  }
+  TACTL = 0x0204; // Reset Timer A, till next time
 }
 
 //! Delay for specified number of microseconds (given 16 MHz clock)
 void delay_us( unsigned int us )
 {
-	// 16 ticks = 1 us
-	TACTL |= 0x20; // Start timer!
-	while (us--) {
-		while (TAR < 16)
-			asm( "nop" );
-		TACTL = 0x0224;
-	}
-	TACTL = 0x0204; // Reset Timer A, till next time
+  // 16 ticks = 1 us
+  TACTL |= 0x20; // Start timer!
+  while (us--) {
+    while (TAR < 16)
+      asm( "nop" );
+    TACTL = 0x0224;
+  }
+  TACTL = 0x0204; // Reset Timer A, till next time
 }
 
 //! Delay for specified number of clock ticks (16 MHz clock implies 62.5 ns per tick).
 void delay_ticks( unsigned int num_ticks )
 {
-	TACTL |= 0x20; // Start timer
-	while (TAR < num_ticks)
-		asm( "nop" );
-	TACTL = 0x0204; // Reset Timer A, till next time
+  TACTL |= 0x20; // Start timer
+  while (TAR < num_ticks)
+    asm( "nop" );
+  TACTL = 0x0204; // Reset Timer A, till next time
 }

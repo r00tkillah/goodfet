@@ -224,6 +224,7 @@ void jtag430x2handle(unsigned char app,
       jtag430mode=MSP430X2MODE;
       drwidth=20;
     }else{
+      debugstr("JTAG version unknown.");
       txdata(app,NOK,1);
       return;
     }

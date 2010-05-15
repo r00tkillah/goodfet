@@ -245,6 +245,7 @@ void jtag430_start(){
   SETRST;
   delay(0xFFFF);
 
+
   #ifndef SBWREWRITE
   //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
   CLRRST;
@@ -265,7 +266,7 @@ void jtag430_start(){
   jtag430_haltcpu();
 }
 
-//! Start normally, not JTAG.
+//! Stop JTAG.
 void jtag430_stop(){
   debugstr("Exiting JTAG.");
   jtagsetup();

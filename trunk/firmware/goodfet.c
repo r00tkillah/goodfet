@@ -97,8 +97,8 @@ void handle(unsigned char app,
     break;
   case JTAG430: //Also JTAG430X, JTAG430X2
     //Revert this when X2 support returns.
-    //jtag430x2handle(app,verb,len);
-    jtag430handle(app,verb,len);
+    jtag430x2handle(app,verb,len);
+    //jtag430handle(app,verb,len);
     break;
   case SMARTCARD:
     smartcardhandle(app,verb,len);

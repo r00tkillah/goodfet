@@ -23,12 +23,12 @@ CCEXTRA?=
 CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -DGCC $(GCCINC) -I include $(CCEXTRA)
 
 #Define extra modules here.
-moreapps?=apps/i2c/i2c.o apps/chipcon/chipcon.o apps/glitch/glitch.o apps/jtag/sbw.o apps/smartcard/smartcard.o
+moreapps?=apps/i2c/i2c.o apps/chipcon/chipcon.o apps/glitch/glitch.o apps/jtag/sbw.o apps/smartcard/smartcard.o apps/jtag/ejtag.o apps/jtag/jtagxscale.o
 # should include apps/jtag/jtagarm7tdmi.o to build jtag for ARM7
 # should include apps/pic/dspic33f.o to build support for PIC24H/dsPIC33F
 
 # Used to include  $(moreapps)
-apps=  apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o apps/jtag/ejtag.o apps/jtag/jtagxscale.o
+apps=  apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o 
 
 #apps/chipcon/chipconasm.o removed
 libs= lib/$(mcu).o lib/command.o apps/jtag/jtag430asm.o  lib/dco_calib.o

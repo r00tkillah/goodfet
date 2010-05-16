@@ -1364,7 +1364,7 @@ def main(itest=1):
     import getopt
     filetype    = None
     filename    = None
-    comPort     = None     #Default setting.
+    comPort     = None    #Default setting.
     speed       = None
     unpatched   = 0
     reset       = 0
@@ -1385,7 +1385,8 @@ def main(itest=1):
     
     bsl.invertRST = 1
     bsl.invertTEST = itest
-    
+
+    '''
     if comPort is None and os.environ.get("GOODFET")!=None:
         glob_list = glob.glob(os.environ.get("GOODFET"));
         if len(glob_list) > 0:
@@ -1398,8 +1399,10 @@ def main(itest=1):
         glob_list = glob.glob("/dev/ttyUSB*");
         if len(glob_list) > 0:
             comPort = glob_list[0];
-    
-    
+    '''
+
+    print "Using port %s" % comPort;
+   
     sys.stderr.write("MSP430 Bootstrap Loader Version: %s\n" % VERSION)
 
     try:

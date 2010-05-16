@@ -69,56 +69,50 @@ class GoodFET:
         return self.symbols.get(name);
     def timeout(self):
         print "timeout\n";
-    def serInit(self, port=None, timeout=None):
-        """Find the Serial Port in Windows"""
-        # Use scanwin32.py to find correct COM # for GoodFET, return back to serInit and define as PORT
-        
+    def serInit(self, port=None, timeout=2):
         """Open the serial port"""
-
-        if port is None and os.environ.get("FTDI")!=None:
-            glob_list = glob.glob(os.environ.get("FTDI"));
+        # Make timeout None to wait forever, 0 for non-blocking mode.
+        
+        if port is None and os.environ.get("GOODFET")!=None:
+            glob_list = glob.glob(os.environ.get("GOODFET"));
             if len(glob_list) > 0:
                 port = glob_list[0];
-
         if port is None:
             glob_list = glob.glob("/dev/tty.usbserial*");
             if len(glob_list) > 0:
                 port = glob_list[0];
-
         if port is None:
-            #glob_list = glob.glob("/dev/ttyUSB*");
-            glob_list = glob.glob("COM6");      # THIS DOESNT EVEN WORK
+            glob_list = glob.glob("/dev/ttyUSB*");
             if len(glob_list) > 0:
                 port = glob_list[0];
-
-        # Debug
-        # Check PySerial to see if I can get tuple of active COMs in Windows
-        print port
-        print glob_list
         
         self.serialport = serial.Serial(
-            'COM6',
+            port,
             #9600,
             115200,
             parity = serial.PARITY_NONE,
             timeout=timeout
             )
         
-        #Explicitly set RTS and DTR to halt board.
-        self.serialport.setRTS(1);
-        self.serialport.setDTR(1);
-        #Drop DTR, which is !RST, low to begin the app.
-        self.serialport.setDTR(0);
-        self.serialport.flushInput()
-        self.serialport.flushOutput()
+        self.verb=0;
+        attempts=0;
+        while self.verb!=0x7F:
+            self.serialport.flushInput()
+            self.serialport.flushOutput()
+            #Explicitly set RTS and DTR to halt board.
+            self.serialport.setRTS(1);
+            self.serialport.setDTR(1);
+            #Drop DTR, which is !RST, low to begin the app.
+            self.serialport.setDTR(0);
+            self.serialport.flushInput()
+            self.serialport.flushOutput()
+            #time.sleep(.1);
+            attempts=attempts+1;
+            self.readcmd(); #Read the first command.
+            
+        #print "Connected after %02i attempts." % attempts;
+        self.mon_connected();
         
-        #Read and handle the initial command.
-        #time.sleep(1);
-        self.readcmd(); #Read the first command.
-        if(self.verb!=0x7F):
-            print "Verb %02x is wrong.  Incorrect firmware or bad Info guess?" % self.verb;
-            print "http://goodfet.sf.net/faq/";
-        #print "Connected."
     def getbuffer(self,size=0x1c00):
         writecmd(0,0xC2,[size&0xFF,(size>>16)&0xFF]);
         print "Got %02x%02x buffer size." % (self.data[1],self.data[0]);
@@ -175,7 +169,7 @@ class GoodFET:
                 if self.app==0xFF:
                     if self.verb==0xFF:
                         print "# DEBUG %s" % self.serialport.read(self.count)
-                    elif self.verb==0xFE:
+               	    elif self.verb==0xFE:
                         print "# DEBUG 0x%x" % struct.unpack(fmt[self.count-1], self.serialport.read(self.count))[0]
                     sys.stdout.flush();
                 else:
@@ -229,7 +223,9 @@ class GoodFET:
         self.besilent=s;
         print "besilent is %i" % self.besilent;
         self.writecmd(0,0xB0,1,[s]);
-        
+    def mon_connected(self):
+        """Announce to the monitor that the connection is good."""
+        self.writecmd(0,0xB1,0,[]);
     def out(self,byte):
         """Write a byte to P5OUT."""
         self.writecmd(0,0xA1,1,[byte]);

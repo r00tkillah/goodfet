@@ -30,7 +30,7 @@ class GoodFETMSP430(GoodFET):
         CoreID=ord(self.data[0])+(ord(self.data[1])<<8);
         return CoreID;
     def MSP430deviceid(self):
-        """Get the Core ID."""
+        """Get the Device ID."""
         self.writecmd(self.MSP430APP,0xF1);
         DeviceID=(
             ord(self.data[0])+(ord(self.data[1])<<8)+
@@ -86,7 +86,7 @@ class GoodFETMSP430(GoodFET):
         self.JTAGID=ord(self.data[0]);
         #print "Identified as %02x." % self.JTAGID;
         if(not (self.JTAGID==0x89 or self.JTAGID==0x91)):
-            print "Error, misidentified as %02x." % self.JTAGID;
+            print "Error, misidentified as %02x.\nCheck wiring, as this should be 0x89 or 0x91." % self.JTAGID;
         self.MSP430haltcpu();
     def MSP430haltcpu(self):
         """Halt the CPU."""

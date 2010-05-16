@@ -6,6 +6,6 @@
 # This code is being rewritten and refactored.  You've been warned!
 
 from distutils.core import setup
-import py2exe
+import py2exe, sys, os
 
 setup(console=['goodfet.bsl'])

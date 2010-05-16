@@ -12,26 +12,32 @@ THEN ...
 ======================
 TO SCAN FOR PROGRAMMER
 ======================
-Type "scan.bat" and press ENTER
 
-NOTE: LOOK FOR COMPORT NUMBER ASSOCIATED WITH "FTDI" DRIVER
+Type "scan.bat" and press ENTER.
 
-==================
-TO UPDATE FIRMWARE
-==================
-Type "updateFirmware.bat" and press enter
+NOTE: LOOK FOR COMPORT NUMBER ASSOCIATED WITH "FTDI" DRIVER.  In the examples
+below, this is 6.  Use your number instead of 6.
 
-OR
 
 =======================
 TO FLASH THE PROGRAMMER
 =======================
-Type "flashProgrammer.bat" and press enter 
 
-OR
+Type "flashProgrammer.bat" and press enter.  This will load the latest
+programmer firmware, which is necessary to program the badge.
+
+
+==================
+TO FLASH THE BADGE
+==================
+
+Type "flashBadge.bat 6" and press ENTER.  This will update the badge
+firmware.  LED1 will blink each time a packet is sent over the radio.
 
 ====================
-TO TEST THE FIRMWARE
+BLINK TEST
 ====================
-Type "testFirmware.bat" and press ENTER
 
+Type "flashBlink.bat" and press ENTER.  This will blink LED1 and do
+nothing else.  This is only to verify that the programmer is properly
+wired.

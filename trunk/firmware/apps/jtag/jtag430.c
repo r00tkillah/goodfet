@@ -70,7 +70,7 @@ unsigned int jtag430_readmem(unsigned int adr){
   else
     jtag_dr_shift16(0x2419);//byte read
   jtag_ir_shift8(IR_ADDR_16BIT);
-  jtag_dr_shift16(adr);//address
+  jtag_dr_shiftadr(adr);//address
   jtag_ir_shift8(IR_DATA_TO_ADDR);
   SETTCLK;
 
@@ -89,7 +89,7 @@ void jtag430_writemem(unsigned int adr, unsigned int data){
   else
     jtag_dr_shift16(0x2418);//byte write
   jtag_ir_shift8(IR_ADDR_16BIT);
-  jtag_dr_shift16(adr);
+  jtag_dr_shiftadr(adr);
   jtag_ir_shift8(IR_DATA_TO_ADDR);
   jtag_dr_shift16(data);
   SETTCLK;
@@ -102,7 +102,7 @@ void jtag430_writeflashword(unsigned int adr, unsigned int data){
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x2408);//word write
   jtag_ir_shift8(IR_ADDR_16BIT);
-  jtag_dr_shift16(adr);
+  jtag_dr_shiftadr(adr);
   jtag_ir_shift8(IR_DATA_TO_ADDR);
   jtag_dr_shift16(data);
   SETTCLK;

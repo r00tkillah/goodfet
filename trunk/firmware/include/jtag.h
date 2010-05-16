@@ -20,6 +20,8 @@ extern unsigned int jtag430mode;
 //! Shift n bytes.
 unsigned long jtagtransn(unsigned long word,
 			 unsigned int bitcount);
+//! Shift the address width.
+unsigned long jtag_dr_shiftadr(unsigned long in);
 //! Shift 8 bits of the IR.
 unsigned char jtag_ir_shift8(unsigned char);
 //! Shift 16 bits of the DR.

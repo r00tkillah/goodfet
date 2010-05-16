@@ -103,7 +103,7 @@ void jtag_stop(){
   P4OUT=0;
 }
 
-unsigned int drwidth=20;
+unsigned int drwidth=16;
 //! Shift all bits of the DR.
 unsigned long jtag_dr_shift20(unsigned long in){
   // idle
@@ -133,6 +133,26 @@ unsigned int jtag_dr_shift16(unsigned int in){
   
   // shift DR, then idle
   return(jtagtransn(in,16));
+}
+
+//! Shift native width of the DR
+unsigned long jtag_dr_shiftadr(unsigned long in){
+  unsigned long out=0;
+  
+  // idle
+  SETTMS;
+  TCKTOCK;
+  // select DR
+  CLRTMS;
+  TCKTOCK;
+  // capture IR
+  TCKTOCK;
+
+  
+  out=jtagtransn(in,drwidth);
+  
+  // shift DR, then idle
+  return(out);
 }
 
 

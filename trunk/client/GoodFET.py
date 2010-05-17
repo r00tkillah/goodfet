@@ -77,6 +77,8 @@ class GoodFET:
             glob_list = glob.glob(os.environ.get("GOODFET"));
             if len(glob_list) > 0:
                 port = glob_list[0];
+            else:
+                port = os.environ.get("GOODFET");
         if port is None:
             glob_list = glob.glob("/dev/tty.usbserial*");
             if len(glob_list) > 0:
@@ -85,6 +87,7 @@ class GoodFET:
             glob_list = glob.glob("/dev/ttyUSB*");
             if len(glob_list) > 0:
                 port = glob_list[0];
+        
         
         self.serialport = serial.Serial(
             port,

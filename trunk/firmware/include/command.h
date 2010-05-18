@@ -145,16 +145,19 @@ void delay_ticks( unsigned int num_ticks );
 
 
 void monitorhandle(unsigned char, unsigned char, unsigned long);
-void spihandle(unsigned char, unsigned char, unsigned long);
-void i2chandle(unsigned char, unsigned char, unsigned long) WEAKDEF;
-void cchandle(unsigned char, unsigned char, unsigned long) WEAKDEF;
-void jtaghandle(unsigned char, unsigned char, unsigned long);
-void jtag430handle(unsigned char, unsigned char, unsigned long);
+WEAKDEF void spihandle(unsigned char, unsigned char, unsigned long);
+WEAKDEF void i2chandle(unsigned char, unsigned char, unsigned long);
+WEAKDEF void cchandle(unsigned char, unsigned char, unsigned long);
+WEAKDEF void jtaghandle(unsigned char, unsigned char, unsigned long);
+WEAKDEF void jtag430handle(unsigned char, unsigned char, unsigned long);
 WEAKDEF void ejtaghandle(unsigned char, unsigned char, unsigned long);
 WEAKDEF void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len);
 
-void jtag430x2handle(unsigned char app, unsigned char verb, unsigned long len);
+WEAKDEF void jtag430x2handle(unsigned char app, unsigned char verb, unsigned long len);
 
+WEAKDEF void nrfhandle(unsigned char,
+		       unsigned char,
+		       unsigned long);
 WEAKDEF void avrhandle(unsigned char app,
 		       unsigned char verb,
 		       unsigned long len);  

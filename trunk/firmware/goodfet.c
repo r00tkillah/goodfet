@@ -75,14 +75,16 @@ void handle(unsigned char app,
   case SPI:
     spihandle(app,verb,len);
     break;
+  case NRF:
+    nrfhandle(app,verb,len);
+    break;
   case AVR:
     avrhandle(app,verb,len);
     break;
-#ifdef INSTALL_PIC_APP
   case PIC:
     pichandle(app,verb,len);
     break;
-#endif
+
   case I2CAPP:
     i2chandle(app,verb,len);
     break;

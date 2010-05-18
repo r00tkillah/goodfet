@@ -59,8 +59,6 @@ unsigned char nrftrans8(unsigned char byte){
 }
 
 
-
-
 //! Handles a Nordic RF command.
 void nrfhandle(unsigned char app,
 	       unsigned char verb,
@@ -70,6 +68,8 @@ void nrfhandle(unsigned char app,
   //Raise !SS to end transaction, just in case we forgot.
   P5OUT|=SS;
   nrfsetup();
+  
+  debugstr("NRF Handler");
   
   switch(verb){
     //PEEK and POKE might come later.
@@ -82,9 +82,12 @@ void nrfhandle(unsigned char app,
     txdata(app,verb,len);
     break;
 
-
-
   case PEEK://Grab NRF Register
+    P5OUT&=~SS; //Drop !SS to begin transaction.
+    nrftrans8(0|(0x1F & cmddata[0])); //000A AAAA
+    for(i=1;i<len;i++)
+      cmddata[i]=nrftrans8(cmddata[i]);
+    P5OUT|=SS;  //Raise !SS to end transaction.
     txdata(app,verb,0);
     break;
     

@@ -15,6 +15,11 @@
 #include "nrf.h"
 #include "spi.h"
 
+//Weird HOPE badge wiring.  This was a fuckup.
+//BIT0 should be SS, but in point of fact it is IRQ.
+//BIT4 is actually SS, BIT5 is CE.
+#define SS BIT4
+
 //This could be more accurate.
 //Does it ever need to be?
 #define NRFSPEED 0
@@ -24,9 +29,10 @@
 
 //! Set up the pins for NRF mode.
 void nrfsetup(){
-  P5OUT|=SS;
-  P5DIR|=MOSI+SCK+SS;
+  P5OUT=SS;
   P5DIR&=~MISO;
+  P5DIR|=MOSI+SCK+SS;
+  
   
   //Begin a new transaction.
   P5OUT&=~SS; 
@@ -68,9 +74,7 @@ void nrfhandle(unsigned char app,
   //Raise !SS to end transaction, just in case we forgot.
   P5OUT|=SS;
   nrfsetup();
-  
-  debugstr("NRF Handler");
-  
+    
   switch(verb){
     //PEEK and POKE might come later.
   case READ:
@@ -84,16 +88,20 @@ void nrfhandle(unsigned char app,
 
   case PEEK://Grab NRF Register
     P5OUT&=~SS; //Drop !SS to begin transaction.
-    nrftrans8(0|(0x1F & cmddata[0])); //000A AAAA
+    nrftrans8(0|(NRF_R_REGISTER & cmddata[0])); //000A AAAA
     for(i=1;i<len;i++)
       cmddata[i]=nrftrans8(cmddata[i]);
     P5OUT|=SS;  //Raise !SS to end transaction.
-    txdata(app,verb,0);
+    txdata(app,verb,len);
     break;
     
   case POKE://Poke NRF Register
-    
-    txdata(app,verb,0);
+    P5OUT&=~SS; //Drop !SS to begin transaction.
+    nrftrans8(0|(NRF_W_REGISTER & cmddata[0])); //001A AAAA
+    for(i=1;i<len;i++)
+      cmddata[i]=nrftrans8(cmddata[i]);
+    P5OUT|=SS;  //Raise !SS to end transaction.
+    txdata(app,verb,len);
     break;
     
   case SETUP:

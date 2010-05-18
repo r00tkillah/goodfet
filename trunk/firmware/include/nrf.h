@@ -15,3 +15,5 @@
 
 
 
+//NRF24L01+ Registers
+//TODO add these

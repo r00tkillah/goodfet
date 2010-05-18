@@ -29,14 +29,16 @@
 
 //! Set up the pins for NRF mode.
 void nrfsetup(){
-  P5OUT=SS;
+  P5OUT|=SS;
   P5DIR&=~MISO;
   P5DIR|=MOSI+SCK+SS;
   
   
+  /*
   //Begin a new transaction.
   P5OUT&=~SS; 
   P5OUT|=SS;
+  */
 }
 
 

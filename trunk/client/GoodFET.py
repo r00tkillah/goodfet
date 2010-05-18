@@ -315,12 +315,13 @@ class GoodFET:
         """Self-test several functions through the monitor."""
         print "Performing monitor self-test.";
         
-        if self.peekword(0x0c00)!=0x0c04 and self.peekword(0x0c00)!=0x0c06:
-            print "ERROR Fetched wrong value from 0x0c04.";
-        self.pokebyte(0x0021,0); #Drop LED
-        if self.peekbyte(0x0021)!=0:
-            print "ERROR, P1OUT not cleared.";
-        self.pokebyte(0x0021,1); #Light LED
+        for f in range(0,30):
+            if self.peekword(0x0c00)!=0x0c04 and self.peekword(0x0c00)!=0x0c06:
+                print "ERROR Fetched wrong value from 0x0c04.";
+            self.pokebyte(0x0021,0); #Drop LED
+            if self.peekbyte(0x0021)!=0:
+                print "ERROR, P1OUT not cleared.";
+            self.pokebyte(0x0021,1); #Light LED
         
         print "Self-test complete.";
     

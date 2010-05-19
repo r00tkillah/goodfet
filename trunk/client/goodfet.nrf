@@ -13,6 +13,7 @@ from intelhex import IntelHex;
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s info" % sys.argv[0];
+    print "%s test" % sys.argv[0];
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -24,6 +25,20 @@ print "Connected."
 client.NRFsetup();
 print "Setup."
 client.status();
+
+
+if(sys.argv[1]=="test"):
+    # Set PWR_UP=1 and PRIM_RX=0 in CONFIG.
+    client.poke(0x00,2);
+    #Delay of 1.5ms by round-trip.
+    # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP
+    client.poke(0x06,8+10+4+2); 
+    client.RF_freq(2480 * 10**6);
+    
+    #Print register, no idea why.
+    for r in range(0,30):
+        print "r[0x%02x]=0x%02x" % (r,client.peek(r));
+    print "SMAC=%010x" % client.RF_getsmac();
 
 if(sys.argv[1]=="regs"):
     for r in range(0,30):

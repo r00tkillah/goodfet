@@ -34,16 +34,13 @@ void nrfsetup(){
   P5DIR|=MOSI+SCK+SS;
   
   
-  /*
   //Begin a new transaction.
   P5OUT&=~SS; 
   P5OUT|=SS;
-  */
 }
 
-
 //! Read and write an NRF byte.
-unsigned char nrftrans8(unsigned char byte){
+u8 nrftrans8(u8 byte){
   register unsigned int bit;
   //This function came from the NRF Wikipedia article.
   //Minor alterations.
@@ -67,6 +64,27 @@ unsigned char nrftrans8(unsigned char byte){
 }
 
 
+//! Writes a register
+u8 nrf_regwrite(u8 reg, const u8 *buf, int len){
+  P5OUT&=~SS;
+  
+  reg=nrftrans8(reg);
+  while(len--)
+    nrftrans8(*buf++);
+  
+  P5OUT|=SS;
+}
+//! Reads a register
+u8 nrf_regread(u8 reg, u8 *buf, int len){
+  P5OUT&=~SS;
+  
+  reg=nrftrans8(reg);
+  while(len--)
+    *buf++=nrftrans8(0);
+  
+  P5OUT|=SS;
+}
+
 //! Handles a Nordic RF command.
 void nrfhandle(unsigned char app,
 	       unsigned char verb,
@@ -79,7 +97,7 @@ void nrfhandle(unsigned char app,
     
   switch(verb){
     //PEEK and POKE might come later.
-  case READ:
+  case READ:  
   case WRITE:
     P5OUT&=~SS; //Drop !SS to begin transaction.
     for(i=0;i<len;i++)
@@ -90,7 +108,7 @@ void nrfhandle(unsigned char app,
 
   case PEEK://Grab NRF Register
     P5OUT&=~SS; //Drop !SS to begin transaction.
-    nrftrans8(0|(NRF_R_REGISTER & cmddata[0])); //000A AAAA
+    nrftrans8(NRF_R_REGISTER | cmddata[0]); //000A AAAA
     for(i=1;i<len;i++)
       cmddata[i]=nrftrans8(cmddata[i]);
     P5OUT|=SS;  //Raise !SS to end transaction.
@@ -99,7 +117,7 @@ void nrfhandle(unsigned char app,
     
   case POKE://Poke NRF Register
     P5OUT&=~SS; //Drop !SS to begin transaction.
-    nrftrans8(0|(NRF_W_REGISTER & cmddata[0])); //001A AAAA
+    nrftrans8(NRF_W_REGISTER | cmddata[0]); //001A AAAA
     for(i=1;i<len;i++)
       cmddata[i]=nrftrans8(cmddata[i]);
     P5OUT|=SS;  //Raise !SS to end transaction.

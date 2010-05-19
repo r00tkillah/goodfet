@@ -1,5 +1,5 @@
 /*! \file jtagarm7tdmi.c
-  \brief ARM7TDMI JTAG (AT91R40008)
+  \brief ARM7TDMI JTAG (AT91R40008, AT91SAM7xxx)
 */
 
 #include "platform.h"
@@ -127,10 +127,10 @@ void jtag_reset_to_runtest_idle() {
 }
 
 void jtag_arm_tcktock() {
-  delay(1);
+  delay(100);  // FIXME: Should never wait this long...
   CLRTCK; 
   PLEDOUT^=PLEDPIN; 
-  delay(1);
+  delay(100);  // FIXME: Should never wait this long...
   SETTCK; 
   PLEDOUT^=PLEDPIN;
 }
@@ -139,23 +139,6 @@ void jtag_arm_tcktock() {
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
 unsigned long jtagarm7tdmi_start() {
   jtagsetup();
-  //Known-good starting position.
-  //Might be unnecessary.
-  //SETTST;
-  //SETRST;
-  
-  //delay(0x2);
-  
-  //CLRRST;
-  //delay(2);
-  //CLRTST;
-
-  //msdelay(10);
-  //SETRST;
-  /*
-  P5DIR &=~RST;
-  */
-  //delay(0x2);
   jtagarm7tdmi_resettap();
   return jtagarm7tdmi_idcode();
 }
@@ -177,9 +160,10 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
   unsigned long high = 1;
   unsigned long mask;
 
-  for (bit=(bitcount-1)/8; bit>0; bit--)
-    high <<= 8;
-  high <<= ((bitcount-1)%8);
+  //for (bit=(bitcount-1)/8; bit>0; bit--)
+  //  high <<= 8;
+  //high <<= ((bitcount-1)%8);
+  high <<= (bitcount-1);
 
   mask = high-1;
 
@@ -325,14 +309,14 @@ state” to the “Select DR” state each time the “Update” state is reache
 */
   unsigned long retval;
   if (current_chain != chain) {
-    debugstr("===change chains===");
+    //debugstr("===change chains===");
     SHIFT_IR;
     jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
     SHIFT_DR;
     retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
     current_chain = chain;
   }    else
-    debugstr("===NOT change chains===");
+    //debugstr("===NOT change chains===");
     retval = current_chain;
   // put in test mode...
   SHIFT_IR;
@@ -538,13 +522,17 @@ unsigned long jtagarm7tdmi_exec(unsigned long instr, unsigned long parameter, un
 
 //! Retrieve a 32-bit Register value
 unsigned long jtagarm7tdmi_get_register(unsigned long reg) {
-  unsigned long retval = 0, instr;
+  unsigned long retval = 0, instr, reg2;
+  reg2 = (reg&0xf);
   // push nop into pipeline - clean out the pipeline...
   instr = (unsigned long)(reg<<12) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
+  instr |= (unsigned long)((unsigned long)reg2<<8)<<8;
   //instr = (unsigned long)(((unsigned long)reg<<12) | ARM_READ_REG); 
   //debugstr("Reading:");
-  //debughex32(instr);
+  debughex32(instr);
 
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_instr_primitive(instr, 0);
   jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
@@ -560,25 +548,30 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {
 
 //! Set a 32-bit Register value
 void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {
-  unsigned long instr;
+  unsigned long instr, reg2;
+  reg2 = (reg&0xf);
   instr = (unsigned long)(((unsigned long)reg<<12) | ARM_WRITE_REG); //  LDR Rx, [R14]
-  debugstr("Writing:");
+  instr |= (unsigned long)((unsigned long)reg2<<8)<<8;
+  //instr |= (unsigned long)((((unsigned long)reg)&0x7)<<8)<<8;
+  //debugstr("Writing:");
   debughex32(instr);
   //debughex32(val);
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
   jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - decode
-  jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
+  //jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
   
-  //debughex32(jtagarm7tdmi_instr_primitive(val, 0)); // push 32-bit word on data bus
+  jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
   jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
   jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
 
-  //if (reg == ARM_REG_PC){
+  if (reg == ARM_REG_PC){
     jtagarm7tdmi_nop( 0);
     jtagarm7tdmi_nop( 0);
-  //}
+  }
   jtagarm7tdmi_nop( 0);
 }
 
@@ -586,6 +579,8 @@ void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {
 
 //! Get all registers, placing them into cmddatalong[0-15]
 void jtagarm7tdmi_get_registers() {
+  debugstr("First 8 registers:");
+  debugstr("   Instr and the first few pops from the instruction chain:");
   debughex32(ARM_INSTR_SKANKREGS1);
   debughex32(jtagarm7tdmi_nop( 0));
   debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_SKANKREGS1,0));
@@ -599,6 +594,9 @@ void jtagarm7tdmi_get_registers() {
   cmddatalong[ 5] = jtagarm7tdmi_nop( 0);
   cmddatalong[ 6] = jtagarm7tdmi_nop( 0);
   cmddatalong[ 7] = jtagarm7tdmi_nop( 0);
+
+  debugstr("Last 8 registers:");
+  debugstr("   Instr and the first few pops from the instruction chain:");
   debughex32(ARM_INSTR_SKANKREGS2);
   debughex32(jtagarm7tdmi_nop( 0));
   //jtagarm7tdmi_nop( 0);
@@ -912,10 +910,12 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
 	jtagarm7tdmi_resettap();
     val = cmddata[0];
     cmddatalong[0] = jtagarm7tdmi_get_register(val);
+    //debughex32(cmddatalong[0]);
     txdata(app,verb,4);
     break;
   case JTAGARM7TDMI_SET_REGISTER:           // FIXME: NOT AT ALL CORRECT, THIS IS TESTING CODE ONLY
 	jtagarm7tdmi_resettap();
+    debughex32(cmddatalong[1]);
     jtagarm7tdmi_set_register(cmddata[0], cmddatalong[1]);
     cmddatalong[0] = cmddatalong[1];
     txdata(app,verb,4);

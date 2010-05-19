@@ -18,7 +18,7 @@
 #define CHIPCON 0x30
 #define SIF 0x31
 #define AVR 0x32
-#define JTAGARM7TDMI 0x33 //Move this to 0x13
+#define JTAGARM7TDMI 0x13 //Move this to 0x13
 #define PIC 0x34
 
 //Radio peripherals are in the 0x50 range.

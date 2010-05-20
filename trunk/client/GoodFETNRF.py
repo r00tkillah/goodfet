@@ -46,7 +46,6 @@ class GoodFETNRF(GoodFET):
     
     def status(self):
         """Read the status byte."""
-        self.poke(0x07,0x78); #Reset status
         status=self.peek(0x07);
         print "Status=%02x" % status;
     
@@ -66,3 +65,33 @@ class GoodFETNRF(GoodFET):
         #Register 0A is RX_ADDR_P0, five bytes.
         mac=self.peek(0x0A, 5);
         return mac;
+    def RF_setsmac(self,mac):
+        """Set the source MAC address."""
+        
+        #Register 0A is RX_ADDR_P0, five bytes.
+        self.poke(0x0A, mac, 5);
+        return mac;
+    def RF_gettmac(self):
+        """Return the target MAC address."""
+        
+        #Register 0x10 is TX_ADDR, five bytes.
+        mac=self.peek(0x0A, 5);
+        return mac;
+    def RF_settmac(self,mac):
+        """Set the target MAC address."""
+        
+        #Register 0x10 is TX_ADDR, five bytes.
+        self.poke(0x10, mac, 5);
+        return mac;
+    def RF_rxpacket(self):
+        """Get a packet from the radio.  Returns None if none is waiting."""
+        if self.peek(0x07) & 0x40:
+            #Packet has arrived.
+            self.writecmd(self.NRFAPP,0x80,0,None); #RX Packet
+            data=self.data;
+            self.poke(0x07,0x40);#clear bit.
+            return data;
+        elif self.peek(0x07)==0:
+            self.writecmd(self.NRFAPP,0x82,0,None); #Flush
+            self.poke(0x07,0x40);#clear bit.
+        return None;

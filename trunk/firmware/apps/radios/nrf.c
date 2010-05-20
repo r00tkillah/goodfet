@@ -151,6 +151,7 @@ void nrfhandle(unsigned char app,
     txdata(app,verb,32);
     break;
   case NRF_TX:
+  case NRF_TX_FLUSH:
   default:
     debugstr("Not yet supported.");
     txdata(app,verb,0);

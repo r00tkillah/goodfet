@@ -19,19 +19,17 @@
 //BIT0 should be SS, but in point of fact it is IRQ.
 //BIT4 is actually SS, BIT5 is CE.
 #define SS BIT4
+#define CE BIT5;
 
-//This could be more accurate.
-//Does it ever need to be?
-#define NRFSPEED 0
-#define NRFDELAY(x)
-//delay(x)
+#define RADIOACTIVE  P5OUT|=CE
+#define RADIOPASSIVE P5OUT&=~CE
 
 
 //! Set up the pins for NRF mode.
 void nrfsetup(){
   P5OUT|=SS;
   P5DIR&=~MISO;
-  P5DIR|=MOSI+SCK+SS;
+  P5DIR|=MOSI+SCK+SS+CE;
   
   
   //Begin a new transaction.
@@ -73,6 +71,7 @@ u8 nrf_regwrite(u8 reg, const u8 *buf, int len){
     nrftrans8(*buf++);
   
   P5OUT|=SS;
+  return reg;//status
 }
 //! Reads a register
 u8 nrf_regread(u8 reg, u8 *buf, int len){
@@ -83,6 +82,7 @@ u8 nrf_regread(u8 reg, u8 *buf, int len){
     *buf++=nrftrans8(0);
   
   P5OUT|=SS;
+  return reg;//status
 }
 
 //! Handles a Nordic RF command.
@@ -90,6 +90,8 @@ void nrfhandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned long len){
   unsigned long i;
+  
+  RADIOPASSIVE;
   
   //Raise !SS to end transaction, just in case we forgot.
   P5OUT|=SS;
@@ -123,11 +125,38 @@ void nrfhandle(unsigned char app,
     P5OUT|=SS;  //Raise !SS to end transaction.
     txdata(app,verb,len);
     break;
-    
   case SETUP:
     nrfsetup();
     txdata(app,verb,0);
     break;
+  case NRF_RX:
+    RADIOPASSIVE;
+    
+    //Get the packet.
+    P5OUT&=~SS;
+    nrftrans8(NRF_R_RX_PAYLOAD);
+    for(i=0;i<32;i++)
+      cmddata[i]=nrftrans8(0xde);
+    P5OUT|=SS;
+    //no break
+    txdata(app,verb,32);
+    break;
+  case NRF_RX_FLUSH:
+    //Flush the buffer.
+    P5OUT&=~SS;
+    nrftrans8(NRF_FLUSH_RX);
+    P5OUT|=SS;
+    
+    //Return the packet.
+    txdata(app,verb,32);
+    break;
+  case NRF_TX:
+  default:
+    debugstr("Not yet supported.");
+    txdata(app,verb,0);
+    break;
   }
   
+  P5OUT|=SS;//End session
+  RADIOACTIVE;
 }

@@ -3,16 +3,24 @@
   \brief Constants for NRF Driver
 */
 
-//Nordic RF Instructions
+//Nording RF Commands
+
+//Grab a packet, if one is available.
+#define NRF_RX 0x80
+//Send a packet.
+#define NRF_TX 0x81
+//Flsuh RX
+#define NRF_RX_FLUSH 0x82
+
+//Nordic RF SPI Instructions
 #define NRF_R_REGISTER   0x00
 #define NRF_W_REGISTER   0x20
-#define NRF_R_RX_PAYLOAD 0x60
+#define NRF_R_RX_PAYLOAD 0x61
 #define NRF_W_TX_PAYLOAD 0xA0
-#define NRF_FLUSH_TX     0xE0
-#define NRF_FLUSH_RX     0xE1
-#define NRF_REUSE_TX_PL  0xE2
+#define NRF_FLUSH_TX     0xE1
+#define NRF_FLUSH_RX     0xE2
+#define NRF_REUSE_TX_PL  0xE3
 #define NRF_NOP          0xFF
-
 
 
 //NRF24L01+ Registers

@@ -15,8 +15,8 @@ def printpacket(packet):
     s="";
     i=0;
     for foo in packet:
-        if i>client.packetlen: break;
         i=i+1;
+        if i>client.packetlen: break;
         s="%s %02x" % (s,ord(foo));
     print "Got %s" %s;
         
@@ -29,13 +29,9 @@ if(len(sys.argv)==1):
 
 #Initialize FET and set baud rate
 client=GoodFETNRF();
-print "Connecting."
 client.serInit()
 
-print "Connected."
 client.NRFsetup();
-print "Setup."
-client.status();
 
 
 if(sys.argv[1]=="test"):
@@ -44,7 +40,7 @@ if(sys.argv[1]=="test"):
     #Delay of 1.5ms by round-trip.
     # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP
     client.poke(0x06,8+10+4+2); 
-    client.RF_freq(2480 * 10**6);
+    client.RF_setfreq(2480 * 10**6);
     
     #Print registers, just for fun.
     print "SMAC was %010x" % client.RF_getsmac();
@@ -64,8 +60,8 @@ if(sys.argv[1]=="sniffob"):
     client.poke(0x01,0x00); #Disable Shockburst
     client.poke(0x02,0x01); #Set RX Pipe 0
     client.poke(0x03,0x03); #SETUP_AW for 5-byte addresses.
-    client.RF_freq(2481 * 10**6);
-    #client.RF_freq(2490 * 10**6);
+    client.RF_setfreq(2481 * 10**6);
+    #client.RF_setfreq(2490 * 10**6);
     client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
     client.poke(0x07,0x78); #Reset status register
     
@@ -79,12 +75,12 @@ if(sys.argv[1]=="sniffob"):
     #client.poke(0x11,16);
     client.RF_setpacketlen(16);
     
-    client.status();
     #Power radio, prime for RX, checksum.
     client.poke(0x00,0x70|0x03|0x08);
     
     
-    print "Listening as %010x on channel %03i" % (client.RF_getsmac(),client.peek(0x05));
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10**6);
     #Now we're ready to get packets.
     
     while 1:

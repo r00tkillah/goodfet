@@ -50,15 +50,22 @@ class GoodFETNRF(GoodFET):
         print "Status=%02x" % status;
     
     #Radio stuff begins here.
-    def RF_freq(self,frequency):
+    def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         
         #On the NRF24L01+, register 0x05 is the offset in
         #MHz above 2400.
         
-        mhz=frequency/1000000-2400;
-        print "Setting channel %i." % mhz 
-        self.poke(0x05,mhz);
+        chan=frequency/1000000-2400;
+        self.poke(0x05,chan);
+    def RF_getfreq(self):
+        """Get the frequency in Hz."""
+        
+        #On the NRF24L01+, register 0x05 is the offset in
+        #MHz above 2400.
+        
+        return (2400+self.peek(0x05))*10**6
+        self.poke(0x05,chan);
     def RF_getsmac(self):
         """Return the source MAC address."""
         
@@ -100,3 +107,4 @@ class GoodFETNRF(GoodFET):
         """Set the number of bytes in the expected payload."""
         self.poke(0x11,len);
         self.packetlen=len;
+    

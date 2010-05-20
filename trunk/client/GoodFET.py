@@ -122,7 +122,7 @@ class GoodFET:
             clocking=self.monitorclocking();
             for foo in range(1,30):
                 if not self.monitorecho():
-                    if verbose: print "Comm error on %i try, resyncing out of %s." % (foo,
+                    if self.verbose: print "Comm error on %i try, resyncing out of %s." % (foo,
                                                   clocking);
                     connected=0;
                     break;

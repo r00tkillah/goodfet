@@ -18,8 +18,8 @@ def printpacket(packet):
         i=i+1;
         if i>client.packetlen: break;
         s="%s %02x" % (s,ord(foo));
-    print "Got %s" %s;
-        
+    print "%s" %s;
+    
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];

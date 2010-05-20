@@ -40,7 +40,7 @@ class GoodFETNRF(GoodFET):
         for i in range(0,bytes):
             data=data+[(val>>(8*i))&0xFF];
         self.writecmd(self.NRFAPP,0x03,len(data),data);
-        if self.peek(reg,bytes)!=val:
+        if self.peek(reg,bytes)!=val and reg!=0x07:
             print "Warning, failed to set register %02x." %reg;
         return;
     
@@ -95,3 +95,8 @@ class GoodFETNRF(GoodFET):
             self.writecmd(self.NRFAPP,0x82,0,None); #Flush
             self.poke(0x07,0x40);#clear bit.
         return None;
+    packetlen=16;
+    def RF_setpacketlen(self,len=16):
+        """Set the number of bytes in the expected payload."""
+        self.poke(0x11,len);
+        self.packetlen=len;

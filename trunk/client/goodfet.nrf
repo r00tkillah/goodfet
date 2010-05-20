@@ -11,6 +11,16 @@ import time;
 from GoodFETNRF import GoodFETNRF;
 from intelhex import IntelHex;
 
+def printpacket(packet):
+    s="";
+    i=0;
+    for foo in packet:
+        if i>client.packetlen: break;
+        i=i+1;
+        s="%s %02x" % (s,ord(foo));
+    print "Got %s" %s;
+        
+
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s info" % sys.argv[0];
@@ -55,6 +65,7 @@ if(sys.argv[1]=="sniffob"):
     client.poke(0x02,0x01); #Set RX Pipe 0
     client.poke(0x03,0x03); #SETUP_AW for 5-byte addresses.
     client.RF_freq(2481 * 10**6);
+    #client.RF_freq(2490 * 10**6);
     client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
     client.poke(0x07,0x78); #Reset status register
     
@@ -65,7 +76,8 @@ if(sys.argv[1]=="sniffob"):
     client.RF_settmac(0x424541434F);
     
     #Set packet length of 16.
-    client.poke(0x11,16);
+    #client.poke(0x11,16);
+    client.RF_setpacketlen(16);
     
     client.status();
     #Power radio, prime for RX, checksum.
@@ -79,9 +91,5 @@ if(sys.argv[1]=="sniffob"):
         packet=None;
         while packet==None:
             time.sleep(0.1);
-            client.status();
             packet=client.RF_rxpacket();
-        s="";
-        for foo in packet:
-            s="%s %02x" % (s,ord(foo));
-        print "Got %s" %s;
+        printpacket(packet);

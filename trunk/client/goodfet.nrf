@@ -35,11 +35,16 @@ if(sys.argv[1]=="test"):
     client.poke(0x06,8+10+4+2); 
     client.RF_freq(2480 * 10**6);
     
-    #Print register, no idea why.
-    for r in range(0,30):
-        print "r[0x%02x]=0x%02x" % (r,client.peek(r));
-    print "SMAC=%010x" % client.RF_getsmac();
+    #Print registers, just for fun.
+    print "SMAC was %010x" % client.RF_getsmac();
+    
+    client.poke(0x0A,0xDEADBEEF,5);
+    print "SMAC set to %010x" % client.RF_getsmac();
+    if client.RF_getsmac()!=0xdeadbeef:
+        print "ERROR: Failed to set MAC address.";
 
 if(sys.argv[1]=="regs"):
     for r in range(0,30):
         print "r[0x%02x]=0x%02x" % (r,client.peek(r));
+
+

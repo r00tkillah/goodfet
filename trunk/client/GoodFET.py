@@ -103,6 +103,7 @@ class GoodFET:
         connected=0;
         while connected==0:
             while self.verb!=0x7F or self.data!="http://goodfet.sf.net/":
+                #print "Resyncing.";
                 self.serialport.flushInput()
                 self.serialport.flushOutput()
                 #Explicitly set RTS and DTR to halt board.
@@ -112,16 +113,17 @@ class GoodFET:
                 self.serialport.setDTR(0);
                 self.serialport.flushInput()
                 self.serialport.flushOutput()
-                #time.sleep(.1);
+                #time.sleep(60);
                 attempts=attempts+1;
                 self.readcmd(); #Read the first command.
             #Here we have a connection, but maybe not a good one.
             connected=1;
             olds=self.infostring();
-            self.monitorclocking();
+            clocking=self.monitorclocking();
             for foo in range(1,30):
                 if not self.monitorecho():
-                    print "Comm error, resyncing.";
+                    if verbose: print "Comm error on %i try, resyncing out of %s." % (foo,
+                                                  clocking);
                     connected=0;
                     break;
         if self.verbose: print "Connected after %02i attempts." % attempts;
@@ -347,7 +349,7 @@ class GoodFET:
         data="The quick brown fox jumped over the lazy dog.";
         self.writecmd(self.MONITORAPP,0x81,len(data),data);
         if self.data!=data:
-            if verbose: print "Comm error recognized.";
+            if self.verbose: print "Comm error recognized by monitorecho().";
             return 0;
         return 1;
     def monitorclocking(self):

@@ -23,6 +23,7 @@ if(len(sys.argv)==1):
 #Initialize FET and set baud rate
 client=GoodFET();
 client.serInit()
+#client.verbose=1;
 
 if(sys.argv[1]=="on"):
     client.dir(0xFF);

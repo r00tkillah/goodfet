@@ -58,6 +58,7 @@ class GoodFET:
     verbose=False
     
     GLITCHAPP=0x71;
+    MONITORAPP=0x00;
     symbols=SymbolTable();
     
     def __init__(self, *args, **kargs):
@@ -99,21 +100,31 @@ class GoodFET:
         
         self.verb=0;
         attempts=0;
-        while self.verb!=0x7F:
-            self.serialport.flushInput()
-            self.serialport.flushOutput()
-            #Explicitly set RTS and DTR to halt board.
-            self.serialport.setRTS(1);
-            self.serialport.setDTR(1);
-            #Drop DTR, which is !RST, low to begin the app.
-            self.serialport.setDTR(0);
-            self.serialport.flushInput()
-            self.serialport.flushOutput()
-            #time.sleep(.1);
-            attempts=attempts+1;
-            self.readcmd(); #Read the first command.
-            
-        #print "Connected after %02i attempts." % attempts;
+        connected=0;
+        while connected==0:
+            while self.verb!=0x7F or self.data!="http://goodfet.sf.net/":
+                self.serialport.flushInput()
+                self.serialport.flushOutput()
+                #Explicitly set RTS and DTR to halt board.
+                self.serialport.setRTS(1);
+                self.serialport.setDTR(1);
+                #Drop DTR, which is !RST, low to begin the app.
+                self.serialport.setDTR(0);
+                self.serialport.flushInput()
+                self.serialport.flushOutput()
+                #time.sleep(.1);
+                attempts=attempts+1;
+                self.readcmd(); #Read the first command.
+            #Here we have a connection, but maybe not a good one.
+            connected=1;
+            olds=self.infostring();
+            self.monitorclocking();
+            for foo in range(1,30):
+                if not self.monitorecho():
+                    print "Comm error, resyncing.";
+                    connected=0;
+                    break;
+        if self.verbose: print "Connected after %02i attempts." % attempts;
         self.mon_connected();
         
     def getbuffer(self,size=0x1c00):
@@ -179,9 +190,11 @@ class GoodFET:
                     self.data=self.serialport.read(self.count);
                     return self.data;
             except TypeError:
-                print "Error: waiting for serial read timed out (most likely)."
-                sys.exit(-1)
-
+                if self.connected:
+                    print "Error: waiting for serial read timed out (most likely).";
+                    print "This shouldn't happen after syncing.  Exiting for safety.";
+                    sys.exit(-1)
+                return self.data;
     #Glitching stuff.
     def glitchApp(self,app):
         """Glitch into a device by its application."""
@@ -226,8 +239,10 @@ class GoodFET:
         self.besilent=s;
         print "besilent is %i" % self.besilent;
         self.writecmd(0,0xB0,1,[s]);
+    connected=0;
     def mon_connected(self):
         """Announce to the monitor that the connection is good."""
+        self.connected=1;
         self.writecmd(0,0xB1,0,[]);
     def out(self,byte):
         """Write a byte to P5OUT."""
@@ -314,18 +329,32 @@ class GoodFET:
     def monitortest(self):
         """Self-test several functions through the monitor."""
         print "Performing monitor self-test.";
-        
-        for f in range(0,30):
-            if self.peekword(0x0c00)!=0x0c04 and self.peekword(0x0c00)!=0x0c06:
-                print "ERROR Fetched wrong value from 0x0c04.";
+        self.monitorclocking();
+        for f in range(0,3000):
+            a=self.peekword(0x0c00);
+            b=self.peekword(0x0c02);
+            if a!=0x0c04 and a!=0x0c06:
+                print "ERROR Fetched %04x, %04x" % (a,b);
             self.pokebyte(0x0021,0); #Drop LED
             if self.peekbyte(0x0021)!=0:
                 print "ERROR, P1OUT not cleared.";
             self.pokebyte(0x0021,1); #Light LED
-        
+            if not self.monitorecho():
+                print "Echo test failed.";
         print "Self-test complete.";
-    
-    
+        self.monitorclocking();
+    def monitorecho(self):
+        data="The quick brown fox jumped over the lazy dog.";
+        self.writecmd(self.MONITORAPP,0x81,len(data),data);
+        if self.data!=data:
+            if verbose: print "Comm error recognized.";
+            return 0;
+        return 1;
+    def monitorclocking(self):
+        DCOCTL=self.peekbyte(0x0056);
+        BCSCTL1=self.peekbyte(0x0057);
+        return "0x%02x, 0x%02x" % (DCOCTL, BCSCTL1);
+
     # The following functions ought to be implemented in
     # every client.
 

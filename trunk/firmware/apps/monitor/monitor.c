@@ -22,6 +22,10 @@ void monitorhandle(unsigned char app,
   default:
     debugstr("ERROR: Command unsupported by debug monitor.");
     break;
+  case MONITOR_ECHO:
+    //Echo back the same buffer.
+    txdata(app,verb,len);
+    break;
   case PEEK:
     cmddata[0]=memorybyte[cmddataword[0]];
     txdata(app,verb,1);

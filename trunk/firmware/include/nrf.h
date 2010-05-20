@@ -9,8 +9,11 @@
 #define NRF_RX 0x80
 //Send a packet.
 #define NRF_TX 0x81
-//Flsuh RX
+//Flush RX
 #define NRF_RX_FLUSH 0x82
+//Flush TX
+#define NRF_TX_FLUSH 0x83
+
 
 //Nordic RF SPI Instructions
 #define NRF_R_REGISTER   0x00

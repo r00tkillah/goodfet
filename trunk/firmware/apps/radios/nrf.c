@@ -96,7 +96,7 @@ void nrfhandle(unsigned char app,
   //Raise !SS to end transaction, just in case we forgot.
   P5OUT|=SS;
   nrfsetup();
-    
+  
   switch(verb){
     //PEEK and POKE might come later.
   case READ:  

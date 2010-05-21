@@ -91,8 +91,8 @@ void nrfhandle(unsigned char app,
 	       unsigned long len){
   unsigned long i;
   
+  //Drop CE to passify radio.
   RADIOPASSIVE;
-  
   //Raise !SS to end transaction, just in case we forgot.
   P5OUT|=SS;
   nrfsetup();
@@ -158,6 +158,7 @@ void nrfhandle(unsigned char app,
     break;
   }
   
+
   P5OUT|=SS;//End session
   RADIOACTIVE;
 }

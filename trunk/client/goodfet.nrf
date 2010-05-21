@@ -86,6 +86,7 @@ if(sys.argv[1]=="sniffob"):
     while 1:
         packet=None;
         while packet==None:
-            time.sleep(0.1);
+            #time.sleep(0.1);
             packet=client.RF_rxpacket();
         printpacket(packet);
+        sys.stdout.flush();

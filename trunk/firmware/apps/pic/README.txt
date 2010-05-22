@@ -1,14 +1,17 @@
 PIC programmer
-March, April 2010.
+March-May 2010.
 
-Scott Livingston <slivingston AT caltech.edu>
+Scott Livingston  <slivingston AT caltech.edu>
 
 
-Currently targeted at dsPIC33F/PIC24H chip family and tested on
+Currently targeted at 16-bit PIC chip families (i.e., PIC24F,
+dsPIC30F, PIC24H, dsPIC33F) and tested on
 
 dsPIC33FJ128GP710,
 dsPIC33FJ128GP708,
 PIC24HJ12GP201.
+
+Expansion in the 8-bit and 32-bit directions is in the works.
 
 
 For the 14-pin GoodFET port (size 2x7), the pinout is
@@ -44,8 +47,7 @@ $ ./goodfet.pic devid
 
 
 Much more documentation is needed for the programmer and is
-forthcoming along with more common tools (e.g. verify programming
-results). For now, here are some quick examples. To bulk erase program
+forthcoming. For now, here are some quick examples. To bulk erase program
 memory (this is necessary before programming),
 
 $ ./goodfet.pic erase
@@ -54,8 +56,12 @@ Then to program the device with a code file, foo.hex,
 
 $ ./goodfet.pic program foo.hex
 
+To verify programming results,
 
-A quick visual check of results might be a dump of the first few
+$ ./goodfet.pic verify foo.hex
+
+Please note that only addresses in given hex file are verified. A
+quick visual check of results might be a dump of the first few
 instruction words.
 
 $ ./goodfet.pic - 0x200 0x220 pretty

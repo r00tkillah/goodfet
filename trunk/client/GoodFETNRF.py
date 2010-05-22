@@ -82,7 +82,7 @@ class GoodFETNRF(GoodFET):
         """Return the target MAC address."""
         
         #Register 0x10 is TX_ADDR, five bytes.
-        mac=self.peek(0x0A, 5);
+        mac=self.peek(0x10, 5);
         return mac;
     def RF_settmac(self,mac):
         """Set the target MAC address."""
@@ -90,6 +90,7 @@ class GoodFETNRF(GoodFET):
         #Register 0x10 is TX_ADDR, five bytes.
         self.poke(0x10, mac, 5);
         return mac;
+
     def RF_rxpacket(self):
         """Get a packet from the radio.  Returns None if none is waiting."""
         if self.peek(0x07) & 0x40:
@@ -107,4 +108,22 @@ class GoodFETNRF(GoodFET):
         """Set the number of bytes in the expected payload."""
         self.poke(0x11,len);
         self.packetlen=len;
-    
+    def RF_getpacketlen(self):
+        """Set the number of bytes in the expected payload."""
+        len=self.peek(0x11);
+        self.packetlen=len;
+        return len;
+    maclen=5;
+    def RF_getmaclen(self):
+        """Get the number of bytes in the MAC address."""
+        choices=["illegal", 3, 4, 5];
+        choice=self.peek(0x03)&3;
+        self.maclen=choices[choice];
+        return self.maclen;
+    def RF_setmaclen(self,len):
+        """Set the number of bytes in the MAC address."""
+        choices=["illegal", "illegal", "illegal", 
+                 1, 2, 3];
+        choice=choices[len];
+        self.poke(0x03,choice);
+        self.maclen=len;

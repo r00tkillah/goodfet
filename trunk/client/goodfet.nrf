@@ -24,15 +24,16 @@ def printconfig():
     print "SMAC  0x%010x" % client.RF_getsmac();
     print "TMAC  0x%010x" % client.RF_gettmac();
     print "Freq    %10i MHz" % (client.RF_getfreq()/10**6);
-    print "PacketLen %02i" % client.RF_getpacketlen();
-    print "MacLen    %02i" % client.RF_getmaclen();
+    print "PacketLen %02i bytes" % client.RF_getpacketlen();
+    print "MacLen    %2i bytes" % client.RF_getmaclen();
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s info" % sys.argv[0];
     print "%s test" % sys.argv[0];
-    print "%s sniffob\n\tSniffs OpenBeacon traffic." % sys.argv[0];
     print "%s regs" % sys.argv[0];
+    print "%s sniffob\n\tSniffs OpenBeacon traffic." % sys.argv[0];
+    print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -49,18 +50,25 @@ if(sys.argv[1]=="test"):
     client.poke(0x00,2);
     #Delay of 1.5ms by round-trip.
     # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP
-    client.poke(0x06,8+10+4+2); 
+    client.poke(0x06,8+10+4+2);
     client.RF_setfreq(2480 * 10**6);
     
     #Print registers, just for fun.
-    print "SMAC  0x%010x" % client.RF_getsmac();
-    print "Freq    %10i MHz" % (client.RF_getfreq()/10**6);
+    printconfig();
     
     client.poke(0x0A,0xDEADBEEF,5);
-    print "SMAC set to %010x" % client.RF_getsmac();
+    #print "SMAC set to %010x" % client.RF_getsmac();
     if client.RF_getsmac()!=0xdeadbeef:
         print "ERROR: Failed to set MAC address.";
 
+if(sys.argv[1]=="carrier"):
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[2]));
+    client.RF_carrier();
+    printconfig();
+    print "\nHolding a carrier wave.";
+    while(1):
+        time.sleep(1);
 if(sys.argv[1]=="regs"):
     for r in range(0,0x20):
         print "r[0x%02x]=0x%010x" % (r,client.peek(r));

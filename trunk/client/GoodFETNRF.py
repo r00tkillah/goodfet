@@ -109,6 +109,11 @@ class GoodFETNRF(GoodFET):
             self.writecmd(self.NRFAPP,0x82,0,None); #Flush
             self.poke(0x07,0x40);#clear bit.
         return None;
+    def RF_carrier(self):
+        """Hold a carrier wave on the present frequency."""
+        # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP
+        self.poke(0x06,8+10+4+2); 
+        
     packetlen=16;
     def RF_setpacketlen(self,len=16):
         """Set the number of bytes in the expected payload."""

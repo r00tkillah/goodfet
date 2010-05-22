@@ -2,16 +2,6 @@
 
 <p>Read, program, erase <a href="http://en.wikipedia.org/wiki/PIC_microcontroller">PIC</a> chips. Originally targetted at 16-bit families (i.e., PIC24H, dsPIC33F, PIC24F, and dsPIC30F), but now moving in the 8-bit and 32-bit directions.</p>
 
-<p>Pinout is
-<table border="1">
-<tr><th>GoodFET pin</th><th>PIC ICSP pin</th></tr>
-<tr><td>3</td><td>PGD</td><tr>
-<tr><td>5</td><td>!MCLR</td><tr>
-<tr><td>7</td><td>PGC</td><tr>
-<tr><td>2</td><td>Vcc</td><tr>
-<tr><td>9</td><td>GND</td><tr>
-</table>
-</p>
 
 <h2>Clients</h2>
 
@@ -22,6 +12,22 @@ supported and as the PIC app evolves.
 A Python class that subsumes goodfet.pic (whereby goodfet.pic will
 become a mere frontend to several methods of the class) is in the
 works. Stay tuned.
+
+
+<h2>Pinout</h2>
+<p>
+<table border="1">
+<tr><th style="width: 5em;">Name</th><th colspan="2" style="width: 3.5em">Pin</th><th style="width: 5em;">Name</th></tr>
+<tr><td></td><td>1</td><td>2</td><td>Vcc</td></tr>
+<tr><td>PGD</td><td>3</td><td>4</td><td>Vcc</td></tr>
+<tr><td>!MCLR</td><td>5</td><td>6</td><td></td></tr>
+<tr><td>PGC</td><td>7</td><td>8</td><td></td></tr>
+<tr><td>GND</td><td>9</td><td>10</td><td></td></tr>
+<tr><td></td><td>11</td><td>12</td><td></td></tr>
+<tr><td></td><td>13</td><td>14</td><td></td></tr>
+</table>
+</p>
+
 
 <h2>Status</h2>
 

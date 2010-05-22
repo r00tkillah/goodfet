@@ -26,9 +26,15 @@ class GoodFETNRF(GoodFET):
         self.writecmd(self.NRFAPP,0x00,len(data),data);
         return self.data;
     
-    def peek(self,reg,bytes=1):
+    def peek(self,reg,bytes=-1):
         """Read an NRF Register.  For long regs, result is flipped."""
         data=[reg,0,0,0,0,0];
+        
+        #Automatically calibrate the len.
+        if bytes==-1:
+            bytes=1;
+            if reg==0x0a or reg==0x0b or reg==0x10: bytes=5;
+        
         self.writecmd(self.NRFAPP,0x02,len(data),data);
         toret=0;
         for i in range(0,bytes):

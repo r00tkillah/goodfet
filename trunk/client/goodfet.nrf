@@ -63,9 +63,7 @@ if(sys.argv[1]=="test"):
 
 if(sys.argv[1]=="regs"):
     for r in range(0,0x20):
-        reglen=1;
-        if r==0x0a or r==0x0b or r==0x10: reglen=5;
-        print "r[0x%02x]=0x%010x" % (r,client.peek(r,reglen));
+        print "r[0x%02x]=0x%010x" % (r,client.peek(r));
 
 if(sys.argv[1]=="sniffob"):
     #Reversal of transmitter code from nRF_CMD.c of OpenBeacon

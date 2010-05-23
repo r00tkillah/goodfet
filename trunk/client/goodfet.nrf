@@ -11,6 +11,16 @@ import time;
 from GoodFETNRF import GoodFETNRF;
 from intelhex import IntelHex;
 
+
+regnames=["CONFIG","EN_AA","EN_RXADDR","SETUP_AW","SETUP_RET",
+          "RF_CH","RF_SETUP","STATUS","OBSERVE_TX","RPD",
+          "RX_ADDR_P0","RX_ADDR_P1","RX_ADDR_P2","RX_ADDR_P3","RX_ADDR_P4","RX_ADDR_P5",
+          "TX_ADDR",
+          "RX_PW_P0","RX_PW_P1","RX_PW_P2","RX_PW_P3","RX_PW_P4","RX_PW_P5",
+          "FIFO_STATUS","?",
+          "?","?","DYNPD","?","?","?","?","?",
+          "?","?","?","?","?","?","?","?"];
+
 def printpacket(packet):
     s="";
     i=0;
@@ -85,16 +95,11 @@ if(sys.argv[1]=="carrier"):
     while(1):
         time.sleep(1);
 if(sys.argv[1]=="regs"):
-    regnames=["CONFIG","EN_AA","EN_RXADDR","SETUP_AW","SETUP_RET",
-              "RF_CH","RF_SETUP","STATUS","OBSERVE_TX","RPD",
-              "RX_ADDR_P0","RX_ADDR_P1","RX_ADDR_P2","RX_ADDR_P3","RX_ADDR_P4","RX_ADDR_P5",
-              "TX_ADDR",
-              "RX_PW_P0","RX_PW_P1","RX_PW_P2","RX_PW_P3","RX_PW_P4","RX_PW_P5",
-              "FIFO_STATUS","?",
-              "?","?","DYNPD","?","?","?","?","?",
-              "?","?","?","?","?","?","?","?"];
     for r in range(0,0x20):
         print "r[0x%02x]=0x%010x //%16s " % (r,client.peek(r),regnames[r]);
+if(sys.argv[1]=="pyregs"):
+    for r in range(0,0x20):
+        print "client.set(0x%02x,0x%010x); #%16s " % (r,client.peek(r),regnames[r]);
 
 if(sys.argv[1]=="peek"):
     start=0x0000;

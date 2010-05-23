@@ -24,6 +24,25 @@ void init(){
   //LED out and on.
   PLEDDIR |= PLEDPIN;
   PLEDOUT &= ~PLEDPIN;
+
+
+  /* P5.0 out and low; this is chosen for the PIC app (in which P5.0
+	 is !MCLR) to ensure that an attached PIC chip, if present, is
+	 immediately driven to reset state. A brief explanation of why this
+	 is important follows.
+
+   At least dsPIC33F and PIC24H --and very likely other 16-bit PIC
+   families-- draw a large amount of current when running, especially
+   when using a fast clock: from 60 mA up to approx. 90 mA.  If the
+   PIC target begins to run before the client can request a new ICSP
+   session, which requires much less current (e.g., less than 2 mA),
+   then the MSP430 chip on the GoodFET will fail to start and the FTDI
+   may have trouble communicating with the client.  The latter likely
+   relates to the FTDI on-chip 3V3 regulator being specified up to
+   only 50 mA. */
+	P5DIR |= BIT0;
+	P5REN &= ~BIT0;
+	P5OUT &= ~BIT0;
   
   //Setup clocks, unique to each '430.
   msp430_init_dco();

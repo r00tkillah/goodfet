@@ -40,14 +40,22 @@ class GoodFETNRF(GoodFET):
         for i in range(0,bytes):
             toret=toret|(ord(self.data[i+1])<<(8*i));
         return toret;
-    def poke(self,reg,val,bytes=1):
+    def poke(self,reg,val,bytes=-1):
         """Write an NRF Register."""
         data=[reg];
+        
+        #Automatically calibrate the len.
+        if bytes==-1:
+            bytes=1;
+            if reg==0x0a or reg==0x0b or reg==0x10: bytes=5;
+        
         for i in range(0,bytes):
             data=data+[(val>>(8*i))&0xFF];
         self.writecmd(self.NRFAPP,0x03,len(data),data);
         if self.peek(reg,bytes)!=val and reg!=0x07:
-            print "Warning, failed to set register %02x." %reg;
+            print "Warning, failed to set r%02x=%02x, got %02x." %(reg,
+                                                                 val,
+                                                                 self.peek(reg,bytes));
         return;
     
     def status(self):
@@ -56,6 +64,34 @@ class GoodFETNRF(GoodFET):
         print "Status=%02x" % status;
     
     #Radio stuff begins here.
+    def RF_setenc(self,code="GFSK"):
+        """Set the encoding type."""
+        if code!=GFSK:
+            return "%s not supported by the NRF24L01.  Try GFSK."
+        return;
+    def RF_getenc(self):
+        """Get the encoding type."""
+        return "GFSK";
+    def RF_getrate(self):
+        rate=self.peek(0x06)&0x28;
+        if rate==0x28:
+            rate=250*10**3; #256kbps
+        elif rate==0x08:
+            rate=2*10**6;  #2Mbps
+        elif rate==0x00: 
+            rate=1*10**6;  #1Mbps
+        return rate;
+    def RF_setrate(self,rate=2*10**6):
+        r6=self.peek(0x06); #RF_SETUP register
+        r6=r6&(~0x28);   #Clear rate fields.
+        if rate==2*10**6:
+            r6=r6|0x08;
+        elif rate==1*10**6:
+            r6=r6;
+        elif rate==250*10**3:
+            r6=r6|0x20;
+        print "Setting r6=%02x." % r6;
+        self.poke(0x06,r6); #Write new setting.
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         

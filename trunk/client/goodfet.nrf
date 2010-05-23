@@ -45,6 +45,7 @@ if(len(sys.argv)==1):
     print "%s info" % sys.argv[0];
     print "%s test" % sys.argv[0];
     print "%s regs" % sys.argv[0];
+    print "%s pyregs" % sys.argv[0];
     print "%s sniff\n\tSniffs packets by current config." % sys.argv[0];
     print "%s sniffob\n\tSniffs OpenBeacon traffic." % sys.argv[0];
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];

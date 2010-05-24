@@ -41,6 +41,10 @@ py2exe:
 	sed s/PYTHONCONSOLE/goodfet.spiflash/ <p2e.txt >setup.py
 	python setup.py py2exe
 	mv dist/goodfet.exe dist/gfspi.exe
+#Nordic RF
+	sed s/PYTHONCONSOLE/goodfet.nrf/ <p2e.txt >setup.py
+	python setup.py py2exe
+	mv dist/goodfet.exe dist/gfnrf.exe
 #Goodfet.  This must be last.
 	sed s/PYTHONCONSOLE/goodfet/ <p2e.txt >setup.py
 	python setup.py py2exe

@@ -51,7 +51,8 @@ py2exe:
 #	mv dist/goodfet.exe dist/goodfet.exe
 #Now package it all.
 	rm -rf tmp
-	mkdir -p tmp/goodfet
+#mkdir -p tmp/goodfet
+	md tmp\goodfet
 	mv dist/* tmp/goodfet/
 	cd tmp && zip -r goodfet.zip goodfet
 

@@ -11,12 +11,13 @@ import sqlite3;
 fmt = ("B", "<H", None, "<L")
 
 def getClient(name="GoodFET"):
-    import GoodFET, GoodFETCC, GoodFETAVR, GoodFETSPI, GoodFETMSP430;
+    import GoodFET, GoodFETCC, GoodFETAVR, GoodFETSPI, GoodFETMSP430, GoodFETNRF;
     if(name=="GoodFET" or name=="monitor"): return GoodFET.GoodFET();
     elif name=="cc" or name=="chipcon": return GoodFETCC.GoodFETCC();
     elif name=="avr": return GoodFETAVR.GoodFETAVR();
     elif name=="spi": return GoodFETSPI.GoodFETSPI();
     elif name=="msp430": return GoodFETMSP430.GoodFETMSP430();
+    elif name=="nrf": return GoodFETMSP430.GoodFETNRF();
     
     print "Unsupported target: %s" % name;
     sys.exit(0);

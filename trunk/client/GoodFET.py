@@ -277,6 +277,9 @@ class GoodFET:
     def peekword(self,address):
         """Read a word of memory from the monitor."""
         return self.peekbyte(address)+(self.peekbyte(address+1)<<8);
+    def peek(self,address):
+        """Read a word of memory from the monitor."""
+        return self.peekbyte(address)+(self.peekbyte(address+1)<<8);
     def pokebyte(self,address,value):
         """Set a byte of memory by the monitor."""
         self.data=[address&0xff,address>>8,value];

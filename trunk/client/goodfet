@@ -6,7 +6,7 @@
 # This code is being rewritten and refactored.  You've been warned!
 
 import sys, os, readline, code, binascii;
-import rlcompleter;
+#import rlcompleter;
 
 from GoodFET import GoodFET, getClient;
 from GoodFETConsole import GoodFETConsole;

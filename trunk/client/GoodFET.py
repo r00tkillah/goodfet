@@ -17,7 +17,7 @@ def getClient(name="GoodFET"):
     elif name=="avr": return GoodFETAVR.GoodFETAVR();
     elif name=="spi": return GoodFETSPI.GoodFETSPI();
     elif name=="msp430": return GoodFETMSP430.GoodFETMSP430();
-    elif name=="nrf": return GoodFETMSP430.GoodFETNRF();
+    elif name=="nrf": return GoodFETNRF.GoodFETNRF();
     
     print "Unsupported target: %s" % name;
     sys.exit(0);

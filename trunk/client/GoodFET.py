@@ -401,7 +401,6 @@ class GoodFET:
     def dump(self,file,start=0,stop=0xffff):
         """Dump an intel hex file from code memory."""
         print "Dump not implemented.";
-
     def peek32(self,address, memory="vn"):
         return (self.peek16(address,memory)+
                 (self.peek16(address+2,memory)<<16));
@@ -410,5 +409,8 @@ class GoodFET:
                 (self.peek8(address+1,memory)<<8));
     def peek8(self,address, memory="vn"):
         return self.peekbyte(address); #monitor
+    def peekword(self,address, memory="vn"):
+        return self.peek(address); #monitor
+    
     def loadsymbols(self):
         return;

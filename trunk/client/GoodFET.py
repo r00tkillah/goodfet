@@ -89,7 +89,14 @@ class GoodFET:
             glob_list = glob.glob("/dev/ttyUSB*");
             if len(glob_list) > 0:
                 port = glob_list[0];
-        
+        if os.name=='nt':
+            from scanwin32 import winScan;
+            scan=winScan();
+            for order,comport,desc,hwid in sorted(scan.comports()):
+                if hwid.index('FTDI')==0:
+                    port=comport;
+                    #print "Using FTDI port %s" % port
+                    
         
         self.serialport = serial.Serial(
             port,

@@ -26,25 +26,26 @@ if verb=="scan":
     from scanwin32 import *;
     # INIT COMPORT SCAN
     scan=winScan();
-    scan.comports();
-
+    #scan.comports();
+    
     for order, port, desc, hwid in sorted(scan.comports()):
         # Look for FTDIBUS
         try:
-            hwid.index('FTDI')
-            print "*************"
-            print "GOODFET FOUND"
-            print "*************"
-            print "%s: (%s) ->" % (port, hwid),
+            #hwid.index('FTDI')
+            #print "*************"
+            #print "GOODFET FOUND"
+            #print "*************"
+            if hwid.index('FTDI')!=0: continue;
+            print "%s: (%s)" % (port, hwid),
             try:
                 serial.Serial(port)
             except serial.serialutil.SerialException:
-                print "Not Ready - Is the process in use?"
+                print "Busy"
             else:
                 print "Ready"
         except:
             pass
-
+    sys.exit(0);
 
 driver=sys.argv[1];
 print "Using driver %s" % driver;

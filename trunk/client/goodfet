@@ -14,11 +14,37 @@ from GoodFETConsole import GoodFETConsole;
 from intelhex import IntelHex;
 
 if(len(sys.argv)==1):
-    print "Usage: %s driver\n" % sys.argv[0];
-    print "driver:= monitor | cc | avr | spi | msp430";
-    print;
+    print "Usage: %s [driver|verb]\n" % sys.argv[0];
+    print "driver:= monitor | cc | avr | spi | msp430 | nrf";
+    print "verb:=   scan";
+    print "";
     print "This is an unfinished client.  You probably want goodfet.$chip instead.";
     sys.exit(1);
+
+verb=sys.argv[1];
+if verb=="scan":
+    from scanwin32 import *;
+    # INIT COMPORT SCAN
+    scan=winScan();
+    scan.comports();
+
+    for order, port, desc, hwid in sorted(scan.comports()):
+        # Look for FTDIBUS
+        try:
+            hwid.index('FTDI')
+            print "*************"
+            print "GOODFET FOUND"
+            print "*************"
+            print "%s: (%s) ->" % (port, hwid),
+            try:
+                serial.Serial(port)
+            except serial.serialutil.SerialException:
+                print "Not Ready - Is the process in use?"
+            else:
+                print "Ready"
+        except:
+            pass
+
 
 driver=sys.argv[1];
 print "Using driver %s" % driver;

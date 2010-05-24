@@ -12,6 +12,7 @@
 
 // N.B., only asm-clean CPP definitions allowed.
 
+
 //Use P3 instead of P5 for target I/O on chips without P5.
 #ifndef __MSP430_HAS_PORT5__
 #ifndef __MSP430_HAS_PORT5_R__
@@ -20,9 +21,9 @@
 #define P5DIR P3DIR
 #define P5REN P3REN
 #define P5IN P3IN
+#endif
+#endif
 
-#endif
-#endif
 
 //Use false P5REN for 1612.
 #ifdef __MSP430_HAS_PORT5__
@@ -32,6 +33,7 @@
 #endif
 #endif
 
+/*
 //Use these instead of the explicit names.
 #ifdef MSP430
 #define gfout P5OUT
@@ -39,7 +41,7 @@
 #define gfdir P5DIR
 #define gfren P5REN
 #endif
-
+*/
 
 
 #endif //GFPORTS

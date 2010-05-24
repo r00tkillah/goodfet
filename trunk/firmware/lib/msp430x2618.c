@@ -120,9 +120,16 @@ void msp430_init_dco_done(){
 void msp430_init_dco() {
   int i=1000;
   char *choice=(char *) 0x200; //First word of RAM.
+  
   #ifdef __MSP430_HAS_PORT8__
   P8SEL = 0; // disable XT2 on P8.7/8
   #endif
+  
+  //Set P2.6 mode for MSP430F2274
+  #ifndef __MSP430_HAS_PORT5__
+  P2SEL = 0; //disable XIN on 2274
+  #endif
+  
   
   if(CALBC1_16MHZ!=0xFF){
     //Info is intact, use it.
@@ -145,6 +152,8 @@ void msp430_init_dco() {
   
   //Minor delay.
   while(i--);
+  
+  
   
   return;
 }

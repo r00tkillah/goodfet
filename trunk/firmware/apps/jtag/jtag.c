@@ -13,8 +13,10 @@
 void jtagsetup(){
   P5DIR|=MOSI+SCK+TMS;
   P5DIR&=~MISO;
+  /*
   P5OUT|=0xFFFF;
   P5OUT=0;
+  */
   P4DIR|=TST;
   P2DIR|=RST;
   msdelay(100);

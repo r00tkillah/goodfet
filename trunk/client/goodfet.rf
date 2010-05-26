@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+
+#GoodFET SPI Flash Client
+#by Travis Goodspeed
+
+import sys;
+import binascii;
+import array;
+import time;
+
+from GoodFETNRF import GoodFETNRF;
+from intelhex import IntelHex;
+from GoodFET import GoodFET, getClient;
+
+if(len(sys.argv)==1):
+    print "Usage: %s [driver|verb] verb [objects]\n" % sys.argv[0];
+    print "driver:= cc | nrf"; #msp430
+    print "verb:=   info";
+    print "         test";
+    print "         regs";
+    print "         sniff";
+    print "         carrier [freq]";
+    sys.exit();
+
+driver=sys.argv[1];
+print "Using driver %s" % driver;
+#client=eval("%s()" % driver);
+client=getClient(driver);
+client.serInit();
+client.start();
+client.stop();
+
+

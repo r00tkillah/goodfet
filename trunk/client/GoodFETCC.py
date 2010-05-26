@@ -19,10 +19,11 @@ class GoodFETCC(GoodFET):
     smartrfpath="/opt/smartrf7";
     def loadsymbols(self):
         try: self.SRF_loadsymbols();
-        except: print "SmartRF load failed.";
+        except:
+            if self.verbose==1: print "SmartRF load failed.";
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
-        print "Opening %s" % fn;
+        #print "Opening %s" % fn;
         return xml.dom.minidom.parse(fn)
         
     def CMDrs(self,args=[]):

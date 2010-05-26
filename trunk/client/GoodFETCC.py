@@ -304,6 +304,9 @@ class GoodFETCC(GoodFET):
         #print "Status: %s." % self.status();
         self.CCreleasecpu();
         self.CChaltcpu();
+        #Get SmartRF Studio regs if they exist.
+        self.loadsymbols(); 
+
         #print "Status: %s." % self.status();
         
     def stop(self):

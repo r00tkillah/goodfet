@@ -1,16 +1,37 @@
 <h1>FAQ</h1>
 
+<h3>Software</h3>
+
+<p><i>Is there a standalone version for Windows?</i><br/>
+Yes, but it
+is very new.
+Download <a href="http://sourceforge.net/projects/goodfet/files/">GFWin.zip</a>
+and be sure that you have
+the <a href="http://www.microsoft.com/downloads/details.aspx?familyid=9b2da534-3e03-4391-8a4d-074b9f2bc1bf&displaylang=en">Visual
+Studio Redistribution Package</a>.
+</p>
+
+<p><i>Will the client run on my operating system?</i><br/>
+While the software is developed in unix, you ought to be able to run it
+under Windows with Cygwin and Python.</p>
+
+<p><i>Which python packages are required?</i><br/>
+python-serial, python-sqlite</p>
+
+<p><i>Where do I get MSPGCC?</i><br/>
+For OpenBSD, Linux, and Darwin, precompiled versions of mspgcc can be found
+<a href="http://goodserv.cis.upenn.edu/mspgcc/">here</a>.  The TinyOS builds
+are too dated, and they cannot compile the GoodFET firmware reliably.</p>
+
+<p><i>Can I install the firmware without MSPGCC?</i><br/>
+Sure.  'goodfet.bsl --fromweb' will download the most recent firmware from
+the website.</p>
+
+
 <h3>BSL</h3>
 
 <p><i>What does ``Verb FF is wrong.  Incorrect firmware or bad Info guess?'' mean?</i><br/>
-See Travis Goodspeed's blog post on the
-<a href="http://travisgoodspeed.blogspot.com/2009/10/msp430-info-flash.html">MSP430
-Info Flash</a> for a full explanation of how the GoodFET guesses at timing
-values when no crystal is available.  The default values ought to work for
-most models, but when they don't work you will get this error message.
-To get around this, run ``goodfet.bsl -e -p $foo; goodfet.bsl -p
-<a href="http://goodfet.sourceforge.net/dist/">goodfet.hex</a>'' for each *.txt
-in contrib/infos of the subversion repository.
+This is an older error that should no longer be seen.  Update to the latest client.
 </p>
 
 <h3>Hardware</h3>
@@ -48,31 +69,6 @@ svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet
 <a href="http://goodfet.sourceforge.net/dist/goodfet.zip">http://goodfet.sourceforge.net/dist/goodfet.zip</a>
 </p>
 
-<p><i>Is there a version for Windows?</i><br/>  Yes, but it is very
-new.
-Download <a href="http://sourceforge.net/projects/goodfet/files/">GFWin.zip</a>
-and be sure that you have
-the <a href="http://www.microsoft.com/downloads/details.aspx?familyid=9b2da534-3e03-4391-8a4d-074b9f2bc1bf&displaylang=en">Visual
-Studio Redistribution Package</a>.
-</p>
-
-<h3>Software</h3>
-
-<p><i>Will the client run on my operating system?</i><br/>
-While the software is developed in unix, you ought to be able to run it
-under Windows with Cygwin and Python.</p>
-
-<p><i>Which python packages are required?</i><br/>
-python-serial, python-sqlite</p>
-
-<p><i>Where do I get MSPGCC?</i><br/>
-For OpenBSD, Linux, and Darwin, precompiled versions of mspgcc can be found
-<a href="http://goodserv.cis.upenn.edu/mspgcc/">here</a>.  The TinyOS builds
-are too dated, and they cannot compile the GoodFET firmware reliably.</p>
-
-<p><i>Can I install the firmware without MSPGCC?</i><br/>
-Sure.  'goodfet.bsl --fromweb' will download the most recent firmware from
-the website.</p>
 
 <h3>Development</h3>
 

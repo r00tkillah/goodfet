@@ -158,8 +158,10 @@ if(sys.argv[1]=="serial"):
     if(len(sys.argv)>2):
         oid=eval(sys.argv[2]);
     else:
-        simpchin=u=unichr(24207)+unichr(21015)+unichr(21495)
-        print simpchin;
+        #Crashes Windows.
+        #simpchin=u=unichr(24207)+unichr(21015)+unichr(21495);  #Chinese for "Serial Number".
+        #print simpchin;
+        
         oid=input(u"Serial Number? ");
     adr=0xFFB0;
     if(len(sys.argv)>2):

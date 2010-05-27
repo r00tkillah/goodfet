@@ -173,7 +173,8 @@ void jtag430_por(){
 #define ERASE_SGMT 0xA502
 
 //! Configure flash, then write a word.
-void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count){
+void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count,
+			unsigned int info){
   jtag430_haltcpu();
   
   //FCTL1= erase mode
@@ -181,7 +182,10 @@ void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count)
   //FCTL2=0xA540, selecting MCLK as source, DIV=1
   jtag430_writemem(0x012A, 0xA540);
   //FCTL3=0xA500, should be 0xA540 for Info Seg A on 2xx chips.
-  jtag430_writemem(0x012C, 0xA500);
+  if(info)
+    jtag430_writemem(0x012C, 0xA540);
+  else
+    jtag430_writemem(0x012C, 0xA500);
   
   //Write the erase word.
   jtag430_writemem(adr, 0x55AA);
@@ -414,7 +418,11 @@ void jtag430handle(unsigned char app,
     txdata(app,verb,2);
     break;
   case JTAG430_ERASEFLASH:
-    jtag430_eraseflash(ERASE_MASS,0xFFFE,0x3000);
+    jtag430_eraseflash(ERASE_MASS,0xFFFE,0x3000,0);
+    txdata(app,verb,0);
+    break;
+  case JTAG430_ERASEINFO:
+    jtag430_eraseflash(ERASE_MASS,0xFFFE,0x3000,1);
     txdata(app,verb,0);
     break;
   case JTAG430_SETPC:

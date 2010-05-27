@@ -3,6 +3,9 @@
   \brief JTAG handler functions.
 */
 
+#ifndef JTAG_H
+#define JTAG_H
+
 #include <signal.h>
 #include <io.h>
 #include <iomacros.h>
@@ -154,19 +157,6 @@ void jtag430_por();
 
 
 //JTAG430 commands
-#define JTAG430_HALTCPU 0xA0
-#define JTAG430_RELEASECPU 0xA1
-#define JTAG430_SETINSTRFETCH 0xC1
-#define JTAG430_SETPC 0xC2
-#define JTAG430_SETREG 0xD2
-#define JTAG430_GETREG 0xD3
-#define JTAG430_WRITEMEM 0xE0
-#define JTAG430_WRITEFLASH 0xE1
-#define JTAG430_READMEM 0xE2
-#define JTAG430_ERASEFLASH 0xE3
-#define JTAG430_ERASECHECK 0xE4
-#define JTAG430_VERIFYMEM 0xE5
-#define JTAG430_BLOWFUSE 0xE6
-#define JTAG430_ISFUSEBLOWN 0xE7
-#define JTAG430_COREIP_ID 0xF0
-#define JTAG430_DEVICE_ID 0xF1
+#include "jtag430.h"
+
+#endif

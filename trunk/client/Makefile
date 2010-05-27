@@ -10,7 +10,7 @@ install:
 
 py2exepub:
 #publish the windows build.
-	rsync --exclude .svn -ave ssh --progress tmp/goodfet.zip travisutk,goodfet@web.sourceforge.net:htdocs/dist/gfwin.zip
+	rsync --exclude .svn -ave ssh --progress --chmod=a+rx tmp/goodfet.zip travisutk,goodfet@web.sourceforge.net:htdocs/dist/gfwin.zip
 py2exe:
 #Run this from Win32 with Python, py2exe, py-serial, and GNU utils.
 #MSP430 Client

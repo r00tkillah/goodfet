@@ -16,6 +16,10 @@ import xml.dom.minidom;
 class GoodFETCC(GoodFET):
     """A GoodFET variant for use with Chipcon 8051 Zigbee SoC."""
     APP=0x30;
+    
+    
+    
+    
     smartrfpath="/opt/smartrf7";
     def loadsymbols(self):
         try: self.SRF_loadsymbols();
@@ -68,6 +72,10 @@ class GoodFETCC(GoodFET):
                     print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);
                     if bitfields!="": print bitfields.rstrip();
+    def RF_getrssi(self):
+        """Returns the received signal strenght, from 0 to 1."""
+        rssireg=self.symbols.get("RSSI");
+        return self.CCpeekdatabyte(rssireg);
     def SRF_loadsymbols(self):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);

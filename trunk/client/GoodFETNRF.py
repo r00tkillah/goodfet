@@ -147,7 +147,7 @@ class GoodFETNRF(GoodFET):
         return None;
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
-        # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP
+        # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP            
         self.poke(0x06,8+10+4+2); 
         
     packetlen=16;

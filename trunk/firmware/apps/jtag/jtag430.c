@@ -422,7 +422,7 @@ void jtag430handle(unsigned char app,
     txdata(app,verb,0);
     break;
   case JTAG430_ERASEINFO:
-    jtag430_eraseflash(ERASE_MASS,0xFFFE,0x3000,1);
+    jtag430_eraseflash(ERASE_SGMT,0x1000,0x3000,1);
     txdata(app,verb,0);
     break;
   case JTAG430_SETPC:

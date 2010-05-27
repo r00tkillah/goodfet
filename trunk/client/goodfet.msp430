@@ -158,7 +158,9 @@ if(sys.argv[1]=="serial"):
     if(len(sys.argv)>2):
         oid=eval(sys.argv[2]);
     else:
-        oid=input("Serial Number? ");
+        simpchin=u=unichr(24207)+unichr(21015)+unichr(21495)
+        print simpchin;
+        oid=input(u"Serial Number? ");
     adr=0xFFB0;
     if(len(sys.argv)>2):
         start=int(sys.argv[2],16);

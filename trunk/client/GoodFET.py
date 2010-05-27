@@ -96,7 +96,7 @@ class GoodFET:
                 if hwid.index('FTDI')==0:
                     port=comport;
                     #print "Using FTDI port %s" % port
-                    
+        
         
         self.serialport = serial.Serial(
             port,

@@ -1398,7 +1398,14 @@ def main(itest=1):
         glob_list = glob.glob("/dev/ttyUSB*");
         if len(glob_list) > 0:
             comPort = glob_list[0];
-    
+    if os.name=='nt':
+            from scanwin32 import winScan;
+            scan=winScan();
+            for order,comport,desc,hwid in sorted(scan.comports()):
+                if hwid.index('FTDI')==0:
+                    comPort=comport;
+                    #print "Using FTDI port %s" % port
+        
     
     sys.stderr.write("MSP430 Bootstrap Loader Version: %s\n" % VERSION)
 

@@ -12,9 +12,11 @@ if(len(sys.argv)==1):
     print "%s test" % sys.argv[0];
     print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
+    print "%s eraseinfo" % sys.argv[0];
     print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s poke 0x$adr 0x$val" % sys.argv[0];
+    print "%s serial [$val]" % sys.argv[0];
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
     print "%s run" % sys.argv[0];
     sys.exit();
@@ -29,8 +31,6 @@ client.setup();
 
 #Identify model number.
 client.start();
-
-#print "started"
 
 if(sys.argv[1]=="info"):
     #print "Model    %08x " % client.MSP430deviceid();
@@ -65,13 +65,19 @@ if(sys.argv[1]=="dump"):
             i+=1;
     h.write_hex_file(f);
 if(sys.argv[1]=="erase"):
+    print "Erasing main flash memory."
     client.MSP430masserase();
+if(sys.argv[1]=="eraseinfo"):
+    print "Erasing info memory."
+    client.MSP430infoerase();
+
+
 if(sys.argv[1]=="ivt"):
     client.MSP430dumpmem(0xFFE0,0xFFFF);
 if(sys.argv[1]=="flash"):
     f=sys.argv[2];
     start=0;
-    stop=0xFFFF;
+    stop=0x10000;
     if(len(sys.argv)>3):
         start=int(sys.argv[3],16);
     if(len(sys.argv)>4):
@@ -101,10 +107,6 @@ if(sys.argv[1]=="flash"):
                 first=i;
             last=i;
             count+=2;
-            #val2=client.MSP430pokeflash(i,val);
-            #if(val!=val2):
-            #    print "Write error at %04x, %04x!=%04x." %(
-            #        i, val, val2);
             vals+=[val&0xff,(val&0xff00)>>8];
             if(i%0x100==0):
                 print "%04x" % i;
@@ -148,10 +150,23 @@ if(sys.argv[1]=="poke"):
         val=int(sys.argv[3],16);
     print "Poking %06x to become %04x." % (start,val);
     
-    while client.MSP430peek(start)!=val:
-        client.MSP430pokeflash(start,val);
+    while client.MSP430peek(start)&(~val)>0:
+        client.MSP430pokeflashblock(start,[val&0xFF, (val>>8)&0xFF]);
         print "Poked to %04x" % client.MSP430peek(start);
-
+if(sys.argv[1]=="serial"):
+    oid=0xdeadbeef;
+    if(len(sys.argv)>2):
+        oid=eval(sys.argv[2]);
+    else:
+        oid=input("Serial Number?");
+    adr=0xFFB0;
+    if(len(sys.argv)>2):
+        start=int(sys.argv[2],16);
+    if(len(sys.argv)>3):
+        val=int(sys.argv[3],16);
+    print "Poking 32-bit OID to 0x%04x as %08x." % (adr,oid);
+    client.MSP430pokeflash(adr,oid&0xFFFF);
+    client.MSP430pokeflash(adr+2,(oid>>16)&0xFFFF);
 
 if(sys.argv[1]=="run"):
     #Set PC to RESET vector's value.

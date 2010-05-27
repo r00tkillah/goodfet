@@ -87,7 +87,7 @@ if(sys.argv[1]=="flash"):
     
     #Should this be default?
     #Makes flashing multiple images inconvenient.
-    client.MSP430masserase();
+    #client.MSP430masserase();
     
     count=0; #Bytes in commit.
     first=0;

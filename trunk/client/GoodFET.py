@@ -195,6 +195,10 @@ class GoodFET:
                         print "# DEBUG %s" % self.serialport.read(self.count)
                	    elif self.verb==0xFE:
                         print "# DEBUG 0x%x" % struct.unpack(fmt[self.count-1], self.serialport.read(self.count))[0]
+                    elif self.verb==0xFD:
+                        #Do nothing, just wait so there's no timeout.
+                        print "# NOP.";
+                        
                     sys.stdout.flush();
                 else:
                     self.data=self.serialport.read(self.count);

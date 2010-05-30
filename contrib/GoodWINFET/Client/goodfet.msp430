@@ -5,7 +5,7 @@ import binascii;
 
 from GoodFETMSP430 import GoodFETMSP430;
 from intelhex import IntelHex16bit, IntelHex;
-from scanwin32 import *;
+
 
 if(len(sys.argv)==1):
     print "\nUsage: %s verb [objects]\n" % sys.argv[0];

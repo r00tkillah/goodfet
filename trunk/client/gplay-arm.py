@@ -1,5 +1,5 @@
 #!/usr/bin/env ipython
-import sys, struct, binascii
+import sys, struct, binascii,time
 from GoodFETARM import *
 from intelhex import IntelHex
 
@@ -115,10 +115,121 @@ def test3():
     client.writecmd(0x33,0xd4,1,[0])
     print "test_get_reg:   \t %s"%repr(client.data)           
 
+def test4():
+        print "IDCODE:      %x"%client.ARMident()
+        print "Debug State: %x"%client.ARMget_dbgstate ()
+        print "set_register(0,0x4141):  %x"%client.ARMset_register(0,0x4141)
+        print "get_register(0):             %x"%client.ARMget_register(0)
+        print "set_register(1,0x4141):  %x"%client.ARMset_register(1,0x4142)
+        print "get_register(1):             %x"%client.ARMget_register(1)
+        print "set_register(2,0x4141):  %x"%client.ARMset_register(2,0x4143)
+        print "get_register(2):             %x"%client.ARMget_register(2)
+        print "set_register(3,0x4141):  %x"%client.ARMset_register(3,0x4144)
+        print "get_register(3):             %x"%client.ARMget_register(3)
+        print "set_register(4,0x4141):  %x"%client.ARMset_register(4,0x4145)
+        print "get_register(4):             %x"%client.ARMget_register(4)
+        print "set_register(5,0x4141):  %x"%client.ARMset_register(5,0x4146)
+        print "get_register(5):             %x"%client.ARMget_register(5)
+        print "set_register(6,0x4141):  %x"%client.ARMset_register(6,0x4147)
+        print "get_register(6):             %x"%client.ARMget_register(6)
+        print "set_register(7,0x4141):  %x"%client.ARMset_register(7,0x4148)
+        print "get_register(7):             %x"%client.ARMget_register(7)
+        print "set_register(8,0x4141):  %x"%client.ARMset_register(8,0x4149)
+        print "get_register(8):             %x"%client.ARMget_register(8)
+        print "set_register(9,0x4141):  %x"%client.ARMset_register(9,0x4140)
+        print "get_register(9):             %x"%client.ARMget_register(9)
+        print "set_register(10,0x4141):  %x"%client.ARMset_register(10,0x4151)
+        print "get_register(10):             %x"%client.ARMget_register(10)
+        print "set_register(11,0x4141):  %x"%client.ARMset_register(11,0x4152)
+        print "get_register(11):             %x"%client.ARMget_register(11)
+        print "set_register(12,0x4141):  %x"%client.ARMset_register(12,0x4153)
+        print "get_register(12):             %x"%client.ARMget_register(12)
+        print "set_register(13,0x4141):  %x"%client.ARMset_register(13,0x4154)
+        print "get_register(13):             %x"%client.ARMget_register(13)
+        print "set_register(14,0x4141):  %x"%client.ARMset_register(14,0x4155)
+        print "get_register(14):             %x"%client.ARMget_register(14)
+        #print "set_register(15,0x4141):  %x"%client.ARMset_register(15,0x41414156)
+        #print "get_register(15):             %x"%client.ARMget_register(15)
+
+
+seed = 0
+def test5(start=0,end=15):
+    global results,seed
+    results = [[] for x in range(end)]
+    while True:
+        #print "IDCODE:      %x"%client.ARMident()
+        #print "Debug State: %x"%client.ARMget_dbgstate ()
+        for x in range(start,end):
+            num = client.ARMset_register(x,seed)
+            print "set_register(%d,0x%x):  %x"%(x,seed,num)
+            num = client.ARMget_register(x)
+            print "get_register(%d):             %x"%(x,num)
+            results[x].append(num)
+            if (num != seed):
+                for y in range(13):
+                    num = client.ARMset_register(x,seed)
+                    print "set_register(%d,0x%x):  %x"%(x,seed,num)
+                    num = client.ARMget_register(x)
+                    print "get_register(%d):             %x"%(x,num)
+                    results[x].append(num)
+            seed += 1
+            client.ARMident()
+            client.ARMident()
+            print "Debug State: %x"%client.ARMget_dbgstate ()
+
+def test6(start=0,end=15):
+    global results,seed
+    results = [[] for x in range(end)]
+    while True:
+        #print "IDCODE:      %x"%client.ARMident()
+        #print "Debug State: %x"%client.ARMget_dbgstate ()
+        for x in range(start,end):
+            num = client.ARMset_register(x,seed+x)
+            print "set_register(%d,0x%x):  %x"%(x,seed+x,num)
+            client.ARMident()
+            client.ARMident()
+        for x in range(start,end):
+            num = client.ARMget_register(x)
+            print "get_register(%d):             %x"%(x,num)
+            results[x].append(num)
+            if (num != seed+x):
+                for y in range(13):
+                    num = client.ARMset_register(x,seed+x)
+                    print "set_register(%d,0x%x):  %x"%(x,seed+x,num)
+                    num = client.ARMget_register(x)
+                    print "get_register(%d):             %x"%(x,num)
+                    results[x].append(num)
+            client.ARMident()
+            client.ARMident()
+            print "Debug State: %x"%client.ARMget_dbgstate ()
+        seed += 1
+
+def test7(start=0,end=15):
+    global results,seed
+    results = [[] for x in range(end)]
+    while True:
+        #print "IDCODE:      %x"%client.ARMident()
+        #print "Debug State: %x"%client.ARMget_dbgstate ()
+        for x in range(end,start, -1):
+            num = client.ARMset_register(x,seed+x)
+            time.sleep(1)
+            print "set_register(%d,0x%x):  %x"%(x,seed+x,num)
+        for y in range(10):
+          for x in range(start,end,2):
+            num = client.ARMget_register(x)
+            time.sleep(1)
+            print "get_register(%d):             %x"%(x,num)
+            results[x].append(num)
+        seed += 1
+
 init()
 print "Don't forget to 'client.stop()' if you want to exit cleanly"
 
 
+def printResults():
+    for y in range(len(results)):
+            x=results[y]
+            print "%.2x=%s"%(y,repr(["%x"%t for t in x]))
 
 """
   case 0xD0: // loopback test

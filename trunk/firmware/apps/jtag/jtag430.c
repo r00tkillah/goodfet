@@ -133,6 +133,7 @@ void jtag430_writeflash(unsigned int adr, unsigned int data){
   jtag430_writemem(0x012A, 0xA540);
   //FCTL3=0xA500, should be 0xA540 for Info Seg A on 2xx chips.
   jtag430_writemem(0x012C, 0xA500); //all but info flash.
+  //if(jtag430_readmem(0x012C));
   
   //Write the word itself.
   jtag430_writeflashword(adr,data);

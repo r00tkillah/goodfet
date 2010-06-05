@@ -131,7 +131,6 @@ void nrfhandle(unsigned char app,
     break;
   case NRF_RX:
     RADIOPASSIVE;
-    
     //Get the packet.
     P5OUT&=~SS;
     nrftrans8(NRF_R_RX_PAYLOAD);

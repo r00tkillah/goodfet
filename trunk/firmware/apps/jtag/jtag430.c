@@ -51,9 +51,14 @@ void jtag430_haltcpu(){
 //! Release the CPU
 void jtag430_releasecpu(){
   CLRTCLK;
+  debugstr("Releasing target MSP430.");
+  
+  /*
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2401);
-  jtag_ir_shift8(IR_ADDR_CAPTURE);
+  jtag_dr_shift16(0x2C01); //Apply reset.
+  jtag_dr_shift16(0x2401); //Release reset.
+  */
+  jtag_ir_shift8(IR_CNTRL_SIG_RELEASE);
   SETTCLK;
 }
 
@@ -324,6 +329,7 @@ void jtag430handle(unsigned char app,
    * for testing server.
    */
   while((i=jtag430_readmem(0xff0))==0xFFFF){
+    debugstr("Reconnecting to target MSP430.");
     jtag430_start();
     P1OUT^=1;
   }
@@ -428,7 +434,10 @@ void jtag430handle(unsigned char app,
     break;
   case JTAG430_SETPC:
     jtag430_haltcpu();
+    debughex("Setting PC.");
+    debughex(cmddataword[0]);
     jtag430_setpc(cmddataword[0]);
+    jtag430_releasecpu();
     txdata(app,verb,0);
     break;
   case JTAG430_SETREG:

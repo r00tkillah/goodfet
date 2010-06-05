@@ -75,8 +75,7 @@ if(sys.argv[1]=="selftest"):
     entry=client.peek16(0xFFC0);
     print "Calling self-test at 0x%04x." %entry;
     client.MSP430setPC(entry);
-    print "PC=%04x" % client.MSP430getreg(0);
-    client.MSP430releasecpu();
+    #client.MSP430releasecpu();
     
     import time;
     time.sleep(30)

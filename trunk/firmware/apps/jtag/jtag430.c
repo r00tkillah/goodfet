@@ -51,7 +51,7 @@ void jtag430_haltcpu(){
 //! Release the CPU
 void jtag430_releasecpu(){
   CLRTCLK;
-  debugstr("Releasing target MSP430.");
+  //debugstr("Releasing target MSP430.");
   
   /*
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
@@ -434,8 +434,8 @@ void jtag430handle(unsigned char app,
     break;
   case JTAG430_SETPC:
     jtag430_haltcpu();
-    debughex("Setting PC.");
-    debughex(cmddataword[0]);
+    //debughex("Setting PC.");
+    //debughex(cmddataword[0]);
     jtag430_setpc(cmddataword[0]);
     jtag430_releasecpu();
     txdata(app,verb,0);

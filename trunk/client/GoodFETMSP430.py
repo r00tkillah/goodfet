@@ -203,6 +203,14 @@ class GoodFETMSP430(GoodFET):
     def MSP430setPC(self, pc):
         """Set the program counter."""
         self.writecmd(self.MSP430APP,0xC2,2,[pc&0xFF,(pc>>8)&0xFF]);
+    def MSP430setreg(self,reg,val):
+        """Set a register."""
+        self.writecmd(self.MSP430APP,0xD2,3,[reg,val&0xFF,(val>>8)&0xFF]);
+    def MSP430getreg(self,reg):
+        """Get a register."""
+        self.writecmd(self.MSP430APP,0xD3,1,[reg]);
+        return ord(self.data[0])+(ord(self.data[1])<<8);
+
     def MSP430run(self):
         """Reset the MSP430 to run on its own."""
         self.writecmd(self.MSP430APP,0x21,0,None);

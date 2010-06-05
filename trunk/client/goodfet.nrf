@@ -132,12 +132,13 @@ if(sys.argv[1]=="sniffob"):
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst
     client.poke(0x02,0x01); #Set RX Pipe 0
-    client.RF_setmaclen(5); # SETUP_AW for 5-byte addresses.
+    
     client.RF_setfreq(2481 * 10**6);
     client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
     client.poke(0x07,0x78); #Reset status register
     
     #OpenBeacon defines these in little endian as follows.
+    client.RF_setmaclen(5); # SETUP_AW for 5-byte addresses.
     #0x01, 0x02, 0x03, 0x02, 0x01
     client.RF_setsmac(0x0102030201);
     #'O', 'C', 'A', 'E', 'B'
@@ -146,7 +147,7 @@ if(sys.argv[1]=="sniffob"):
     #Set packet length of 16.
     client.RF_setpacketlen(16);
     
-    #Power radio, prime for RX, but no checksum.
+    #Power radio, prime for RX, one-byte checksum.
     client.poke(0x00,0x70|0x03|0x08); #0x08 for one byte, 0x04 for two.
     
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
@@ -178,3 +179,27 @@ if(sys.argv[1]=="sniff"):
             packet=client.RF_rxpacket();
         printpacket(packet);
         sys.stdout.flush();
+if(sys.argv[1]=="explore"):
+    #client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x07,0x78); #Reset status register
+    
+    #Power radio, prime for RX, no checksum.
+    client.poke(0x00,0x70|0x03);
+    
+    #Set packet length of 32.
+    #Without checksums, extra data will mix in.
+    client.RF_setpacketlen(32);
+    client.RF_setmaclen(3); # shortest address length
+    
+    #Now we're ready to get packets.
+    for smac in [0x0102030201, 0]:
+        client.RF_setsmac(smac);
+        for chan in range(0,0x80):
+            client.RF_setfreq((2400+chan) * 10**6);
+            time.sleep(1);
+            packet=client.RF_rxpacket();
+            if packet!=None:
+                print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                                        client.RF_getfreq()/10**6);
+                printpacket(packet);
+                sys.stdout.flush();

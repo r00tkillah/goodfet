@@ -71,9 +71,22 @@ if(sys.argv[1]=="eraseinfo"):
     print "Erasing info memory."
     client.MSP430infoerase();
 
+if(sys.argv[1]=="selftest"):
+    entry=client.peek16(0xFFC0);
+    print "Calling self-test at 0x%04x." %entry;
+    client.MSP430setPC(entry);
+    print "PC=%04x" % client.MSP430getreg(0);
+    client.MSP430releasecpu();
+    
+    import time;
+    time.sleep(30)
 
 if(sys.argv[1]=="ivt"):
-    client.MSP430dumpmem(0xFFE0,0xFFFF);
+    client.MSP430dumpmem(0xFFC0,0xFFFF);
+if(sys.argv[1]=="regs"):
+    for i in range(0,16):
+        print "r%i=%04x" % (i,client.MSP430getreg(i));
+
 if(sys.argv[1]=="flash"):
     f=sys.argv[2];
     start=0;
@@ -151,7 +164,7 @@ if(sys.argv[1]=="poke"):
     print "Poking %06x to become %04x." % (start,val);
     
     while client.MSP430peek(start)&(~val)>0:
-        client.MSP430pokeflashblock(start,[val&0xFF, (val>>8)&0xFF]);
+        client.MSP430pokeflash(start,val);
         print "Poked to %04x" % client.MSP430peek(start);
 if(sys.argv[1]=="serial"):
     oid=0xdeadbeef;

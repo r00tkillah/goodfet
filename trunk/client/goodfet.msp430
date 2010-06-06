@@ -10,6 +10,7 @@ from intelhex import IntelHex16bit, IntelHex;
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s test" % sys.argv[0];
+    print "%s selftest" % sys.argv[0];
     print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s erase" % sys.argv[0];
     print "%s eraseinfo" % sys.argv[0];
@@ -81,8 +82,13 @@ if(sys.argv[1]=="selftest"):
     for i in range(0x3020,0x3030):
         client.MSP430poke(i,0xFFFF);
     client.MSP430setPC(entry);
-    time.sleep(2);
+    time.sleep(5);
     errors=0;
+    
+    if(client.peek8(0x302F)==0xFF):
+        print "Test not run.  Try again.";
+        exit(0);
+    
     for i in range(0x3020,0x3030):
         ret=client.peek8(i);
         if ret!=0:

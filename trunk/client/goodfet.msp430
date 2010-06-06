@@ -89,12 +89,13 @@ if(sys.argv[1]=="selftest"):
         print "Test not run.  Try again.";
         exit(0);
     
-    for i in range(0x3020,0x3030):
-        ret=client.peek8(i);
+    for i in range(0x3020,0x3030,2):
+        ret=client.peek16(i);
         if ret!=0:
             errors=errors+1;
             print "Failure at 0x%04x, returned %02xh." % (i,ret);
-    if ret==0:
+        
+    if errors==0:
         print "Test succeeded.  Board is ready to ship."
     else:
         print "Test failed.  Is it soldered correctly?"

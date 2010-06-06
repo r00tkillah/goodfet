@@ -38,7 +38,7 @@ class GoodFETMSP430(GoodFET):
         return DeviceID;
     def peek16(self,adr,memory="vn"):
         return self.MSP430peek(adr);
-    def peek8(self,address, memory="vn"):
+    def peek8(self,adr, memory="vn"):
         adr=self.MSP430peek(adr&~1);
         if adr&1==0: return adr&0xFF;
         else: return adr>>8;

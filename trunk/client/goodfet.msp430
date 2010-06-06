@@ -72,14 +72,24 @@ if(sys.argv[1]=="eraseinfo"):
     client.MSP430infoerase();
 
 if(sys.argv[1]=="selftest"):
+    import time;
+    
     entry=client.peek16(0xFFC0);
     print "Calling self-test at 0x%04x." %entry;
-    client.MSP430setPC(entry);
-    #client.MSP430releasecpu();
+    print "Memory from 0x3020 to 0x3030 should be zeroed.";
     
-    import time;
-    time.sleep(30)
-
+    for i in range(0x3020,0x3030):
+        client.MSP430poke(i,0xFFFF);
+    client.MSP430setPC(entry);
+    time.sleep(2);
+    errors=0;
+    for i in range(0x3020,0x3030):
+        ret=client.peek8(i);
+        if ret!=0:
+            errors=errors+1;
+            print "Failure at 0x%04x, returned %02xh." % (i,ret);
+    #client.MSP430dumpmem(0x3020,0x3030);
+    
 if(sys.argv[1]=="ivt"):
     client.MSP430dumpmem(0xFFC0,0xFFFF);
 if(sys.argv[1]=="regs"):

@@ -88,6 +88,10 @@ if(sys.argv[1]=="selftest"):
         if ret!=0:
             errors=errors+1;
             print "Failure at 0x%04x, returned %02xh." % (i,ret);
+    if ret==0:
+        print "Test succeeded.  Board is ready to ship."
+    else:
+        print "Test failed.  Is it soldered correctly?"
     #client.MSP430dumpmem(0x3020,0x3030);
     
 if(sys.argv[1]=="ivt"):

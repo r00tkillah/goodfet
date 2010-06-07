@@ -93,10 +93,13 @@ class GoodFET:
             from scanwin32 import winScan;
             scan=winScan();
             for order,comport,desc,hwid in sorted(scan.comports()):
-                if hwid.index('FTDI')==0:
-                    port=comport;
-                    #print "Using FTDI port %s" % port
-        
+                try:
+                    if hwid.index('FTDI')==0:
+                        port=comport;
+                        #print "Using FTDI port %s" % port
+                except:
+                    #Do nothing.
+                    a=1;
         
         self.serialport = serial.Serial(
             port,

@@ -1402,11 +1402,13 @@ def main(itest=1):
             from scanwin32 import winScan;
             scan=winScan();
             for order,comport,desc,hwid in sorted(scan.comports()):
-                if hwid.index('FTDI')==0:
-                    comPort=comport;
-                    #print "Using FTDI port %s" % port
-        
-    
+                try:
+                    if hwid.index('FTDI')==0:
+                        comPort=comport;
+                        #print "Using FTDI port %s" % port
+                except:
+                    #Do nothing.
+                    a=1;
     sys.stderr.write("MSP430 Bootstrap Loader Version: %s\n" % VERSION)
 
     try:

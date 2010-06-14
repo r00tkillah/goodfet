@@ -122,6 +122,16 @@ class GoodFET:
                 self.serialport.setDTR(1);
                 #Drop DTR, which is !RST, low to begin the app.
                 self.serialport.setDTR(0);
+                
+                #TelosB reset, prefer software to I2C SPST Switch.
+                if(os.environ.get("platform")=='telosb'):
+                    self.telosBReset();
+                #self.serialport.write(chr(0x80));
+                #self.serialport.write(chr(0x80));
+                #self.serialport.write(chr(0x80));
+                #self.serialport.write(chr(0x80));
+                
+                
                 self.serialport.flushInput()
                 self.serialport.flushOutput()
                 #time.sleep(60);
@@ -139,7 +149,75 @@ class GoodFET:
                     break;
         if self.verbose: print "Connected after %02i attempts." % attempts;
         self.mon_connected();
-        
+    def telosSetSCL(self, level):
+        self.serialport.setRTS(not level)
+    def telosSetSDA(self, level):
+        self.serialport.setDTR(not level)
+
+    def telosI2CStart(self):
+        self.telosSetSDA(1)
+        self.telosSetSCL(1)
+        self.telosSetSDA(0)
+
+    def telosI2CStop(self):
+        self.telosSetSDA(0)
+        self.telosSetSCL(1)
+        self.telosSetSDA(1)
+
+    def telosI2CWriteBit(self, bit):
+        self.telosSetSCL(0)
+        self.telosSetSDA(bit)
+        time.sleep(2e-6)
+        self.telosSetSCL(1)
+        time.sleep(1e-6)
+        self.telosSetSCL(0)
+
+    def telosI2CWriteByte(self, byte):
+        self.telosI2CWriteBit( byte & 0x80 );
+        self.telosI2CWriteBit( byte & 0x40 );
+        self.telosI2CWriteBit( byte & 0x20 );
+        self.telosI2CWriteBit( byte & 0x10 );
+        self.telosI2CWriteBit( byte & 0x08 );
+        self.telosI2CWriteBit( byte & 0x04 );
+        self.telosI2CWriteBit( byte & 0x02 );
+        self.telosI2CWriteBit( byte & 0x01 );
+        self.telosI2CWriteBit( 0 );  # "acknowledge"
+
+    def telosI2CWriteCmd(self, addr, cmdbyte):
+        self.telosI2CStart()
+        self.telosI2CWriteByte( 0x90 | (addr << 1) )
+        self.telosI2CWriteByte( cmdbyte )
+        self.telosI2CStop()
+
+    def telosBReset(self,invokeBSL=0):
+        # "BSL entry sequence at dedicated JTAG pins"
+        # rst !s0: 0 0 0 0 1 1
+        # tck !s1: 1 0 1 0 0 1
+        #   s0|s1: 1 3 1 3 2 0
+
+        # "BSL entry sequence at shared JTAG pins"
+        # rst !s0: 0 0 0 0 1 1
+        # tck !s1: 0 1 0 1 1 0
+        #   s0|s1: 3 1 3 1 0 2
+
+        if invokeBSL:
+            self.telosI2CWriteCmd(0,1)
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,1)
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,2)
+            self.telosI2CWriteCmd(0,0)
+        else:
+            self.telosI2CWriteCmd(0,3)
+            self.telosI2CWriteCmd(0,2)
+
+        # This line was not defined inside the else: block, not sure where it
+        # should be however
+        self.telosI2CWriteCmd(0,0)
+        time.sleep(0.250)       #give MSP430's oscillator time to stabilize
+        self.serialport.flushInput()  #clear buffers
+
+
     def getbuffer(self,size=0x1c00):
         writecmd(0,0xC2,[size&0xFF,(size>>16)&0xFF]);
         print "Got %02x%02x buffer size." % (self.data[1],self.data[0]);

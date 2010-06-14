@@ -23,13 +23,13 @@
 
 //! Set up the pins for SPI mode.
 void spisetup(){
-  P5OUT|=SS;
-  P5DIR|=MOSI+SCK+SS;
+  SETSS;
+  P5DIR|=MOSI+SCK+BIT0; //BIT0 might be SS
   P5DIR&=~MISO;
   
   //Begin a new transaction.
-  P5OUT&=~SS; 
-  P5OUT|=SS;
+  CLRSS; 
+  SETSS;
 }
 
 
@@ -62,24 +62,24 @@ unsigned char spitrans8(unsigned char byte){
 void spiflash_wrten(){
   SETSS;
   /*
-  P5OUT&=~SS; //Drop !SS to begin transaction.
+  CLRSS; //Drop !SS to begin transaction.
   spitrans8(0x04);//Write Disable
-  P5OUT|=SS;  //Raise !SS to end transaction.
+  SETSS;  //Raise !SS to end transaction.
   */
-  P5OUT&=~SS; //Drop !SS to begin transaction.
+  CLRSS; //Drop !SS to begin transaction.
   spitrans8(0x06);//Write Enable
-  P5OUT|=SS;  //Raise !SS to end transaction.
+  SETSS;  //Raise !SS to end transaction.
 }
 
 
 //! Grab the SPI flash status byte.
 unsigned char spiflash_status(){
   unsigned char c;
-  P5OUT|=SS;  //Raise !SS to end transaction.
-  P5OUT&=~SS; //Drop !SS to begin transaction.
+  SETSS;  //Raise !SS to end transaction.
+  CLRSS; //Drop !SS to begin transaction.
   spitrans8(0x05);//GET STATUS
   c=spitrans8(0xFF);
-  P5OUT|=SS;  //Raise !SS to end transaction.
+  SETSS;  //Raise !SS to end transaction.
   return c;
 }
 
@@ -179,7 +179,7 @@ void spiflash_peek(unsigned char app,
 		   unsigned char verb,
 		   unsigned long len){
   unsigned int i;
-  P5OUT&=~SS; //Drop !SS to begin transaction.
+  CLRSS; //Drop !SS to begin transaction.
   spitrans8(0x03);//Flash Read Command
   len=3;//write 3 byte pointer
   for(i=0;i<len;i++)
@@ -192,7 +192,7 @@ void spiflash_peek(unsigned char app,
   while(len--)
     serial_tx(spitrans8(0));
   
-  P5OUT|=SS;  //Raise !SS to end transaction.
+  SETSS;  //Raise !SS to end transaction.
 }
 
 
@@ -226,29 +226,29 @@ void spihandle(unsigned char app,
   unsigned long i;
   
   //Raise !SS to end transaction, just in case we forgot.
-  P5OUT|=SS;
+  SETSS;
   spisetup();
   
   switch(verb){
     //PEEK and POKE might come later.
   case READ:
   case WRITE:
-    P5OUT&=~SS; //Drop !SS to begin transaction.
+    CLRSS; //Drop !SS to begin transaction.
     for(i=0;i<len;i++)
       cmddata[i]=spitrans8(cmddata[i]);
-    P5OUT|=SS;  //Raise !SS to end transaction.
+    SETSS;  //Raise !SS to end transaction.
     txdata(app,verb,len);
     break;
 
 
   case SPI_JEDEC://Grab 3-byte JEDEC ID.
-    P5OUT&=~SS; //Drop !SS to begin transaction.
+    CLRSS; //Drop !SS to begin transaction.
     spitrans8(0x9f);
     len=3;  //Length is variable in some chips, 3 minimum.
     for(i=0;i<len;i++)
       cmddata[i]=spitrans8(cmddata[i]);
     txdata(app,verb,len);
-    P5OUT|=SS;  //Raise !SS to end transaction.
+    SETSS;  //Raise !SS to end transaction.
     break;
 
 
@@ -268,9 +268,9 @@ void spihandle(unsigned char app,
 
   case SPI_ERASE://Erase the SPI Flash ROM.
     spiflash_wrten();
-    P5OUT&=~SS; //Drop !SS to begin transaction.
+    CLRSS; //Drop !SS to begin transaction.
     spitrans8(0xC7);//Chip Erase
-    P5OUT|=SS;  //Raise !SS to end transaction.
+    SETSS;  //Raise !SS to end transaction.
     
     
     while(spiflash_status()&0x01)//while busy

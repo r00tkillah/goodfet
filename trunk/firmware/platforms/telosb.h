@@ -14,3 +14,8 @@
 #define PLEDDIR P5DIR
 #define PLEDPIN BIT4
 
+
+//Radio CS is P4.2
+#define SETSS P4OUT|=BIT2
+#define CLRSS P4OUT&=~BIT2
+

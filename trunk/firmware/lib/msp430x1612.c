@@ -7,7 +7,7 @@
 #include <iomacros.h>
 
 //! Receive a byte.
-unsigned char serial_rx(){
+unsigned char serial0_rx(){
   char c;
   
   while(!(IFG1&URXIFG0));//wait for a byte
@@ -31,7 +31,7 @@ unsigned char serial1_rx(){
 }
 
 //! Transmit a byte.
-void serial_tx(unsigned char x){
+void serial0_tx(unsigned char x){
   while ((IFG1 & UTXIFG0) == 0); //loop until buffer is free
   TXBUF0 = x;
 }
@@ -51,7 +51,7 @@ void serial1_tx(unsigned char x){
  */
 
 //! Set the baud rate.
-void setbaud(unsigned char rate){
+void setbaud0(unsigned char rate){
   
   //http://mspgcc.sourceforge.net/baudrate.html
   switch(rate){
@@ -76,31 +76,29 @@ void setbaud(unsigned char rate){
 
 //! Set the baud rate of the second uart.
 void setbaud1(unsigned char rate){
-  
   //http://mspgcc.sourceforge.net/baudrate.html
   switch(rate){
   case 1://9600 baud
-    //    UBR01=0x7F; UBR11=0x01; UMCTL1=0x5B; /* uart0 3683400Hz 9599bps */
+    UBR01=0x7F; UBR11=0x01; UMCTL1=0x5B; /* uart0 3683400Hz 9599bps */
     break;
   case 2://19200 baud
-    //UBR01=0xBF; UBR11=0x00; UMCTL1=0xF7; /* uart0 3683400Hz 19194bps */
+    UBR01=0xBF; UBR11=0x00; UMCTL1=0xF7; /* uart0 3683400Hz 19194bps */
     break;
   case 3://38400 baud
-    //UBR01=0x5F; UBR11=0x00; UMCTL1=0xBF; /* uart0 3683400Hz 38408bps */
+    UBR01=0x5F; UBR11=0x00; UMCTL1=0xBF; /* uart0 3683400Hz 38408bps */
     break;
   case 4://57600 baud
-    //UBR01=0x40; UBR11=0x00; UMCTL1=0x00; /* uart0 3683400Hz 57553bps */
+    UBR01=0x40; UBR11=0x00; UMCTL1=0x00; /* uart0 3683400Hz 57553bps */
     break;
   default:
   case 5://115200 baud
-    //UBR01=0x20; UBR11=0x00; UMCTL1=0x00; /* uart0 3683400Hz 115106bps */
+    UBR01=0x20; UBR11=0x00; UMCTL1=0x00; /* uart0 3683400Hz 115106bps */
     break;
   }
 }
 
 
-void msp430_init_uart(){
-  
+void msp430_init_uart0(){
   /* RS232 */
   
   P3SEL |= BIT4|BIT5;                        // P3.4,5 = USART0 TXD/RXD
@@ -109,7 +107,7 @@ void msp430_init_uart(){
   UCTL0 = SWRST | CHAR;                 /* 8-bit character, UART mode */
   UTCTL0 = SSEL1;                       /* UCLK = MCLK */
   
-  setbaud(0);
+  setbaud0(0);
   
   ME1 &= ~USPIE0;			/* USART1 SPI module disable */
   ME1 |= (UTXE0 | URXE0);               /* Enable USART1 TXD/RXD */
@@ -121,6 +119,30 @@ void msp430_init_uart(){
   
   
   //IE1 |= URXIE1;                        /* Enable USART1 RX interrupt  */
+}
+
+
+void msp430_init_uart1(){
+  
+  /* RS232 */
+  P3DIR &= ~0x80;			/* Select P37 for input (UART1RX) */
+  P3DIR |= 0x40;			/* Select P36 for output (UART1TX) */
+  P3SEL |= 0xC0;			/* Select P36,P37 for UART1{TX,RX} */
+  
+  UCTL1 = SWRST | CHAR;                 /* 8-bit character, UART mode */
+  UTCTL1 = SSEL1;                       /* UCLK = MCLK */
+  
+  setbaud1(0);
+  
+  ME2 &= ~USPIE1;			/* USART1 SPI module disable */
+  ME2 |= (UTXE1 | URXE1);               /* Enable USART1 TXD/RXD */
+
+  UCTL1 &= ~SWRST;
+
+  /* XXX Clear pending interrupts before enable!!! */
+  U1TCTL |= URXSE;
+
+  //IE2 |= URXIE1;                        /* Enable USART1 RX interrupt  */
 }
 
 
@@ -160,7 +182,7 @@ void msp430_init_dco() {
 //#define MSP430_CPU_SPEED 4915200UL
 
 //Max speed.
-//#deefine MSP430_CPU_SPEED 4500000UL
+//#define MSP430_CPU_SPEED 4500000UL
 
 //baud rate speed
 #define MSP430_CPU_SPEED 3683400UL

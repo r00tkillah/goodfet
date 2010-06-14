@@ -26,7 +26,7 @@ platform?=goodfet
 GCCINC=-T ldscripts/$(mcu).x
 
 CCEXTRA?=
-CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -Dplatform=$(platform) -DGCC $(GCCINC) -I include $(CCEXTRA)
+CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(platform) -DGCC $(GCCINC) -I include $(CCEXTRA)
 
 #Define extra modules here.
 #moreapps?=apps/i2c/i2c.o  apps/glitch/glitch.o apps/jtag/sbw.o apps/smartcard/smartcard.o apps/jtag/ejtag.o apps/jtag/jtagxscale.o

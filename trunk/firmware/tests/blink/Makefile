@@ -6,7 +6,7 @@ BSL=goodfet.bsl
 
 #mcu=msp430x1611
 #mcu=msp430x2618
-mcu=msp430x2001
+mcu?=msp430x2001
 
 #GCCINC=-T ../../ldscripts/161x.x
 CC=msp430-gcc -g -mmcu=$(mcu) -DGCC $(GCCINC) -I ../../include

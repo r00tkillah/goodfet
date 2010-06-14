@@ -8,17 +8,34 @@
 
 #include "gfports.h"
 
-unsigned char serial_rx();
-void serial_tx(unsigned char);
+#ifdef telosb
+//TelosB uses second serial port.
+#define serial_tx serial1_tx
+#define serial_rx serial1_rx
+#define setbaud setbaud1
+#define msp430_init_uart msp430_init_uart1
+#else
+//Other targets use first.
+#define serial_tx serial0_tx
+#define serial_rx serial0_rx
+#define setbaud setbaud0
+#define msp430_init_uart msp430_init_uart0
+#endif
+
+unsigned char serial0_rx();
+void serial0_tx(unsigned char);
 
 unsigned char serial1_rx();
 void serial1_tx(unsigned char);
 
-void setbaud(unsigned char);
+void setbaud0(unsigned char);
 void setbaud1(unsigned char);
 
 //! Initialize the UART
-void msp430_init_uart();
+void msp430_init_uart0();
+//! Initialize the UART
+void msp430_init_uart1();
+
 //! Initialize the DCO Clock
 void msp430_init_dco();
 //! Called by monitor() when the DCO is correct and communication established.

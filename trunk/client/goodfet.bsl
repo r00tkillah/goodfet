@@ -1386,6 +1386,11 @@ def main(itest=1):
     bsl.invertRST = 1
     bsl.invertTEST = itest
     
+    if(os.environ.get("platform")=='telosb'):
+        bsl.swapRSTTEST = 1
+        bsl.telosI2C = 1
+        mayuseBSL = 0
+    
     if comPort is None and os.environ.get("GOODFET")!=None:
         glob_list = glob.glob(os.environ.get("GOODFET"));
         if len(glob_list) > 0:

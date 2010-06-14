@@ -3,6 +3,7 @@
 #GOODFET?=/dev/ttyUSB0
 
 
+
 #For tos-bsl, use --invert-reset --invert-test
 BSL?=goodfet.bsl --speed=38400
 
@@ -15,19 +16,23 @@ BSL?=goodfet.bsl --speed=38400
 #mcu?=msp430x1612
 mcu?=RUNCONFIG
 
+#platform=goodfet
+#platform=telosb
+#platform=z1
+platform?=goodfet
+
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.
 #GCCINC=-T ldscripts/161x.x
 GCCINC=-T ldscripts/$(mcu).x
 
 CCEXTRA?=
-CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -DGCC $(GCCINC) -I include $(CCEXTRA)
+CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -Dplatform=$(platform) -DGCC $(GCCINC) -I include $(CCEXTRA)
 
 #Define extra modules here.
 #moreapps?=apps/i2c/i2c.o  apps/glitch/glitch.o apps/jtag/sbw.o apps/smartcard/smartcard.o apps/jtag/ejtag.o apps/jtag/jtagxscale.o
 moreapps?=apps/jtag/sbw.o
 # should include apps/jtag/jtagarm7tdmi.o to build jtag for ARM7
 # should include apps/pic/dspic33f.o to build support for PIC24H/dsPIC33F
-
 
 apps= $(moreapps) apps/chipcon/chipcon.o apps/radios/nrf.o apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o 
 
@@ -44,16 +49,16 @@ lib/.o:
 lib/RUNCONFIG.o:
 	./configure
 	false
-
+include/config.h:
+	cp platforms/$(platform).h include/config.h
 goodfet.hex: goodfet
 
 run:
 	../client/goodfet.msp430 test
 
 install: $(app).hex
-	#$(BSL) -e
-	ls info.txt && $(BSL) -p info.txt || true  #MSP430F2xx targets only, inelegant.
 	$(BSL) -e -p $(app).hex 
+	ls info.txt && $(BSL) -P $(app).hex -p info.txt || true  #MSP430F2xx targets only, inelegant.
 verify:
 	$(BSL) -P $(app).hex -v $(app).hex
 dumpinfo:
@@ -66,9 +71,9 @@ m4s: $(app).hex
 erase:
 	$(BSL) -e 
 clean:
-	rm -f $(app) $(app).hex $(libs) $(apps)
+	rm -f $(app) $(app).hex $(libs) $(apps) include/config.h
 docs:
 	doxygen
 pushdocs: docs
 	rsync --exclude .svn -ave ssh doc/html/* travisutk,goodfet@web.sourceforge.net:htdocs/docs/
-.FAKE: docs
+.FAKE: docs include/config.h

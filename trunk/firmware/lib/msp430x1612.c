@@ -244,7 +244,7 @@ void msp430_init_dco() {
 
   BCSCTL1 &= ~(DIVA1 + DIVA0);          /* remove /8 divisor from ACLK again */
   
-  PLEDOUT=0;
+  PLEDOUT=~PLEDPIN;
 
 }
 

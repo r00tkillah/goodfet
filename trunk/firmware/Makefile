@@ -43,13 +43,13 @@ app= goodfet
 
 all: $(app).hex
 
-lib/.o:
+lib/.o: config
 	./configure
 	false
 lib/RUNCONFIG.o:
 	./configure
 	false
-include/config.h:
+config:
 	cp platforms/$(platform).h include/config.h
 goodfet.hex: goodfet
 
@@ -63,6 +63,7 @@ verify:
 	$(BSL) -P $(app).hex -v $(app).hex
 dumpinfo:
 	$(BSL) --dumpinfo
+$(app).c: config
 $(app): $(app).c $(libs) $(apps)
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex
@@ -76,4 +77,4 @@ docs:
 	doxygen
 pushdocs: docs
 	rsync --exclude .svn -ave ssh doc/html/* travisutk,goodfet@web.sourceforge.net:htdocs/docs/
-.FAKE: docs include/config.h
+.FAKE: docs

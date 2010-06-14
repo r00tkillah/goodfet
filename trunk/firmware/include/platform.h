@@ -6,6 +6,8 @@
   definition file, such as msp430x1612.c or msp430x2618.c.
 */
 
+#include "config.h"
+
 #include "gfports.h"
 
 #ifdef telosb
@@ -40,9 +42,4 @@ void msp430_init_uart1();
 void msp430_init_dco();
 //! Called by monitor() when the DCO is correct and communication established.
 void msp430_init_dco_done();
-
-//LED on P1.0
-#define PLEDOUT P1OUT
-#define PLEDDIR P1DIR
-#define PLEDPIN BIT0
 

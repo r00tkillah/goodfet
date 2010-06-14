@@ -61,7 +61,7 @@ int smartcardhandle(unsigned char app,
       delay(5);
       SCTOCK;
       
-      P1OUT^=1;
+      PLEDOUT^=PLEDPIN;
       if(SCIN!=foo){
 	foo=SCIN;
       }

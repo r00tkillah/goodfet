@@ -493,13 +493,13 @@ void cc_write_flash_page(u32 adr){
   
   
   while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
-    P1OUT^=1;//blink LED while flashing
+    PLEDOUT^=PLEDPIN;//blink LED while flashing
   }
   
   
   //debugstr("Done flashing.");
   
-  P1OUT&=~1;//clear LED
+  PLEDOUT&=~PLEDPIN;//clear LED
 }
 
 //! Read the PC

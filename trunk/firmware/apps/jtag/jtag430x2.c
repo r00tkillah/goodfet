@@ -83,7 +83,7 @@ void jtag430x2_writemem(unsigned long adr,
     SETTCLK;
     //init state
   }else{
-    while(1) P1OUT^=1; //loop if locked up
+    while(1) PLEDOUT^=PLEDPIN; //loop if locked up
   }
 }
 

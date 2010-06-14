@@ -274,8 +274,8 @@ void spihandle(unsigned char app,
     
     
     while(spiflash_status()&0x01)//while busy
-      P1OUT^=1;
-    P1OUT&=~1;
+      PLEDOUT^=PLEDPIN;
+    PLEDOUT&=~PLEDPIN;
     
     txdata(app,verb,0);
     break;

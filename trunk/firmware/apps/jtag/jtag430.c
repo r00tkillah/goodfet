@@ -331,9 +331,9 @@ void jtag430handle(unsigned char app,
   while((i=jtag430_readmem(0xff0))==0xFFFF){
     debugstr("Reconnecting to target MSP430.");
     jtag430_start();
-    P1OUT^=1;
+    PLEDOUT^=PLEDPIN;
   }
-  P1OUT&=~1;
+  PLEDOUT&=~PLEDPIN;
   
   
   switch(verb){

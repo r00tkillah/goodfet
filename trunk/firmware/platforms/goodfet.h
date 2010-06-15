@@ -3,10 +3,9 @@
   \brief Port descriptions for the GoodFET platform.
 */
 
-#ifdef MSP430
+#include <signal.h>
 #include <io.h>
-#endif
-
+#include <iomacros.h>
 
 
 //LED on P1.0
@@ -15,7 +14,7 @@
 #define PLEDPIN BIT0
 
 //Use P3 instead of P5 for target I/O on chips without P5.
-#ifndef __MSP430_HAS_PORT5__
+#ifdef msp430x2274
 //#warning "No P5, using P3 instead.  Will break 2618 and 1612 support."
 #define P5OUT P3OUT
 #define P5DIR P3DIR

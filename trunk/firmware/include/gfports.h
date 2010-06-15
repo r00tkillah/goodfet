@@ -6,9 +6,7 @@
 #ifndef GFPORTS
 #define GFPORTS
 
-#ifdef MSP430
 #include <io.h>
-#endif
 
 // N.B., only asm-clean CPP definitions allowed.
 

@@ -8,6 +8,10 @@
 
 */
 
+#ifdef MSP430
+#include <io.h>
+#endif
+
 
 //LED on P1.0
 #define PLEDOUT P5OUT

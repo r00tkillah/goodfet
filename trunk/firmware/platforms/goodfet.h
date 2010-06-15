@@ -22,6 +22,11 @@
 #define P5REN P3REN
 #endif
 
+//This is how things used to work, don't do it anymore.
+//#ifdef msp430x1612
+//#define P5REN somedamnedextern
+//#endif
+
 //No longer works for Hope badge.
 #define SETSS P5OUT|=BIT0
 #define CLRSS P5OUT&=~BIT0

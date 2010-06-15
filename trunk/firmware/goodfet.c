@@ -40,9 +40,10 @@ void init(){
    may have trouble communicating with the client.  The latter likely
    relates to the FTDI on-chip 3V3 regulator being specified up to
    only 50 mA. */
-	P5DIR |= BIT0;
-	P5REN &= ~BIT0;
-	P5OUT &= ~BIT0;
+  
+  P5DIR |= BIT0;
+  //P5REN &= ~BIT0; //DO NOT UNCOMMENT.  Breaks GF1x support.
+  P5OUT &= ~BIT0;
   
   //Setup clocks, unique to each '430.
   msp430_init_dco();

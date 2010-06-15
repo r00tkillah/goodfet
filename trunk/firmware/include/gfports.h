@@ -10,13 +10,6 @@
 
 // N.B., only asm-clean CPP definitions allowed.
 
-//Use false P5REN for 1612.
-#ifdef __MSP430_HAS_PORT5__
-#ifndef __MSP430_HAS_PORT5_R__
-//#warning "1xx, using fake P5REN for external pulling resistors."
-#define P5REN P5OUT
-#endif
-#endif
 
 /*
 //Use these instead of the explicit names.

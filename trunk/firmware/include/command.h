@@ -141,6 +141,9 @@ WEAKDEF void jtag430x2handle(unsigned char app, unsigned char verb, unsigned lon
 WEAKDEF void nrfhandle(unsigned char,
 		       unsigned char,
 		       unsigned long);
+WEAKDEF void ccspihandle(unsigned char,
+		       unsigned char,
+		       unsigned long);
 WEAKDEF void avrhandle(unsigned char app,
 		       unsigned char verb,
 		       unsigned long len);  

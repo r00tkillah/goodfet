@@ -97,6 +97,9 @@ void handle(unsigned char app,
   case NRF:
     nrfhandle(app,verb,len);
     break;
+  case CCSPI:
+    ccspihandle(app,verb,len);
+    break;
   case AVR:
     avrhandle(app,verb,len);
     break;

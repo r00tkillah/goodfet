@@ -21,7 +21,8 @@
 #define PIC 0x34
 
 //Radio peripherals are in the 0x50 range.
-#define NRF 0x50
+#define NRF   0x50
+#define CCSPI 0x51
 
 //Keep 0x60 empty for now.
 

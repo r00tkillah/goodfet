@@ -34,7 +34,7 @@ moreapps?=apps/jtag/sbw.o
 # should include apps/jtag/jtagarm7tdmi.o to build jtag for ARM7
 # should include apps/pic/dspic33f.o to build support for PIC24H/dsPIC33F
 
-apps= $(moreapps) apps/chipcon/chipcon.o apps/radios/nrf.o apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o 
+apps= $(moreapps) apps/chipcon/chipcon.o apps/radios/nrf.o apps/radios/ccspi.o apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o 
 
 #apps/chipcon/chipconasm.o removed
 libs= lib/$(mcu).o lib/command.o apps/jtag/jtag430asm.o  lib/dco_calib.o

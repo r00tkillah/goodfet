@@ -128,7 +128,7 @@ void ccspihandle(unsigned char app,
     RADIOPASSIVE;
     //Get the packet.
     CLRSS;
-    ccspitrans8(CCSPI_R_RX_PAYLOAD);
+    ccspitrans8(CCSPI_RXFIFO);
     for(i=0;i<32;i++)
       cmddata[i]=ccspitrans8(0xde);
     SETSS;
@@ -138,7 +138,7 @@ void ccspihandle(unsigned char app,
   case CCSPI_RX_FLUSH:
     //Flush the buffer.
     CLRSS;
-    ccspitrans8(CCSPI_FLUSH_RX);
+    ccspitrans8(CCSPI_SFLUSHRX);
     SETSS;
     
     //Return the packet.

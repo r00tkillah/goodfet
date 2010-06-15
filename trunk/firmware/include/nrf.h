@@ -3,7 +3,7 @@
   \brief Constants for NRF Driver
 */
 
-//Nording RF Commands
+//Nordic RF Commands
 
 //Grab a packet, if one is available.
 #define NRF_RX 0x80

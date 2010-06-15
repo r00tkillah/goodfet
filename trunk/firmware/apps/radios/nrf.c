@@ -15,26 +15,21 @@
 #include "nrf.h"
 #include "spi.h"
 
-//Weird HOPE badge wiring.  This was a fuckup.
-//BIT0 should be SS, but in point of fact it is IRQ.
-//BIT4 is actually SS, BIT5 is CE.
-#define SS BIT4
-#define CE BIT5;
 
-#define RADIOACTIVE  P5OUT|=CE
-#define RADIOPASSIVE P5OUT&=~CE
-
+#define RADIOACTIVE SETCE
+#define RADIOPASSIVE CLRCE
 
 //! Set up the pins for NRF mode.
 void nrfsetup(){
-  P5OUT|=SS;
+  SETSS;
   P5DIR&=~MISO;
-  P5DIR|=MOSI+SCK+SS+CE;
-  
+  P5DIR|=MOSI+SCK;
+  DIRSS;
+  DIRCE;
   
   //Begin a new transaction.
-  P5OUT&=~SS; 
-  P5OUT|=SS;
+  CLRSS; 
+  SETSS;
 }
 
 //! Read and write an NRF byte.
@@ -64,24 +59,24 @@ u8 nrftrans8(u8 byte){
 
 //! Writes a register
 u8 nrf_regwrite(u8 reg, const u8 *buf, int len){
-  P5OUT&=~SS;
+  CLRSS;
   
   reg=nrftrans8(reg);
   while(len--)
     nrftrans8(*buf++);
   
-  P5OUT|=SS;
+  SETSS;
   return reg;//status
 }
 //! Reads a register
 u8 nrf_regread(u8 reg, u8 *buf, int len){
-  P5OUT&=~SS;
+  CLRSS;
   
   reg=nrftrans8(reg);
   while(len--)
     *buf++=nrftrans8(0);
   
-  P5OUT|=SS;
+  SETSS;
   return reg;//status
 }
 
@@ -94,35 +89,35 @@ void nrfhandle(unsigned char app,
   //Drop CE to passify radio.
   RADIOPASSIVE;
   //Raise !SS to end transaction, just in case we forgot.
-  P5OUT|=SS;
+  SETSS;
   nrfsetup();
   
   switch(verb){
     //PEEK and POKE might come later.
   case READ:  
   case WRITE:
-    P5OUT&=~SS; //Drop !SS to begin transaction.
+    CLRSS; //Drop !SS to begin transaction.
     for(i=0;i<len;i++)
       cmddata[i]=nrftrans8(cmddata[i]);
-    P5OUT|=SS;  //Raise !SS to end transaction.
+    SETSS;  //Raise !SS to end transaction.
     txdata(app,verb,len);
     break;
 
   case PEEK://Grab NRF Register
-    P5OUT&=~SS; //Drop !SS to begin transaction.
+    CLRSS; //Drop !SS to begin transaction.
     nrftrans8(NRF_R_REGISTER | cmddata[0]); //000A AAAA
     for(i=1;i<len;i++)
       cmddata[i]=nrftrans8(cmddata[i]);
-    P5OUT|=SS;  //Raise !SS to end transaction.
+    SETSS;  //Raise !SS to end transaction.
     txdata(app,verb,len);
     break;
     
   case POKE://Poke NRF Register
-    P5OUT&=~SS; //Drop !SS to begin transaction.
+    CLRSS; //Drop !SS to begin transaction.
     nrftrans8(NRF_W_REGISTER | cmddata[0]); //001A AAAA
     for(i=1;i<len;i++)
       cmddata[i]=nrftrans8(cmddata[i]);
-    P5OUT|=SS;  //Raise !SS to end transaction.
+    SETSS;  //Raise !SS to end transaction.
     txdata(app,verb,len);
     break;
   case SETUP:
@@ -132,19 +127,19 @@ void nrfhandle(unsigned char app,
   case NRF_RX:
     RADIOPASSIVE;
     //Get the packet.
-    P5OUT&=~SS;
+    CLRSS;
     nrftrans8(NRF_R_RX_PAYLOAD);
     for(i=0;i<32;i++)
       cmddata[i]=nrftrans8(0xde);
-    P5OUT|=SS;
+    SETSS;
     //no break
     txdata(app,verb,32);
     break;
   case NRF_RX_FLUSH:
     //Flush the buffer.
-    P5OUT&=~SS;
+    CLRSS;
     nrftrans8(NRF_FLUSH_RX);
-    P5OUT|=SS;
+    SETSS;
     
     //Return the packet.
     txdata(app,verb,32);
@@ -158,6 +153,6 @@ void nrfhandle(unsigned char app,
   }
   
 
-  P5OUT|=SS;//End session
+  SETSS;//End session
   RADIOACTIVE;
 }

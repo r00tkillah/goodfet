@@ -11,7 +11,7 @@
 #include <iomacros.h>
 
 //! Receive a byte.
-unsigned char serial_rx(){
+unsigned char serial0_rx(){
   char c;
   
   while(!(IFG2&UCA0RXIFG));//wait for a byte
@@ -29,7 +29,7 @@ unsigned char serial1_rx(){
 }
 
 //! Transmit a byte.
-void serial_tx(unsigned char x){
+void serial0_tx(unsigned char x){
   while ((IFG2 & UCA0TXIFG) == 0); //loop until buffer is free
   UCA0TXBUF = x;	/* send the character */
   while(!(IFG2 & UCA0TXIFG));
@@ -47,7 +47,7 @@ void serial1_tx(unsigned char x){
 }
 
 //! Set the baud rate.
-void setbaud(unsigned char rate){
+void setbaud0(unsigned char rate){
   
   //Table 15-4, page 481 of 2xx Family Guide
   switch(rate){

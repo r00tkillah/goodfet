@@ -18,4 +18,10 @@
 //Radio CS is P4.2
 #define SETSS P4OUT|=BIT2
 #define CLRSS P4OUT&=~BIT2
+#define DIRSS P4DIR|=BIT2;
 
+
+//CC2420 Chip Reset.  Need to document this.
+#define SETCE P4OUT|=BIT6
+#define CLRCE P4OUT&=~BIT6
+#define DIRCE P4DIR|=BIT6

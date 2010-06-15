@@ -24,8 +24,9 @@
 //! Set up the pins for SPI mode.
 void spisetup(){
   SETSS;
-  P5DIR|=MOSI+SCK+BIT0; //BIT0 might be SS
+  P5DIR|=MOSI+SCK; //BIT0 might be SS
   P5DIR&=~MISO;
+  DIRSS;
   
   //Begin a new transaction.
   CLRSS; 

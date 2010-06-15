@@ -2,7 +2,7 @@
 .type jtag430_tclk_flashpulses,@function //for linking
 
 #define _GNU_ASSEMBLER_
-#include "gfports.h"
+#include "config.h"
 
 //This detects model, chooses appropriate timing.
 jtag430_tclk_flashpulses:

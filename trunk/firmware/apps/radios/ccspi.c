@@ -1,6 +1,11 @@
 /*! \file ccspi.c
   \author Travis Goodspeed
   \brief Chipcon SPI Register Interface
+  
+  Unfortunately, there is very little similarity between the CC2420
+  and the CC2500, to name just two of the myriad of Chipcon SPI
+  radios.  Auto-detection will be a bit difficult, but more to the
+  point, all high level functionality must be moved into the client.
 */
 
 //Higher level left to client application.

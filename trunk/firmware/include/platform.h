@@ -7,7 +7,6 @@
 */
 
 #include "config.h"
-
 #include "gfports.h"
 
 #ifdef telosb

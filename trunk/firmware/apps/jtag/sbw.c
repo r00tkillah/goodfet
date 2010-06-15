@@ -23,7 +23,6 @@ void sbwsetup(){
   */
 
   // tdio up, tck low
-  //   
   P5OUT &= ~SBWTCK;
   P5OUT |= SBWTDIO;
   P5DIR |= SBWTDIO|SBWTCK;

@@ -14,7 +14,6 @@
 #define PLEDDIR P1DIR
 #define PLEDPIN BIT0
 
-
 //Use P3 instead of P5 for target I/O on chips without P5.
 #ifndef __MSP430_HAS_PORT5__
 //#warning "No P5, using P3 instead.  Will break 2618 and 1612 support."

@@ -366,11 +366,23 @@ class GoodFET:
     def peek(self,address):
         """Read a word of memory from the monitor."""
         return self.peekbyte(address)+(self.peekbyte(address+1)<<8);
+    def eeprompeek(self,address):
+        """Read a word of memory from the monitor."""
+        return self.peekbyte(address)+(self.peekbyte(address+1)<<8);
+    
     def pokebyte(self,address,value):
         """Set a byte of memory by the monitor."""
         self.data=[address&0xff,address>>8,value];
         self.writecmd(0,0x03,3,self.data);
         return ord(self.data[0]);
+    def setsecret(self,value):
+        """Set a secret word for later retreival.  Used by glitcher."""
+        self.eeprompoke(0,value);
+        self.eeprompoke(1,value);
+    def getsecret(self):
+        """Get a secret word.  Used by glitcher."""
+        self.eeprompeek(0);
+    
     def dumpmem(self,begin,end):
         i=begin;
         while i<end:

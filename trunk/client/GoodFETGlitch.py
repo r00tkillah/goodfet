@@ -209,14 +209,13 @@ class GoodFETGlitch(GoodFET):
         
         self.secret=0x69;
         
-        while(client.eeprompeek(0)!=self.secret):
+        while(client.getsecret()!=self.secret):
             print "-- Setting secret";
             client.start();
             
             #Flash the secret to the first two bytes of CODE memory.
             client.erase();
-            client.eeprompoke(0,self.secret);
-            client.eeprompoke(1,self.secret);
+            client.setsecret(self.secret);
             sys.stdout.flush()
 
         #Lock chip to unlock it later.
@@ -265,7 +264,7 @@ class GoodFETGlitch(GoodFET):
             client.glitchstart();
             
             #Try to read *0, which is secret if read works.
-            a=client.eeprompeek(0x0);
+            a=client.getsecret();
             if lock>0: #locked
                 if(a!=0 and a!=0xFF and a!=self.secret):
                     gcount+=1;

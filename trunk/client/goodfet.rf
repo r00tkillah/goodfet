@@ -14,7 +14,7 @@ from GoodFET import GoodFET, getClient;
 
 if(len(sys.argv)==1):
     print "Usage: %s [driver|verb] verb [objects]\n" % sys.argv[0];
-    print "driver:= cc | nrf"; #msp430
+    print "driver:= cc51 | ccspi | nrf"; #msp430
     print "verb:=   info";
     print "         rs|radioinfo";
     print "         test";

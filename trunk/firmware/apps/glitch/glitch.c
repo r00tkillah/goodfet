@@ -123,6 +123,7 @@ void glitchhandle(unsigned char app,
     TACTL |= MC0;// Stop Timer_A;
     break;
   case GLITCHTIME:
+    debugstr("Measuring start time.");
     _DINT();//disable interrupts
     TACTL=0; //clear dividers
     TACTL|=TACLR; //clear config
@@ -135,6 +136,8 @@ void glitchhandle(unsigned char app,
     handle(cmddata[0],cmddata[1],0);
     cmddataword[0]=TAR; //Return counter.
     silent--;
+    debugstr("Measured start time.");
+    debughex(cmddataword[0]);
     txdata(app,verb,2);
     break;
   case START:

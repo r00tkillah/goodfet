@@ -288,7 +288,7 @@ class GoodFET:
             except TypeError:
                 if self.connected:
                     print "Error: waiting for serial read timed out (most likely).";
-                    print "This shouldn't happen after syncing.  Exiting for safety.";
+                    print "This shouldn't happen after syncing.  Exiting for safety.";                    
                     sys.exit(-1)
                 return self.data;
     #Glitching stuff.
@@ -313,8 +313,11 @@ class GoodFET:
         """Time the execution of a verb."""
         if data==None: data=[];
         self.data=[app&0xff, verb&0xFF]+data;
+        print "Timing app %02x verb %02x." % (app,verb);
         self.writecmd(self.GLITCHAPP,0x82,len(self.data),self.data);
-        return ord(self.data[0])+(ord(self.data[1])<<8);
+        time=ord(self.data[0])+(ord(self.data[1])<<8);
+        print "Timed to be %i." % time;
+        return time;
     def glitchVoltages(self,low=0x0880, high=0x0fff):
         """Set glitching voltages. (0x0fff is max.)"""
         self.data=[low&0xff, (low>>8)&0xff,

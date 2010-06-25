@@ -11,8 +11,6 @@ from intelhex import IntelHex16bit, IntelHex;
 import sqlite3;
 
 
-glitcher=GoodFETGlitch();
-
 if(len(sys.argv)==1):
     print "Usage: %s chip verb [objects]\n" % sys.argv[0];
     print "%s avr learn" % sys.argv[0];
@@ -36,6 +34,7 @@ Then on a chip to be extracted,
 3) Run 'goodfet $chip exploit' to exploit a chip and recover its firmware."""
     sys.exit();
 
+glitcher=GoodFETGlitch();
 
 if(sys.argv[2]=="graphx11"):
     glitcher.graphx11();

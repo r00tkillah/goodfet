@@ -271,6 +271,7 @@ class GoodFETCC(GoodFET):
     def erase(self):
         """Erase all of the target's memory."""
         self.CCchiperase();
+        self.start();
     
     def CCstatus(self):
         """Check the status."""
@@ -334,6 +335,27 @@ class GoodFETCC(GoodFET):
               (adr>>24)&0xFF];
         print "Flashing buffer to 0x%06x" % adr;
         self.writecmd(self.APP,0x95,4,data);
+    
+    def setsecret(self,value):
+        """Set a secret word for later retreival.  Used by glitcher."""
+        page = 0x0000;
+        pagelen = self.CCpagesize(); #Varies by chip.
+        print "page=%04x, pagelen=%04x" % (page,pagelen);
+        
+        self.CCeraseflashbuffer();
+        print "Setting secret to %x" % value;
+        self.CCpokedatabyte(0xF000,value);
+        self.CCpokedatabyte(0xF800,value);
+        print "Setting secret to %x==%x" % (value,
+                                            self.CCpeekdatabyte(0xf000));
+        self.CCflashpage(0);
+        print "code[0]=%x" % self.CCpeekcodebyte(0);
+    def getsecret(self):
+        """Get a secret word.  Used by glitcher."""
+        secret=self.CCpeekcodebyte(0);
+        #print "Got secret %02x" % secret;
+        return secret;
+    
     def dump(self,file,start=0,stop=0xffff):
         """Dump an intel hex file from code memory."""
         print "Dumping code from %04x to %04x as %s." % (start,stop,file);

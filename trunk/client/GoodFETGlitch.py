@@ -55,7 +55,7 @@ class GoodFETGlitch(GoodFET):
         self.client=0;
     def setup(self,arch="avr"):
         self.client=getClient(arch);
-        self.client.serInit();
+        self.client.serInit(); #No timeout
 
     def glitchvoltages(self,time):
         """Returns list of voltages to train at."""
@@ -70,7 +70,7 @@ class GoodFETGlitch(GoodFET):
             min=r[0];
             max=r[1];
             if(min==None or max==None): return [];
-
+            
             spread=max-min;
             return range(min,max,1);
         #If we get here, there are no points.  Return empty set.
@@ -199,15 +199,19 @@ class GoodFETGlitch(GoodFET):
         tstop=self.client.glitchstarttime();
         tstep=0x1; #Must be 1
         self.scan(lock,trials,range(vstart,vstop),range(tstart,tstop));
-        print "Learning phase complete, beginning to expore.";
+        print "Learning phase complete, beginning to crunch.";
+        self.crunch();
+        print "Crunch phase complete, beginning to explore.";
         self.explore();
         
     def scansetup(self,lock):
         client=self.client;
+        client.verbose=0;
         client.start();
         client.erase();
+        print "Scanning %s" % client.infostring();
         
-        self.secret=0x69;
+        self.secret=0x49;
         
         while(client.getsecret()!=self.secret):
             print "-- Setting secret";
@@ -215,9 +219,10 @@ class GoodFETGlitch(GoodFET):
             
             #Flash the secret to the first two bytes of CODE memory.
             client.erase();
+            print "-- Secret was %02x" % client.getsecret();
             client.setsecret(self.secret);
             sys.stdout.flush()
-
+            
         #Lock chip to unlock it later.
         if lock>0:
             client.lock();
@@ -232,7 +237,7 @@ class GoodFETGlitch(GoodFET):
         #random.shuffle(times);
         
         for vcc in voltages:
-            if lock<0 and not self.vccexplored(vcc):
+            if not self.vccexplored(vcc):
                 print "Exploring vcc=%i" % vcc;
                 sys.stdout.flush();
                 for time in times:

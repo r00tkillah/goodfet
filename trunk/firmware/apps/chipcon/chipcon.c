@@ -351,7 +351,7 @@ unsigned short cc_get_chip_id(){
     break;
   default:
     //debugstr("Warning: Guessing flash word size.");
-    flash_word_size=0;
+    //flash_word_size=0;
     break;
   case 0x85://CC2430
   case 0x89://CC2431
@@ -457,8 +457,9 @@ void cc_write_flash_page(u32 adr){
     return;
   }
   
-  if(flash_word_size==0){
-    debugstr("Flash word size is wrong.");
+  if(flash_word_size!=2 && flash_word_size!=4){
+    debugstr("Flash word size is wrong, aborting write to");
+    debughex(adr);
     while(1);
   }
   
@@ -477,8 +478,7 @@ void cc_write_flash_page(u32 adr){
 		  flash_word_size);
   
   //debugstr("Wrote flash routine.");
-  
-  
+    
   //MOV MEMCTR, (bank * 16) + 1;
   cmddata[0]=0x75;
   cmddata[1]=0xc7;
@@ -493,7 +493,7 @@ void cc_write_flash_page(u32 adr){
   
   
   while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
-    PLEDOUT^=PLEDPIN;//blink LED while flashing
+    PLEDOUT^=PLEDPIN;//blink LED while flashing    
   }
   
   

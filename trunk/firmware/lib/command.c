@@ -1,6 +1,6 @@
 /*! \file command.c
   \author Travis Goodspeed
-  \brief These functions manage command interpretation.
+  \brief These functions manage command interpretation and timing.
 */
 
 #include "command.h"
@@ -131,8 +131,8 @@ void msdelay(unsigned int ms){
 
 
 /* To better satisfy the somewhat odd timing requirements for
-   dsPIC33F/PIC24H ICSP programming, and for better control of GoodFET
-   timing more generally, here are a few delay routines that use Timer A.
+   PIC33F/24H/24F ICSP programming, and for better control of GoodFET
+   timing more generally, here are a few delay routines that use Timer B.
 
    Note that I wrote these referring only to the MSP430x2xx family
    manual. Beware on MSP430x1xx chips. Further note that, assuming
@@ -141,10 +141,10 @@ void msdelay(unsigned int ms){
 void prep_timer()
 {
   BCSCTL2 = 0x00; /* In particular, use DCOCLK as SMCLK source with
-		     divider 1. Hence, Timer A ticks with system
+		     divider 1. Hence, Timer B ticks with system
 		     clock at 16 MHz. */
 
-  TACTL = 0x0204; /* Driven by SMCLK; disable Timer A interrupts;
+  TBCTL = 0x0204; /* Driven by SMCLK; disable Timer B interrupts;
 		     reset timer in case it was previously in use */
 }
 
@@ -152,33 +152,33 @@ void prep_timer()
 void delay_ms( unsigned int ms )
 {
   // 16000 ticks = 1 ms
-  TACTL |= 0x20; // Start timer!
+  TBCTL |= 0x20; // Start timer!
   while (ms--) {
-    while (TAR < 16000)
+    while (TBR < 16000)
       asm( "nop" );
-    TACTL = 0x0224;
+    TBCTL = 0x0224;
   }
-  TACTL = 0x0204; // Reset Timer A, till next time
+  TBCTL = 0x0204; // Reset Timer B, till next time
 }
 
 //! Delay for specified number of microseconds (given 16 MHz clock)
 void delay_us( unsigned int us )
 {
   // 16 ticks = 1 us
-  TACTL |= 0x20; // Start timer!
+  TBCTL |= 0x20; // Start timer!
   while (us--) {
-    while (TAR < 16)
+    while (TBR < 16)
       asm( "nop" );
-    TACTL = 0x0224;
+    TBCTL = 0x0224;
   }
-  TACTL = 0x0204; // Reset Timer A, till next time
+  TBCTL = 0x0204; // Reset Timer B, till next time
 }
 
 //! Delay for specified number of clock ticks (16 MHz clock implies 62.5 ns per tick).
 void delay_ticks( unsigned int num_ticks )
 {
-  TACTL |= 0x20; // Start timer
-  while (TAR < num_ticks)
+  TBCTL |= 0x20; // Start timer
+  while (TBR < num_ticks)
     asm( "nop" );
-  TACTL = 0x0204; // Reset Timer A, till next time
+  TBCTL = 0x0204; // Reset Timer B, till next time
 }

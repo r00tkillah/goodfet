@@ -114,7 +114,7 @@ void delay(unsigned int count);
 void msdelay(unsigned int ms);
 
 
-//! Prepare Timer A; call before using delay_ms or delay_us.
+//! Prepare Timer B; call before using delay_ms or delay_us.
 void prep_timer();
 
 //! Delay for specified number of milliseconds (given 16 MHz clock)

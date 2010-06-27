@@ -154,7 +154,7 @@ class GoodFETGlitch(GoodFET):
             print "%i %i %i %i %i" % r;
     def npoints(self):
         c=self.db.cursor();
-        c.execute("select time,vcc,gnd,glitchcount,count from glitches where lock=0 and count=0;");
+        c.execute("select time,vcc,gnd,glitchcount,count from glitches where lock=0 and glitchcount>0;");
         print "time vcc gnd glitchcount count";
         for r in c:
             print "%i %i %i %i %i" % r;
@@ -190,10 +190,10 @@ class GoodFETGlitch(GoodFET):
                 self.scanat(1,trials,vcc,gnd,t);
     def learn(self):
         """Learning phase.  Finds thresholds at which the chip screws up."""
-        trials=1;
+        trials=30;
         lock=0;  #1 locks, 0 unlocked
         vstart=0;
-        vstop=1024;  #Could be as high as 0xFFF, but upper range is useless
+        vstop=200;  #Could be as high as 0xFFF, but upper range is useless
         vstep=1;
         tstart=0;
         tstop=self.client.glitchstarttime();

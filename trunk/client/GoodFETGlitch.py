@@ -90,19 +90,21 @@ class GoodFETGlitch(GoodFET):
         mins={};
         
         c=self.db.cursor();
-        c.execute("select time,vcc,count from glitches;"); #Limit 10000 for testing.
+        c.execute("select time,vcc,glitchcount,count from glitches;"); #Limit 10000 for testing.
         progress=0;
         for r in c:
             progress=progress+1;
             if progress % 1000000==0: print "%09i rows crunched." % progress;
             t=r[0];
             v=r[1];
-            count=r[2];
-            if count==0:
+            glitchcount=r[2];
+            count=r[3];
+            # FIXME: Threse thresholds suck.
+            if count<2:
                 try: oldmax=maxes[t];
                 except: oldmax=-1;
                 if v>oldmax: maxes[t]=v;
-            elif count==1:
+            elif glitchcount<2:
                 try: oldmin=mins[t];
                 except: oldmin=0x10000;
                 if v<oldmin: mins[t]=v;
@@ -148,11 +150,11 @@ class GoodFETGlitch(GoodFET):
         g(script_timevcc);
     def points(self):
         c=self.db.cursor();
-        c.execute("select time,vcc,gnd,glitchcount,count from glitches where lock=0 and count>0;");
+        c.execute("select time,vcc,gnd,glitchcount,count from glitches where lock=0 and glitchcount>0;");
         print "time vcc gnd glitchcount count";
         for r in c:
             print "%i %i %i %i %i" % r;
-    def npoints(self):
+    def rpoints(self):
         c=self.db.cursor();
         c.execute("select time,vcc,gnd,glitchcount,count from glitches where lock=0 and glitchcount>0;");
         print "time vcc gnd glitchcount count";
@@ -161,13 +163,14 @@ class GoodFETGlitch(GoodFET):
     #GnuPlot sucks for large sets.  Switch to viewpoints soon.
     # sqlite3 glitch.db "select time,vcc,count from glitches where count=0" | vp -l -d "|" -I
     
-    def explore(self,tstart=0,tstop=-1, trials=1):
+    def explore(self,times=None, trials=10):
         """Exploration phase.  Uses thresholds to find exploitable points."""
         gnd=0;
         self.scansetup(1); #Lock the chip, place key in eeprom.
-        if tstop<0:
+        if times==None:
+            tstart=0;
             tstop=self.client.glitchstarttime();
-        times=range(tstart,tstop);
+            times=range(tstart,tstop);
         random.shuffle(times);
         #self.crunch();
         count=0.0;
@@ -178,10 +181,16 @@ class GoodFETGlitch(GoodFET):
         rows=c.fetchall();
         c.close();
         random.shuffle(rows);
+        print "Exploring %i times." % len(times);
+        mins={};
+        maxes={};
         for r in rows:
             t=r[0];
-            min=r[1];
-            max=r[2];
+            mins[t]=r[1];
+            maxes[t]=r[2];
+        for t in times:
+            min=mins[t];
+            max=maxes[t];
             voltages=range(min,max,1);
             count=count+1.0;
             print "%02.02f Exploring %04i points in t=%04i." % (count/total,len(voltages),t);

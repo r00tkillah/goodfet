@@ -127,8 +127,9 @@ void glitchhandle(unsigned char app,
     _DINT();//disable interrupts
     TACTL=0; //clear dividers
     TACTL|=TACLR; //clear config
-    TACTL|=TASSEL_SMCLK| //smclk source
-      MC_2; //continuous mode.
+    TACTL|=
+      TASSEL_SMCLK //smclk source
+      | MC_2; //continuous mode.
     
     //perform the function
     silent++;//Don't want the function to return anything.

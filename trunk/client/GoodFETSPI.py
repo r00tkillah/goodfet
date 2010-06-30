@@ -25,6 +25,21 @@ class GoodFETSPI(GoodFET):
         self.writecmd(0x01,0x00,len(data),data);
         return self.data;
 
+class GoodFETSPI25C(GoodFETSPI):
+    #opcodes
+    WREN=0x06;
+    WRDI=0x04;
+    RDSR=0x05;
+    WRSR=0x01;
+    READ=0x03;
+    WRITE=0x02;
+    
+    def peek8(self,adr):
+        """Read a byte from the given address."""
+        data=self.SPItrans([self.READ,(adr>>8)&0xFF,adr&0xFF,0x00]);
+        return ord(data[3]);
+
+
 class GoodFETSPIFlash(GoodFETSPI):
     JEDECmanufacturers={0xFF: "MISSING",
                         0xEF: "Winbond",

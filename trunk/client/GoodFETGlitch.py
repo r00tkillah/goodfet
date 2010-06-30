@@ -202,7 +202,7 @@ class GoodFETGlitch(GoodFET):
         trials=30;
         lock=0;  #1 locks, 0 unlocked
         vstart=0;
-        vstop=200;  #Could be as high as 0xFFF, but upper range is useless
+        vstop=1024;  #Could be as high as 0xFFF, but upper range is useless
         vstep=1;
         tstart=0;
         tstop=self.client.glitchstarttime();

@@ -161,10 +161,8 @@ if(sys.argv[1]=="sniffob"):
             packet=client.RF_rxpacket();
         printpacket(packet);
         sys.stdout.flush();
+
 if(sys.argv[1]=="snifftp"):
-    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
-    #TODO remove all poke() calls.
-    
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst
     client.poke(0x02,0x01); #Set RX Pipe 0
@@ -173,17 +171,12 @@ if(sys.argv[1]=="snifftp"):
     client.poke(0x06,0x00); #1Mbps
     client.poke(0x07,0x78); #Reset status register
     
-    #OpenBeacon defines these in little endian as follows.
     client.RF_setmaclen(3); # SETUP_AW for 3-byte addresses.
     client.RF_setsmac(0x123456);
-    #'O', 'C', 'A', 'E', 'B'
-    client.RF_settmac(0x424541434F);
+    client.RF_setpacketlen(4);
     
-    #Set packet length of 16.
-    client.RF_setpacketlen(6);
-    
-    #Power radio, prime for RX, one-byte checksum.
-    client.poke(0x00,0x70|0x03); #| with 0x08 for one byte, 0x04 for two.
+    #Power radio, prime for RX, two-byte checksum.
+    client.poke(0x00,0x70|0x03|0x04|0x08);
     
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);

@@ -31,9 +31,11 @@ by those that write flash memory, such as POKE and SPI_ERASE.</p>
 <tr><td>0x21</td><td>STOP</td><td>Stop listening.</td></tr>
 <tr><td>0x7E</td><td>NOK</td><td>No Operation</td></tr>
 
-<!--
-High-bit commands can be used for fast transactions.
-<tr><td>0x80</td><td>SPI_JEDEC</td><td>Grab 3-byte JEDEC ID.</td></tr>
-<tr><td>0x81</td><td>SPI_ERASE</td><td>Erase a Flash EEPROM.</td></tr>
--->
+
+<tr><td>0x80</td><td>RX</td><td>Receive a packet.</td></tr>
+<tr><td>0x81</td><td>TX</td><td>Transmit a packet.</td></tr>
+<tr><td>0x82</td><td>RX_FLUSH</td><td>Flush RX buffer.</td></tr>
+<tr><td>0x83</td><td>TX_FLUSH</td><td>Flush TX buffer.</td></tr>
+
+
 </table>

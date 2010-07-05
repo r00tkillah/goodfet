@@ -46,9 +46,13 @@ if(len(sys.argv)==1):
     print "%s test" % sys.argv[0];
     print "%s regs" % sys.argv[0];
     print "%s pyregs" % sys.argv[0];
+
     print "%s sniff\n\tSniffs packets by current config." % sys.argv[0];
     print "%s sniffob\n\tSniffs OpenBeacon traffic." % sys.argv[0];
     print "%s snifftp\n\tSniffs Tunrning Point Clicker traffic." % sys.argv[0];
+
+    print "%s hosttp\n\tHosts Tunrning Point Clicker traffic." % sys.argv[0];
+
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
     sys.exit();
 
@@ -187,6 +191,38 @@ if(sys.argv[1]=="snifftp"):
             #time.sleep(0.1);
             packet=client.RF_rxpacket();
         printpacket(packet);
+        sys.stdout.flush();
+
+if(sys.argv[1]=="hosttp"):
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    
+    chan=0x29;
+
+    client.RF_setfreq((2400+chan) * 10**6);
+    client.poke(0x06,0x00); #1Mbps
+    client.poke(0x07,0x78); #Reset status register
+    
+    client.RF_setmaclen(3); # SETUP_AW for 3-byte addresses.
+    client.RF_setsmac(0x123456);
+    client.RF_setpacketlen(4);
+    
+    #Power radio, prime for RX, two-byte checksum.
+    client.poke(0x00,0x70|0x03|0x04|0x08);
+    
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+        mac=((ord(packet[0])<<16)+
+             (ord(packet[1])<<8)+
+             ord(packet[2]));
+        key=packet[3];
+        print "%c from %06x" % (key,mac);
         sys.stdout.flush();
 
 if(sys.argv[1]=="sniff"):

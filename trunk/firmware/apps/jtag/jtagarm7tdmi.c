@@ -173,7 +173,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
         {CLRMOSI;}
       word >>= 1;
 
-      if (bit==2 && end)  //FIXME: DID THIS BREAK SOMETHING?
+      if (bit==1 && end)
         SETTMS;//TMS high on last bit to exit.
        
       jtag_arm_tcktock();
@@ -192,7 +192,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
         {CLRMOSI;}
       word = (word & mask) << 1;
 
-      if (bit==2 && end)  //FIXME: DID THIS BREAK SOMETHING?
+      if (bit==1 && end)
         SETTMS;//TMS high on last bit to exit.
 
       jtag_arm_tcktock();
@@ -532,12 +532,12 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_instr_primitive(instr, 0);
-  jtagarm7tdmi_nop( 0);                // push nop into pipeline - fetched
-  jtagarm7tdmi_nop( 0);                // push nop into pipeline - decoded
-  jtagarm7tdmi_nop( 0);                // push nop into pipeline - executed 
+  debughex32(jtagarm7tdmi_nop( 0));                // push nop into pipeline - fetched
+  debughex32(jtagarm7tdmi_nop( 0));                // push nop into pipeline - decoded
+  debughex32(jtagarm7tdmi_nop( 0));                // push nop into pipeline - executed 
   retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
   debughex32(retval);
-  jtagarm7tdmi_nop( 0);
+  debughex32(jtagarm7tdmi_nop( 0));
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_nop( 0);
   return retval;
@@ -546,9 +546,9 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {
 //! Set a 32-bit Register value
 void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {
   unsigned long instr, reg2;
-  reg2 = (reg&0xfL);
+  reg2 = (reg&0xfL)<<16;
   instr = (unsigned long)(((unsigned long)reg<<12L) | ARM_WRITE_REG); //  LDR Rx, [R14]
-  instr |= (unsigned long)((unsigned long)reg2<<8L)<<8L;
+  instr ^= reg2;
   //instr |= (unsigned long)((((unsigned long)reg)&0x7)<<8)<<8;
   //debugstr("Writing:");
   debughex32(instr);
@@ -557,11 +557,11 @@ void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
   jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - decode
-  //jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
   
+  //jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
   jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
-  jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
-  jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
+  //jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
 
@@ -698,7 +698,7 @@ unsigned long jtagarm7tdmi_readmem(unsigned long adr){
   jtagarm7tdmi_set_register(0, adr);        // write address into R0
   jtagarm7tdmi_nop( 0);                     // push nop into pipeline to "clean" it ???
   jtagarm7tdmi_nop( 1);                     // push nop into pipeline with BREAKPT set
-  jtagarm7tdmi_instr_primitive(ARM_INSTR_LDR_R1_r0_4, 0); // push LDR R1, R0, #4 into instruction pipeline
+  jtagarm7tdmi_instr_primitive(ARM_INSTR_LDR_R1_r0_4, 0); // push LDR R1, [R0], #4 into instruction pipeline
   jtagarm7tdmi_nop( 0);                     // push nop into pipeline
   jtagarm7tdmi_restart();                   // SHIFT_IR with RESTART instruction
 
@@ -820,35 +820,30 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     debughex32(jtagarm7tdmi_start());
     debughex32(jtagarm7tdmi_haltcpu());
     //jtagarm7tdmi_resettap();
-    debughex32(jtagarm7tdmi_get_dbgstate());
+    cmddatalong[0] = jtagarm7tdmi_get_dbgstate();
     
-    // DEBUG: FIXME: NOT PART OF OPERATIONAL CODE
-    //for (mlop=2;mlop<4;mlop++){
-    //  jtagarm7tdmi_set_register(mlop, 0x43424140);
-    //} 
-    /////////////////////////////////////////////
     txdata(app,verb,0x4);
     break;
   case JTAGARM7TDMI_READMEM:
   case PEEK:
-    blocks=(len>4?cmddata[4]:1);
-    at=cmddatalong[0];
+    at     = cmddatalong[0];
+    blocks = cmddatalong[1];
     
-    len=0x80;
     txhead(app,verb,len);
     
-    while(blocks--){
-      for(i=0;i<len;i+=2){
 	jtagarm7tdmi_resettap();
 	delay(10);
 	
-	val=jtagarm7tdmi_readmem(at);
+    for(i=0;i<blocks;i++){
+	  val=jtagarm7tdmi_readmem(at);
 		
-	at+=2;
-	serial_tx(val&0xFFL);
-	serial_tx((val&0xFF00L)>>8);
+ 	  serial_tx(val&0xFFL);
+	  serial_tx((val&0xFF00L)>>8);
+	  serial_tx((val&0xFF0000L)>>8);
+	  serial_tx((val&0xFF000000L)>>8);
+  	  at+=4;
       }
-    }
+    
     
     break;
   case JTAGARM7TDMI_GET_CHIP_ID:

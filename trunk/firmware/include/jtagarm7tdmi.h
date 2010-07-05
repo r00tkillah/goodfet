@@ -171,11 +171,11 @@ The least significant bit of the instruction register is scanned in and scanned 
 //      http://www.atmel.com/dyn/resources/prod_documents/DDI0029G_7TDMI_R3_trm.pdf
 #define EXECNOPARM                  0xe1a00000L
 #define ARM_INSTR_NOP               0xe1a00000L
-//#define ARM_INSTR_STR_Rx_r14        0xe58e0000L // from atmel docs
-#define ARM_INSTR_STR_Rx_r14        0xe5800000L // set both src and dest reg in code
+#define ARM_INSTR_STR_Rx_r14        0xe58e0000L // from atmel docs
+//#define ARM_INSTR_STR_Rx_r14        0xe5800000L // set both src and dest reg in code
 #define ARM_READ_REG                ARM_INSTR_STR_Rx_r14
-//#define ARM_INSTR_LDR_Rx_r14        0xe59e0000L // from atmel docs
-#define ARM_INSTR_LDR_Rx_r14        0xe5900000L // set both src and dest reg in code
+#define ARM_INSTR_LDR_Rx_r14        0xe59e0000L // from atmel docs
+//#define ARM_INSTR_LDR_Rx_r14        0xe5900000L // set both src and dest reg in code
 #define ARM_WRITE_REG               ARM_INSTR_LDR_Rx_r14
 #define ARM_INSTR_LDR_R1_r0_4       0xe4901004L
 #define ARM_READ_MEM                ARM_INSTR_LDR_R1_r0_4

@@ -118,9 +118,6 @@ void jtag_reset_to_runtest_idle() {
   jtag_arm_tcktock();
   jtag_arm_tcktock();
   jtag_arm_tcktock();
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();
   jtag_arm_tcktock();  // now in Reset state
   CLRTMS;
   jtag_arm_tcktock();  // now in Run-Test/Idle state
@@ -156,8 +153,8 @@ void jtagarm7tdmi_resettap(){               // PROVEN
 
 //! Shift N bits over TDI/TDO.  May choose LSB or MSB, and select whether to terminate (TMS-high on last bit) and whether to return to RUNTEST/IDLE
 unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned char lsb, unsigned char end, unsigned char retidle){               // PROVEN
-  unsigned int bit;
-  unsigned long high = 1;
+  unsigned char bit;
+  unsigned long high = 1L;
   unsigned long mask;
 
   //for (bit=(bitcount-1)/8; bit>0; bit--)
@@ -176,7 +173,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
         {CLRMOSI;}
       word >>= 1;
 
-      if (bit==1 && end)
+      if (bit==2 && end)  //FIXME: DID THIS BREAK SOMETHING?
         SETTMS;//TMS high on last bit to exit.
        
       jtag_arm_tcktock();
@@ -195,7 +192,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
         {CLRMOSI;}
       word = (word & mask) << 1;
 
-      if (bit==1 && end)
+      if (bit==2 && end)  //FIXME: DID THIS BREAK SOMETHING?
         SETTMS;//TMS high on last bit to exit.
 
       jtag_arm_tcktock();
@@ -227,7 +224,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
 *   * Bypass Register
 *   * ID Code Register
 *   * Scan Chain Select Register    (4 bits_lsb)
-*   * Scan Chain 0                  (64+* bits: 32_databits_lsb + ctrlbits + 32_addrbits_msb)
+*   * Scan Chain 0                  (105 bits: 32_databits_lsb + ctrlbits + 32_addrbits_msb)
 *   * Scan Chain 1                  (33 bits: 32_bits + BREAKPT)
 *   * Scan Chain 2                  (38 bits: rw + 5_regbits_msb + 32_databits_msb)
 ************************************************************************/
@@ -256,7 +253,7 @@ unsigned char jtagarm7tdmi_intest() {
   return jtagarmtransn(ARM7TDMI_IR_INTEST, 4, LSB, END, NORETIDLE); 
 }
 
-//!  EXTEST verb
+//!  EXTEST verb - act like the processor to external components
 unsigned char jtagarm7tdmi_extest() { 
   SHIFT_IR;
   return jtagarmtransn(ARM7TDMI_IR_EXTEST, 4, LSB, END, NORETIDLE);
@@ -378,7 +375,7 @@ NOP
 //! set the current mode to ARM, returns PC (FIXME).  Should be used by haltcpu(), which should also store PC and the THUMB state, for use by releasecpu();
 unsigned long jtagarm7tdmi_setMode_ARM(){               // PROVEN
   debugstr("=== Thumb Mode... Switching to ARM mode ===");
-  unsigned long retval = 0xff;
+  unsigned long retval = 0xffL;
   while ((jtagarm7tdmi_get_dbgstate() & JTAG_ARM7TDMI_DBG_TBIT)&& retval-- > 0){
     cmddataword[6] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_NOP,0);
     cmddataword[1] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_STR_R0_r0,0);
@@ -429,11 +426,11 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
   temp = jtagarmtransn(reg, 5, LSB, NOEND, NORETIDLE);
   
   // clear TDI to select "read only"
-  jtagarmtransn(0, 1, LSB, END, RETIDLE);
+  jtagarmtransn(0L, 1, LSB, END, RETIDLE);
   
   SHIFT_DR;
   // Now shift out the 32 bits
-  retval = jtagarmtransn(0, 32, LSB, END, RETIDLE);   // atmel arm jtag docs pp.10-11: LSB first
+  retval = jtagarmtransn(0L, 32, LSB, END, RETIDLE);   // atmel arm jtag docs pp.10-11: LSB first
   debughex32(retval);
   return(retval);   // atmel arm jtag docs pp.10-11: LSB first
   
@@ -489,12 +486,12 @@ void jtagarm7tdmi_set_watchpoint1(unsigned long addr, unsigned long addrmask, un
 
 //!  Disable Watchpoint 0
 void jtagarm7tdmi_disable_watchpoint0(){
-  eice_write(EICE_WP0CTRL, 0x0); // write 0 in watchpoint 0 control value - disables watchpoint 0
+  eice_write(EICE_WP0CTRL, 0x0L); // write 0 in watchpoint 0 control value - disables watchpoint 0
 }
   
 //!  Disable Watchpoint 1
 void jtagarm7tdmi_disable_watchpoint1(){
-  eice_write(EICE_WP1CTRL, 0x0);            // write 0 in watchpoint 0 control value - disables watchpoint 0
+  eice_write(EICE_WP1CTRL, 0x0L);            // write 0 in watchpoint 0 control value - disables watchpoint 0
 }
 
 
@@ -522,11 +519,11 @@ unsigned long jtagarm7tdmi_exec(unsigned long instr, unsigned long parameter, un
 
 //! Retrieve a 32-bit Register value
 unsigned long jtagarm7tdmi_get_register(unsigned long reg) {
-  unsigned long retval = 0, instr, reg2;
-  reg2 = (reg&0xf);
+  unsigned long retval = 0L, instr, reg2;
+  reg2 = (reg&0xfL)<<16;
   // push nop into pipeline - clean out the pipeline...
-  instr = (unsigned long)(reg<<12) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
-  instr |= (unsigned long)((unsigned long)reg2<<8)<<8;
+  instr = (unsigned long)(reg<<12L) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
+  instr ^= reg2;
   //instr = (unsigned long)(((unsigned long)reg<<12) | ARM_READ_REG); 
   //debugstr("Reading:");
   debughex32(instr);
@@ -549,9 +546,9 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {
 //! Set a 32-bit Register value
 void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {
   unsigned long instr, reg2;
-  reg2 = (reg&0xf);
-  instr = (unsigned long)(((unsigned long)reg<<12) | ARM_WRITE_REG); //  LDR Rx, [R14]
-  instr |= (unsigned long)((unsigned long)reg2<<8)<<8;
+  reg2 = (reg&0xfL);
+  instr = (unsigned long)(((unsigned long)reg<<12L) | ARM_WRITE_REG); //  LDR Rx, [R14]
+  instr |= (unsigned long)((unsigned long)reg2<<8L)<<8L;
   //instr |= (unsigned long)((((unsigned long)reg)&0x7)<<8)<<8;
   //debugstr("Writing:");
   debughex32(instr);
@@ -623,27 +620,27 @@ void jtagarm7tdmi_set_registers() {   //FIXME: BORKEN... TOTALLY TRYING TO BUY A
   debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_CLOBBEREGS,0));
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_nop( 0);
-  debughex32(jtagarm7tdmi_instr_primitive(0x40,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x41,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x42,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x43,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x44,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x45,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x46,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x47,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x48,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x49,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x4a,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x4b,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x4c,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x4d,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x4e,0));
-  debughex32(jtagarm7tdmi_instr_primitive(0x4f,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x40L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x41L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x42L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x43L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x44L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x45L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x46L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x47L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x48L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x49L,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x4aL,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x4bL,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x4cL,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x4dL,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x4eL,0));
+  debughex32(jtagarm7tdmi_instr_primitive(0x4fL,0));
 }
 
 //! Retrieve the CPSR Register value
 unsigned long jtagarm7tdmi_get_regCPSR() {
-  unsigned long retval = 0;
+  unsigned long retval = 0L;
 
   debughex32(jtagarm7tdmi_nop( 0)); // push nop into pipeline - clean out the pipeline...
   debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_MRS_R0_CPSR, 0)); // push MRS_R0, CPSR into pipeline
@@ -657,7 +654,7 @@ unsigned long jtagarm7tdmi_get_regCPSR() {
 
 //! Retrieve the CPSR Register value
 unsigned long jtagarm7tdmi_set_regCPSR(unsigned long val) {
-  unsigned long retval = 0;
+  unsigned long retval = 0L;
 
   debughex32(jtagarm7tdmi_nop( 0));        // push nop into pipeline - clean out the pipeline...
   debughex32(jtagarm7tdmi_instr_primitive(ARM_INSTR_MSR_cpsr_cxsf_R0, 0)); // push MSR cpsr_cxsf, R0 into pipeline
@@ -672,7 +669,7 @@ unsigned long jtagarm7tdmi_set_regCPSR(unsigned long val) {
 
 //! Write data to address - Assume TAP in run-test/idle state
 unsigned long jtagarm7tdmi_writemem(unsigned long adr, unsigned long data){
-  unsigned long r0=0, r1=-1;
+  unsigned long r0=0L, r1=-1L;
 
   r0 = jtagarm7tdmi_get_register(0);        // store R0 and R1
   r1 = jtagarm7tdmi_get_register(1);
@@ -692,9 +689,9 @@ unsigned long jtagarm7tdmi_writemem(unsigned long adr, unsigned long data){
 
 //! Read data from address
 unsigned long jtagarm7tdmi_readmem(unsigned long adr){
-  unsigned long retval = 0;
-  unsigned long r0=0, r1=-1;
-  int waitcount = 0xfff;
+  unsigned long retval = 0L;
+  unsigned long r0=0L, r1=-1L;
+  int waitcount = 0xfffL;
 
   r0 = jtagarm7tdmi_get_register(0);        // store R0 and R1
   r1 = jtagarm7tdmi_get_register(1);
@@ -706,7 +703,7 @@ unsigned long jtagarm7tdmi_readmem(unsigned long adr){
   jtagarm7tdmi_restart();                   // SHIFT_IR with RESTART instruction
 
   // Poll the Debug Status Register for DBGACK and nMREQ to be HIGH
-  while ((jtagarm7tdmi_get_dbgstate() & 9) == 0  && waitcount > 0){
+  while ((jtagarm7tdmi_get_dbgstate() & 9L) == 0  && waitcount > 0){
     delay(1);
     waitcount --;
   }
@@ -733,15 +730,15 @@ void jtagarm7tdmi_setpc(unsigned long adr){
 
 //! Halt CPU - returns 0xffff if the operation fails to complete within 
 unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
-  int waitcount = 0xfff;
+  int waitcount = 0xfffL;
 
 /********  OLD WAY  ********/
   // store watchpoint info?  - not right now
-  eice_write(EICE_WP1ADDR, 0);              // write 0 in watchpoint 1 address
+  eice_write(EICE_WP1ADDR, 0L);              // write 0 in watchpoint 1 address
   eice_write(EICE_WP1ADDRMASK, 0xffffffff); // write 0xffffffff in watchpoint 1 address mask
-  eice_write(EICE_WP1DATA, 0);              // write 0 in watchpoint 1 data
+  eice_write(EICE_WP1DATA, 0L);              // write 0 in watchpoint 1 data
   eice_write(EICE_WP1DATAMASK, 0xffffffff); // write 0xffffffff in watchpoint 1 data mask
-  eice_write(EICE_WP1CTRL, 0x100);          // write 0x00000100 in watchpoint 1 control value register (enables watchpoint)
+  eice_write(EICE_WP1CTRL, 0x100L);          // write 0x00000100 in watchpoint 1 control value register (enables watchpoint)
   eice_write(EICE_WP1CTRLMASK, 0xfffffff7); // write 0xfffffff7 in watchpoint 1 control mask - only detect the fetch instruction
 /***************************/
 
@@ -750,12 +747,12 @@ unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
 /****************************/
 
   // poll until debug status says the cpu is in debug mode
-  while (!(jtagarm7tdmi_get_dbgstate() & 0x1)   && waitcount-- > 0){
+  while (!(jtagarm7tdmi_get_dbgstate() & 0x1L)   && waitcount-- > 0){
     delay(1);
   }
 
 /********  OLD WAY  ********/
-  eice_write(EICE_WP1CTRL, 0x0);            // write 0 in watchpoint 0 control value - disables watchpoint 0
+  eice_write(EICE_WP1CTRL, 0x0L);            // write 0 in watchpoint 0 control value - disables watchpoint 0
 /***************************/
 
 /********  NEW WAY  ********/
@@ -765,8 +762,8 @@ unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
   // store the debug state
   last_halt_debug_state = jtagarm7tdmi_get_dbgstate();
   last_halt_pc = jtagarm7tdmi_getpc() - 4;  // assume -4 for entering debug mode via watchpoint.
-  count_dbgspd_instr_since_debug = 0;
-  count_sysspd_instr_since_debug = 0;
+  count_dbgspd_instr_since_debug = 0L;
+  count_sysspd_instr_since_debug = 0L;
 
   // get into ARM mode if the T flag is set (Thumb mode)
   while (jtagarm7tdmi_get_dbgstate() & JTAG_ARM7TDMI_DBG_TBIT && waitcount-- > 0) {
@@ -848,8 +845,8 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
 	val=jtagarm7tdmi_readmem(at);
 		
 	at+=2;
-	serial_tx(val&0xFF);
-	serial_tx((val&0xFF00)>>8);
+	serial_tx(val&0xFFL);
+	serial_tx((val&0xFF00L)>>8);
       }
     }
     

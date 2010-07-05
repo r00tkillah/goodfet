@@ -60,7 +60,8 @@ class GoodFETSPIFlash(GoodFETSPI):
                   0xC22015: "MX25L1605D",
                   0xC22014: "MX25L8005",
                   0xC22013: "MX25L4005",
-                  0x204011: "M45PE10"
+                  0x204011: "M45PE10",
+                  0x1f4501: "AT24DF081",
                   };
     
     JEDECsizes={0x17: 0x800000,
@@ -85,7 +86,10 @@ class GoodFETSPIFlash(GoodFETSPI):
         self.JEDECsize=self.JEDECsizes.get(self.JEDECcapacity);
         if self.JEDECsize==None:
             self.JEDECsize=0;
-        self.JEDECdevice=(ord(data[1])<<16)+(ord(data[2])<<8)+ord(data[3]);
+        jedec=(ord(data[1])<<16)+(ord(data[2])<<8)+ord(data[3]);
+        if jedec==0x1F4501:
+            self.JEDECsize=1024**2;
+        self.JEDECdevice=jedec;
         return data;
     def SPIpeek(self,adr):
         """Grab a byte from an SPI Flash ROM."""

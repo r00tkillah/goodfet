@@ -173,7 +173,7 @@ class GoodFETARM(GoodFET):
         return retval
     def ARMset_register(self, reg, val):
         """Get an ARM's Register"""
-        self.writecmd(0x13,SET_REGISTER,8,[reg,0,0,0,val&0xff, (val>>8)&0xff, (val>>16)&0xff, val>>24])
+        self.writecmd(0x13,SET_REGISTER,8,[val&0xff, (val>>8)&0xff, (val>>16)&0xff, val>>24, reg,0,0,0])
         #self.writecmd(0x13,SET_REGISTER,8,[reg,0,0,0, (val>>16)&0xff, val>>24, val&0xff, (val>>8)&0xff])
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
@@ -202,15 +202,17 @@ class GoodFETARM(GoodFET):
             instr = struct.pack("<L", instr)
         self.writecmd(0x13,DEBUG_INSTR,len(instr),instr)
         return (self.data[0])
-    def ARMpeekcodebyte(self,adr):
+    def ARMpeekcodebyte(self,adr,words):
         """Read the contents of code memory at an address."""
-        self.data=[adr&0xff, (adr&0xff00)>>8]
+        self.data=[adr&0xff, (adr>>8)&0xff, (adr>>16)&0xff, (adr>>24)&0xff, words&0xff, (words>>8)&0xff, (words>>16)&0xff, (words>>24)&0xff ]
         self.writecmd(0x13,PEEK,2,self.data)
-        retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
-        return retval
+        retval = []
+        retval.append(self.serialport.read(words*4))
+        #retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
+        return "".join(retval)
     def ARMpeekdatabyte(self,adr):
         """Read the contents of data memory at an address."""
-        self.data=[adr&0xff, (adr&0xff00)>>8]
+        self.data=[adr&0xff, (adr&0xff00)>>8, (adr&0xff0000)>>16, (adr&0xff000000)>>24]
         self.writecmd(0x13, PEEK, 2, self.data)
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval

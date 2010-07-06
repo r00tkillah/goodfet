@@ -9,13 +9,23 @@ data = []
 client=GoodFETARM();
 def init():
     #Initailize FET and set baud rate
+    print >>sys.stderr,"Connecting to goodfet..."
     client.serInit()
     #
     #Connect to target
+    print >>sys.stderr,"Setting up JTAG ARM on goodfet..."
     client.setup()
+    print >>sys.stderr,"Starting JTAG ARM on goodfet..."
     client.start()
     print "STARTUP: "+repr(client.data)
     #
+
+def print_registers():
+    return [ hex(client.ARMget_register(x)) for x in range(15) ]
+
+def regwratchet(num,hi=13,lo=0):
+    for x in xrange(lo,hi+1):
+        client.ARMset_register(x,num)
 
 def test1():
     global data
@@ -204,16 +214,34 @@ def test6(start=0,end=15):
             print "Debug State: %x"%client.ARMget_dbgstate ()
         seed += 1
 
-def test7(start=0,end=15):
+def test7(start=0,end=14):
+    global results,seed
+    results = [[] for x in range(end)]
+    while True:
+        #print "IDCODE:      %x"%client.ARMident()
+        #print "Debug State: %x"%client.ARMget_dbgstate ()
+        for x in range(end,start-1, -1):
+            num = client.ARMset_register(x,seed+x)
+            time.sleep(1)
+            print "set_register(%d,0x%x):  %x"%(x,seed+x,num)
+        for y in range(10):
+          for x in range(start,endi+1):
+            num = client.ARMget_register(x)
+            time.sleep(1)
+            print "get_register(%d):             %x"%(x,num)
+            results[x].append(num)
+        seed += 1
+
+def readtest(start=0,end=14):
     global results,seed
     results = [[] for x in range(end)]
     while True:
         #print "IDCODE:      %x"%client.ARMident()
         #print "Debug State: %x"%client.ARMget_dbgstate ()
         for x in range(end,start, -1):
-            num = client.ARMset_register(x,seed+x)
+            num = client.ARMget_register(x)
             time.sleep(1)
-            print "set_register(%d,0x%x):  %x"%(x,seed+x,num)
+            print "get_register(%d):  %x"%(x,num)
         for y in range(10):
           for x in range(start,end,2):
             num = client.ARMget_register(x)

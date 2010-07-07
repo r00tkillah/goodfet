@@ -278,8 +278,8 @@ void spihandle(unsigned char app,
     if(!i)
       debugstr("Gave up on host interrupt.");
         
-    len=64;
-    for(i=0;i<len;i++)
+    len=32;
+    for(i=1;i<len;i++)
       cmddata[i]=spitrans8(0xFF);
     
     

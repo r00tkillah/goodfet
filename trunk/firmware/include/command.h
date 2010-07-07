@@ -53,6 +53,7 @@ extern unsigned char silent;
 //SPI commands
 #define SPI_JEDEC 0x80
 #define SPI_ERASE 0x81
+#define SPI_RW_EM260 0x82
 
 //OCT commands
 #define OCT_CMP 0x90

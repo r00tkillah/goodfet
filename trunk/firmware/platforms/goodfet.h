@@ -38,3 +38,4 @@
 #define SETCE P5OUT|=BIT5
 #define CLRCE P5OUT&=~BIT5
 #define DIRCE P5DIR|=BIT5
+

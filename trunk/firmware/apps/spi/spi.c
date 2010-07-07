@@ -54,7 +54,6 @@ unsigned char spitrans8(unsigned char byte){
     byte |= READMISO;
     CLRCLK;
   }
-  
   return byte;
 }
 
@@ -220,6 +219,21 @@ void spiflash_erasesector(unsigned long adr){
 }
 
 
+//! Wake an EM260 Radio
+void em260_wake(){
+  //debugstr("Waking EM260.");
+  #define RST BIT6
+  P2DIR|=RST;
+  SETRST;
+  delay(1024);
+  
+  CLRRST;//Wake chip.
+  while(P4IN&1);
+  SETRST;//Woken.
+  //debugstr("EM260 is now awake.");
+  delay(1024);  //DO NOT REMOVE, fails without.
+}
+
 //! Handles a monitor command.
 void spihandle(unsigned char app,
 	       unsigned char verb,
@@ -240,8 +254,40 @@ void spihandle(unsigned char app,
     SETSS;  //Raise !SS to end transaction.
     txdata(app,verb,len);
     break;
-
-
+    
+  case SPI_RW_EM260:  //SPI exchange with an EM260
+    P4DIR=0; //TODO ASAP remove P4 references.
+    P4OUT=0;
+    
+    //See GoodFETEM260.py for details.
+    //The EM260 requires that the host wait for the client.
+    
+    em260_wake();
+    
+    SETMOSI; //Autodetected SPI mode.
+    CLRSS; //Drop !SS to begin transaction.
+    //Host to slave.  Ignore data.
+    for(i=0;i<len;i++)
+      spitrans8(cmddata[i]);
+    //debugstr("Finished transmission to EM260.");
+    
+    //Could also wait for nHOST_INT to drop.
+    i=0xffff;
+    while((cmddata[0]=spitrans8(0xFF))==0xFF
+	  && --i);
+    if(!i)
+      debugstr("Gave up on host interrupt.");
+        
+    len=64;
+    for(i=0;i<len;i++)
+      cmddata[i]=spitrans8(0xFF);
+    
+    
+    SETSS;  //Raise !SS to end transaction.
+    txdata(app,verb,len);
+    break;
+    
+    
   case SPI_JEDEC://Grab 3-byte JEDEC ID.
     CLRSS; //Drop !SS to begin transaction.
     spitrans8(0x9f);
@@ -251,8 +297,7 @@ void spihandle(unsigned char app,
     txdata(app,verb,len);
     SETSS;  //Raise !SS to end transaction.
     break;
-
-
+    
   case PEEK://Grab 128 bytes from an SPI Flash ROM
     spiflash_peek(app,verb,len);
     break;

@@ -16,6 +16,12 @@
 #define CLRCLK P5OUT&=~SCK
 #define READMISO (P5IN&MISO?1:0)
 
+#define SETTST P4OUT|=TST
+#define CLRTST P4OUT&=~TST
+#define SETRST P2OUT|=RST
+#define CLRRST P2OUT&=~RST
+
+
 //! Set up the pins for SPI mode.
 void spisetup();
 

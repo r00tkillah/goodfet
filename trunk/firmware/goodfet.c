@@ -41,9 +41,14 @@ void init(){
    relates to the FTDI on-chip 3V3 regulator being specified up to
    only 50 mA. */
   
-  P5DIR |= BIT0;
+  
   //P5REN &= ~BIT0; //DO NOT UNCOMMENT.  Breaks GF1x support.
+  
+  //This will have to be cut soon.  Use pulling resistors instead.
+  /*
+  P5DIR |= BIT0;
   P5OUT &= ~BIT0;
+  */
   
   //Setup clocks, unique to each '430.
   msp430_init_dco();

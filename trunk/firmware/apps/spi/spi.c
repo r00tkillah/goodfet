@@ -290,6 +290,9 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
   while(
 	(cmddata[len++]=spitrans8(0xFF))!=0xA7
 	);
+  if(cmddata[0]==0xFE)
+    while(len<cmddata[1]+3)
+      cmddata[len++]=spitrans8(0xFF);
   SETSS;  //Raise !SS to end transaction.
   
   txdata(app,verb,len);

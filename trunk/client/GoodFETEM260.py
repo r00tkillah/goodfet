@@ -141,5 +141,10 @@ class GoodFETEM260(GoodFETSPI):
         
         data=self.EZSPtrans([0x7A]);
         return ord(data[5]);
+    def setRadioChannel(self,channel):
+        """Set the radio channel."""
+        
+        data=self.EZSPtrans([0x9A, channel&xFF]);
+        return ord(data[5]);
     
     

@@ -33,6 +33,7 @@ client.SPIsetup();
 
 #Dummy read.
 #Might read as all ones if chip has a startup delay.
+client.EM260spiversion();
 
 if(sys.argv[1]=="info"):
 	client.info();
@@ -41,6 +42,11 @@ if(sys.argv[1]=="test"):
 	client.info();
 	client.info();
 	client.info();
+	
+	print "Some random numbers from EZSP."
+	for foo in range(0,4):
+	    print "%04x" % client.rand16();
+
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];
     start=0x0000;

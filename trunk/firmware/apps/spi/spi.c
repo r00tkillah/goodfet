@@ -239,6 +239,7 @@ void spihandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned long len){
   unsigned long i;
+  static int state=0;
   
   //Raise !SS to end transaction, just in case we forgot.
   SETSS;
@@ -257,11 +258,19 @@ void spihandle(unsigned char app,
     
   case SPI_RW_EM260:  //SPI exchange with an EM260
     P4DIR=0; //TODO ASAP remove P4 references.
-    P4OUT=0;
+    P4OUT=0xFF;
+    P4REN=0xFF;
     
     //See GoodFETEM260.py for details.
     //The EM260 requires that the host wait for the client.
     
+    /*
+    if((~P4IN)&1)
+      debugstr("Detected HOST_INT.");
+    */
+    
+    //if(!state++)
+    //if(state++&1)
     em260_wake();
     
     SETMOSI; //Autodetected SPI mode.
@@ -269,18 +278,27 @@ void spihandle(unsigned char app,
     //Host to slave.  Ignore data.
     for(i=0;i<len;i++)
       spitrans8(cmddata[i]);
+
     //debugstr("Finished transmission to EM260.");
     
-    //Could also wait for nHOST_INT to drop.
+    //Wait for nHOST_INT to drop.
     i=0xffff;
+    
+    while(P4IN&1
+	  && --i
+	  )
+      spitrans8(0xFF);
+    
     while((cmddata[0]=spitrans8(0xFF))==0xFF
 	  && --i);
+        
     if(!i)
       debugstr("Gave up on host interrupt.");
-        
-    len=32;
-    for(i=1;i<len;i++)
-      cmddata[i]=spitrans8(0xFF);
+    
+    len=1;
+    while(
+	  (cmddata[len++]=spitrans8(0xFF))!=0xA7
+	  );
     
     
     SETSS;  //Raise !SS to end transaction.

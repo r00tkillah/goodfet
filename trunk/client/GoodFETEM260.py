@@ -27,6 +27,20 @@ class GoodFETEM260(GoodFETSPI):
         """Exchange data by EM260 SPI. (Slightly nonstandard.)"""
         self.data=data;
         self.writecmd(0x01,0x82,len(data),data);
+        
+        try:
+            reply=ord(self.data[0]);
+            if(reply==0x00):
+                print "Warning: EM260 rebooted.";
+                return self.EM260trans(data);
+            if(reply==0x02):
+                print "Error: Aborted Transaction.";
+                #return self.EM260trans(data);
+            if(reply==0x03):
+                print "Error: Missing Frame Terminator.";
+                #return self.data;
+        except:
+            print "Error in EM260trans.";
         return self.data;
     
     
@@ -43,18 +57,27 @@ class GoodFETEM260(GoodFETSPI):
         return ord(data[0]);
     def info(self):
         """Read the info bytes."""
-        #data=self.EM260trans([0x0A,0xA7]); 
-        #data=self.EM260trans([0xFE,0x04,
-        #                      0x00,0x00,0x00,0x02,
-        #                      0xA7]); 
-        data=self.EM260trans([0x0B,0xA7]);
+        version=self.EM260spiversion();
+        print "Version %2i" % (version &0x7F); 
+    def EM260spiversion(self):
+        """Read the SPI version number from EM260."""
+        data=self.EM260trans([0x0A,0xA7]);        
+        version=ord(data[0]);
         
-        #data=self.EM260trans([]);
-        
-        #data=self.EM260trans([0x0B,0x0B,0x0B,0x0B,0xA7]);
-        
+        if version==0x00:
+            return self.EM260spiversion();
+        if version==0x02:
+            return self.EM260spiversion();
+        if not version&0x80:
+            print "Version misread.";
+            return 0;
+        return version;
+    
+    def EM260spistatus(self):
+        """Read the info bytes."""
+        data=self.EM260trans([0x0B,0xA7]);        
         s="";
         for foo in data:
             s=s+"%02x " % ord(foo);
         print s;
-        
+    

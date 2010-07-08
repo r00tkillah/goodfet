@@ -36,9 +36,9 @@ client.SPIsetup();
 
 if(sys.argv[1]=="info"):
 	client.info();
-	client.info();
-	client.info();
 if(sys.argv[1]=="test"):
+	print "Grabbing info three times."
+	client.info();
 	client.info();
 	client.info();
 if(sys.argv[1]=="dump"):

@@ -58,7 +58,9 @@ class GoodFETEM260(GoodFETSPI):
     def info(self):
         """Read the info bytes."""
         version=self.EM260spiversion();
-        print "Version %2i" % (version &0x7F); 
+        status=self.EM260spistatus();
+        print "Version: %i" % (version); 
+        print "Status:  %s" % (["dead","alive"][status]);
     def EM260spiversion(self):
         """Read the SPI version number from EM260."""
         data=self.EM260trans([0x0A,0xA7]);        
@@ -71,13 +73,18 @@ class GoodFETEM260(GoodFETSPI):
         if not version&0x80:
             print "Version misread.";
             return 0;
-        return version;
+        return version&0x7F;
     
     def EM260spistatus(self):
-        """Read the info bytes."""
-        data=self.EM260trans([0x0B,0xA7]);        
-        s="";
-        for foo in data:
-            s=s+"%02x " % ord(foo);
-        print s;
-    
+        """Read the status bit."""
+        data=self.EM260trans([0x0B,0xA7]);
+        status=ord(data[0]);
+        
+        if status==0x00:
+            return self.EM260spistatus();
+        if status==0x02:
+            return self.EM260spistatus();
+        if not status&0xC0:
+            print "Status misread.";
+            return 0;
+        return status&1;

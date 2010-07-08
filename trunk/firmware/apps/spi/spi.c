@@ -17,8 +17,7 @@
 //This could be more accurate.
 //Does it ever need to be?
 #define SPISPEED 0
-#define SPIDELAY(x)
-//delay(x)
+#define SPIDELAY(x) delay(x)
 
 
 //! Set up the pins for SPI mode.
@@ -29,8 +28,10 @@ void spisetup(){
   DIRSS;
   
   //Begin a new transaction.
+  
   CLRSS; 
   SETSS;
+  
 }
 
 
@@ -47,8 +48,10 @@ unsigned char spitrans8(unsigned char byte){
     else
       CLRMOSI;
     byte <<= 1;
- 
+    
+    SPIDELAY(100);
     SETCLK;
+    SPIDELAY(100);
   
     /* read MISO on trailing edge */
     byte |= READMISO;
@@ -233,17 +236,84 @@ void em260_wake(){
   //debugstr("EM260 is now awake.");
   delay(1024);  //DO NOT REMOVE, fails without.
 }
+//! Handle an EM260 exchange.
+void spi_rw_em260(u8 app, u8 verb, u32 len){
+  static int state=0;
+  unsigned long i;
+  u8 lastin;
+    
+  P4DIR=0; //TODO ASAP remove P4 references.
+  P4OUT=0xFF;
+  P4REN=0xFF;
+    
+  //See GoodFETEM260.py for details.
+  //The EM260 requires that the host wait for the client.
+    
+  /*
+    if((~P4IN)&1)
+    debugstr("Detected HOST_INT.");
+  */
+    
+  //if(!state++)
+  //if(state++&1)
+  em260_wake();
+  
+ em260woken:
+    
+  SETMOSI; //Autodetected SPI mode.
+  CLRSS; //Drop !SS to begin transaction.
+  //Host to slave.  Ignore data.
+  for(i=0;i<len;i++){
+    lastin=spitrans8(cmddata[i]);
+    if(lastin!=0xFF){
+      debugstr("Got a byte during transmission.  (Shouldn't happen with EM260.)");
+      debughex(lastin);
+    }
+  }
+  //debugstr("Finished transmission to EM260.");
+    
+  //Wait for nHOST_INT to drop.
+  i=0xffff;
+  
+  /*
+  while(P4IN&1
+	&& --i
+	)
+    spitrans8(0xFF);
+  */
+  while((cmddata[0]=spitrans8(0xFF))==0xFF
+	&& --i);
+  
+  if(!i)
+    debugstr("Gave up on host interrupt.");
+  
+  debugstr("Reading response.");
+  len=1;
+  while(
+	(cmddata[len++]=spitrans8(0xFF))!=0xA7
+	);
+  SETSS;  //Raise !SS to end transaction.
+  
+  
+  if(cmddata[0]==0x02){
+    debugstr("Aborted transaction. :(");
+    //goto em260woken;
+  }
+  
+  txdata(app,verb,len);
+  return;
+}
 
 //! Handles a monitor command.
 void spihandle(unsigned char app,
 	       unsigned char verb,
 	       unsigned long len){
   unsigned long i;
-  static int state=0;
+  
   
   //Raise !SS to end transaction, just in case we forgot.
   SETSS;
-  spisetup();
+  //spisetup();
   
   switch(verb){
     //PEEK and POKE might come later.
@@ -257,54 +327,8 @@ void spihandle(unsigned char app,
     break;
     
   case SPI_RW_EM260:  //SPI exchange with an EM260
-    P4DIR=0; //TODO ASAP remove P4 references.
-    P4OUT=0xFF;
-    P4REN=0xFF;
-    
-    //See GoodFETEM260.py for details.
-    //The EM260 requires that the host wait for the client.
-    
-    /*
-    if((~P4IN)&1)
-      debugstr("Detected HOST_INT.");
-    */
-    
-    //if(!state++)
-    //if(state++&1)
-    em260_wake();
-    
-    SETMOSI; //Autodetected SPI mode.
-    CLRSS; //Drop !SS to begin transaction.
-    //Host to slave.  Ignore data.
-    for(i=0;i<len;i++)
-      spitrans8(cmddata[i]);
-
-    //debugstr("Finished transmission to EM260.");
-    
-    //Wait for nHOST_INT to drop.
-    i=0xffff;
-    
-    while(P4IN&1
-	  && --i
-	  )
-      spitrans8(0xFF);
-    
-    while((cmddata[0]=spitrans8(0xFF))==0xFF
-	  && --i);
-        
-    if(!i)
-      debugstr("Gave up on host interrupt.");
-    
-    len=1;
-    while(
-	  (cmddata[len++]=spitrans8(0xFF))!=0xA7
-	  );
-    
-    
-    SETSS;  //Raise !SS to end transaction.
-    txdata(app,verb,len);
+    spi_rw_em260(app,verb,len);
     break;
-    
     
   case SPI_JEDEC://Grab 3-byte JEDEC ID.
     CLRSS; //Drop !SS to begin transaction.

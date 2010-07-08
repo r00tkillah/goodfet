@@ -49,9 +49,9 @@ unsigned char spitrans8(unsigned char byte){
       CLRMOSI;
     byte <<= 1;
     
-    SPIDELAY(100);
+    //SPIDELAY(100);
     SETCLK;
-    SPIDELAY(100);
+    //SPIDELAY(100);
   
     /* read MISO on trailing edge */
     byte |= READMISO;
@@ -238,7 +238,6 @@ void em260_wake(){
 }
 //! Handle an EM260 exchange.
 void spi_rw_em260(u8 app, u8 verb, u32 len){
-  static int state=0;
   unsigned long i;
   u8 lastin;
     
@@ -254,8 +253,6 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
     debugstr("Detected HOST_INT.");
   */
     
-  //if(!state++)
-  //if(state++&1)
   em260_wake();
   
  em260woken:
@@ -266,8 +263,9 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
   for(i=0;i<len;i++){
     lastin=spitrans8(cmddata[i]);
     if(lastin!=0xFF){
-      debugstr("Got a byte during transmission.  (Shouldn't happen with EM260.)");
-      debughex(lastin);
+      //debugstr("EM260 transmission interrupted.");
+      cmddata[0]=lastin;
+      goto response;
     }
   }
   //debugstr("Finished transmission to EM260.");
@@ -287,18 +285,12 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
   if(!i)
     debugstr("Gave up on host interrupt.");
   
-  debugstr("Reading response.");
+ response:
   len=1;
   while(
 	(cmddata[len++]=spitrans8(0xFF))!=0xA7
 	);
   SETSS;  //Raise !SS to end transaction.
-  
-  
-  if(cmddata[0]==0x02){
-    debugstr("Aborted transaction. :(");
-    //goto em260woken;
-  }
   
   txdata(app,verb,len);
   return;

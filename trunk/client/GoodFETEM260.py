@@ -56,10 +56,10 @@ class GoodFETEM260(GoodFETSPI):
                               self.seq&0xFF,0x00,
                               ]+frame+[
                               0xA7]);
-        #s="EZSP< ";
-        #for foo in data:
-        #    s=s+"%02x " % ord(foo);
-        #print s;
+        s="EZSP< ";
+        for foo in data:
+            s=s+"%02x " % ord(foo);
+        print s;
         
         if ord(data[0])!=0xFE:
             print "EZSP error: 0x%02x" % ord(data[0]);
@@ -83,14 +83,14 @@ class GoodFETEM260(GoodFETSPI):
         self.EZSPtrans([0x46,adr&0xFF,1,val&0xFF]);
         return val;
     def rand16(self):
-        """Read a byte from the given address."""
+        """Read a random 16-bit word."""
         
         data=self.EZSPtrans([0x49]);
         if data==None:
             print "Insufficient random data.";
             return 0;
         return ord(data[6])+(ord(data[7])<<8);
-    
+
     def info(self):
         """Read the info bytes."""
         print "Ember EM26 Z-Stack SPI Module.";
@@ -98,6 +98,9 @@ class GoodFETEM260(GoodFETSPI):
         status=self.EM260spistatus();
         print "Version: %i" % (version); 
         print "Status:  %s" % (["dead","alive"][status]);
+        print ""
+        print "Node ID: %04x" % (self.getNodeID());
+        print "Connected to %2i neighbors." % self.neighborCount();
     def EM260spiversion(self):
         """Read the SPI version number from EM260."""
         data=self.EM260trans([0x0A,0xA7]);        
@@ -125,3 +128,18 @@ class GoodFETEM260(GoodFETSPI):
             print "Status misread.";
             return 0;
         return status&1;
+    
+    #Everything after here is ZigBee.
+    
+    def getNodeID(self):
+        """Read the EZSP node id."""
+        
+        data=self.EZSPtrans([0x27]);
+        return ord(data[5])+(ord(data[6])<<8);
+    def neighborCount(self):
+        """Read the count of neighbors, used for iterating the neighbor table."""
+        
+        data=self.EZSPtrans([0x7A]);
+        return ord(data[5]);
+    
+    

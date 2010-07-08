@@ -49,13 +49,19 @@ if(sys.argv[1]=="test"):
     for foo in range(0,4):
         print "%04x" % client.rand16();
 if(sys.argv[1]=="randtest"):
-    print "# Even Odd"
+    print "Even Odd HEven LEven Hodd Lodd "
     max=2**33;
     foo=0;
     while foo<max:
-        print "%8i %8i" % (
-            client.rand16(),
-            client.rand16());
+        even=client.rand16();
+        odd=client.rand16();
+        print "%8i %8i %8i %8i %8i %8i" % (
+            even,
+            odd,
+            even>>8,
+            even&0xFF,
+            odd>>8,
+            odd&0xFF);
         sys.stdout.flush()
         foo=foo+1;
 

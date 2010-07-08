@@ -243,7 +243,7 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
     
   P4DIR=0; //TODO ASAP remove P4 references.
   P4OUT=0xFF;
-  P4REN=0xFF;
+  //P4REN=0xFF;
     
   //See GoodFETEM260.py for details.
   //The EM260 requires that the host wait for the client.
@@ -255,7 +255,6 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
     
   em260_wake();
   
- em260woken:
     
   SETMOSI; //Autodetected SPI mode.
   CLRSS; //Drop !SS to begin transaction.

@@ -16,12 +16,14 @@ from intelhex import IntelHex;
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s info" % sys.argv[0];
-    print "%s dump $foo.rom [0x$start 0x$stop]" % sys.argv[0];
+    print "%s test" % sys.argv[0];
+    print "%s randtest" % sys.argv[0];
+    #print "%s dump $foo.rom [0x$start 0x$stop]" % sys.argv[0];
     #print "%s erase" % sys.argv[0];
     #print "%s flash $foo.rom [0x$start 0x$stop]" % sys.argv[0];
     #print "%s verify $foo.rom [0x$start 0x$stop]" % sys.argv[0];
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
-    #print "%s poke 0x$adr 0x$val" % sys.argv[0];
+    print "%s poke 0x$adr 0x$val" % sys.argv[0];
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -36,16 +38,24 @@ client.SPIsetup();
 client.EM260spiversion();
 
 if(sys.argv[1]=="info"):
-	client.info();
+    client.info();
 if(sys.argv[1]=="test"):
-	print "Grabbing info three times."
-	client.info();
-	client.info();
-	client.info();
-	
-	print "Some random numbers from EZSP."
-	for foo in range(0,4):
-	    print "%04x" % client.rand16();
+    print "Grabbing info three times."
+    client.info();
+    client.info();
+    client.info();
+    
+    print "Some random numbers from EZSP."
+    for foo in range(0,4):
+        print "%04x" % client.rand16();
+if(sys.argv[1]=="randtest"):
+    print "Some random numbers from EZSP."
+    max=2**33;
+    foo=0;
+    while foo<max:
+        print "%08x: %04x" % (foo,client.rand16());
+        sys.stdout.flush()
+        foo=foo+1;
 
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];
@@ -77,3 +87,13 @@ if(sys.argv[1]=="peek"):
     while start<=stop:
         print "%04x: %02x" % (start,client.peek8(start));
         start=start+1;
+if(sys.argv[1]=="poke"):
+    start=0x0000;
+    if(len(sys.argv)>2):
+	start=int(sys.argv[2],16);
+    val=0xde;
+    if(len(sys.argv)>3):
+        val=int(sys.argv[3],16);
+    print "Poking %02x to be %02x." % (start,val);
+    client.poke8(start,val);
+    

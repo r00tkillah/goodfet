@@ -53,33 +53,42 @@ class GoodFETEM260(GoodFETSPI):
     def EZSPtrans(self,frame):
         """Send an EZSP frame."""
         data=self.EM260trans([0xFE,len(frame)+2,
-                              self.seq,0x00,
+                              self.seq&0xFF,0x00,
                               ]+frame+[
                               0xA7]);
-        #s="";
+        #s="EZSP< ";
         #for foo in data:
         #    s=s+"%02x " % ord(foo);
         #print s;
+        
         if ord(data[0])!=0xFE:
             print "EZSP error: 0x%02x" % ord(data[0]);
+        if ord(data[4])==0x58:
+            print "EZSP Invalid Command";
+            return None;
         if frame[0]!=ord(data[4]):
             print "EZSP warning: Command 0x%02x returned type 0x%02x." % (
                 frame[0],ord(data[4]));
         self.seq=self.seq+1;
         return data;
-        #return ord(data[0]);
         
     def peek8(self,adr):
-        """Read a byte from the given address."""
+        """Read a byte from the given address.  Untested."""
         
-        data=self.EZSPtrans([0x47,adr&0xFF]);
+        data=self.EZSPtrans([0x47,adr&0xFF,10]);
         
-        return ord(data[0]);
-    
+        return ord(data[6]);
+    def poke8(self,adr,val):
+        """Poke a value into RAM.  Untested"""
+        self.EZSPtrans([0x46,adr&0xFF,1,val&0xFF]);
+        return val;
     def rand16(self):
         """Read a byte from the given address."""
         
         data=self.EZSPtrans([0x49]);
+        if data==None:
+            print "Insufficient random data.";
+            return 0;
         return ord(data[6])+(ord(data[7])<<8);
     
     def info(self):

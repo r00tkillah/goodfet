@@ -22,25 +22,39 @@ from GoodFETSPI import GoodFETSPI;
 
 class GoodFETEM260(GoodFETSPI):
     EM260APP=0x01;
+    seq=0;
+    def EM260trans(self,data):
+        """Exchange data by EM260 SPI. (Slightly nonstandard.)"""
+        self.data=data;
+        self.writecmd(0x01,0x82,len(data),data);
+        return self.data;
+    
+    
     def peek8(self,adr):
         """Read a byte from the given address."""
-        data=self.SPItrans([0xfe,0x01,0x00,
+        data=self.EM260trans([0xfe,0x01,self.seq,0x00,
                             0x49,
-                            0xA7,0,0,0,0,0,0,0,0]);
-        return ord(data[7]);
-    def poke8(self,adr, byte):
-        """Poke a byte to the given address."""
+                            0xA7]);
+        s="";
+        for foo in data:
+            s=s+"%02x " % ord(foo);
+        print s;
+        
+        return ord(data[0]);
     def info(self):
         """Read the info bytes."""
-        data=self.SPItrans([0x0B,0xA7,
-                            0xFF,
-                            0xFF,0xFF,0xFF,     #00 02 A7
-                            0,0,0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0,0,0,
-                            0,0,0,0,0,0,0,0,0,0
-                            ]); 
+        #data=self.EM260trans([0x0A,0xA7]); 
+        #data=self.EM260trans([0xFE,0x04,
+        #                      0x00,0x00,0x00,0x02,
+        #                      0xA7]); 
+        data=self.EM260trans([0x0B,0xA7]);
+        
+        #data=self.EM260trans([]);
+        
+        #data=self.EM260trans([0x0B,0x0B,0x0B,0x0B,0xA7]);
+        
+        s="";
         for foo in data:
-            print "%02x" % ord(foo);
+            s=s+"%02x " % ord(foo);
+        print s;
+        

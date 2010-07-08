@@ -36,10 +36,11 @@ client.SPIsetup();
 
 if(sys.argv[1]=="info"):
 	client.info();
+	client.info();
+	client.info();
 if(sys.argv[1]=="test"):
-	for adr in range(0,32): #*1024):
-            val=client.peek8(adr);
-            print "%04x:=%02x" % (adr,val);
+	client.info();
+	client.info();
 if(sys.argv[1]=="dump"):
     f = sys.argv[2];
     start=0x0000;

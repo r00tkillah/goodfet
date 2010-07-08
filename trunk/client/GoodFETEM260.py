@@ -147,9 +147,17 @@ class GoodFETEM260(GoodFETSPI):
         
         data=self.EZSPtrans([0x9A, channel&xFF]);
         return ord(data[5]);
-    def setVersion(self,version=0x02):
+    def setVersion(self,version=2):
         """Set the requested EZSP protocol version."""
-        data=self.EZSPtrans([0x00, 0x02]);
         
-        print "Version set."
-        
+        data=self.EZSPtrans([0x00, version]);
+        newversion=ord(data[5]);
+        if version==newversion:
+            print "Version set."
+            print "Protocol %i, stack type %i, Stack Version 0x%02x%02x." % (
+                newversion,
+                ord(data[6]),
+                ord(data[8]),
+                ord(data[7]));
+        else:
+            self.setVersion(newversion);

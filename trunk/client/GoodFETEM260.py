@@ -64,8 +64,8 @@ class GoodFETEM260(GoodFETSPI):
         if ord(data[0])!=0xFE:
             print "EZSP error: 0x%02x" % ord(data[0]);
         if ord(data[4])==0x58:
-            print "EZSP Invalid Command";
-            return None;
+            print "EZSP Invalid Command because 0x%02x" % ord(data[5]);
+            return data;
         if frame[0]!=ord(data[4]):
             print "EZSP warning: Command 0x%02x returned type 0x%02x." % (
                 frame[0],ord(data[4]));
@@ -99,6 +99,7 @@ class GoodFETEM260(GoodFETSPI):
         print "Version: %i" % (version); 
         print "Status:  %s" % (["dead","alive"][status]);
         print ""
+        self.setVersion();
         print "Node ID: %04x" % (self.getNodeID());
         print "Connected to %2i neighbors." % self.neighborCount();
     def EM260spiversion(self):
@@ -146,5 +147,9 @@ class GoodFETEM260(GoodFETSPI):
         
         data=self.EZSPtrans([0x9A, channel&xFF]);
         return ord(data[5]);
-    
-    
+    def setVersion(self,version=0x02):
+        """Set the requested EZSP protocol version."""
+        data=self.EZSPtrans([0x00, 0x02]);
+        
+        print "Version set."
+        

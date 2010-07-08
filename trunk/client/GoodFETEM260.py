@@ -84,7 +84,7 @@ class GoodFETEM260(GoodFETSPI):
             return self.EM260spistatus();
         if status==0x02:
             return self.EM260spistatus();
-        if not status&0xC0:
+        if not status&0x80 and status&0x40:
             print "Status misread.";
             return 0;
         return status&1;

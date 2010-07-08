@@ -3,8 +3,17 @@
 #GoodFET SPI Flash Client
 #by Travis Goodspeed
 
-#N.B.,
-#Might be Winbond W25x80-specific.
+# Pinout:
+#  1 MISO
+#  2 VCC
+#  3 MOSI
+#  4
+#  5 !SS
+#  6
+#  7 CLK
+#  8 !HOST_INT
+#  9 GND
+# 11 !WAKE
 
 import sys;
 import binascii;

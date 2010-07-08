@@ -27,6 +27,89 @@ def regwratchet(num,hi=13,lo=0):
     for x in xrange(lo,hi+1):
         client.ARMset_register(x,num)
 
+def test():
+    print "ARM JTAG Test Unit"
+    print " Chip ID", hex(client.ARMident())
+    print client.ARMidentstr()
+    print " Debug State: ",hex(client.ARMget_dbgstate())
+    print " Debug CTRL:  ",hex(client.ARMget_dbgctrl())
+    print
+    print "Testing Register Read/Writes"
+    print " Storing old values"
+    originalregs = [client.ARMget_register(x) for x in xrange(16)]
+
+    print "Simple test"
+    test = [None for x in xrange(15)]
+    control = [x for x in xrange(15)]
+    for x in xrange(15):
+        client.ARMset_register(x,control[x])
+        test[x] = client.ARMget_register(x)
+    if control != test:
+        print "FAIL"
+        print "Control:",control
+        print "Test:   ",test
+
+    print "A little harder..."
+    test = [None for x in xrange(15)]
+    control = [4*x for x in xrange(15)]
+    for x in xrange(15):
+        client.ARMset_register(x,control[x])
+        test[x] = client.ARMget_register(x)
+    if control != test:
+        print "FAIL"
+        print "Control:",control
+        print "Test:   ",test
+
+    print "Complex testing 1"
+    for y in xrange(0,0xffffffff,0x10101010):
+            test = [None for x in xrange(15)]
+            control = [y for x in xrange(15)]
+            print " Test parms: ",control
+            for x in xrange(15):
+                client.ARMset_register(x,control[x])
+                test[x] = client.ARMget_register(x)
+            if control != test:
+                print "FAIL"
+                print "Control:",control
+                print "Test:   ",test
+
+    print "Complex testing 2"
+    for y in xrange(0,0xffffffff,101010101):
+            test = [None for x in xrange(15)]
+            control = [y for x in xrange(15)]
+            print " Test parms: ",control
+            for x in xrange(15):
+                client.ARMset_register(x,control[x])
+                test[x] = client.ARMget_register(x)
+            if control != test:
+                print "FAIL"
+                print "Control:",control
+                print "Test:   ",test
+
+    test = [None for x in xrange(15)]
+    control = [0x100*x for x in xrange(15)]
+    for x in xrange(15):
+        client.ARMset_register(x,control[x])
+        test[x] = client.ARMget_register(x)
+    if control != test:
+        print "FAIL"
+        print "Control:",control
+        print "Test:   ",test
+
+    print "Resetting original register values..."
+    for x in xrange(16):
+        client.ARMset_register(x,originalregs[x])
+    regs = [client.ARMget_register(x) for x in xrange(16)]
+    print "Original:           \t",originalregs
+    print "Now (r15 may differ:\t",regs
+
+    print "Testing setting and movement of PC between instructions"
+    #client.ARMsetPC(0x0)
+    print "PC:",client.ARMgetPC()
+    print "PC:",client.ARMgetPC()
+    print "PC:",client.ARMgetPC()
+    print "PC:",client.ARMgetPC()
+
 def test1():
     global data
     print "\n\nTesting JTAG for ARM\n"

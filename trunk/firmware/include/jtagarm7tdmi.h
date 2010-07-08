@@ -16,6 +16,7 @@
 
 
 unsigned char current_chain;
+unsigned char current_dbgstate = -1;
 unsigned char last_halt_debug_state = -1;
 unsigned long last_halt_pc = -1;
 unsigned long count_dbgspd_instr_since_debug = 0;
@@ -63,6 +64,10 @@ unsigned long jtagarm7tdmi_idcode();
 unsigned char jtagarm7tdmi_bypass();
 //!  Connect the appropriate scan chain to TDO/TDI
 unsigned long jtagarm7tdmi_scan_intest(int n);
+//!  Set a 32-bit ARM register
+void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val);
+//!  Get a 32-bit ARM register
+unsigned long jtagarm7tdmi_get_register(unsigned long reg);
 
 // ARM7TDMI-specific pins
 // DBGRQ - GoodFET Pin 8
@@ -171,19 +176,21 @@ The least significant bit of the instruction register is scanned in and scanned 
 //      http://www.atmel.com/dyn/resources/prod_documents/DDI0029G_7TDMI_R3_trm.pdf
 #define EXECNOPARM                  0xe1a00000L
 #define ARM_INSTR_NOP               0xe1a00000L
+#define ARM_INSTR_BX_R0             0xe12fff10L
 #define ARM_INSTR_STR_Rx_r14        0xe58f0000L // from atmel docs
 #define ARM_READ_REG                ARM_INSTR_STR_Rx_r14
 #define ARM_INSTR_LDR_Rx_r14        0xe59f0000L // from atmel docs
 #define ARM_WRITE_REG               ARM_INSTR_LDR_Rx_r14
 #define ARM_INSTR_LDR_R1_r0_4       0xe4901004L
 #define ARM_READ_MEM                ARM_INSTR_LDR_R1_r0_4
-#define ARM_INSTR_MRS_R0_CPSR       0xf10f0000L
+#define ARM_INSTR_STR_R1_r0_4       0xe4801004L
+#define ARM_WRITE_MEM               ARM_INSTR_STR_R1_r0_4
+#define ARM_INSTR_MRS_R0_CPSR       0xe10f0000L
 #define ARM_INSTR_MSR_cpsr_cxsf_R0  0xe12ff000L
 #define ARM_INSTR_STMIA_R14_r0_rx   0xE88E0000L      // add up to 65k to indicate which registers...
 #define ARM_STORE_MULTIPLE          ARM_INSTR_STMIA_R14_r0-rx
-#define ARM_INSTR_SKANKREGS1        0xE88E00ffL
-#define ARM_INSTR_SKANKREGS2        0xE88Eff00L
-#define ARM_INSTR_CLOBBEREGS        0xE89EffffL
+#define ARM_INSTR_SKANKREGS         0xE88F7fffL
+#define ARM_INSTR_CLOBBEREGS        0xE89F7fffL
 
 #define ARM_INSTR_B_PC              0xea000000L
 #define ARM_INSTR_BX_PC             0xe1200010L      // need to set r0 to the desired address

@@ -55,6 +55,14 @@ SET_SPSR            = 0x9b
 SET_MODE_THUMB      = 0x9c
 SET_MODE_ARM        = 0x9d
 
+
+platforms = {
+    "at91sam7": {0:(0x100000, "Flash before remap, SRAM after remap"),
+                 0x100000: (0x100000, "Internal Flash"),
+                 0x200000: (0x100000, "Internal SRAM"),
+                 },
+    }
+                
 from GoodFET import GoodFET
 from intelhex import IntelHex
 
@@ -71,6 +79,8 @@ class GoodFETARM(GoodFET):
         self.writecmd(0x13,RESUMECPU,0,self.data)
     def ARMsetModeArm(self):
         self.writecmd(0x13,SET_MODE_ARM,0,self.data)
+    def ARMsetModeThumb(self):
+        self.writecmd(0x13,SET_MODE_THUMB,0,self.data)
     def ARMtest(self):
         #self.ARMreleasecpu()
         #self.ARMhaltcpu()
@@ -145,9 +155,9 @@ class GoodFETARM(GoodFET):
     def ARMset_dbgctrl(self,config):
         """Write the config register of an ARM."""
         self.writecmd(0x13,SET_DEBUG_CTRL,1,[config&7])
-    def ARMlockchip(self):
-        """Set the flash lock bit in info mem."""
-        self.writecmd(0x13, LOCKCHIP, 0, [])
+    #def ARMlockchip(self):
+    #    """Set the flash lock bit in info mem."""
+    #    self.writecmd(0x13, LOCKCHIP, 0, [])
     
 
     def ARMidentstr(self):
@@ -192,6 +202,14 @@ class GoodFETARM(GoodFET):
         self.writecmd(0x13,SET_REGISTERS,16*4,regarry)
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
+    def ARMget_regCPSR(self):
+        """Get an ARM's Register"""
+        self.writecmd(0x13,GET_CPSR,0,[])
+        retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
+        return retval
+    def ARMset_regCPSR(self, val):
+        """Get an ARM's Register"""
+        self.writecmd(0x13,SET_CPSR,4,[val&0xff, (val>>8)&0xff, (val>>16)&0xff, val>>24])
     def ARMcmd(self,phrase):
         self.writecmd(0x13,READ,len(phrase),phrase)
         val=ord(self.data[0])
@@ -202,29 +220,30 @@ class GoodFETARM(GoodFET):
             instr = struct.pack("<L", instr)
         self.writecmd(0x13,DEBUG_INSTR,len(instr),instr)
         return (self.data[0])
-    def ARMpeekcodebyte(self,adr,words):
+    def ARMpeekcodewords(self,adr,words):
         """Read the contents of code memory at an address."""
         self.data=[adr&0xff, (adr>>8)&0xff, (adr>>16)&0xff, (adr>>24)&0xff, words&0xff, (words>>8)&0xff, (words>>16)&0xff, (words>>24)&0xff ]
-        self.writecmd(0x13,PEEK,2,self.data)
+        self.writecmd(0x13,READ_CODE_MEMORY,8,self.data)
         retval = []
         retval.append(self.serialport.read(words*4))
         #retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return "".join(retval)
     def ARMpeekdatabyte(self,adr):
         """Read the contents of data memory at an address."""
-        self.data=[adr&0xff, (adr&0xff00)>>8, (adr&0xff0000)>>16, (adr&0xff000000)>>24]
-        self.writecmd(0x13, PEEK, 2, self.data)
+        self.data=[ adr&0xff, (adr>>8)&0xff, (adr>>16)&0xff, (adr>>24)&0xff ]
+        self.writecmd(0x13, PEEK, 4, self.data)
+        #retval.append(self.serialport.read(words*4))
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMpokedatabyte(self,adr,val):
         """Write a byte to data memory."""
-        self.data=[adr&0xff, (adr&0xff00)>>8, val]
-        self.writecmd(0x13, POKE, 3, self.data)
+        self.data=[adr&0xff, (adr>>8)&0xff, (adr>>16)&0xff, (adr>>24)&0xff, val&0xff, (val>>8)&0xff, (val>>16)&0xff, (val>>24)&0xff ]
+        self.writecmd(0x13, POKE, 8, self.data)
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
-    def ARMchiperase(self):
-        """Erase all of the target's memory."""
-        self.writecmd(0x13,CHIP_ERASE,0,[])
+    #def ARMchiperase(self):
+    #    """Erase all of the target's memory."""
+    #    self.writecmd(0x13,CHIP_ERASE,0,[])
     def ARMstatus(self):
         """Check the status."""
         self.writecmd(0x13,GET_DEBUG_STATE,0,[])
@@ -255,9 +274,9 @@ class GoodFETARM(GoodFET):
     def start(self):
         """Start debugging."""
         self.writecmd(0x13,START,0,self.data)
-        #ident=self.ARMidentstr()
-        #print "Target identifies as %s." % ident
-        #print "Status: %s." % self.ARMstatusstr()
+        ident=self.ARMidentstr()
+        print "Target identifies as %s." % ident
+        print "Status: %s." % self.ARMstatusstr()
         #self.ARMreleasecpu()
         #self.ARMhaltcpu()
         #print "Status: %s." % self.ARMstatusstr()
@@ -265,17 +284,17 @@ class GoodFETARM(GoodFET):
     def stop(self):
         """Stop debugging."""
         self.writecmd(0x13,STOP,0,self.data)
-    def ARMstep_instr(self):
-        """Step one instruction."""
-        self.writecmd(0x13,STEP_INSTR,0,self.data)
-    def ARMflashpage(self,adr):
-        """Flash 2kB a page of flash from 0xF000 in XDATA"""
-        data=[adr&0xFF,
-              (adr>>8)&0xFF,
-              (adr>>16)&0xFF,
-              (adr>>24)&0xFF]
-        print "Flashing buffer to 0x%06x" % adr
-        self.writecmd(0x13,MASS_FLASH_PAGE,4,data)
+    #def ARMstep_instr(self):
+    #    """Step one instruction."""
+    #    self.writecmd(0x13,STEP_INSTR,0,self.data)
+    #def ARMflashpage(self,adr):
+    #    """Flash 2kB a page of flash from 0xF000 in XDATA"""
+    #    data=[adr&0xFF,
+    #          (adr>>8)&0xFF,
+    #          (adr>>16)&0xFF,
+    #          (adr>>24)&0xFF]
+    #    print "Flashing buffer to 0x%06x" % adr
+    #    self.writecmd(0x13,MASS_FLASH_PAGE,4,data)
 
     def writecmd(self, app, verb, count=0, data=[]):
         """Write a command and some data to the GoodFET."""

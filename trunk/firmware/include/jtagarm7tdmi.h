@@ -170,6 +170,11 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define JTAGARM7TDMI_SET_SPSR             0x9b
 #define JTAGARM7TDMI_SET_MODE_THUMB       0x9c
 #define JTAGARM7TDMI_SET_MODE_ARM         0x9d
+#define JTAGARM7TDMI_SET_IR               0x9e
+#define JTAGARM7TDMI_WAIT_DBG             0x9f
+#define JTAGARM7TDMI_SHIFT_DR             0xa0
+#define JTAGARM7TDMI_SETWATCH0            0xa1
+#define JTAGARM7TDMI_SETWATCH1            0xa2
 
 
 // for deeper understanding, read the instruction cycle timing section of: 
@@ -188,12 +193,12 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define ARM_INSTR_MRS_R0_CPSR       0xe10f0000L
 #define ARM_INSTR_MSR_cpsr_cxsf_R0  0xe12ff000L
 #define ARM_INSTR_STMIA_R14_r0_rx   0xE88E0000L      // add up to 65k to indicate which registers...
-#define ARM_STORE_MULTIPLE          ARM_INSTR_STMIA_R14_r0-rx
+#define ARM_STORE_MULTIPLE          ARM_INSTR_STMIA_R14_r0_rx
 #define ARM_INSTR_SKANKREGS         0xE88F7fffL
 #define ARM_INSTR_CLOBBEREGS        0xE89F7fffL
 
-#define ARM_INSTR_B_PC              0xea000000L
-#define ARM_INSTR_BX_PC             0xe1200010L      // need to set r0 to the desired address
+#define ARM_INSTR_B_IMM             0xea000000L
+#define ARM_INSTR_BX_PC             0xe12fff10L      // need to set r0 to the desired address
 #define THUMB_INSTR_STR_R0_r0       0x60006000L
 #define THUMB_INSTR_MOV_R0_PC       0x46b846b8L
 #define THUMB_INSTR_BX_PC           0x47784778L

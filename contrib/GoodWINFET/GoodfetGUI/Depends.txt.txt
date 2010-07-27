@@ -1,7 +1,0 @@
-GUI Dependencies
-==============
-PyCairo 1.8
-PyGObject 2.20
-PyGTK 2.16
-
-GTK+ 2.20+

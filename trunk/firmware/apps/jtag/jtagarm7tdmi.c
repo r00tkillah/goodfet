@@ -267,10 +267,10 @@ unsigned long jtagarm7tdmi_idcode(){               // PROVEN
 //!  RESTART verb
 unsigned long jtagarm7tdmi_restart() { 
   unsigned long retval;
-  //jtagarm7tdmi_resettap();
   jtag_goto_shift_ir();
   retval = jtagarmtransn(ARM7TDMI_IR_RESTART, 4, LSB, END, RETIDLE); 
-  jtagarm7tdmi_resettap();
+  current_chain = -1;
+  //jtagarm7tdmi_resettap();
   return retval;
 }
 
@@ -308,18 +308,18 @@ state” to the “Select DR” state each time the “Update” state is reache
 */
   unsigned long retval;
   if (current_chain != chain) {
-    //debugstr("===change chains===");
+    debugstr("===change chains===");
     jtag_goto_shift_ir();
     jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
     jtag_goto_shift_dr();
     retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
+    // put in test mode...
+    jtag_goto_shift_ir();
+    jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
     current_chain = chain;
   }    else
-    //debugstr("===NOT change chains===");
+    debugstr("===NOT change chains===");
     retval = current_chain;
-  // put in test mode...
-  jtag_goto_shift_ir();
-  jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
   return(retval);
 }
 
@@ -378,9 +378,10 @@ NOP
 
 //! set the current mode to ARM, returns PC (FIXME).  Should be used by haltcpu(), which should also store PC and the THUMB state, for use by releasecpu();
 unsigned long jtagarm7tdmi_setMode_ARM(unsigned char restart){               // PROVEN  BUT FUGLY! FIXME: clean up and store and replace clobbered r0
-  debugstr("=== Switching to ARM mode ===");
+  jtagarm7tdmi_resettap();                  // seems necessary for some reason.  ugh.
   unsigned long retval = 0xffL;
-  if ((current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)&& retval-- > 0){
+  if ((current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)){
+    debugstr("=== Switching to ARM mode ===");
     cmddatalong[1] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_NOP,0);
     cmddatalong[2] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_STR_R0_r0,0);
     cmddatalong[3] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_MOV_R0_PC,0);
@@ -388,7 +389,7 @@ unsigned long jtagarm7tdmi_setMode_ARM(unsigned char restart){               // 
     cmddatalong[5] = jtagarm7tdmi_instr_primitive(THUMB_INSTR_BX_PC,0);
   } else {
     jtagarm7tdmi_set_register(15,(last_halt_pc|0xfffffffc)-24);
-    jtagarm7tdmi_nop( 1);
+    jtagarm7tdmi_nop( restart);
     cmddatalong[1] = jtagarm7tdmi_instr_primitive(ARM_INSTR_B_IMM,0);
   }
   if (restart) {
@@ -407,6 +408,7 @@ unsigned long jtagarm7tdmi_setMode_ARM(unsigned char restart){               // 
 
 //! set the current mode to ARM, returns PC (FIXME).  Should be used by releasecpu()
 unsigned long jtagarm7tdmi_setMode_THUMB(unsigned char restart){               // PROVEN
+  jtagarm7tdmi_resettap();                  // seems necessary for some reason.  ugh.
   debugstr("=== Switching to THUMB mode ===");
   unsigned long retval = 0xffL;
   while (!(current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)&& retval-- > 0){
@@ -536,7 +538,9 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    
 //! Set a 32-bit Register value
 void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {          // PROVEN (assuming target reg is word aligned)
   unsigned long instr;
-  instr = (unsigned long)(((unsigned long)reg<<12L) | ARM_WRITE_REG); //  LDR Rx, [R14]
+  //if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)
+    //instr = THUMB_WRITE_REG
+    instr = (unsigned long)(((unsigned long)reg<<12L) | ARM_WRITE_REG); //  LDR Rx, [R14]
   
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
@@ -556,7 +560,7 @@ void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {          
 }
 
 
-
+/*
 //! Get all registers, placing them into cmddatalong[0-14]
 void jtagarm7tdmi_get_registers() {         // BORKEN.  FIXME
   jtagarm7tdmi_nop( 0);
@@ -605,7 +609,7 @@ void jtagarm7tdmi_set_registers() {   // using r15 to write through.  not includ
   jtagarm7tdmi_instr_primitive(cmddatalong[14],0);
   jtagarm7tdmi_nop( 0);
 }
-
+*/
 //! Retrieve the CPSR Register value
 unsigned long jtagarm7tdmi_get_regCPSR() {
   unsigned long retval = 0L, r0;
@@ -726,14 +730,14 @@ unsigned long jtagarm7tdmi_get_real_pc(){
 
 //! Halt CPU - returns 0xffff if the operation fails to complete within 
 unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
-  int waitcount = 0xfffL;
+  int waitcount = 0xffL;
 
   // store the debug state
   last_halt_debug_state = jtagarm7tdmi_get_dbgstate();
 
-  jtagarm7tdmi_set_dbgctrl(7);
+  //jtagarm7tdmi_set_dbgctrl(7);
   // store watchpoint info?  - not right now
-  //jtagarm7tdmi_set_watchpoint1(0, 0xffffffff, 0, 0xffffffff, 0x100L, 0xfffffff7);
+  jtagarm7tdmi_set_watchpoint1(0, 0xffffffff, 0, 0xffffffff, 0x100L, 0xfffffff7);
 
 
   /*  // old method
@@ -751,8 +755,8 @@ unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
     delay(1);
   }
 
-  jtagarm7tdmi_set_dbgctrl(0);
-  //jtagarm7tdmi_set_watchpoint1(0, 0x0, 0, 0x0, 0x0L, 0xfffffff7);
+  //jtagarm7tdmi_set_dbgctrl(0);
+  jtagarm7tdmi_set_watchpoint1(0, 0x0, 0, 0x0, 0x0L, 0xfffffff7);
   //jtagarm7tdmi_disable_watchpoint1();
 
   //eice_write(EICE_WP1CTRL, 0x0L);            // write 0 in watchpoint 0 control value - disables watchpoint 0
@@ -819,8 +823,8 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   unsigned int val; //, i;
   //unsigned long at;
   
-  jtagarm7tdmi_resettap();
-  current_dbgstate = jtagarm7tdmi_get_dbgstate();
+  //jtagarm7tdmi_resettap();
+  //current_dbgstate = jtagarm7tdmi_get_dbgstate();
  
   switch(verb){
   case START:
@@ -828,6 +832,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     debughex32(jtagarm7tdmi_start());
     cmddatalong[0] = jtagarm7tdmi_get_dbgstate();
     txdata(app,verb,0x4);
+    current_dbgstate = jtagarm7tdmi_get_dbgstate();
     break;
     /*
   case JTAGARM7TDMI_READMEM:
@@ -879,7 +884,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     txdata(app,verb,4);
     break;
   case JTAGARM7TDMI_RELEASECPU:
-	jtagarm7tdmi_resettap();
+	//jtagarm7tdmi_resettap();
     cmddatalong[0] = jtagarm7tdmi_releasecpu();
     txdata(app,verb,4);
     break;
@@ -906,36 +911,27 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     break;
   case JTAGARM7TDMI_GET_DEBUG_STATE:
     //jtagarm7tdmi_resettap();            // Shouldn't need this, but currently do.  FIXME!
+    current_dbgstate = jtagarm7tdmi_get_dbgstate();
     cmddatalong[0] = current_dbgstate;
     txdata(app,verb,4);
     break;
   //case JTAGARM7TDMI_GET_WATCHPOINT:
   //case JTAGARM7TDMI_SET_WATCHPOINT:
   case JTAGARM7TDMI_GET_REGISTER:
-	jtagarm7tdmi_resettap();
+	//jtagarm7tdmi_resettap();
     val = cmddata[0];
     cmddatalong[0] = jtagarm7tdmi_get_register(val);
     txdata(app,verb,4);
     break;
   case JTAGARM7TDMI_SET_REGISTER:
-	jtagarm7tdmi_resettap();
+	//jtagarm7tdmi_resettap();
     jtagarm7tdmi_set_register(cmddatalong[1], cmddatalong[0]);
     txdata(app,verb,4);
-    break;
-  case JTAGARM7TDMI_GET_REGISTERS:
-	jtagarm7tdmi_resettap();
-    jtagarm7tdmi_get_registers();
-    txdata(app,verb,64);
-    break;
-  case JTAGARM7TDMI_SET_REGISTERS:
-	jtagarm7tdmi_resettap();
-    jtagarm7tdmi_set_registers();
-    txdata(app,verb,64);
     break;
   case JTAGARM7TDMI_DEBUG_INSTR:
 	//jtagarm7tdmi_resettap();
     //cmddataword[0] = jtagarm7tdmi_exec(cmddataword[0], cmddata[4]);
-    cmddataword[0] = jtagarm7tdmi_instr_primitive(cmddataword[0],cmddata[4]);
+    cmddatalong[0] = jtagarm7tdmi_instr_primitive(cmddatalong[0],cmddata[4]);
     txdata(app,verb,8);
     break;
   //case JTAGARM7TDMI_STEP_INSTR:
@@ -979,9 +975,10 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     txdata(app,verb,4);
     break;
   case JTAGARM7TDMI_SET_IR:
-	jtagarm7tdmi_resettap();
+	//jtagarm7tdmi_resettap();
     jtag_goto_shift_ir();
-    cmddataword[0] = jtagarmtransn(cmddata[0], 4, LSB, END, RETIDLE);
+    cmddataword[0] = jtagarmtransn(cmddata[0], 4, LSB, END, cmddata[1]);
+    current_chain = -1;
     txdata(app,verb,2);
     break;
   case JTAGARM7TDMI_WAIT_DBG:

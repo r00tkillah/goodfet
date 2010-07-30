@@ -51,7 +51,7 @@ void I2C_Init()
   //(Pull-up or 0.)
   
   P5DIR|=(SDA|SCL);
-  P5REN|=SDA|SCL;
+  //P5REN|=SDA|SCL;
   
   
   I2C_CLOCK_HI();

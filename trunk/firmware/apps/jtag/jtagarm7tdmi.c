@@ -307,19 +307,23 @@ commands occur. Therefore, it is recommended to pass directly from the “Update
 state” to the “Select DR” state each time the “Update” state is reached.
 */
   unsigned long retval;
-  if (current_chain != chain) {
-    debugstr("===change chains===");
+  //if (current_chain != chain) {
+  //  //debugstr("===change chains===");
     jtag_goto_shift_ir();
     jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
     jtag_goto_shift_dr();
     retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
     // put in test mode...
-    jtag_goto_shift_ir();
-    jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
+    //jtag_goto_shift_ir();
+    //jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
     current_chain = chain;
-  }    else
-    debugstr("===NOT change chains===");
-    retval = current_chain;
+  //}    else  {
+  //  //debugstr("===NOT change chains===");
+  //  retval = current_chain;
+  //}
+  // put in test mode...
+  jtag_goto_shift_ir();
+  jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
   return(retval);
 }
 
@@ -990,6 +994,19 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     jtag_goto_shift_dr();
     cmddatalong[0] = jtagarmtransn(cmddatalong[1],cmddata[0],cmddata[1],cmddata[2],cmddata[3]);
     txdata(app,verb,4);
+    break;
+  case JTAGARM7TDMI_CHAIN0:
+    jtagarm7tdmi_scan_intest(0);
+    jtag_goto_shift_dr();
+    debughex32(cmddatalong[0]);
+    debughex(cmddataword[4]);
+    debughex32(cmddatalong[1]);
+    debughex32(cmddatalong[3]);
+    cmddatalong[0] = jtagarmtransn(cmddatalong[0], 32, LSB, NOEND, NORETIDLE);
+    cmddatalong[2] = jtagarmtransn(cmddataword[4], 9, MSB, NOEND, NORETIDLE);
+    cmddatalong[1] = jtagarmtransn(cmddatalong[1], 32, MSB, NOEND, NORETIDLE);
+    cmddatalong[3] = jtagarmtransn(cmddatalong[3], 32, MSB, END, RETIDLE);
+    txdata(app,verb,16);
     break;
   case JTAGARM7TDMI_SETWATCH0:
     jtagarm7tdmi_set_watchpoint0(cmddatalong[0], cmddatalong[1], cmddatalong[2], cmddatalong[3], cmddatalong[4], cmddatalong[5]);

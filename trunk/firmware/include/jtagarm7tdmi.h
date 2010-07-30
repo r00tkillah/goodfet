@@ -175,6 +175,7 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define JTAGARM7TDMI_SHIFT_DR             0xa0
 #define JTAGARM7TDMI_SETWATCH0            0xa1
 #define JTAGARM7TDMI_SETWATCH1            0xa2
+#define JTAGARM7TDMI_CHAIN0               0xa3
 
 
 // for deeper understanding, read the instruction cycle timing section of: 

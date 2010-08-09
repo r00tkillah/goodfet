@@ -6,7 +6,7 @@
 # Contributions and bug reports welcome.
 #
 
-import sys, binascii, struct
+import sys, binascii, struct, time
 import atlasutils.smartprint as asp
 from GoodFET import GoodFET
 from intelhex import IntelHex
@@ -65,6 +65,7 @@ WAIT_DBG            = 0x9f
 SHIFT_DR            = 0xa0
 SETWATCH0           = 0xa1
 SETWATCH1           = 0xa2
+CHAIN0              = 0xa3
 
 PM_usr = 0b10000
 PM_fiq = 0b10001
@@ -175,6 +176,7 @@ class GoodFETARM(GoodFET):
         """Halt the CPU."""
         self.writecmd(0x13,HALTCPU,0,self.data)
         print "CPSR: (%s) %s"%(self.ARMget_regCPSRstr())
+    halt=ARMhaltcpu
     def ARMreleasecpu(self):
         """Resume the CPU."""
         self.writecmd(0x13,RESUMECPU,0,self.data)
@@ -256,9 +258,11 @@ class GoodFETARM(GoodFET):
     def ARMset_dbgctrl(self,config):
         """Write the config register of an ARM."""
         self.writecmd(0x13,SET_DEBUG_CTRL,1,[config&7])
-    #def ARMlockchip(self):
-    #    """Set the flash lock bit in info mem."""
-    #    self.writecmd(0x13, LOCKCHIP, 0, [])
+    def ARMlockchip(self):
+        """Set the flash lock bit in info mem.
+        Chip-Specific.  Not implemented"""
+        #self.writecmd(0x13, LOCKCHIP, 0, [])
+        raise Exception("Unimplemented: lockchip.  This is chip specific and must be implemented for each chip.")
     
 
     def ARMidentstr(self):
@@ -273,10 +277,10 @@ class GoodFETARM(GoodFET):
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMsetPC(self, val):
-        """Set an ARM's PC."""
+        """Set an ARM's PC.  Note: real PC gets all wonky in debug mode, this changes the "saved" PC which is used when exiting debug mode"""
         self.writecmd(0x13,SET_PC,0,chop(val,4))
     def ARMgetPC(self):
-        """Get an ARM's PC."""
+        """Get an ARM's PC. Note: real PC gets all wonky in debug mode, this is the "saved" PC"""
         self.writecmd(0x13,GET_PC,0,[])
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
@@ -328,8 +332,8 @@ class GoodFETARM(GoodFET):
         return (self.data)
     def ARM_nop(self, bkpt):
         return self.ARMdebuginstr(ARM_INSTR_NOP, bkpt)
-    def ARMset_IR(self, IR):
-        self.writecmd(0x13,SET_IR,1, [IR])
+    def ARMset_IR(self, IR, RETIDLE=1):
+        self.writecmd(0x13,SET_IR,2, [IR, RETIDLE])
         return self.data
     def ARMshiftDR(self, data, bits, LSB, END, RETIDLE):
         self.writecmd(0x13,SHIFT_DR,8,[bits&0xff, LSB&0xff, END&0xff, RETIDLE&0xff, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff])
@@ -338,6 +342,7 @@ class GoodFETARM(GoodFET):
         self.writecmd(0x13,WAIT_DBG,2,[timeout&0xf,timeout>>8])
         return self.data
     def ARMrestart(self):
+        #self.ARMset_IR(ARM7TDMI_IR_BYPASS)
         self.ARMset_IR(ARM7TDMI_IR_RESTART)
     def ARMset_watchpoint0(self, addr, addrmask, data, datamask, ctrl, ctrlmask):
         self.data = []
@@ -363,16 +368,26 @@ class GoodFETARM(GoodFET):
         retval = [] 
         r0 = self.ARMget_register(0);        # store R0 and R1
         r1 = self.ARMget_register(1);
-        print >>sys.stderr,("CPSR:\t%x"%self.ARMget_regCPSR())
+        #print >>sys.stderr,("CPSR:\t%x"%self.ARMget_regCPSR())
         for word in range(adr, adr+(wrdcount*4), 4):
+            sys.stdin.readline()
             self.ARMset_register(0, word);        # write address into R0
+            #time.sleep(1)
+            self.ARMset_register(1, 0xdeadbeef)
+            #time.sleep(1)
             self.ARM_nop(0)
+            #time.sleep(1)
             self.ARM_nop(1)
+            #time.sleep(1)
             self.ARMdebuginstr(ARM_READ_MEM, 0); # push LDR R1, [R0], #4 into instruction pipeline  (autoincrements for consecutive reads)
+            #time.sleep(1)
             self.ARM_nop(0)
+            #time.sleep(1)
             self.ARMrestart()
+            #time.sleep(1)
             self.ARMwaitDBG()
-            print self.ARMget_register(1)
+            #time.sleep(1)
+            print hex(self.ARMget_register(1))
 
 
             # FIXME: this may end up changing te current debug-state.  should we compare to current_dbgstate?
@@ -383,7 +398,35 @@ class GoodFETARM(GoodFET):
               return (-1);
             else:
               retval.append( self.ARMget_register(1) )  # read memory value from R1 register
-              print >>sys.stderr,("CPSR: %x\t\tR0: %x\t\tR1: %x"%(self.ARMget_regCPSR(),self.ARMget_register(0),self.ARMget_register(1)))
+              #print >>sys.stderr,("CPSR: %x\t\tR0: %x\t\tR1: %x"%(self.ARMget_regCPSR(),self.ARMget_register(0),self.ARMget_register(1)))
+        self.ARMset_register(1, r1);       # restore R0 and R1 
+        self.ARMset_register(0, r0);
+        return retval
+
+    def ARMwriteMem(self, adr, wordarray):
+        r0 = self.ARMget_register(0);        # store R0 and R1
+        r1 = self.ARMget_register(1);
+        #print >>sys.stderr,("CPSR:\t%x"%self.ARMget_regCPSR())
+        for word in xrange(adr, adr+len(string), 4):
+            self.ARMset_register(0, word);        # write address into R0
+            self.ARM_nop(0)
+            self.ARM_nop(1)
+            self.ARMdebuginstr(ARM_WRITE_MEM, 0); # push STR R1, [R0], #4 into instruction pipeline  (autoincrements for consecutive writes)
+            self.ARM_nop(0)
+            self.ARMrestart()
+            self.ARMwaitDBG()
+            print hex(self.ARMget_register(1))
+
+
+            # FIXME: this may end up changing te current debug-state.  should we compare to current_dbgstate?
+            #print repr(self.data[4])
+            if (len(self.data)>4 and self.data[4] == '\x00'):
+              print >>sys.stderr,("FAILED TO READ MEMORY/RE-ENTER DEBUG MODE")
+              raise Exception("FAILED TO READ MEMORY/RE-ENTER DEBUG MODE")
+              return (-1);
+            else:
+              retval.append( self.ARMget_register(1) )  # read memory value from R1 register
+              #print >>sys.stderr,("CPSR: %x\t\tR0: %x\t\tR1: %x"%(self.ARMget_regCPSR(),self.ARMget_register(0),self.ARMget_register(1)))
         self.ARMset_register(1, r1);       # restore R0 and R1 
         self.ARMset_register(0, r0);
         return retval
@@ -439,6 +482,14 @@ class GoodFETARM(GoodFET):
                 str="%s %s" %(self.ARMstatusbits[i],str)
             i*=2
         return str
+    def ARMchain0(self, address, bits, data):
+        bulk = chop(address,4)
+        bulk.extend(chop(bits,8))
+        bulk.extend(chop(data,4))
+        print (repr(bulk))
+        self.writecmd(0x13,CHAIN0,16,bulk)
+        d1,b1,a1 = struct.unpack("<LQL",self.data)
+        return (a1,b1,d1)
     def start(self):
         """Start debugging."""
         self.writecmd(0x13,START,0,self.data)

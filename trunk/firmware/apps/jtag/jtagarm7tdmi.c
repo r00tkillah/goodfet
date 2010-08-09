@@ -766,7 +766,7 @@ unsigned long jtagarm7tdmi_haltcpu(){                   //  PROVEN
   //eice_write(EICE_WP1CTRL, 0x0L);            // write 0 in watchpoint 0 control value - disables watchpoint 0
 
   // store the debug state program counter.
-  last_halt_pc = jtagarm7tdmi_get_real_pc();
+  last_halt_pc = jtagarm7tdmi_get_real_pc();    // FIXME: grag chain0 to get all state and PC
   count_dbgspd_instr_since_debug = 0L;          // should be able to clean this up and remove all this tracking nonsense.
   count_sysspd_instr_since_debug = 0L;          // should be able to clean this up and remove all this tracking nonsense.
 

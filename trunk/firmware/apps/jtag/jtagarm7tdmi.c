@@ -128,7 +128,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
   SAVETCLK;
   if (lsb) {
     for (bit = bitcount; bit > 0; bit--) {
-      /* write MOSI on trailing edge of previous clock *
+      // write MOSI on trailing edge of previous clock *
       if (word & 1)
         {SETMOSI;}
       else
@@ -140,14 +140,14 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
        
       jtag_arm_tcktock();
 
-      //* read MISO on trailing edge *
+      // read MISO on trailing edge *
       if (READMISO){
         word += (high);
       }
     }
   } else {
     for (bit = bitcount; bit > 0; bit--) {
-      //* write MOSI on trailing edge of previous clock *
+      // write MOSI on trailing edge of previous clock *
       if (word & high)
         {SETMOSI;}
       else
@@ -159,7 +159,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
 
       jtag_arm_tcktock();
 
-      //* read MISO on trailing edge *
+      // read MISO on trailing edge *
       word |= (READMISO);
     }
   }

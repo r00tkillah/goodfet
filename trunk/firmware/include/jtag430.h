@@ -1,11 +1,6 @@
-/*! \file jtag.h
+/*! \file jtag430.h
   \author Travis Goodspeed
   \brief JTAG handler functions.
-
-FIXME: Remove these when proven compiling
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
 */
 
 

@@ -5,7 +5,7 @@
 
 #include "platform.h"
 #include "command.h"
-#include "jtag.h"
+#include "jtag430.h"
 
 unsigned char jtagid;
 

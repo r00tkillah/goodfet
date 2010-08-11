@@ -25,10 +25,8 @@ void jtagsetup(){
 /************************** JTAG Primitives ****************************/
 // these have been turned into functions to save flash space
 void jtag_tcktock() {
-  //delay(1);  // FIXME: Should never wait this long...
   CLRTCK; 
   PLEDOUT^=PLEDPIN; 
-  //delay(1);  // FIXME: Should never wait this long...
   SETTCK; 
   PLEDOUT^=PLEDPIN;
 }
@@ -186,7 +184,7 @@ unsigned char jtagtrans8(unsigned char byte){
   SAVETCLK;
   
   for (bit = 0; bit < bitcount; bit++) {
-    //* write MOSI on trailing edge of previous clock *
+    // write MOSI on trailing edge of previous clock *
     if (word & high)
       {SETMOSI;}
     else
@@ -197,7 +195,7 @@ unsigned char jtagtrans8(unsigned char byte){
       SETTMS;//TMS high on last bit to exit.
     
     TCKTOCK;
-    //* read MISO on trailing edge *
+    // read MISO on trailing edge *
     word |= READMISO;
   }
   

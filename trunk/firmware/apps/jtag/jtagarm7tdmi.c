@@ -93,44 +93,6 @@ for this module, we keep tck high for all changes/sampling, and then bounce it.
 
 
 
-/************************** JTAGARM7TDMI Primitives ****************************/
-void jtag_goto_shift_ir() {
-  SETTMS;
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();
-  CLRTMS;
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();
-
-}
-void jtag_goto_shift_dr() {
-  SETTMS;
-  jtag_arm_tcktock();
-  CLRTMS;
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();
-}
-
-void jtag_reset_to_runtest_idle() {
-  SETTMS;
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();
-  jtag_arm_tcktock();  // now in Reset state
-  CLRTMS;
-  jtag_arm_tcktock();  // now in Run-Test/Idle state
-}
-
-void jtag_arm_tcktock() {
-  delay(1);  // FIXME: Should never wait this long...
-  CLRTCK; 
-  PLEDOUT^=PLEDPIN; 
-  delay(1);  // FIXME: Should never wait this long...
-  SETTCK; 
-  PLEDOUT^=PLEDPIN;
-}
-
 
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
 unsigned long jtagarm7tdmi_start() {
@@ -149,7 +111,7 @@ void jtagarm7tdmi_resettap(){               // PROVEN
 
 //  NOTE: important: THIS MODULE REVOLVES AROUND RETURNING TO RUNTEST/IDLE, OR THE FUNCTIONAL EQUIVALENT
 
-
+/*
 //! Shift N bits over TDI/TDO.  May choose LSB or MSB, and select whether to terminate (TMS-high on last bit) and whether to return to RUNTEST/IDLE
 unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned char lsb, unsigned char end, unsigned char retidle){               // PROVEN
   unsigned char bit;
@@ -163,9 +125,10 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
 
   mask = high-1;
 
+  SAVETCLK;
   if (lsb) {
     for (bit = bitcount; bit > 0; bit--) {
-      /* write MOSI on trailing edge of previous clock */
+      /* write MOSI on trailing edge of previous clock *
       if (word & 1)
         {SETMOSI;}
       else
@@ -177,14 +140,14 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
        
       jtag_arm_tcktock();
 
-      /* read MISO on trailing edge */
+      //* read MISO on trailing edge *
       if (READMISO){
         word += (high);
       }
     }
   } else {
     for (bit = bitcount; bit > 0; bit--) {
-      /* write MOSI on trailing edge of previous clock */
+      //* write MOSI on trailing edge of previous clock *
       if (word & high)
         {SETMOSI;}
       else
@@ -196,13 +159,14 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
 
       jtag_arm_tcktock();
 
-      /* read MISO on trailing edge */
+      //* read MISO on trailing edge *
       word |= (READMISO);
     }
   }
  
 
-  SETMOSI;
+  RESTORETCLK;
+  //SETMOSI;
 
   if (end){
     // exit state
@@ -215,7 +179,7 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
   }
   return word;
 }
-
+*/
 
 
 /************************************************************************
@@ -235,9 +199,9 @@ unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned
 unsigned long jtagarm7tdmi_idcode(){               // PROVEN
   jtagarm7tdmi_resettap();
   jtag_goto_shift_ir();
-  jtagarmtransn(ARM7TDMI_IR_IDCODE, 4, LSB, END, RETIDLE);
+  jtagtransn(ARM7TDMI_IR_IDCODE, 4, LSB);
   jtag_goto_shift_dr();
-  return jtagarmtransn(0,32, LSB, END, RETIDLE);
+  return jtagtransn(0,32, LSB);
 }
 
 //!  Connect Bypass Register to TDO/TDI
@@ -268,7 +232,7 @@ unsigned long jtagarm7tdmi_idcode(){               // PROVEN
 unsigned long jtagarm7tdmi_restart() { 
   unsigned long retval;
   jtag_goto_shift_ir();
-  retval = jtagarmtransn(ARM7TDMI_IR_RESTART, 4, LSB, END, RETIDLE); 
+  retval = jtagtransn(ARM7TDMI_IR_RESTART, 4, LSB); 
   current_chain = -1;
   //jtagarm7tdmi_resettap();
   return retval;
@@ -310,9 +274,9 @@ state” to the “Select DR” state each time the “Update” state is reache
   //if (current_chain != chain) {
   //  //debugstr("===change chains===");
     jtag_goto_shift_ir();
-    jtagarmtransn(ARM7TDMI_IR_SCAN_N, 4, LSB, END, NORETIDLE);
+    jtagtransn(ARM7TDMI_IR_SCAN_N, 4, LSB | NORETIDLE);
     jtag_goto_shift_dr();
-    retval = jtagarmtransn(chain, 4, LSB, END, NORETIDLE);
+    retval = jtagtransn(chain, 4, LSB | NORETIDLE);
     // put in test mode...
     //jtag_goto_shift_ir();
     //jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
@@ -323,7 +287,7 @@ state” to the “Select DR” state each time the “Update” state is reache
   //}
   // put in test mode...
   jtag_goto_shift_ir();
-  jtagarmtransn(testmode, 4, LSB, END, RETIDLE); 
+  jtagtransn(testmode, 4, LSB); 
   return(retval);
 }
 
@@ -353,10 +317,10 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  
     CLRMOSI; 
     count_dbgspd_instr_since_debug++;
     }
-  jtag_arm_tcktock();
+  jtag_tcktock();
   
   // Now shift in the 32 bits
-  retval = jtagarmtransn(instr, 32, MSB, END, RETIDLE);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
+  retval = jtagtransn(instr, 32, 0);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
   return(retval);
   
 }
@@ -442,9 +406,9 @@ unsigned long eice_write(unsigned char reg, unsigned long data){
   jtagarm7tdmi_scan_intest(2);
   // Now shift in the 32 bits
   jtag_goto_shift_dr();
-  retval = jtagarmtransn(data, 32, LSB, NOEND, NORETIDLE);          // send in the data - 32-bits lsb
-  temp = jtagarmtransn(reg, 5, LSB, NOEND, NORETIDLE);              // send in the register address - 5 bits lsb
-  jtagarmtransn(1, 1, LSB, END, RETIDLE);                           // send in the WRITE bit
+  retval = jtagtransn(data, 32, LSB| NOEND| NORETIDLE);          // send in the data - 32-bits lsb
+  temp = jtagtransn(reg, 5, LSB| NOEND| NORETIDLE);              // send in the register address - 5 bits lsb
+  jtagtransn(1, 1, LSB);                           // send in the WRITE bit
   
   return(retval); 
 }
@@ -458,14 +422,14 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
 
   // send in the register address - 5 bits LSB
   jtag_goto_shift_dr();
-  temp = jtagarmtransn(reg, 5, LSB, NOEND, NORETIDLE);
+  temp = jtagtransn(reg, 5, LSB| NOEND| NORETIDLE);
   
   // clear TDI to select "read only"
-  jtagarmtransn(0L, 1, LSB, END, RETIDLE);
+  jtagtransn(0L, 1, LSB);
   
   jtag_goto_shift_dr();
   // Now shift out the 32 bits
-  retval = jtagarmtransn(0L, 32, LSB, END, RETIDLE);   // atmel arm jtag docs pp.10-11: LSB first
+  retval = jtagtransn(0L, 32, LSB);   // atmel arm jtag docs pp.10-11: LSB first
   //debughex32(retval);
   return(retval);   // atmel arm jtag docs pp.10-11: LSB first
   
@@ -981,7 +945,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   case JTAGARM7TDMI_SET_IR:
 	//jtagarm7tdmi_resettap();
     jtag_goto_shift_ir();
-    cmddataword[0] = jtagarmtransn(cmddata[0], 4, LSB, END, cmddata[1]);
+    cmddataword[0] = jtagtransn(cmddata[0], 4, cmddata[1]);
     current_chain = -1;
     txdata(app,verb,2);
     break;
@@ -992,7 +956,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   case JTAGARM7TDMI_SHIFT_DR:
 	jtagarm7tdmi_resettap();
     jtag_goto_shift_dr();
-    cmddatalong[0] = jtagarmtransn(cmddatalong[1],cmddata[0],cmddata[1],cmddata[2],cmddata[3]);
+    cmddatalong[0] = jtagtransn(cmddatalong[1],cmddata[0],cmddata[1]);
     txdata(app,verb,4);
     break;
   case JTAGARM7TDMI_CHAIN0:
@@ -1002,10 +966,10 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     debughex(cmddataword[4]);
     debughex32(cmddatalong[1]);
     debughex32(cmddatalong[3]);
-    cmddatalong[0] = jtagarmtransn(cmddatalong[0], 32, LSB, NOEND, NORETIDLE);
-    cmddatalong[2] = jtagarmtransn(cmddataword[4], 9, MSB, NOEND, NORETIDLE);
-    cmddatalong[1] = jtagarmtransn(cmddatalong[1], 32, MSB, NOEND, NORETIDLE);
-    cmddatalong[3] = jtagarmtransn(cmddatalong[3], 32, MSB, END, RETIDLE);
+    cmddatalong[0] = jtagtransn(cmddatalong[0], 32, LSB| NOEND| NORETIDLE);
+    cmddatalong[2] = jtagtransn(cmddataword[4], 9, MSB| NOEND| NORETIDLE);
+    cmddatalong[1] = jtagtransn(cmddatalong[1], 32, MSB| NOEND| NORETIDLE);
+    cmddatalong[3] = jtagtransn(cmddatalong[3], 32, MSB);
     txdata(app,verb,16);
     break;
   case JTAGARM7TDMI_SETWATCH0:

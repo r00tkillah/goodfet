@@ -130,14 +130,6 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define EICE_WP1CTRLMASK                21
 
 
-#define NOEND 0
-#define END 1
-#define MSB 0
-#define LSB 1
-#define NORETIDLE 0
-#define RETIDLE 1
-
-
 //JTAGARM7TDMI commands
 #define JTAGARM7TDMI_GET_DEBUG_CTRL       0x80
 #define JTAGARM7TDMI_SET_DEBUG_CTRL       0x81

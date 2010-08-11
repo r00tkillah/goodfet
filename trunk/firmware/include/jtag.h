@@ -10,7 +10,6 @@
 #include <io.h>
 #include <iomacros.h>
 
-
 extern unsigned int drwidth;
 
 #define MSP430MODE 0
@@ -22,7 +21,8 @@ extern unsigned int jtag430mode;
 
 //! Shift n bytes.
 unsigned long jtagtransn(unsigned long word,
-			 unsigned int bitcount);
+			 unsigned char bitcount,
+             unsigned char flags);
 //! Shift the address width.
 unsigned long jtag_dr_shiftadr(unsigned long in);
 //! Shift 8 bits of the IR.
@@ -154,6 +154,11 @@ void jtag430_por();
 #define JTAG_IR_SHIFT 0x80
 #define JTAG_DR_SHIFT 0x81
 #define JTAG_DR_SHIFT20 0x91
+
+#define MSB         0
+#define LSB         1
+#define NOEND       2
+#define NORETIDLE   4
 
 
 //JTAG430 commands

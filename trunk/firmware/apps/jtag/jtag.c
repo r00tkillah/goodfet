@@ -22,7 +22,125 @@ void jtagsetup(){
   msdelay(100);
 }
 
+/************************** JTAG Primitives ****************************/
+// these have been turned into functions to save flash space
+void jtag_tcktock() {
+  //delay(1);  // FIXME: Should never wait this long...
+  CLRTCK; 
+  PLEDOUT^=PLEDPIN; 
+  //delay(1);  // FIXME: Should never wait this long...
+  SETTCK; 
+  PLEDOUT^=PLEDPIN;
+}
+
+void jtag_goto_shift_ir() {
+  SETTMS;
+  jtag_tcktock();
+  jtag_tcktock();
+  CLRTMS;
+  jtag_tcktock();
+  jtag_tcktock();
+
+}
+void jtag_goto_shift_dr() {
+  SETTMS;
+  jtag_tcktock();
+  CLRTMS;
+  jtag_tcktock();
+  jtag_tcktock();
+}
+
+void jtag_reset_to_runtest_idle() {
+  SETTMS;
+  jtag_tcktock();
+  jtag_tcktock();
+  jtag_tcktock();
+  jtag_tcktock();
+  jtag_tcktock();  // now in Reset state
+  CLRTMS;
+  jtag_tcktock();  // now in Run-Test/Idle state
+}
+
+
 int savedtclk=0;
+//  NOTE: important: THIS MODULE REVOLVES AROUND RETURNING TO RUNTEST/IDLE, OR THE FUNCTIONAL EQUIVALENT
+//! Shift N bits over TDI/TDO.  May choose LSB or MSB, and select whether to terminate (TMS-high on last bit) and whether to return to RUNTEST/IDLE
+//      flags should be 0 for most uses.  
+//      for the extreme case, flags should be  (NOEND|NORETDLE|LSB)
+//      other edge cases can involve a combination of those three flags
+//
+//      the max bit-size that can be be shifted is 32-bits.  
+//      for longer shifts, use the NOEND flag (which infers NORETIDLE so the additional flag is unnecessary)
+//
+//      NORETIDLE is used for special cases where (as with arm) the debug subsystem does not want to 
+//      return to the RUN-TEST/IDLE state between setting IR and DR
+unsigned long jtagtransn(unsigned long word, unsigned char bitcount, unsigned char flags){            
+  unsigned char bit;
+  unsigned long high = 1L;
+  unsigned long mask;
+
+  //for (bit=(bitcount-1)/8; bit>0; bit--)
+  //  high <<= 8;
+  //high <<= ((bitcount-1)%8);
+  high <<= (bitcount-1);
+
+  mask = high-1;
+
+  SAVETCLK;
+  if (flags & LSB) {
+    for (bit = bitcount; bit > 0; bit--) {
+      /* write MOSI on trailing edge of previous clock */
+      if (word & 1)
+        {SETMOSI;}
+      else
+        {CLRMOSI;}
+      word >>= 1;
+
+      if (bit==1 && !(flags & NOEND))
+        SETTMS;//TMS high on last bit to exit.
+       
+      jtag_tcktock();
+
+      /* read MISO on trailing edge */
+      if (READMISO){
+        word += (high);
+      }
+    }
+  } else {
+    for (bit = bitcount; bit > 0; bit--) {
+      /* write MOSI on trailing edge of previous clock */
+      if (word & high)
+        {SETMOSI;}
+      else
+        {CLRMOSI;}
+      word = (word & mask) << 1;
+
+      if (bit==1 && !(flags & NOEND))
+        SETTMS;//TMS high on last bit to exit.
+
+      jtag_tcktock();
+
+      /* read MISO on trailing edge */
+      word |= (READMISO);
+    }
+  }
+ 
+
+  RESTORETCLK;
+  //SETMOSI;
+
+  if (!(flags & NOEND)){
+    // exit state
+    jtag_tcktock();
+    // update state
+    if (!(flags & NORETIDLE)){
+      CLRTMS;
+      jtag_tcktock();
+    }
+  }
+  return word;
+}
+
 //! Shift 8 bits in and out.
 unsigned char jtagtrans8(unsigned char byte){
   unsigned int bit;
@@ -54,7 +172,7 @@ unsigned char jtagtrans8(unsigned char byte){
 }
 
 //! Shift n bits in and out.
-unsigned long jtagtransn(unsigned long word,
+/*unsigned long jtagtransn(unsigned long word,
 			 unsigned int bitcount){
   unsigned int bit;
   //0x8000
@@ -68,7 +186,7 @@ unsigned long jtagtransn(unsigned long word,
   SAVETCLK;
   
   for (bit = 0; bit < bitcount; bit++) {
-    /* write MOSI on trailing edge of previous clock */
+    //* write MOSI on trailing edge of previous clock *
     if (word & high)
       {SETMOSI;}
     else
@@ -79,7 +197,7 @@ unsigned long jtagtransn(unsigned long word,
       SETTMS;//TMS high on last bit to exit.
     
     TCKTOCK;
-    /* read MISO on trailing edge */
+    //* read MISO on trailing edge *
     word |= READMISO;
   }
   
@@ -97,7 +215,7 @@ unsigned long jtagtransn(unsigned long word,
   
   return word;
 }
-
+*/
 
 //! Stop JTAG, release pins
 void jtag_stop(){
@@ -118,7 +236,7 @@ unsigned long jtag_dr_shift20(unsigned long in){
   TCKTOCK;
   
   // shift DR, then idle
-  return(jtagtransn(in,20));
+  return(jtagtransn(in,20,0));
 }
 
 
@@ -134,7 +252,7 @@ unsigned int jtag_dr_shift16(unsigned int in){
   TCKTOCK;
   
   // shift DR, then idle
-  return(jtagtransn(in,16));
+  return(jtagtransn(in,16,0));
 }
 
 //! Shift native width of the DR
@@ -151,7 +269,7 @@ unsigned long jtag_dr_shiftadr(unsigned long in){
   TCKTOCK;
 
   
-  out=jtagtransn(in,drwidth);
+  out=jtagtransn(in,drwidth,0);
   
   // shift DR, then idle
   return(out);

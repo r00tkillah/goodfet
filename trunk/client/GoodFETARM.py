@@ -67,6 +67,12 @@ SETWATCH0           = 0xa1
 SETWATCH1           = 0xa2
 CHAIN0              = 0xa3
 
+
+MSB         = 0
+LSB         = 1
+NOEND       = 2
+NORETIDLE   = 4
+
 PM_usr = 0b10000
 PM_fiq = 0b10001
 PM_irq = 0b10010
@@ -332,11 +338,11 @@ class GoodFETARM(GoodFET):
         return (self.data)
     def ARM_nop(self, bkpt):
         return self.ARMdebuginstr(ARM_INSTR_NOP, bkpt)
-    def ARMset_IR(self, IR, RETIDLE=1):
-        self.writecmd(0x13,SET_IR,2, [IR, RETIDLE])
+    def ARMset_IR(self, IR, noretidle=0):
+        self.writecmd(0x13,SET_IR,2, [IR, LSB|noretidle])
         return self.data
-    def ARMshiftDR(self, data, bits, LSB, END, RETIDLE):
-        self.writecmd(0x13,SHIFT_DR,8,[bits&0xff, LSB&0xff, END&0xff, RETIDLE&0xff, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff])
+    def ARMshiftDR(self, data, bits, flags):
+        self.writecmd(0x13,SHIFT_DR,8,[bits&0xff, flags&0xff, 0, 0, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff])
         return self.data
     def ARMwaitDBG(self, timeout=0xff):
         self.writecmd(0x13,WAIT_DBG,2,[timeout&0xf,timeout>>8])

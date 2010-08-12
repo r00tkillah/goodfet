@@ -1,0 +1,259 @@
+/*! \file jtagarm7tdmi.c
+  \brief ARM7TDMI JTAG (AT91R40008, AT91SAM7xxx)
+*/
+
+#include "platform.h"
+#include "command.h"
+#include "jtag.h"
+#include "jtagarm7tdmi.h"
+
+
+/**** 20-pin Connection Information (pin1 is on top-right for both connectors)****
+GoodFET  ->  7TDMI 20-pin connector (HE-10 connector)
+  1               13 (TDO)
+  2               1  (Vdd)
+  3               5  (TDI)
+  5               7  (TMS)
+  7               9  (TCK)
+  8               15 (nRST)
+  9               4,6,8,10,12,14,16,18,20 (GND)
+  11              17/3 (nTRST)  (different sources suggest 17 or 3 alternately)
+********************************/
+
+/**** 14-pin Connection Information (pin1 is on top-right for both connectors)****
+GoodFET  ->  7TDMI 14-pin connector
+  1               11 (TDO)
+  2               1  (Vdd)
+  3               5  (TDI)
+  5               7  (TMS)
+  7               9  (TCK)
+  8               12 (nRST)
+  9               2,4,6,8,10,14 (GND)
+  11              3 (nTRST)
+
+http://hri.sourceforge.net/tools/jtag_faq_org.html
+********************************/
+
+
+// ! Start JTAG, setup pins, reset TAP and return IDCODE
+void jtagarm7tdmi_start() {
+  jtagsetup();
+  jtag_resettap();
+}
+
+
+//! Reset TAP State Machine       
+
+
+/*  WHAT SHOULD THIS MODULE DO?
+ *     *start
+ *     *shift_ir
+ *     *shift_dr
+ *      reset_tap
+ *     *scanchain0
+ *     *scanchain1 (instr_primitive)
+ *     *scanchain2 (hmmmm... perhaps we'll need to keep the debug calls)
+ *     *    eice_read
+ *     *    eice_write
+ *     *get_register
+ *     *set_register
+ */
+
+u32 shift_ir(u32 ir){
+  u32 retval;
+  jtag_goto_shift_ir();
+  retval = jtagtransn(ir, 4, LSB); 
+  return retval;
+}
+
+//!  Connect the appropriate scan chain to TDO/TDI.  SCAN_N, INTEST
+unsigned long jtagarm7tdmi_scan(u8 chain, u8 testmode) {               // PROVEN
+/*
+When selecting a scan chain the “Run Test/Idle” state should never be reached, other-
+wise, when in debug state, the core will not be correctly isolated and intrusive
+commands occur. Therefore, it is recommended to pass directly from the “Update”
+state” to the “Select DR” state each time the “Update” state is reached.
+*/
+  unsigned long retval;
+  jtag_goto_shift_ir();
+  jtagtransn(ARM7TDMI_IR_SCAN_N, 4, LSB | NORETIDLE);
+  jtag_goto_shift_dr();
+  retval = jtagtransn(chain, 4, LSB | NORETIDLE);
+  jtag_goto_shift_ir();
+  jtagtransn(testmode, 4, LSB); 
+  return(retval);
+}
+
+
+/************************* EmbeddedICE Primitives ****************************/
+//! shifter for writing to chain2 (EmbeddedICE). 
+unsigned long eice_write(unsigned char reg, unsigned long data){
+  unsigned long retval, temp;
+  jtagarm7tdmi_scan(2, ARM7TDMI_IR_INTEST);
+  jtag_goto_shift_dr();
+  retval = jtagtransn(data, 32, LSB| NOEND| NORETIDLE);         // send in the data - 32-bits lsb
+  temp = jtagtransn(reg, 5, LSB| NOEND| NORETIDLE);             // send in the register address - 5 bits lsb
+  jtagtransn(1, 1, LSB);                                        // send in the WRITE bit
+  return(retval); 
+}
+
+//! shifter for reading from chain2 (EmbeddedICE).
+unsigned long eice_read(unsigned char reg){               // PROVEN
+  unsigned long temp, retval;
+  jtagarm7tdmi_scan(2, ARM7TDMI_IR_INTEST);
+  jtag_goto_shift_dr();                                         // send in the register address - 5 bits LSB
+  temp = jtagtransn(reg, 5, LSB| NOEND| NORETIDLE);
+  jtagtransn(0L, 1, LSB);                                       // clear TDI to select "read only"
+  jtag_goto_shift_dr();                                         // Now shift out the 32 bits
+  retval = jtagtransn(0L, 32, LSB);                             // atmel arm jtag docs pp.10-11: LSB first
+  return(retval);
+  
+}
+
+//! push an instruction into the pipeline
+unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  // PROVEN
+  unsigned long retval;
+  jtagarm7tdmi_scan(1, ARM7TDMI_IR_INTEST);
+
+  jtag_goto_shift_dr();
+  // if the next instruction is to run using MCLK (master clock), set TDI
+  if (breakpt)
+    {
+    SETMOSI;
+    count_sysspd_instr_since_debug++;
+    } 
+  else
+    {
+    CLRMOSI; 
+    count_dbgspd_instr_since_debug++;
+    }
+  jtag_tcktock();
+  
+  // Now shift in the 32 bits
+  retval = jtagtransn(instr, 32, 0);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
+  return(retval);
+}
+
+u32 jtagarm7tdmi_nop(u8 brkpt){
+    return jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, brkpt);
+}
+
+/******************** Complex Commands **************************/
+
+//! Retrieve a 32-bit Register value
+unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    //PROVEN
+  unsigned long retval=0L, instr;
+  if (eice_read(EICE_DBGSTATUS)& JTAG_ARM7TDMI_DBG_TBIT)
+    instr = THUMB_INSTR_STR_R0_r0 | reg | (reg<<16);
+  else
+    instr = (unsigned long)(reg<<12L) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
+
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_instr_primitive(instr, 0);
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
+  retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
+  return retval;
+}
+
+//! Set a 32-bit Register value
+void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {          // PROVEN (assuming target reg is word aligned)
+  unsigned long instr;
+  //if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)
+    //instr = THUMB_WRITE_REG
+    instr = (unsigned long)(((unsigned long)reg<<12L) | ARM_WRITE_REG); //  LDR Rx, [R14]
+  
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
+  jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
+  if (reg == ARM_REG_PC){
+    jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
+    jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+    jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+  } else {
+    jtagarm7tdmi_nop( 0);            // push nop into pipeline - decode
+    jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
+    jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
+  }
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+  jtagarm7tdmi_nop( 0);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//! Handles ARM7TDMI JTAG commands.  Forwards others to JTAG.
+void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len){
+  unsigned int val;
+ 
+  switch(verb){
+  case START:
+    //Enter JTAG mode.
+    jtagarm7tdmi_start();
+    txdata(app,verb,0);
+    break;
+  case JTAG_IR_SHIFT:
+    jtag_goto_shift_ir();
+    cmddataword[0] = jtagtransn(cmddata[0], 4, cmddata[1]);
+    txdata(app,verb,2);
+    break;
+  case JTAG_DR_SHIFT:
+	jtag_resettap();
+    jtag_goto_shift_dr();
+    cmddatalong[0] = jtagtransn(cmddatalong[1],cmddata[0],cmddata[1]);
+    txdata(app,verb,4);
+    break;
+  case JTAGARM7_CHAIN0:
+    jtagarm7tdmi_scan(0, ARM7TDMI_IR_INTEST);
+    jtag_goto_shift_dr();
+    debughex32(cmddatalong[0]);
+    debughex(cmddataword[4]);
+    debughex32(cmddatalong[1]);
+    debughex32(cmddatalong[3]);
+    cmddatalong[0] = jtagtransn(cmddatalong[0], 32, LSB| NOEND| NORETIDLE);
+    cmddatalong[2] = jtagtransn(cmddataword[4], 9, MSB| NOEND| NORETIDLE);
+    cmddatalong[1] = jtagtransn(cmddatalong[1], 32, MSB| NOEND| NORETIDLE);
+    cmddatalong[3] = jtagtransn(cmddatalong[3], 32, MSB);
+    txdata(app,verb,16);
+    break;
+  case JTAGARM7_SCANCHAIN1:
+  case JTAGARM7_DEBUG_INSTR:
+    cmddatalong[0] = jtagarm7tdmi_instr_primitive(cmddatalong[0],cmddata[4]);
+    txdata(app,verb,8);
+    break;
+  case JTAGARM7_EICE_READ:
+    cmddatalong[0] = eice_read(cmddata[0]);
+    txdata(app,verb,0x4);
+    break;
+  case JTAGARM7_EICE_WRITE:
+    eice_write(cmddata[4], cmddatalong[0]);
+    txdata(app,verb,0);
+    break;
+  case JTAGARM7_GET_REGISTER:
+    val = cmddata[0];
+    cmddatalong[0] = jtagarm7tdmi_get_register(val);
+    txdata(app,verb,4);
+    break;
+  case JTAGARM7_SET_REGISTER:
+    jtagarm7tdmi_set_register(cmddatalong[1], cmddatalong[0]);
+    txdata(app,verb,4);
+    break;
+
+
+  //case JTAGARM7_STEP_INSTR:
+/*  case JTAGARM7_READ_CODE_MEMORY:
+  case JTAGARM7_WRITE_FLASH_PAGE:
+  case JTAGARM7_READ_FLASH_PAGE:
+  case JTAGARM7_MASS_ERASE_FLASH:
+  case JTAGARM7_PROGRAM_FLASH:
+  case JTAGARM7_LOCKCHIP:
+  case JTAGARM7_CHIP_ERASE:
+  */
+  default:
+    jtaghandle(app,verb,len);
+  }
+}
+
+

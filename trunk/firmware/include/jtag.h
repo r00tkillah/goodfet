@@ -38,7 +38,7 @@ void jtag_goto_shift_ir();
 //! Go to SHIFT_DR
 void jtag_goto_shift_dr();
 //! TAP RESET
-void jtag_reset_to_runtest_idle();
+void jtag_resettap();
 
 //Pins.  Both SPI and JTAG names are acceptable.
 //#define SS   BIT0
@@ -92,6 +92,7 @@ extern int savedtclk;
 //JTAG commands
 #define JTAG_IR_SHIFT 0x80
 #define JTAG_DR_SHIFT 0x81
+#define JTAG_RESETTAP 0x82
 #define JTAG_DR_SHIFT20 0x91
 
 #define MSB         0

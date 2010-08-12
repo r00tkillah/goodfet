@@ -49,7 +49,7 @@ unsigned long jtagarm7tdmi_writeflash(unsigned long adr, unsigned long data);
 
 
 //! Start JTAG
-unsigned long jtagarm7tdmi_start(void);
+void jtagarm7tdmi_start(void);
 //! Reset TAP State Machine
 void jtagarm7tdmi_resettap();
 
@@ -131,43 +131,17 @@ The least significant bit of the instruction register is scanned in and scanned 
 
 
 //JTAGARM7TDMI commands
-#define JTAGARM7TDMI_GET_DEBUG_CTRL       0x80
-#define JTAGARM7TDMI_SET_DEBUG_CTRL       0x81
-#define JTAGARM7TDMI_GET_PC               0x82
-#define JTAGARM7TDMI_SET_PC               0x83
-#define JTAGARM7TDMI_GET_CHIP_ID          0x84
-#define JTAGARM7TDMI_GET_DEBUG_STATE      0x85
-#define JTAGARM7TDMI_GET_WATCHPOINT       0x86
-#define JTAGARM7TDMI_SET_WATCHPOINT       0x87
-#define JTAGARM7TDMI_GET_REGISTER         0x88
-#define JTAGARM7TDMI_SET_REGISTER         0x89
-#define JTAGARM7TDMI_GET_REGISTERS        0x8a
-#define JTAGARM7TDMI_SET_REGISTERS        0x8b
-#define JTAGARM7TDMI_HALTCPU              0x8c
-#define JTAGARM7TDMI_RELEASECPU           0x8d
-#define JTAGARM7TDMI_DEBUG_INSTR          0x8e
-#define JTAGARM7TDMI_STEP_INSTR           0x8f
-#define JTAGARM7TDMI_WRITEMEM             0x90
-#define JTAGARM7TDMI_READMEM              0x91
-#define JTAGARM7TDMI_WRITE_FLASH_PAGE     0x92
-#define JTAGARM7TDMI_READ_FLASH_PAGE      0x93
-#define JTAGARM7TDMI_MASS_ERASE_FLASH     0x94
-#define JTAGARM7TDMI_PROGRAM_FLASH        0x95
-#define JTAGARM7TDMI_LOCKCHIP             0x96
-#define JTAGARM7TDMI_CHIP_ERASE           0x97
+#define JTAGARM7_GET_REGISTER               0x87
+#define JTAGARM7_SET_REGISTER               0x88
+#define JTAGARM7_DEBUG_INSTR                0x89
 // Really ARM specific stuff
-#define JTAGARM7TDMI_GET_CPSR             0x98
-#define JTAGARM7TDMI_SET_CPSR             0x99
-#define JTAGARM7TDMI_GET_SPSR             0x9a
-#define JTAGARM7TDMI_SET_SPSR             0x9b
-#define JTAGARM7TDMI_SET_MODE_THUMB       0x9c
-#define JTAGARM7TDMI_SET_MODE_ARM         0x9d
-#define JTAGARM7TDMI_SET_IR               0x9e
-#define JTAGARM7TDMI_WAIT_DBG             0x9f
-#define JTAGARM7TDMI_SHIFT_DR             0xa0
-#define JTAGARM7TDMI_SETWATCH0            0xa1
-#define JTAGARM7TDMI_SETWATCH1            0xa2
-#define JTAGARM7TDMI_CHAIN0               0xa3
+#define JTAGARM7_SET_IR                     0x90
+#define JTAGARM7_WAIT_DBG                   0x91
+#define JTAGARM7_SHIFT_DR                   0x92
+#define JTAGARM7_CHAIN0                     0x93
+#define JTAGARM7_SCANCHAIN1                 0x94
+#define JTAGARM7_EICE_READ                  0x95
+#define JTAGARM7_EICE_WRITE                 0x96
 
 
 // for deeper understanding, read the instruction cycle timing section of: 

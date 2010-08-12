@@ -48,7 +48,7 @@ void jtag_goto_shift_dr() {
   jtag_tcktock();
 }
 
-void jtag_reset_to_runtest_idle() {
+void jtag_resettap(){
   SETTMS;
   jtag_tcktock();
   jtag_tcktock();
@@ -312,6 +312,10 @@ void jtaghandle(unsigned char app,
   case JTAG_DR_SHIFT:
     cmddataword[0]=jtag_dr_shift16(cmddataword[0]);
     txdata(app,verb,2);
+    break;
+  case JTAG_RESETTAP:
+    jtag_resettap();
+    txdata(app,verb,0);
     break;
   default:
     txdata(app,NOK,0);

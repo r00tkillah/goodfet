@@ -30,7 +30,7 @@ CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(plat
 
 #Define extra modules here.
 #moreapps?=apps/i2c/i2c.o  apps/glitch/glitch.o apps/jtag/sbw.o apps/smartcard/smartcard.o apps/jtag/ejtag.o apps/jtag/jtagxscale.o
-moreapps?=apps/jtag/sbw.o apps/glitch/glitch.o
+moreapps?=apps/jtag/sbw.o apps/glitch/glitch.o apps/jtag/jtagarm7.o
 # should include apps/jtag/jtagarm7tdmi.o to build jtag for ARM7
 # should include apps/pic/dspic33f.o to build support for PIC24H/dsPIC33F
 

@@ -17,16 +17,14 @@
 
 unsigned char current_chain;
 unsigned char current_dbgstate = -1;
-unsigned char last_halt_debug_state = -1;
-unsigned long last_halt_pc = -1;
-unsigned long count_dbgspd_instr_since_debug = 0;
-unsigned long count_sysspd_instr_since_debug = 0;
+//unsigned char last_halt_debug_state = -1;
+//unsigned long last_halt_pc = -1;
 
 
-void jtag_goto_shift_ir();
-void jtag_goto_shift_dr();
-void jtag_reset_to_runtest_idle();
-void jtag_arm_tcktock();
+//void jtag_goto_shift_ir();
+//void jtag_goto_shift_dr();
+//void jtag_reset_to_runtest_idle();
+//void jtag_arm_tcktock();
 
 
 // JTAGARM7TDMI Commands

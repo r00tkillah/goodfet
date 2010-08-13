@@ -59,10 +59,10 @@ void jtagarm7tdmi_start() {
  *     *set_register
  */
 
-u32 shift_ir(u32 ir){
-  u32 retval;
+u8 shift_ir(u8 ir, u8 flags){
+  u8 retval;
   jtag_goto_shift_ir();
-  retval = jtagtransn(ir, 4, LSB); 
+  retval = jtagtransn(ir, 4, LSB|flags); 
   return retval;
 }
 
@@ -75,12 +75,10 @@ commands occur. Therefore, it is recommended to pass directly from the “Update
 state” to the “Select DR” state each time the “Update” state is reached.
 */
   unsigned long retval;
-  jtag_goto_shift_ir();
-  jtagtransn(ARM7TDMI_IR_SCAN_N, 4, LSB | NORETIDLE);
+  shift_ir(ARM7TDMI_IR_SCAN_N, NORETIDLE);
   jtag_goto_shift_dr();
   retval = jtagtransn(chain, 4, LSB | NORETIDLE);
-  jtag_goto_shift_ir();
-  jtagtransn(testmode, 4, LSB); 
+  shift_ir(testmode, NORETIDLE); 
   return(retval);
 }
 
@@ -120,12 +118,10 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  
   if (breakpt)
     {
     SETMOSI;
-    count_sysspd_instr_since_debug++;
     } 
   else
     {
     CLRMOSI; 
-    count_dbgspd_instr_since_debug++;
     }
   jtag_tcktock();
   
@@ -195,12 +191,10 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     txdata(app,verb,0);
     break;
   case JTAG_IR_SHIFT:
-    jtag_goto_shift_ir();
-    cmddataword[0] = jtagtransn(cmddata[0], 4, cmddata[1]);
-    txdata(app,verb,2);
+    cmddataword[0] = shift_ir(cmddata[0], cmddata[1]);
+    txdata(app,verb,1);
     break;
   case JTAG_DR_SHIFT:
-	jtag_resettap();
     jtag_goto_shift_dr();
     cmddatalong[0] = jtagtransn(cmddatalong[1],cmddata[0],cmddata[1]);
     txdata(app,verb,4);
@@ -208,10 +202,10 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   case JTAGARM7_CHAIN0:
     jtagarm7tdmi_scan(0, ARM7TDMI_IR_INTEST);
     jtag_goto_shift_dr();
-    debughex32(cmddatalong[0]);
-    debughex(cmddataword[4]);
-    debughex32(cmddatalong[1]);
-    debughex32(cmddatalong[3]);
+    //debughex32(cmddatalong[0]);
+    //debughex(cmddataword[4]);
+    //debughex32(cmddatalong[1]);
+    //debughex32(cmddatalong[3]);
     cmddatalong[0] = jtagtransn(cmddatalong[0], 32, LSB| NOEND| NORETIDLE);
     cmddatalong[2] = jtagtransn(cmddataword[4], 9, MSB| NOEND| NORETIDLE);
     cmddatalong[1] = jtagtransn(cmddatalong[1], 32, MSB| NOEND| NORETIDLE);

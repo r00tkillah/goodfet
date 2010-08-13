@@ -1,6 +1,6 @@
 #!/usr/bin/env ipython
 import sys, struct, binascii,time
-from GoodFETARM import *
+from GoodFETARM7 import *
 from intelhex import IntelHex
 
 
@@ -341,6 +341,38 @@ def printResults():
     for y in range(len(results)):
             x=results[y]
             print "%.2x=%s"%(y,repr(["%x"%t for t in x]))
+
+def ARMreadMem(self, adr, wrdcount):
+    retval = [] 
+    r0 = self.ARMget_register(5);        # store R0 and R1
+    r1 = self.ARMget_register(9);
+    #print >>sys.stderr,("CPSR:\t%x"%self.ARMget_regCPSR())
+    for word in range(adr, adr+(wrdcount*4), 4):
+        #sys.stdin.readline()
+        self.ARMset_register(5, word);        # write address into R0
+        self.ARMset_register(9, 0xdeadbeef)
+        self.ARM_nop(0)
+        self.ARM_nop(1)
+        self.ARMdebuginstr(0xe4959004L, 0); # push LDR R1, [R0], #4 into instruction pipeline  (autoincrements for consecutive reads)
+        self.ARM_nop(0)
+        self.ARMrestart()
+        self.ARMwaitDBG()
+        time.sleep(.4)
+        self.ARMdebuginstr(0x47146,0)
+        self.ARMdebuginstr(0x47147,0)
+        print hex(self.ARMget_register(9))
+        # FIXME: this may end up changing te current debug-state.  should we compare to current_dbgstate?
+        #print repr(self.data[4])
+        if (len(self.data)>4 and self.data[4] == '\x00'):
+          print >>sys.stderr,("FAILED TO READ MEMORY/RE-ENTER DEBUG MODE")
+          raise Exception("FAILED TO READ MEMORY/RE-ENTER DEBUG MODE")
+          #return -1
+        else:
+          retval.append( self.ARMget_register(9) )  # read memory value from R1 register
+          #print >>sys.stderr,("CPSR: %x\t\tR0: %x\t\tR1: %x"%(self.ARMget_regCPSR(),self.ARMget_register(0),self.ARMget_register(1)))
+    self.ARMset_register(9, r1);       # restore R0 and R1 
+    self.ARMset_register(5, r0);
+    return retval
 
 """
   case 0xD0: // loopback test

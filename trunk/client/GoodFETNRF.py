@@ -91,7 +91,7 @@ class GoodFETNRF(GoodFET):
         elif rate==250*10**3:
             r6=r6|0x20;
         print "Setting r6=%02x." % r6;
-        self.poke(0x06,r6); #Write new setting.
+        self.poke(0x06,r6); #Write new rate.
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         
@@ -100,6 +100,8 @@ class GoodFETNRF(GoodFET):
         
         chan=frequency/1000000-2400;
         self.poke(0x05,chan);
+
+
     def RF_getfreq(self):
         """Get the frequency in Hz."""
         

@@ -49,9 +49,10 @@ if(len(sys.argv)==1):
 
     print "%s sniff\n\tSniffs packets by current config." % sys.argv[0];
     print "%s sniffob\n\tSniffs OpenBeacon traffic." % sys.argv[0];
-    print "%s snifftp\n\tSniffs Tunrning Point Clicker traffic." % sys.argv[0];
-
-    print "%s hosttp\n\tHosts Tunrning Point Clicker traffic." % sys.argv[0];
+    print "%s snifftp\n\tSniffs Turning Point Clicker traffic." % sys.argv[0];
+    print "%s snifftp\n\tSniffs SparkFun Dongle traffic." % sys.argv[0];
+    
+    print "%s hosttp\n\tHosts Turning Point Clicker traffic." % sys.argv[0];
 
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
     sys.exit();
@@ -151,6 +152,42 @@ if(sys.argv[1]=="sniffob"):
     
     #Set packet length of 16.
     client.RF_setpacketlen(16);
+    
+    #Power radio, prime for RX, one-byte checksum.
+    client.poke(0x00,0x70|0x03|0x08); #0x08 for one byte, 0x04 for two.
+    
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            #time.sleep(0.1);
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
+
+if(sys.argv[1]=="sniffsf"):
+    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
+    #TODO remove all poke() calls.
+    
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    
+    client.RF_setfreq(2402 * 10**6);
+    client.poke(0x06,0x07); #1Mbps
+    client.poke(0x07,0x78); #Reset status register
+    
+    #OpenBeacon defines these in little endian as follows.
+    client.RF_setmaclen(5); # SETUP_AW for 5-byte addresses.
+    #0x01, 0x02, 0x03, 0x02, 0x01
+    client.RF_setsmac(0xe7e7e7e7e7);
+    #'O', 'C', 'A', 'E', 'B'
+    client.RF_settmac(0xe7e7e7e7e7);
+    
+    #Set packet length of 16.
+    client.RF_setpacketlen(4);
     
     #Power radio, prime for RX, one-byte checksum.
     client.poke(0x00,0x70|0x03|0x08); #0x08 for one byte, 0x04 for two.

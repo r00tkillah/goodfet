@@ -1,3 +1,3 @@
 
 upload: 
-	rsync -ave ssh goodfet??.zip travisutk,goodfet@web.sourceforge.net:htdocs/releases/
+	rsync -ave ssh *.zip travisutk,goodfet@web.sourceforge.net:htdocs/releases/

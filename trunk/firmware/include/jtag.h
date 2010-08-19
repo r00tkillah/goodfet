@@ -93,6 +93,7 @@ extern int savedtclk;
 #define JTAG_IR_SHIFT 0x80
 #define JTAG_DR_SHIFT 0x81
 #define JTAG_RESETTAP 0x82
+#define JTAG_RESETTARGET 0x83
 #define JTAG_DR_SHIFT20 0x91
 
 #define MSB         0

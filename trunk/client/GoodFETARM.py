@@ -6,6 +6,10 @@
 # Contributions and bug reports welcome.
 #
 
+
+
+raise Exception("DEPRECATED.  USE GoodFETARM7")
+
 import sys, binascii, struct, time
 import atlasutils.smartprint as asp
 from GoodFET import GoodFET

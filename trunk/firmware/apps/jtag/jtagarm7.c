@@ -1,11 +1,10 @@
-/*! \file jtagarm7tdmi.c
+/*! \file jtagarm7.c
   \brief ARM7TDMI JTAG (AT91R40008, AT91SAM7xxx)
 */
 
 #include "platform.h"
 #include "command.h"
-#include "jtag.h"
-#include "jtagarm7tdmi.h"
+#include "jtagarm7.h"
 
 
 /**** 20-pin Connection Information (pin1 is on top-right for both connectors)****
@@ -34,17 +33,6 @@ GoodFET  ->  7TDMI 14-pin connector
 http://hri.sourceforge.net/tools/jtag_faq_org.html
 ********************************/
 
-
-// ! Start JTAG, setup pins, reset TAP and return IDCODE
-void jtagarm7tdmi_start() {
-  jtagsetup();
-  jtag_resettap();
-}
-
-
-//! Reset TAP State Machine       
-
-
 /*  WHAT SHOULD THIS MODULE DO?
  *     *start
  *     *shift_ir
@@ -58,6 +46,14 @@ void jtagarm7tdmi_start() {
  *     *get_register
  *     *set_register
  */
+
+// ! Start JTAG, setup pins, reset TAP and return IDCODE
+void jtagarm7tdmi_start() {
+  jtagsetup();
+  SETTST;
+  jtag_resettap();
+}
+
 
 u8 shift_ir(u8 ir, u8 flags){
   u8 retval;
@@ -140,7 +136,7 @@ u32 jtagarm7tdmi_nop(u8 brkpt){
 unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    //PROVEN
   unsigned long retval=0L, instr;
   if (eice_read(EICE_DBGSTATUS)& JTAG_ARM7TDMI_DBG_TBIT)
-    instr = THUMB_INSTR_STR_R0_r0 | reg | (reg<<16);
+    instr = THUMB_READ_REG | reg | (reg<<16);
   else
     instr = (unsigned long)(reg<<12L) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
 
@@ -157,8 +153,9 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    
 //! Set a 32-bit Register value
 void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {          // PROVEN (assuming target reg is word aligned)
   unsigned long instr;
-  //if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)
-    //instr = THUMB_WRITE_REG
+  if (eice_read(EICE_DBGSTATUS) & JTAG_ARM7TDMI_DBG_TBIT)
+    instr = THUMB_WRITE_REG | (reg&7) | ((reg&7)<<16);
+  else
     instr = (unsigned long)(((unsigned long)reg<<12L) | ARM_WRITE_REG); //  LDR Rx, [R14]
   
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
@@ -233,6 +230,11 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   case JTAGARM7_SET_REGISTER:
     jtagarm7tdmi_set_register(cmddatalong[1], cmddatalong[0]);
     txdata(app,verb,4);
+    break;
+  case JTAG_RESETTARGET:
+    CLRTST;
+    delay(10);
+    SETTST;
     break;
 
 

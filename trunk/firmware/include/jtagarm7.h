@@ -150,7 +150,7 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define ARM_INSTR_BX_R0             0xe12fff10L
 #define ARM_INSTR_STR_Rx_r14        0xe58f0000L // from atmel docs
 #define ARM_READ_REG                ARM_INSTR_STR_Rx_r14
-#define ARM_INSTR_LDR_Rx_r14        0xe59f0000L // from atmel docs
+#define ARM_INSTR_LDR_Rx_r14        0xe5900000L // NOT from atmel docs (e59e0000L is from atmel docs)
 #define ARM_WRITE_REG               ARM_INSTR_LDR_Rx_r14
 #define ARM_INSTR_LDR_R1_r0_4       0xe4901004L
 #define ARM_READ_MEM                ARM_INSTR_LDR_R1_r0_4

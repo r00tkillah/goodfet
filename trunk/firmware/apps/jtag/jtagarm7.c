@@ -109,6 +109,7 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  
   unsigned long retval;
   jtagarm7tdmi_scan(1, ARM7TDMI_IR_INTEST);
 
+  debughex32(instr);
   jtag_goto_shift_dr();
   // if the next instruction is to run using MCLK (master clock), set TDI
   if (breakpt)
@@ -127,6 +128,9 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  
 }
 
 u32 jtagarm7tdmi_nop(u8 brkpt){
+    //  WARNING: current_dbgstate must be up-to-date before calling this function!!!!!
+    if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)
+        return jtagarm7tdmi_instr_primitive(THUMB_INSTR_NOP, brkpt);
     return jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, brkpt);
 }
 
@@ -135,12 +139,13 @@ u32 jtagarm7tdmi_nop(u8 brkpt){
 //! Retrieve a 32-bit Register value
 unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    //PROVEN
   unsigned long retval=0L, instr;
-  if (eice_read(EICE_DBGSTATUS)& JTAG_ARM7TDMI_DBG_TBIT)
-    instr = THUMB_READ_REG | reg | (reg<<16);
+  current_dbgstate = eice_read(EICE_DBGSTATUS);
+  if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)
+    instr = (unsigned long)(THUMB_READ_REG | (unsigned long)reg | (unsigned long)(reg<<16L));
   else
     instr = (unsigned long)(reg<<12L) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
 
-  jtagarm7tdmi_nop( 0);
+  //debughex32(instr);
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_instr_primitive(instr, 0);
   jtagarm7tdmi_nop( 0);
@@ -151,15 +156,36 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    
 }
 
 //! Set a 32-bit Register value
+//  writing to a register is a problem child in ARM, actually.  if the register you are using as the indirect offset register is misaligned, your results are misaligned.
+//  this set_register implementation normalizes this process at the cost of performance.  since we don't know what's in the register, we set it to 0 first
+//  we could use r14 and hope all is well, but only for arm, not thumb mode, and not always is all well then either.  this is a performance trade-off we may have to revisit later
+//
 void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {          // PROVEN (assuming target reg is word aligned)
   unsigned long instr;
-  if (eice_read(EICE_DBGSTATUS) & JTAG_ARM7TDMI_DBG_TBIT)
-    instr = THUMB_WRITE_REG | (reg&7) | ((reg&7)<<16);
-  else
-    instr = (unsigned long)(((unsigned long)reg<<12L) | ARM_WRITE_REG); //  LDR Rx, [R14]
+  current_dbgstate = eice_read(EICE_DBGSTATUS);
+  if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT){
+    instr = THUMB_WRITE_REG | (reg&7) | ((reg&7)<<16) | ((reg&7)<<3) | ((reg&7)<<19);
+  } else {
+    instr = ARM_WRITE_REG | (reg<<12L) | (reg<<16); //  LDR Rx, [R14]
+  }
   
+  //debughex32(instr);
+  //  --- first time to clear the register... this ensures the write is not 8-bit offset ---
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
+  jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
+  if (reg == ARM_REG_PC){
+    jtagarm7tdmi_instr_primitive(0, 0); // push 32-bit word on data bus
+    jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+    jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+  } else {
+    jtagarm7tdmi_nop( 0);            // push nop into pipeline - decode
+    jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
+    jtagarm7tdmi_instr_primitive(0, 0); // push 32-bit word on data bus
+  }
+  //  --- now we actually write to the register ---
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
   jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
   if (reg == ARM_REG_PC){
     jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
@@ -212,7 +238,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   case JTAGARM7_SCANCHAIN1:
   case JTAGARM7_DEBUG_INSTR:
     cmddatalong[0] = jtagarm7tdmi_instr_primitive(cmddatalong[0],cmddata[4]);
-    txdata(app,verb,8);
+    txdata(app,verb,4);
     break;
   case JTAGARM7_EICE_READ:
     cmddatalong[0] = eice_read(cmddata[0]);

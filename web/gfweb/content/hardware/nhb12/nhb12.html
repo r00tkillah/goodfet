@@ -3,13 +3,14 @@
 <p>The NHB12 and NHB12B are the tenth and eleventh hardware revisions
 of the GoodFET, but they also served as conference badges for
 the <a href="http://thenexthope.org/">Next Hope</a> conference that
-occurred in Manhattan in 2010.  These were the first GoodFETs to
-be mass produced, but an additional badge hacking kit is
-necessary to run the GoodFET firmware.</p>
+occurred in Manhattan in 2010.  These were the first GoodFETs to be
+mass produced, but an additional badge hacking kit is necessary to run
+the GoodFET firmware.</p>
 
 <p>All badges ship with an MSP430 port of
 the <a href="http://openbeacon.de/">OpenBeacon</a> firmware for use
-with the conference's <a href="http://amd.hope.net/">OpenAMD</a> deployment.</p>
+with the conference's <a href="http://amd.hope.net/">OpenAMD</a>
+deployment.</p>
 
 <p><a href="http://www.flickr.com/photos/travisgoodspeed/4746123271/"
 title="NHBadge by Travis Goodspeed, on
@@ -39,8 +40,14 @@ being, flash one of the images at the
 <a href="http://sourceforge.net/projects/nhbadge/files/">NHBadge</a>
 project's file page</p> with 'goodfet.bsl -e -p foo.hex'.</p>
 
+<p>To build the GoodFET firmware for these boards, compile
+trunk/firmware with 'platform=nhb12 mcu=msp430x2618 make clean
+install' or 'platform=nhb12b mcu=msp430x2618 make clean install' as
+your hardware dictates.</p>
+
 <h2>Bill of Materials</h2>
 
+<!--
 <table border="1">
 <tr><td>Quantity</td><td>Package</td><td></td></tr>
 <tr><td>1</td><td>SSOP28</td><td>FT232RL</td></tr>
@@ -51,7 +58,9 @@ project's file page</p> with 'goodfet.bsl -e -p foo.hex'.</p>
 <tr><td>1</td><td></td><td>8 pin header (optional)</td></tr>
 <tr><td>1</td><td></td><td>2x7 pin header</td></tr>
 </table>
+-->
 
+<p>Coming Soon</p>
 
 <h2>Errata</h2>
 

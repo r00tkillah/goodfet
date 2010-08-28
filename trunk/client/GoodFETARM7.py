@@ -13,8 +13,8 @@
 #  * -ancilary/faster- ldm/stm versions of memory access  (had trouble in past, possibly also due to haphazard abuse of DCLK)
 #  
 # fixme now stuff:
-#  * thumb mode get/set_register
-#  * thumb to arm mode
+#  * thumb mode get/set_register    - DONE!
+#  * thumb to arm mode              - DONE!
 #  * rethink the whole python/c trade-off for cross-python session debugging
 
 import sys, binascii, struct, time
@@ -304,7 +304,11 @@ class GoodFETARM(GoodFET):
         return retval
     def ARMget_registers(self):
         """Get ARM Registers"""
-        regs = [ self.ARMget_register(x) for x in range(15) ]
+        # FIXME: should we clobber r15 first?  if results get wonky, we will.
+        self.ARMdebuginstr(ARM_INSTR_SKANKREGS,0)
+        self.ARM_nop(0)
+        self.ARM_nop(0)
+        regs = [ struct.unpack("<L", self.ARM_nop(0))[0] for x in range(15) ]
         regs.append(self.ARMgetPC())            # make sure we snag the "static" version of PC
         return regs
     def ARMset_registers(self, regs, mask):

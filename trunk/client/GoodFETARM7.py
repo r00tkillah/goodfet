@@ -133,7 +133,8 @@ ARM_INSTR_STR_R1_r0_4 =     0xe4801004L
 ARM_WRITE_MEM =             ARM_INSTR_STR_R1_r0_4
 ARM_INSTR_MRS_R0_CPSR =     0xe10f0000L
 ARM_INSTR_MSR_cpsr_cxsf_R0 =0xe12ff000L
-ARM_INSTR_STMIA_R14_r0_rx = 0xE88E0000L      # add up to 65k to indicate which registers...
+ARM_INSTR_STMIA_R14_r0_rx = 0xE88e0000L      # add up to 65k to indicate which registers...
+ARM_INSTR_LDMIA_R14_r0_rx = 0xE89e0000L      # add up to 65k to indicate which registers...
 ARM_STORE_MULTIPLE =        ARM_INSTR_STMIA_R14_r0_rx
 ARM_INSTR_SKANKREGS =       0xE88F7fffL
 ARM_INSTR_CLOBBEREGS =      0xE89F7fffL
@@ -183,6 +184,7 @@ DBGCTRLBITS = {
         1<<ENABLE:'ENABLE',
         }
 
+LDM_BITMASKS = [(1<<x)-1 for x in xrange(16)]
 #### TOTALLY BROKEN, NEED VALIDATION AND TESTING
 PCOFF_DBGRQ = 4 * 4
 PCOFF_WATCH = 4 * 4
@@ -304,11 +306,7 @@ class GoodFETARM(GoodFET):
         return retval
     def ARMget_registers(self):
         """Get ARM Registers"""
-        # FIXME: should we clobber r15 first?  if results get wonky, we will.
-        self.ARMdebuginstr(ARM_INSTR_SKANKREGS,0)
-        self.ARM_nop(0)
-        self.ARM_nop(0)
-        regs = [ struct.unpack("<L", self.ARM_nop(0))[0] for x in range(15) ]
+        regs = [ self.ARMget_register(x) for x in range(15) ]
         regs.append(self.ARMgetPC())            # make sure we snag the "static" version of PC
         return regs
     def ARMset_registers(self, regs, mask):
@@ -501,7 +499,28 @@ class GoodFETARM(GoodFET):
         self.ARMset_register(1, r1);       # restore R0 and R1 
         self.ARMset_register(0, r0);
         return retval
-
+    def ARMreadChunk(self, adr, wordcount):         
+        """ Only works in ARM mode currently
+        WARNING: Addresses must be word-aligned!
+        """
+        regs = self.ARMget_registers()
+        output = []
+        count = wordcount
+        while (wordcount > 0):
+            count = (wordcount, 0xe)[wordcount>0xd]
+            bitmask = LDM_BITMASKS[count]
+            self.ARMset_register(14,adr)
+            self.ARM_nop(1)
+            self.ARMdebuginstr(ARM_INSTR_LDMIA_R14_r0_rx | bitmask ,0)
+            #FIXME: do we need the extra nop here?
+            self.ARMrestart()
+            self.ARMwaitDBG()
+            output.extend([self.ARMget_register(x) for x in xrange(count)])
+            wordcount -= count
+            adr += count*4
+            print hex(adr)
+        # FIXME: handle the rest of the wordcount here.
+        return output
     def ARMwriteMem(self, adr, wordarray):
         r0 = self.ARMget_register(0);        # store R0 and R1
         r1 = self.ARMget_register(1);

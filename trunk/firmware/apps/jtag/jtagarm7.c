@@ -46,9 +46,7 @@ http://hri.sourceforge.net/tools/jtag_faq_org.html
  *     *get_register
  *     *set_register
  */
-// TODO:
-// * fix set_register to handle pc again.  apparently it got broken when i fixed the dclk timing issue.
-//
+
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
 void jtagarm7tdmi_start() {
   jtagsetup();
@@ -152,15 +150,13 @@ unsigned long jtagarm7_get_reg_prim(unsigned long instr){
 void jtagarm7_set_reg_prim(unsigned long instr, unsigned long reg, unsigned long val){      // PROVEN - 100827 (non-PC)
   jtagarm7tdmi_nop( 0);                                 // push nop into pipeline - executed 
   jtagarm7tdmi_instr_primitive(instr, 0);               // push instr into pipeline - fetch
-  if (reg == ARM_REG_PC){
-    debugstr("setting pc...");
-    jtagarm7tdmi_instr_primitive(val, 0);               // push 32-bit word on data bus
     jtagarm7tdmi_nop( 0);                               // push nop into pipeline - decode 
     jtagarm7tdmi_nop( 0);                               // push nop into pipeline - execute 
-  } else {
-    jtagarm7tdmi_nop( 0);                               // push nop into pipeline - decode
-    jtagarm7tdmi_nop( 0);                               // push nop into pipeline - execute
     jtagarm7tdmi_instr_primitive(val, 0);               // push 32-bit word on data bus
+  if (reg == ARM_REG_PC){
+    debugstr("setting pc...");
+    jtagarm7tdmi_nop( 0);                               // push nop into pipeline - refill 
+    jtagarm7tdmi_nop( 0);                               // push nop into pipeline - refill 
   }
 }
 

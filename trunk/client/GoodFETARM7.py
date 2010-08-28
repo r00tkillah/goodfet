@@ -183,6 +183,11 @@ DBGCTRLBITS = {
         1<<ENABLE:'ENABLE',
         }
 
+#### TOTALLY BROKEN, NEED VALIDATION AND TESTING
+PCOFF_DBGRQ = 4 * 4
+PCOFF_WATCH = 4 * 4
+PCOFF_BREAK = 4 * 4
+
 
 def debugstr(strng):
     print >>sys.stderr,(strng)
@@ -289,7 +294,7 @@ class GoodFETARM(GoodFET):
         self.storedPC = val
     def ARMget_register(self, reg):
         """Get an ARM's Register"""
-        self.writecmd(0x13,GET_REGISTER,1,[reg&0xff])
+        self.writecmd(0x13,GET_REGISTER,1,[reg&0xf])
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
     def ARMset_register(self, reg, val):
@@ -339,11 +344,23 @@ class GoodFETARM(GoodFET):
         self.ARMeice_write(EICE_WP1CTRLMASK, ctrlmask);   # write 0xfffffff7 in watchpoint 1 control mask - only detect the fetch instruction
         return self.data
     def THUMBgetPC(self):
+        THUMB_INSTR_STR_R0_r0 =     0x60006000L
+        THUMB_INSTR_MOV_R0_PC =     0x46b846b8L
+        THUMB_INSTR_BX_PC =         0x47784778L
+        THUMB_INSTR_NOP =           0x1c001c00L
+
         r0 = self.ARMget_register(0)
         self.ARMdebuginstr(THUMB_INSTR_MOV_R0_PC, 0)
         retval = self.ARMget_register(0)
         self.ARMset_register(0,r0)
         return retval
+    def ARMcapture_system_state(self, pcoffset):
+        if self.ARMget_dbgstate() & DBG_TBIT:
+            pcoffset += 8
+        else:
+            pcoffset += 4
+        self.storedPC = self.ARMget_register(15) + pcoffset
+        self.last_dbg_state = self.ARMget_dbgstate()
     def ARMhaltcpu(self):
         """Halt the CPU."""
         if not(self.ARMget_dbgstate()&1):
@@ -351,7 +368,7 @@ class GoodFETARM(GoodFET):
             if (self.ARMwaitDBG() == 0):
                 raise Exception("Timeout waiting to enter DEBUG mode on HALT")
             self.ARMset_dbgctrl(0)
-            self.last_dbg_state = self.ARMget_dbgstate()
+            self.ARMcapture_system_state(PCOFF_DBGRQ)
             if self.last_dbg_state&0x10:
                 self.storedPC = self.THUMBgetPC()
             else:
@@ -394,7 +411,7 @@ class GoodFETARM(GoodFET):
             print hex(self.storedPC)
             print hex(self.ARMget_register(15))
             print hex(self.ARMchain0(self.storedPC,self.flags)[0])
-            self.ARMdebuginstr(THUMB_INSTR_B_IMM | (0x7fc07fc))
+            self.ARMdebuginstr(THUMB_INSTR_B_IMM | (0x7fc07fc),0)
             self.ARM_nop()
             self.ARMrestart()
 
@@ -406,12 +423,7 @@ class GoodFETARM(GoodFET):
         r0 = None
         if ((self.current_dbgstate & DBG_TBIT)):
             debugstr("=== Switching to ARM mode ===")
-            #r0 = self.ARMget_register(0)
             self.ARM_nop(0)
-            #self.ARMdebuginstr(THUMB_INSTR_NOP,0)
-            #self.ARMdebuginstr(THUMB_INSTR_STR_R0_r0,0)
-            #self.ARMdebuginstr(THUMB_INSTR_MOV_R0_PC,0)
-            #self.ARMdebuginstr(THUMB_INSTR_STR_R0_r0,0)
             self.ARMdebuginstr(THUMB_INSTR_BX_PC,0)
             self.ARM_nop(0)
             self.ARM_nop(0)
@@ -423,12 +435,14 @@ class GoodFETARM(GoodFET):
         debugstr("=== Switching to THUMB mode ===")
         if ( not (self.current_dbgstate & DBG_TBIT)):
             self.storedPC |= 1
+            r0 = self.ARMget_register(0)
             self.ARMset_register(0, self.storedPC)
             self.ARM_nop(0)
             self.ARMdebuginstr(ARM_INSTR_BX_R0,0)
             self.ARM_nop(0)
             self.ARM_nop(0)
             self.resettap()
+            self.ARMset_register(0,r0)
         self.current_dbgstate = self.ARMget_dbgstate();
         return self.current_dbgstate
     def ARMget_regCPSRstr(self):

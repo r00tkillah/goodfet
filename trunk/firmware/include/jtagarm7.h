@@ -8,60 +8,17 @@
 #define JTAGSTATE_ARM 0         // bit 4 on dbg status reg is low
 #define JTAGSTATE_THUMB 1
 
-#define ARMTCKTOCK  CLRTCK; PLEDOUT^=PLEDPIN; SETTCK; PLEDOUT^=PLEDPIN;
-// ASSUME RUN-TEST/IDLE STATE
-#define SHIFT_IR    SETTMS;TCKTOCK;TCKTOCK;CLRTMS;TCKTOCK;TCKTOCK;
-#define SHIFT_DR    SETTMS;TCKTOCK;CLRTMS;TCKTOCK;TCKTOCK;
-
-
-
 unsigned char current_chain;
 unsigned char current_dbgstate = -1;
 //unsigned char last_halt_debug_state = -1;
 //unsigned long last_halt_pc = -1;
 
 
-//void jtag_goto_shift_ir();
-//void jtag_goto_shift_dr();
-//void jtag_reset_to_runtest_idle();
-//void jtag_arm_tcktock();
-
-
-// JTAGARM7TDMI Commands
-
-//! Write data to address.
-unsigned long jtagarm7tdmi_writemem(unsigned long adr, unsigned long data);
-//! Read data from address
-unsigned long jtagarm7tdmi_readmem(unsigned long adr);
-
-//! Halt the CPU
-unsigned long jtagarm7tdmi_haltcpu();
-//! Release the CPU
-unsigned long jtagarm7tdmi_releasecpu();
-
-//! Set the program counter.
-void jtagarm7tdmi_setpc(unsigned long adr);
-
-//! Write data to address.
-unsigned long jtagarm7tdmi_writeflash(unsigned long adr, unsigned long data);
-
+// JTAGARM7 Commands
 
 //! Start JTAG
 void jtagarm7tdmi_start(void);
-//! Reset TAP State Machine
-void jtagarm7tdmi_resettap();
 
-//! ARM-specific JTAG bit-transfer
-unsigned long jtagarmtransn(unsigned long word, unsigned char bitcount, unsigned char lsb, unsigned char end, unsigned char retidle);
-
-//! Grab debug register - Expect chain 2 to be selected
-unsigned long jtagarm7tdmi_get_dbgstate() ;
-//! Grab the core ID.
-unsigned long jtagarm7tdmi_idcode();
-//!  Connect Bypass Register to TDO/TDI
-unsigned char jtagarm7tdmi_bypass();
-//!  Connect the appropriate scan chain to TDO/TDI
-unsigned long jtagarm7tdmi_scan_intest(int n);
 //!  Set a 32-bit ARM register
 void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val);
 //!  Get a 32-bit ARM register
@@ -171,8 +128,12 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define THUMB_READ_REG              THUMB_INSTR_STR_R0_r0
 #define THUMB_INSTR_MOV_R0_PC       0x46b846b8L
 #define THUMB_INSTR_MOV_PC_R0       0x46474647L
+#define THUMB_INSTR_MOV_HiLo        0x46404640L
+#define THUMB_INSTR_MOV_LoHi        0x46804680L
 #define THUMB_INSTR_BX_PC           0x47784778L
 #define THUMB_INSTR_NOP             0x1c001c00L
+#define THUMB_SWAP_HiLo             0
+#define THUMB_SWAP_LoHi             1
 #define ARM_REG_PC                  15
 
 #define JTAG_ARM7TDMI_DBG_DBGACK    1

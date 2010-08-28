@@ -46,7 +46,9 @@ http://hri.sourceforge.net/tools/jtag_faq_org.html
  *     *get_register
  *     *set_register
  */
-
+// TODO:
+// * fix set_register to handle pc again.  apparently it got broken when i fixed the dclk timing issue.
+//
 // ! Start JTAG, setup pins, reset TAP and return IDCODE
 void jtagarm7tdmi_start() {
   jtagsetup();
@@ -109,7 +111,7 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  
   unsigned long retval;
   jtagarm7tdmi_scan(1, ARM7TDMI_IR_INTEST);
 
-  debughex32(instr);
+  //debughex32(instr);
   jtag_goto_shift_dr();
   // if the next instruction is to run using MCLK (master clock), set TDI
   if (breakpt)
@@ -137,22 +139,64 @@ u32 jtagarm7tdmi_nop(u8 brkpt){
 /******************** Complex Commands **************************/
 
 //! Retrieve a 32-bit Register value
-unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    //PROVEN
-  unsigned long retval=0L, instr;
-  current_dbgstate = eice_read(EICE_DBGSTATUS);
-  if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)
-    instr = (unsigned long)(THUMB_READ_REG | (unsigned long)reg | (unsigned long)(reg<<16L));
-  else
-    instr = (unsigned long)(reg<<12L) | (unsigned long)ARM_READ_REG;   // STR Rx, [R14] 
-
-  //debughex32(instr);
+unsigned long jtagarm7_get_reg_prim(unsigned long instr){
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_instr_primitive(instr, 0);
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_nop( 0);
-  retval = jtagarm7tdmi_nop( 0);                        // recover 32-bit word
-  return retval;
+  return jtagarm7tdmi_nop( 0);                          // recover 32-bit word
+}
+
+//! Set a 32-bit Register value
+void jtagarm7_set_reg_prim(unsigned long instr, unsigned long reg, unsigned long val){      // PROVEN - 100827 (non-PC)
+  jtagarm7tdmi_nop( 0);                                 // push nop into pipeline - executed 
+  jtagarm7tdmi_instr_primitive(instr, 0);               // push instr into pipeline - fetch
+  if (reg == ARM_REG_PC){
+    debugstr("setting pc...");
+    jtagarm7tdmi_instr_primitive(val, 0);               // push 32-bit word on data bus
+    jtagarm7tdmi_nop( 0);                               // push nop into pipeline - decode 
+    jtagarm7tdmi_nop( 0);                               // push nop into pipeline - execute 
+  } else {
+    jtagarm7tdmi_nop( 0);                               // push nop into pipeline - decode
+    jtagarm7tdmi_nop( 0);                               // push nop into pipeline - execute
+    jtagarm7tdmi_instr_primitive(val, 0);               // push 32-bit word on data bus
+  }
+}
+
+void jtagarm7_thumb_swap_reg(unsigned char dir, unsigned long reg){                         // PROVEN - 100827
+  reg = reg & 7;
+  jtagarm7tdmi_nop( 0);
+  if (dir){
+    jtagarm7tdmi_instr_primitive((unsigned long)(THUMB_INSTR_MOV_LoHi | (reg) | (reg<<16)), 0);
+    debughex32((unsigned long)(THUMB_INSTR_MOV_LoHi | (reg) | (reg<<16)));
+  } else {
+    jtagarm7tdmi_instr_primitive((unsigned long)(THUMB_INSTR_MOV_HiLo | (reg<<3) | (reg<<19)), 0);
+    debughex32((unsigned long)(THUMB_INSTR_MOV_HiLo | (reg<<3) | (reg<<19)));
+  }
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
+  jtagarm7tdmi_nop( 0);
+}
+  
+unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                                // PROVEN - 100827
+  unsigned long retval=0L, instr, r0;
+  current_dbgstate = eice_read(EICE_DBGSTATUS);
+  if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT){
+    if (reg > 7){
+      debugstr("debug: jtagarm7tdmi_get_register: thumb reg > 15");
+      reg = reg & 7;
+      r0 = jtagarm7_get_reg_prim( THUMB_READ_REG);          // save reg0
+      jtagarm7_thumb_swap_reg(THUMB_SWAP_HiLo, reg);        // clobber reg0 with hi reg
+      retval = jtagarm7_get_reg_prim( THUMB_READ_REG);      // recover 32-bit word
+      jtagarm7_set_reg_prim( THUMB_WRITE_REG, 0, r0);       // restore r0
+      return retval;
+    } else {
+      instr = (unsigned long)(THUMB_READ_REG | (unsigned long)reg | (unsigned long)(reg<<16L));
+    }
+  } else
+    instr = (reg<<12L) | ARM_READ_REG;    // STR Rx, [R14] 
+  return jtagarm7_get_reg_prim(instr);
 }
 
 //! Set a 32-bit Register value
@@ -160,43 +204,29 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    
 //  this set_register implementation normalizes this process at the cost of performance.  since we don't know what's in the register, we set it to 0 first
 //  we could use r14 and hope all is well, but only for arm, not thumb mode, and not always is all well then either.  this is a performance trade-off we may have to revisit later
 //
-void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {          // PROVEN (assuming target reg is word aligned)
-  unsigned long instr;
+void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {                      // PROVEN - 100827
+  unsigned long instr, r0;
   current_dbgstate = eice_read(EICE_DBGSTATUS);
   if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT){
-    instr = THUMB_WRITE_REG | (reg&7) | ((reg&7)<<16) | ((reg&7)<<3) | ((reg&7)<<19);
+    if (reg > 7){
+      
+      r0 = jtagarm7_get_reg_prim(THUMB_READ_REG);
+      jtagarm7_set_reg_prim(THUMB_WRITE_REG, 0, 0);
+      instr = (unsigned long)(THUMB_WRITE_REG | (unsigned long)reg | (unsigned long)(reg<<16L));
+      jtagarm7_set_reg_prim(instr, reg, val);
+      jtagarm7_thumb_swap_reg(THUMB_SWAP_LoHi, reg);                // place 32-bit word into a high register
+      jtagarm7_set_reg_prim( THUMB_WRITE_REG, 0, r0);               // restore r0
+    } else
+      instr = THUMB_WRITE_REG | (reg) | ((reg)<<16) | ((reg)<<3) | ((reg)<<19);
   } else {
     instr = ARM_WRITE_REG | (reg<<12L) | (reg<<16); //  LDR Rx, [R14]
   }
   
   //debughex32(instr);
   //  --- first time to clear the register... this ensures the write is not 8-bit offset ---
-  jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
-  jtagarm7tdmi_nop( 0);            // push nop into pipeline - clean out the pipeline...
-  jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
-  if (reg == ARM_REG_PC){
-    jtagarm7tdmi_instr_primitive(0, 0); // push 32-bit word on data bus
-    jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
-    jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
-  } else {
-    jtagarm7tdmi_nop( 0);            // push nop into pipeline - decode
-    jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
-    jtagarm7tdmi_instr_primitive(0, 0); // push 32-bit word on data bus
-  }
+  jtagarm7_set_reg_prim(instr, reg, 0);
   //  --- now we actually write to the register ---
-  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
-  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
-  jtagarm7tdmi_instr_primitive(instr, 0); // push instr into pipeline - fetch
-  if (reg == ARM_REG_PC){
-    jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
-    jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
-    jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
-  } else {
-    jtagarm7tdmi_nop( 0);            // push nop into pipeline - decode
-    jtagarm7tdmi_nop( 0);            // push nop into pipeline - execute
-    jtagarm7tdmi_instr_primitive(val, 0); // push 32-bit word on data bus
-  }
-  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
+  jtagarm7_set_reg_prim(instr, reg, val);
   jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
   jtagarm7tdmi_nop( 0);
 }

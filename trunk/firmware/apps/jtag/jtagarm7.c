@@ -158,6 +158,8 @@ void jtagarm7_set_reg_prim(unsigned long instr, unsigned long reg, unsigned long
     jtagarm7tdmi_nop( 0);                               // push nop into pipeline - refill 
     jtagarm7tdmi_nop( 0);                               // push nop into pipeline - refill 
   }
+  jtagarm7tdmi_nop( 0);                               // push nop into pipeline - decode 
+  jtagarm7tdmi_nop( 0);                               // push nop into pipeline - execute 
 }
 
 void jtagarm7_thumb_swap_reg(unsigned char dir, unsigned long reg){                         // PROVEN - 100827
@@ -223,8 +225,6 @@ void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {          
   jtagarm7_set_reg_prim(instr, reg, 0);
   //  --- now we actually write to the register ---
   jtagarm7_set_reg_prim(instr, reg, val);
-  jtagarm7tdmi_nop( 0);            // push nop into pipeline - executed 
-  jtagarm7tdmi_nop( 0);
 }
 
 

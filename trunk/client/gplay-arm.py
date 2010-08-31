@@ -109,6 +109,15 @@ def test():
     print "PC:",client.ARMgetPC()
     print "PC:",client.ARMgetPC()
     print "PC:",client.ARMgetPC()
+    print "Testing readChunk/writeChunk"
+    mem=client.ARMreadChunk(0x200000,32)
+    client.ARMwriteChunk(0x200000,mem)
+    mem2=client.ARMreadChunk(0x200000,32)
+    if (mem != mem2):
+        print "Failed: \n%s\n%s"%(repr([hex(x) for x in mem]), repr([hex(x) for x in mem2]))
+    else:
+        print "Passed."
+
 
 def test1():
     global data

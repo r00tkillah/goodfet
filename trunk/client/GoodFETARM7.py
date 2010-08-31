@@ -313,9 +313,9 @@ class GoodFETARM(GoodFET):
         """Set ARM Registers"""
         for x in xrange(15):
           if (1<<x) & mask:
-            self.ARMset_register(x,regs.pop())
+            self.ARMset_register(x,regs.pop(0))
         if (1<<15) & mask:                      # make sure we set the "static" version of PC or changes will be lost
-          self.ARMsetPC(regs.pop())
+          self.ARMsetPC(regs.pop(0))
     def ARMdebuginstr(self,instr,bkpt):
         if type (instr) == int or type(instr) == long:
             instr = struct.pack("<L", instr)
@@ -518,9 +518,32 @@ class GoodFETARM(GoodFET):
             output.extend([self.ARMget_register(x) for x in xrange(count)])
             wordcount -= count
             adr += count*4
+            #print hex(adr)
+        # FIXME: handle the rest of the wordcount here.
+        self.ARMset_registers(regs,0xe)
+        return output
+    def ARMwriteChunk(self, adr, wordarray):         
+        """ Only works in ARM mode currently
+        WARNING: Addresses must be word-aligned!
+        """
+        regs = self.ARMget_registers()
+        wordcount = len(wordarray)
+        while (wordcount > 0):
+            count = (wordcount, 0xe)[wordcount>0xd]
+            bitmask = LDM_BITMASKS[count]
+            self.ARMset_register(14,adr)
+            print len(wordarray),bin(bitmask)
+            self.ARMset_registers(wordarray[:count],bitmask)
+            self.ARM_nop(1)
+            self.ARMdebuginstr(ARM_INSTR_STMIA_R14_r0_rx | bitmask ,0)
+            #FIXME: do we need the extra nop here?
+            self.ARMrestart()
+            self.ARMwaitDBG()
+            wordarray = wordarray[count:]
+            wordcount -= count
+            adr += count*4
             print hex(adr)
         # FIXME: handle the rest of the wordcount here.
-        return output
     def ARMwriteMem(self, adr, wordarray):
         r0 = self.ARMget_register(0);        # store R0 and R1
         r1 = self.ARMget_register(1);

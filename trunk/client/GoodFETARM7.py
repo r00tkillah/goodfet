@@ -40,7 +40,7 @@ OK    = 0x7F
 IR_SHIFT =                  0x80
 DR_SHIFT =                  0x81
 RESETTAP =                  0x82
-RESETTARGET =               0x86
+RESETTARGET =               0x83
 GET_REGISTER =              0x87
 SET_REGISTER =              0x88
 DEBUG_INSTR =               0x89
@@ -504,6 +504,7 @@ class GoodFETARM(GoodFET):
         WARNING: Addresses must be word-aligned!
         """
         regs = self.ARMget_registers()
+        self.ARMset_registers([0xdeadbeef for x in xrange(14)], 0xe)
         output = []
         count = wordcount
         while (wordcount > 0):
@@ -575,7 +576,28 @@ class GoodFETARM(GoodFET):
                   0x02 : "force dbgrq",
                   0x01 : "force dbgack"
                   }
-                  
+    def ARMgetChipID(self):
+        chipid = self.ARMreadMem(SF_CHIP_ID,1)
+        return chipid[0]
+    def ARMwriteFirmware(self, firmware):
+        self.halt()
+        chipid = self.ARMgetChipID()
+        # FIXME: initialize PLL or EBI
+        self.ARMmassErase(chipid)
+        self.ARMset_regCPSR(PM_svc)   # set supervisor mode
+        # FIXME: download the "flash identifier" program into target RAM
+        self.ARMsetPC(PROGGYBASE)
+        self.release()
+        # get manufacturer crap through DCC (really??  screw this...)
+        self.halt()
+        if (self.ARMget_regCPSR() & PM_svc != PM_svc):
+            raise Exception("No longer in Supervisor mode after firmware upload")
+        # FIXME: download the downloader program into target RAM
+        self.ARMsetPC(PROGGYBASE)
+        self.release()
+        # FIXME: use DCC to upload the new firmware
+    def ARMresettarget(self, delay=10):
+        return self.writecmd(0x13,RESETTARGET,2, [ delay&0xff, (delay>>8)&0xff ] )
     def ARMchain0(self, address, bits=0x819684c054, data=0):
         bulk = chop(address,4)
         bulk.extend(chop(bits,8))

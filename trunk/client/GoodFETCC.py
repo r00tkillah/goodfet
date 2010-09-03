@@ -169,6 +169,7 @@ class GoodFETCC(GoodFET):
     
 
     CCversions={0x0100:"cc1110",
+                0x1100:"cc1111",
                 0x8500:"cc2430",
                 0x8900:"cc2431",
                 0x8100:"cc2510",
@@ -177,6 +178,7 @@ class GoodFETCC(GoodFET):
                 0xB500:"cc2531",
                 0xFF00:"CCmissing"};
     CCpagesizes={0x01: 1024, #"CC1110",
+                 0x11: 1024, #"CC1111",
                  0x85: 2048, #"CC2430",
                  0x89: 2048, #"CC2431",
                  0x81: 1024, #"CC2510",
@@ -189,7 +191,8 @@ class GoodFETCC(GoodFET):
     def CCidentstr(self):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);
-        return "%s/r%02x" % (chip, ident&0xFF); 
+        pagesize=self.CCpagesizes.get(ident>0xFF);
+        return "%s/r%0.4x/ps0x%0.4x" % (chip, ident,pagesize); 
     def CCident(self):
         """Get a chipcon's ID."""
         self.writecmd(self.APP,0x8B,0,None);
@@ -203,7 +206,7 @@ class GoodFETCC(GoodFET):
         size=self.CCpagesizes.get(chip);
         if(size<10):
             print "ERROR: Pagesize undefined.";
-            print "chip=%02x" %chip;
+            print "chip=%0.4x" %chip;
             sys.exit(1);
             #return 2048;
         return size;

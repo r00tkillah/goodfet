@@ -284,9 +284,12 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     txdata(app,verb,4);
     break;
   case JTAG_RESETTARGET:
+    //FIXME: BORKEN
+    debugstr("RESET TARGET");
     CLRTST;
-    delay(10);
+    delay(cmddataword[0]);
     SETTST;
+    txdata(app,verb,4);
     break;
 
 

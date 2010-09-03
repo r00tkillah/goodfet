@@ -86,7 +86,6 @@ The least significant bit of the instruction register is scanned in and scanned 
 
 
 //JTAGARM7TDMI commands
-#define JTAGARM7_RESETTARGET                0x86
 #define JTAGARM7_GET_REGISTER               0x87
 #define JTAGARM7_SET_REGISTER               0x88
 #define JTAGARM7_DEBUG_INSTR                0x89

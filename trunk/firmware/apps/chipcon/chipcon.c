@@ -344,6 +344,7 @@ unsigned short cc_get_chip_id(){
   //Find the flash word size.
   switch(cmddata[0]){
   case 0x01://CC1110
+  case 0x11://CC1111
   case 0x81://CC2510
   case 0x91://CC2511
     //debugstr("2 bytes/flash word");

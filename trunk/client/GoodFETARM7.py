@@ -576,26 +576,6 @@ class GoodFETARM(GoodFET):
                   0x02 : "force dbgrq",
                   0x01 : "force dbgack"
                   }
-    def ARMgetChipID(self):
-        chipid = self.ARMreadMem(SF_CHIP_ID,1)
-        return chipid[0]
-    def ARMwriteFirmware(self, firmware):
-        self.halt()
-        chipid = self.ARMgetChipID()
-        # FIXME: initialize PLL or EBI
-        self.ARMmassErase(chipid)
-        self.ARMset_regCPSR(PM_svc)   # set supervisor mode
-        # FIXME: download the "flash identifier" program into target RAM
-        self.ARMsetPC(PROGGYBASE)
-        self.release()
-        # get manufacturer crap through DCC (really??  screw this...)
-        self.halt()
-        if (self.ARMget_regCPSR() & PM_svc != PM_svc):
-            raise Exception("No longer in Supervisor mode after firmware upload")
-        # FIXME: download the downloader program into target RAM
-        self.ARMsetPC(PROGGYBASE)
-        self.release()
-        # FIXME: use DCC to upload the new firmware
     def ARMresettarget(self, delay=10):
         return self.writecmd(0x13,RESETTARGET,2, [ delay&0xff, (delay>>8)&0xff ] )
     def ARMchain0(self, address, bits=0x819684c054, data=0):

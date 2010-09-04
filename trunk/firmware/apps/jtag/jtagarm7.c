@@ -154,7 +154,7 @@ void jtagarm7_set_reg_prim(unsigned long instr, unsigned long reg, unsigned long
     jtagarm7tdmi_nop( 0);                               // push nop into pipeline - execute 
     jtagarm7tdmi_instr_primitive(val, 0);               // push 32-bit word on data bus
   if (reg == ARM_REG_PC){
-    debugstr("setting pc...");
+    //debugstr("setting pc...");
     jtagarm7tdmi_nop( 0);                               // push nop into pipeline - refill 
     jtagarm7tdmi_nop( 0);                               // push nop into pipeline - refill 
   }
@@ -167,10 +167,10 @@ void jtagarm7_thumb_swap_reg(unsigned char dir, unsigned long reg){             
   jtagarm7tdmi_nop( 0);
   if (dir){
     jtagarm7tdmi_instr_primitive((unsigned long)(THUMB_INSTR_MOV_LoHi | (reg) | (reg<<16)), 0);
-    debughex32((unsigned long)(THUMB_INSTR_MOV_LoHi | (reg) | (reg<<16)));
+    //debughex32((unsigned long)(THUMB_INSTR_MOV_LoHi | (reg) | (reg<<16)));
   } else {
     jtagarm7tdmi_instr_primitive((unsigned long)(THUMB_INSTR_MOV_HiLo | (reg<<3) | (reg<<19)), 0);
-    debughex32((unsigned long)(THUMB_INSTR_MOV_HiLo | (reg<<3) | (reg<<19)));
+    //debughex32((unsigned long)(THUMB_INSTR_MOV_HiLo | (reg<<3) | (reg<<19)));
   }
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_nop( 0);
@@ -182,7 +182,7 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    
   current_dbgstate = eice_read(EICE_DBGSTATUS);
   if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT){
     if (reg > 7){
-      debugstr("debug: jtagarm7tdmi_get_register: thumb reg > 15");
+      //debugstr("debug: jtagarm7tdmi_get_register: thumb reg > 15");
       reg = reg & 7;
       r0 = jtagarm7_get_reg_prim( THUMB_READ_REG);          // save reg0
       jtagarm7_thumb_swap_reg(THUMB_SWAP_HiLo, reg);        // clobber reg0 with hi reg

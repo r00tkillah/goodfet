@@ -93,19 +93,20 @@ unsigned int jtag430x2_readmem(unsigned long adr){
   //unsigned int tries=5;
   
   while(1){
-    do{
-      jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
-    }while(!(jtag_dr_shift16(0) & 0x0301));
+    //do{
+    jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
+    //}while(!(jtag_dr_shift16(0) & 0x0301));
     
     if(jtag_dr_shift16(0) & 0x0301){
       // Read Memory
       CLRTCLK;
       jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-      if(adr>=0x100){
-	jtag_dr_shift16(0x0501);//word read
-      }else{
-	jtag_dr_shift16(0x0511);//byte read
-      }
+      
+      //if(adr>=0x100){
+      jtag_dr_shift16(0x0501);//word read
+      //}else{
+      //jtag_dr_shift16(0x0511);//byte read
+      //}
       
       jtag_ir_shift8(IR_ADDR_16BIT);
       jtag_dr_shift20(adr); //20

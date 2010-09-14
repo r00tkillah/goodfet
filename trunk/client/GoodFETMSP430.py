@@ -87,6 +87,11 @@ class GoodFETMSP430(GoodFET):
         """Start debugging."""
         self.writecmd(self.MSP430APP,0x20,0,self.data);
         self.JTAGID=ord(self.data[0]);
+        if(not (self.JTAGID==0x89 or self.JTAGID==0x91)):
+            #Try once more
+            self.writecmd(self.MSP430APP,0x20,0,self.data);
+            self.JTAGID=ord(self.data[0]);
+        
         #print "Identified as %02x." % self.JTAGID;
         if(not (self.JTAGID==0x89 or self.JTAGID==0x91)):
             print "Error, misidentified as %02x.\nCheck wiring, as this should be 0x89 or 0x91." % self.JTAGID;

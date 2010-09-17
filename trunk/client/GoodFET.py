@@ -465,10 +465,15 @@ class GoodFET:
             return 0;
         return 1;
     def monitorclocking(self):
-        DCOCTL=self.peekbyte(0x0056);
-        BCSCTL1=self.peekbyte(0x0057);
-        return "0x%02x, 0x%02x" % (DCOCTL, BCSCTL1);
-
+        """Return the 16-bit clocking value."""
+        return "0x%04x" % self.monitorgetclock();
+    
+    def monitorsetclock(self,clock):
+        """Set the clocking value."""
+        self.poke16(0x56, clock);
+    def monitorgetclock(self):
+        """Get the clocking value."""
+        return self.peek16(0x56);
     # The following functions ought to be implemented in
     # every client.
 

@@ -48,6 +48,10 @@ if(sys.argv[1]=="exec"):
 if(sys.argv[1]=="info"):
     print "GoodFET with %s MCU" % client.infostring();
     print "Clocked at %s" % client.monitorclocking();
+if(sys.argv[1]=="clocktest"):
+    print "GoodFET with %s MCU" % client.infostring();
+    print "Clocked at %s" % client.monitorclocking();
+    
 if(sys.argv[1]=="ramfill"):
     client.monitor_ram_pattern();
 if(sys.argv[1]=="ramdepth"):

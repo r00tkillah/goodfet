@@ -192,7 +192,10 @@ class GoodFETCC(GoodFET):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);
         pagesize=self.CCpagesizes.get(ident>0xFF);
-        return "%s/r%0.4x/ps0x%0.4x" % (chip, ident,pagesize); 
+        try:
+            return "%s/r%0.4x/ps0x%0.4x" % (chip, ident, pagesize); 
+        except:
+            return "%04x" % ident;
     def CCident(self):
         """Get a chipcon's ID."""
         self.writecmd(self.APP,0x8B,0,None);

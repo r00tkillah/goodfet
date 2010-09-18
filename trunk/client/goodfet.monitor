@@ -50,7 +50,14 @@ if(sys.argv[1]=="info"):
     print "Clocked at %s" % client.monitorclocking();
 if(sys.argv[1]=="clocktest"):
     print "GoodFET with %s MCU" % client.infostring();
-    print "Clocked at %s" % client.monitorclocking();
+    clocking=client.monitorgetclock();
+    print "Clocked at 0x%04x" % clocking;
+    for foo in range(1,50):
+        client.monitorsetclock(clocking+foo);
+        print "+0x%04x: %s" % (foo,client.infostring());
+        client.monitorsetclock(clocking-foo);
+        print "-0x%04x: %s" % (foo,client.infostring());
+        
     
 if(sys.argv[1]=="ramfill"):
     client.monitor_ram_pattern();

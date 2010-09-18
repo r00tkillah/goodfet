@@ -378,6 +378,11 @@ class GoodFET:
         self.data=[address&0xff,address>>8,value];
         self.writecmd(0,0x03,3,self.data);
         return ord(self.data[0]);
+    def poke16(self,address,value):
+        """Set a word of memory by the monitor."""
+        self.pokebyte(address,value&0xFF);
+        self.pokebyte(address,(value>>8)&0xFF);
+        return value;
     def setsecret(self,value):
         """Set a secret word for later retreival.  Used by glitcher."""
         self.eeprompoke(0,value);

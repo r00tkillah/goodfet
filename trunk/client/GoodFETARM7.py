@@ -523,6 +523,10 @@ class GoodFETARM(GoodFET):
         # FIXME: handle the rest of the wordcount here.
         self.ARMset_registers(regs,0xe)
         return output
+    def ARMreadStream(self, adr, bytecount):
+        data = [struct.unpack("<L", x) for x in self.ARMreadChunk(adr, (bytecount-1/4)+1)]
+        return "".join(data)[:bytecount]
+        
     def ARMwriteChunk(self, adr, wordarray):         
         """ Only works in ARM mode currently
         WARNING: Addresses must be word-aligned!

@@ -1,4 +1,5 @@
 from GoodFETARM7 import *
+import ATMEL_USART as usart
 """
 This is the ARM7 series of microcontrollers from Atmel, including:
 * AT91M40800
@@ -224,14 +225,15 @@ def ebi_csr_decode(reg):
     wse =  (reg>>5)&1
     nws =  (reg>>2)&7
     dbw =  (reg&3)
-    output = ["Base Address: %s"%hex(addr),
+    output = ["(register: %x)"%reg,
+            "Base Address: %s"%hex(addr<<20),
             "Chip Select: %s"%("False","True")[csen],
             "Byte Access Type: %s"%("Byte-Write","Byte-Access")[bat],
             "Data Float Output Time: %d cycles added"%tdf,
             "Page Size: %d MB"%(1,4,16,64)[pages],
             "Wait State: %s"%("disabled","enabled")[wse],
             "Wait States: %d"%nws,
-            "Data Bus Size: %d bits"%dbw,
+            "Data Bus Size: %d bits"%(0,16,8,0)[dbw],
             ]
     return "\n".join(output)
 
@@ -272,12 +274,19 @@ def wd_cmr_decode(cmr):
 
 
 class GoodFETAT91X40(GoodFETARM):
+    def __init__(self):
+        GoodFETARM.__init__(self)
+        self.usart0 = usart.USART(usart.USART0_BASE)
+        self.usart1 = usart.USART(usart.USART1_BASE)
     def getChipSelectReg(self, chipnum):
         addr = EBI_BASE + (chipnum*4)
-        reg, = self.ARMreadMem(addr,1)
+        reg, = self.ARMreadChunk(addr,1)
         return reg
     def getChipSelectRegstr(self, chipnum):
         return ebi_csr_decode(self.getChipSelectReg(chipnum))
+    def setChipSelectReg(self, chipnum, value):
+        addr = EBI_BASE + (chipnum*4)
+        self.ARMwriteChunk(addr,[value])
 
     def getEBIMemoryMap(self):
         keys = ebi_memory_map_items.keys()
@@ -287,6 +296,8 @@ class GoodFETAT91X40(GoodFETARM):
             desc,name,rw,default = ebi_memory_map_items[x*4]
             output.append("\nMAP: %s (%s) - default: %x\n%s"%(name,desc,default,self.getChipSelectRegstr(x)))
         return "\n".join(output)
+    def setRemap(self):
+        self.ARMwriteChunk(EBI_BASE + EBI_OFF_RCR,[REMAP_CMD])
     def getMemoryControlRegister(self):
         mcr = self.ARMreadMem(EBI_MCR)
         return mcr

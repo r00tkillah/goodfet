@@ -287,9 +287,9 @@ class GoodFET:
                     return self.data;
             except TypeError:
                 if self.connected:
-                    print "Error: waiting for serial read timed out (most likely).";
-                    print "This shouldn't happen after syncing.  Exiting for safety.";                    
-                    sys.exit(-1)
+                    print "Warning: waiting for serial read timed out (most likely).";
+                    #print "This shouldn't happen after syncing.  Exiting for safety.";                    
+                    #sys.exit(-1)
                 return self.data;
     #Glitching stuff.
     def glitchApp(self,app):

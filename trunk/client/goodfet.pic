@@ -9,7 +9,7 @@
 #
 # Scott Livingston  <slivingston at caltech.edu>
 #
-# March, April 2010.
+# March-June 2010.
 
 
 import sys
@@ -26,7 +26,25 @@ MONITORAPP = 0x00
 NOK = 0x7E
 dev_table = { 0x00EE : "dsPIC33FJ128GP708",
               0x00EF : "dsPIC33FJ128GP710",
-              0x080A : "PIC24HJ12GP201" }
+              0x080A : "PIC24HJ12GP201",
+              0x080B : "PIC24HJ12GP202",
+              0x0444 : "PIC24FJ16GA002",
+              0x044C : "PIC24FJ16GA004",
+              0x0445 : "PIC24FJ32GA002",
+              0x044D : "PIC24FJ32GA004",
+              0x0446 : "PIC24FJ48GA002",
+              0x044E : "PIC24FJ48GA004",
+              0x0447 : "PIC24FJ64GA002",
+              0x044F : "PIC24FJ64GA004",
+              0x0405 : "PIC24FJ64GA006",
+              0x0408 : "PIC24FJ64GA008",
+              0x040B : "PIC24FJ64GA010",
+              0x0406 : "PIC24FJ96GA006",
+              0x0409 : "PIC24FJ96GA008",
+              0x040C : "PIC24FJ96GA010",
+              0x0407 : "PIC24FJ128GA006",
+              0x040A : "PIC24FJ128GA008",
+              0x040D : "PIC24FJ128GA010" }
 cfg_table = { 0xF80000 : "FBS",
               0xF80002 : "FSS",
               0xF80004 : "FGS",
@@ -246,6 +264,7 @@ if len(sys.argv) == 1:
     print "%s read 0x$addr" % sys.argv[0]
     print "%s dump $foo.hex [0x$start 0x$stop] [pretty]" % sys.argv[0]
     print "%s config" % sys.argv[0]
+    print "%s reset" % sys.argv[0]
     print "%s program $foo.hex" % sys.argv[0]
     print "%s verify $foo.hex" % sys.argv[0]
     print "%s write 0x$address 0x$value" % sys.argv[0]
@@ -256,7 +275,8 @@ if len(sys.argv) == 1:
     print "%s regout" % sys.argv[0]
     print """
 Note: use - for stdout.
-Warning: only supports dsPIC33F/PIC24H (maybe)...
+Warning: only formally supports dsPIC33F/PIC24H,
+         but read/write flash memory works with PIC24F ...
 """
     sys.exit()
 
@@ -291,6 +311,9 @@ if sys.argv[1] == "devid": #0x81
         print "DEVID:          0x%04X  (unknown)" %  devid
     print "revision:       0x%04X"% hwrev
     #print "\n(Note that -1 indicates failure to read a value.)"
+
+elif sys.argv[1] == "reset":
+    client.writecmd( PICAPP, 0x87, 0 )
 
 elif sys.argv[1] == "config": # Dump configuration registers
     prep_cmd_li = [0x040200, # GOTO 0x0200

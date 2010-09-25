@@ -7,7 +7,7 @@
          non-standard 2-wire SPI; hence, I do not use the existing
          GoodFET SPI routines.
 
-  \date March, April 2010
+  \date March-June 2010
 
 */
 
@@ -16,7 +16,10 @@
     dsPIC33F/PIC24H Flash Programming Specification). Note that the
     ICSP key is in bit-reversed order, since it is the only thing that
     is sent MSb first (hence, we flip the bit order and use our usual
-    LSb-first routines). */
+    LSb-first routines).
+
+    Per the dsPIC33F/PIC24H and PIC24F flash programming
+    specifications, the ICSP key is 0x4D434851. */
 #define ICSP_KEY_LOW 0xC2B2
 #define ICSP_KEY_HIGH 0x8A12
 #define APPID_ADDR 0x8007F0
@@ -88,5 +91,6 @@ void pic33f_trans8( unsigned char byte );
 							   then executes them over ICSP session
 							   with target dsPIC33F/PIC24H chip. */
 
+#define PIC_RESET33F   0x87 // Reset attached dsPIC33F/PIC24H chip.
 #define PIC_START33F   0x84 // Start ICSP session
 #define PIC_STOP33F    0x85 // Stop ICSP (basically, drop !MCLR pin and pause briefly)

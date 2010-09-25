@@ -5,7 +5,7 @@
   \brief dsPIC33F programmer application for the GoodFET. Structure
          and style is somewhat modeled after avr.c
 
-  \date March, April 2010
+  \date March-May 2010
 */
 
 
@@ -63,6 +63,12 @@ void pichandle( unsigned char app,
 		*cmddata = loww & 0xff;
 		*(cmddata+1) = loww >> 8;
 		txdata(app,verb,2);
+		break;
+
+	case PIC_RESET33F:
+		CLR_MCLR;
+		delay_ms(20);
+		SET_MCLR;
 		break;
 
 	case PIC_START33F:

@@ -33,6 +33,7 @@ CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(plat
 moreapps?=apps/jtag/sbw.o apps/glitch/glitch.o apps/jtag/jtagarm7.o
 # should include apps/jtag/jtagarm7tdmi.o to build jtag for ARM7
 # should include apps/pic/dspic33f.o to build support for PIC24H/dsPIC33F
+# should include apps/adc/adc.o to build support for ADC10 app (still specific to x2274, GoodFET31).
 
 apps= $(moreapps) apps/chipcon/chipcon.o apps/radios/nrf.o apps/radios/ccspi.o apps/monitor/monitor.o apps/spi/spi.o   apps/jtag/jtag.o apps/jtag/jtag430.o apps/jtag/jtag430x2.o apps/avr/avr.o 
 

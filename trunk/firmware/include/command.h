@@ -155,3 +155,5 @@ WEAKDEF int smartcardhandle(unsigned char app,
 WEAKDEF void pichandle( unsigned char app,
 			unsigned char verb,
 			unsigned long len );
+
+WEAKDEF void adchandle( unsigned char app, unsigned char verb, unsigned long len );

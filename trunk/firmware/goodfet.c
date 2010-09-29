@@ -53,7 +53,7 @@ void init(){
   //Setup clocks, unique to each '430.
   msp430_init_dco();
   msp430_init_uart();
-  
+
   //DAC should be at full voltage if it exists.
 #ifdef DAC12IR
   //glitchvoltages(0xfff,0xfff);
@@ -112,7 +112,9 @@ void handle(unsigned char app,
   case PIC:
     pichandle(app,verb,len);
     break;
-
+	case ADC10:
+		adchandle(app,verb,len);
+		break;
   case I2CAPP:
     i2chandle(app,verb,len);
     break;

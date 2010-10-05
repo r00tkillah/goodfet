@@ -19,18 +19,30 @@ client.serInit();
 
 client.setup();
 client.start();
+time.sleep(5);
 
-bytescount=8*132;
 bytestart=0xf000;
+maxchan=132;
+round=0;
+
+print "time freq rssi";
 
 while 1:
     time.sleep(1);
     client.CChaltcpu();
     
+    round=round+1;
+    
     dump="";
-    for foo in range(0,bytescount):
-        dump=("%s %02x" % (dump,client.CCpeekdatabyte(bytestart+foo)));
-        if foo%8==7: dump=dump+"\n";
+    for entry in range(0,maxchan):
+        adr=bytestart+entry*8;
+        freq=((client.CCpeekdatabyte(adr+0)<<16)+
+              (client.CCpeekdatabyte(adr+1)<<8)+
+              (client.CCpeekdatabyte(adr+2)<<0));
+        hz=freq*396.728515625;
+        mhz=hz/1000000.0
+        rssi=client.CCpeekdatabyte(adr+6);
+        print "%03i %3.3f %03i" % (round,mhz,rssi);
     print dump;
     sys.stdout.flush();
     client.CCreleasecpu();

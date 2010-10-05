@@ -19,7 +19,10 @@ client.serInit();
 
 client.setup();
 client.start();
-time.sleep(5);
+client.CChaltcpu();
+client.CCreleasecpu();
+
+time.sleep(1);
 
 bytestart=0xf000;
 maxchan=132;

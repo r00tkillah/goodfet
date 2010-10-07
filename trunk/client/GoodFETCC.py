@@ -229,6 +229,12 @@ class GoodFETCC(GoodFET):
     def CCdebuginstr(self,instr):
         self.writecmd(self.APP,0x88,len(instr),instr);
         return ord(self.data[0]);
+    def peekblock(self,address,length,memory="vn"):
+        """Return a block of data."""
+        data=range(0,length);
+        for foo in range(0,length):
+            data[foo]=self.peek8(address+foo,memory);
+        return data;
     def peek8(self,address, memory="code"):
         if(memory=="code" or memory=="flash" or memory=="vn"):
             return self.CCpeekcodebyte(address);
@@ -321,8 +327,6 @@ class GoodFETCC(GoodFET):
         self.CChaltcpu();
         #Get SmartRF Studio regs if they exist.
         self.loadsymbols(); 
-
-        #print "Status: %s." % self.status();
         
     def stop(self):
         """Stop debugging."""

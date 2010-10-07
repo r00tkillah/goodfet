@@ -481,7 +481,7 @@ class GoodFET:
         return self.peek16(0x56);
     # The following functions ought to be implemented in
     # every client.
-
+    
     def infostring(self):
         a=self.peekbyte(0xff0);
         b=self.peekbyte(0xff1);
@@ -528,7 +528,7 @@ class GoodFET:
         return self.peekbyte(address); #monitor
     def peekword(self,address, memory="vn"):
         """Peek a natively sized word of memory."""
-        return self.peek(address); #monitor
+        return self.peek16(address); #monitor
     def peekblock(self,address,length,memory="vn"):
         """Return a block of data."""
         data=range(0,length);

@@ -516,15 +516,25 @@ class GoodFET:
         """Dump an intel hex file from code memory."""
         print "Dump not implemented.";
     def peek32(self,address, memory="vn"):
+        """Peek 32 bits."""
         return (self.peek16(address,memory)+
                 (self.peek16(address+2,memory)<<16));
     def peek16(self,address, memory="vn"):
+        """Peek 16 bits of memory."""
         return (self.peek8(address,memory)+
                 (self.peek8(address+1,memory)<<8));
     def peek8(self,address, memory="vn"):
+        """Peek a byte of memory."""
         return self.peekbyte(address); #monitor
     def peekword(self,address, memory="vn"):
+        """Peek a natively sized word of memory."""
         return self.peek(address); #monitor
-    
+    def peekblock(self,address,length,memory="vn"):
+        """Return a block of data."""
+        data=range(0,length);
+        for foo in range(0,length):
+            data[foo]=self.peek8(address+foo,memory);
+        return data;
     def loadsymbols(self):
+        """Load symbols from a file."""
         return;

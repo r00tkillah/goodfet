@@ -148,6 +148,7 @@ void cchandle(unsigned char app,
   //Might hurt too.
   //ccdebuginit();
   long i;
+  int blocklen, blockadr;
   
   switch(verb){
     //CC_PEEK and CC_POKE will come later.
@@ -187,6 +188,7 @@ void cchandle(unsigned char app,
     
   //Micro commands!
   case CC_CHIP_ERASE:
+  case CC_MASS_ERASE_FLASH:
     cc_chip_erase();
     txdata(app,verb,1);
     break;
@@ -244,9 +246,18 @@ void cchandle(unsigned char app,
     txdata(app,verb,1);
     break;
   case CC_READ_XDATA_MEMORY:
-    cmddata[0]=cc_peekdatabyte(cmddataword[0]);
+    //Read the length.
+    blocklen=1;
+    if(len>2)
+      blocklen=cmddataword[1];
+    blockadr=cmddataword[0];
+    
+    //Return that many bytes.
+    for(i=0;i<blocklen;i++)
+      cmddata[i]=cc_peekdatabyte(blockadr+i);
     txdata(app,verb,1);
     break;
+    
   case CC_WRITE_XDATA_MEMORY:
     cmddata[0]=cc_pokedatabyte(cmddataword[0], cmddata[2]);
     txdata(app,verb,1);
@@ -264,9 +275,10 @@ void cchandle(unsigned char app,
       cc_pokedatabyte(i,0xFF);
     txdata(app,verb,0);
     break;
-  case CC_MASS_ERASE_FLASH:
+  
   case CC_CLOCK_INIT:
   case CC_PROGRAM_FLASH:
+  default:
     debugstr("This Chipcon command is not yet implemented.");
     txdata(app,NOK,0);//TODO implement me.
     break;

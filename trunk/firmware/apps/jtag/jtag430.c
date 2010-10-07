@@ -319,8 +319,6 @@ void jtag430handle(unsigned char app,
   unsigned long at;
   unsigned int i, val;
   
-  //debugstr("Classic MSP430 handler.");
-  
   
   /* FIXME
    * Sometimes JTAG doesn't init correctly.

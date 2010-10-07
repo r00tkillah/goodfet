@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 # GoodFET Chipcon Example
-#
+#                                                                                                                                          
 # (C) 2009 Travis Goodspeed <travis at radiantmachines.com>
-#
+#                                                                                                                                          
 # This code dumps the spectrum analyzer data from Mike Ossmann's
-# spectrum analyzer firmware.
-#
-#
-#
+# spectrum analyzer firmware.                                                                                                              
 
 import sys;
 
@@ -28,7 +25,6 @@ client.CCreleasecpu();
 time.sleep(1);
 
 bytestart=0xf000;
-bytescount=8*132
 maxchan=132;
 round=0;
 
@@ -40,16 +36,15 @@ while 1:
     
     round=round+1;
     
-    data=client.peekblock(bytestart,bytescount,"xdata");
     dump="";
     for entry in range(0,maxchan):
-        adr=entry*8;
-        freq=((data[adr+0]<<16)+
-              (data[adr+1]<<8)+
-              (data[adr+2]<<0));
+        adr=bytestart+entry*8;
+        freq=((client.CCpeekdatabyte(adr+0)<<16)+
+              (client.CCpeekdatabyte(adr+1)<<8)+
+              (client.CCpeekdatabyte(adr+2)<<0));
         hz=freq*396.728515625;
         mhz=hz/1000000.0
-        rssi=data[adr+6];
+        rssi=client.CCpeekdatabyte(adr+6);
         print "%03i %3.3f %03i" % (round,mhz,rssi);
     print dump;
     sys.stdout.flush();

@@ -429,3 +429,14 @@ class GoodFETAT91X40(GoodFETARM):
         self.ARMsetPC(PROGGYBASE)
         self.release()
         # FIXME: use DCC to upload the new firmware
+
+    def clearFlash(self):
+        pass
+
+    def readPages(self, addr, pagecount, pagesz=(1024*1024)):
+        global pages;
+        pages = []
+        for page in xrange(pagecount):
+            pages.append(self.ARMreadChunk(addr+(pagesz*page), pagesz))
+        return pages
+                                

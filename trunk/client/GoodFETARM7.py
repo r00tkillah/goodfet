@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # GoodFET ARM Client Library
 # 
-#
-# Good luck with alpha / beta code.
 # Contributions and bug reports welcome.
 #
 # todo:
@@ -10,12 +8,6 @@
 #  * ensure correct PC handling
 #  * flash manipulation (probably need to get the specific chip for this one)
 #  * set security (chip-specific)
-#  * -ancilary/faster- ldm/stm versions of memory access  (had trouble in past, possibly also due to haphazard abuse of DCLK)
-#  
-# fixme now stuff:
-#  * thumb mode get/set_register    - DONE!
-#  * thumb to arm mode              - DONE!
-#  * rethink the whole python/c trade-off for cross-python session debugging
 
 import sys, binascii, struct, time
 import atlasutils.smartprint as asp
@@ -251,10 +243,10 @@ class GoodFETARM(GoodFET):
         return retval
     def ARMidentstr(self):
         ident=self.ARMident()
-        ver     = ident >> 28
-        partno  = (ident >> 12) & 0x10
-        mfgid   = ident & 0xfff
-        return "mfg: %x\npartno: %x\nver: %x\n(%x)" % (ver, partno, mfgid, ident); 
+        ver     = (ident >> 28)
+        partno  = (ident >> 12) & 0xffff
+        mfgid   = (ident >> 1)  & 0x7ff
+        return "Chip IDCODE: 0x%x\n\tver: %x\n\tpartno: %x\n\tmfgid: %x\n" % (ident, ver, partno, mfgid); 
     def ARMeice_write(self, reg, val):
         data = chop(val,4)
         data.extend([reg])
@@ -323,7 +315,7 @@ class GoodFETARM(GoodFET):
         instr.extend([bkpt])
         self.writecmd(0x13,DEBUG_INSTR,len(instr),instr)
         return (self.data)
-    def ARM_nop(self, bkpt):
+    def ARM_nop(self, bkpt=0):
         if self.status() & DBG_TBIT:
             return self.ARMdebuginstr(THUMB_INSTR_NOP, bkpt)
         return self.ARMdebuginstr(ARM_INSTR_NOP, bkpt)
@@ -414,7 +406,7 @@ class GoodFETARM(GoodFET):
             print hex(self.ARMget_register(15))
             print hex(self.ARMchain0(self.storedPC,self.flags)[0])
             self.ARMdebuginstr(THUMB_INSTR_B_IMM | (0x7fc07fc),0)
-            self.ARM_nop()
+            self.ARM_nop(0)
             self.ARMrestart()
 
 
@@ -508,6 +500,7 @@ class GoodFETARM(GoodFET):
         output = []
         count = wordcount
         while (wordcount > 0):
+            if (wordcount%64 == 0):  sys.stderr.write(".")
             count = (wordcount, 0xe)[wordcount>0xd]
             bitmask = LDM_BITMASKS[count]
             self.ARMset_register(14,adr)
@@ -534,10 +527,11 @@ class GoodFETARM(GoodFET):
         regs = self.ARMget_registers()
         wordcount = len(wordarray)
         while (wordcount > 0):
+            if (wordcount%64 == 0):  sys.stderr.write(".")
             count = (wordcount, 0xe)[wordcount>0xd]
             bitmask = LDM_BITMASKS[count]
             self.ARMset_register(14,adr)
-            print len(wordarray),bin(bitmask)
+            #print len(wordarray),bin(bitmask)
             self.ARMset_registers(wordarray[:count],bitmask)
             self.ARM_nop(1)
             self.ARMdebuginstr(ARM_INSTR_STMIA_R14_r0_rx | bitmask ,0)
@@ -547,7 +541,7 @@ class GoodFETARM(GoodFET):
             wordarray = wordarray[count:]
             wordcount -= count
             adr += count*4
-            print hex(adr)
+            #print hex(adr)
         # FIXME: handle the rest of the wordcount here.
     def ARMwriteMem(self, adr, wordarray):
         r0 = self.ARMget_register(0);        # store R0 and R1
@@ -564,7 +558,7 @@ class GoodFETARM(GoodFET):
             self.ARM_nop(0)
             self.ARMrestart()
             self.ARMwaitDBG()
-            print hex(self.ARMget_register(1))
+            print >>sys.stderr,hex(self.ARMget_register(1))
         self.ARMset_register(1, r1);       # restore R0 and R1 
         self.ARMset_register(0, r0);
 
@@ -586,17 +580,18 @@ class GoodFETARM(GoodFET):
         bulk = chop(address,4)
         bulk.extend(chop(bits,8))
         bulk.extend(chop(data,4))
-        print (repr(bulk))
+        print >>sys.stderr,(repr(bulk))
         self.writecmd(0x13,CHAIN0,16,bulk)
         d1,b1,a1 = struct.unpack("<LQL",self.data)
         return (a1,b1,d1)
     def start(self):
         """Start debugging."""
         self.writecmd(0x13,START,0,self.data)
+        print >>sys.stderr,"Identifying Target:"
         ident=self.ARMidentstr()
-        print "Target identifies as %s." % ident
-        print "Debug Status: %s." % self.statusstr()
-        #print "System State: %x." % self.ARMget_regCPSRstr()
+        print >>sys.stderr,ident
+        print >>sys.stderr,"Debug Status:\t%s\n" % self.statusstr()
+
     def stop(self):
         """Stop debugging."""
         self.writecmd(0x13,STOP,0,self.data)

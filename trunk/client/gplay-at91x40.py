@@ -15,9 +15,9 @@ def init():
     #Connect to target
     print >>sys.stderr,"Setting up JTAG ARM on goodfet..."
     client.setup()
-    print >>sys.stderr,"Starting JTAG ARM on goodfet..."
+    print >>sys.stderr,"Starting JTAG ARM on goodfet...\n"
     client.start()
-    print "STARTUP: "+repr(client.data)
+    print "STARTUP: %s\n"%repr(client.data)
     #
 
 def print_registers():
@@ -25,7 +25,6 @@ def print_registers():
 
 
 init()
-print "Don't forget to 'client.stop()' if you want to exit cleanly"
 
 
 def printResults():

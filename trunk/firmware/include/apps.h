@@ -12,7 +12,8 @@
 #define JTAG 0x10
 #define JTAG430 0x11
 #define EJTAG 0x12
-#define JTAGARM7TDMI 0x13 //Uncomment this as soon as client patched.
+#define JTAGARM7TDMI 0x13
+#define ADIv5 0x14
 
 //Manufacturer-specific protocols go in 0x30 and 0x40.
 #define CHIPCON 0x30

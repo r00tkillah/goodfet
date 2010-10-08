@@ -8,7 +8,11 @@
 #define JTAGSTATE_ARM 0         // bit 4 on dbg status reg is low
 #define JTAGSTATE_THUMB 1
 
-unsigned char current_chain;
+unsigned long last_instr = -1;
+unsigned char last_sysstate = 0;
+unsigned char last_ir = -1;
+unsigned char last_scanchain = -1;
+unsigned char tapstate = 15;
 unsigned char current_dbgstate = -1;
 //unsigned char last_halt_debug_state = -1;
 //unsigned long last_halt_pc = -1;

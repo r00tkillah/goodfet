@@ -35,7 +35,7 @@ http://hri.sourceforge.net/tools/jtag_faq_org.html
 
 /*  WHAT SHOULD THIS MODULE DO?
  *     *start
- *     *shift_ir
+ *     *jtagarm_shift_ir
  *     *shift_dr
  *      reset_tap
  *     *scanchain0
@@ -55,10 +55,14 @@ void jtagarm7tdmi_start() {
 }
 
 
-u8 shift_ir(u8 ir, u8 flags){
-  u8 retval;
-  jtag_goto_shift_ir();
-  retval = jtagtransn(ir, 4, LSB|flags); 
+u8 jtagarm_shift_ir(u8 ir, u8 flags){
+  u8 retval = 0;
+  if (last_ir != ir){
+    jtag_goto_shift_ir();
+    retval = jtagtransn(ir, 4, LSB|flags); 
+    tapstate = RunTest_Idle;
+    last_ir = ir;
+  }
   return retval;
 }
 
@@ -70,11 +74,15 @@ wise, when in debug state, the core will not be correctly isolated and intrusive
 commands occur. Therefore, it is recommended to pass directly from the “Update”
 state” to the “Select DR” state each time the “Update” state is reached.
 */
-  unsigned long retval;
-  shift_ir(ARM7TDMI_IR_SCAN_N, NORETIDLE);
-  jtag_goto_shift_dr();
-  retval = jtagtransn(chain, 4, LSB | NORETIDLE);
-  shift_ir(testmode, NORETIDLE); 
+  unsigned long retval = 0;
+  if (last_scanchain != chain){
+    jtagarm_shift_ir(ARM7TDMI_IR_SCAN_N, NORETIDLE);
+    last_scanchain = chain;
+    jtag_goto_shift_dr();
+    retval = jtagtransn(chain, 4, LSB | NORETIDLE);
+    tapstate = Update_DR;
+  }
+  jtagarm_shift_ir(testmode, NORETIDLE); 
   return(retval);
 }
 
@@ -88,6 +96,7 @@ unsigned long eice_write(unsigned char reg, unsigned long data){
   retval = jtagtransn(data, 32, LSB| NOEND| NORETIDLE);         // send in the data - 32-bits lsb
   temp = jtagtransn(reg, 5, LSB| NOEND| NORETIDLE);             // send in the register address - 5 bits lsb
   jtagtransn(1, 1, LSB);                                        // send in the WRITE bit
+  tapstate = RunTest_Idle;
   return(retval); 
 }
 
@@ -100,30 +109,37 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
   jtagtransn(0L, 1, LSB);                                       // clear TDI to select "read only"
   jtag_goto_shift_dr();                                         // Now shift out the 32 bits
   retval = jtagtransn(0L, 32, LSB);                             // atmel arm jtag docs pp.10-11: LSB first
+  tapstate = RunTest_Idle;
   return(retval);
   
 }
 
 //! push an instruction into the pipeline
 unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  // PROVEN
-  unsigned long retval;
+  unsigned long retval = 0;
   jtagarm7tdmi_scan(1, ARM7TDMI_IR_INTEST);
 
   //debughex32(instr);
-  jtag_goto_shift_dr();
-  // if the next instruction is to run using MCLK (master clock), set TDI
-  if (breakpt)
-    {
-    SETMOSI;
-    } 
-  else
-    {
-    CLRMOSI; 
-    }
-  jtag_tcktock();
-  
-  // Now shift in the 32 bits
-  retval = jtagtransn(instr, 32, 0);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
+  if (last_instr != instr && last_sysstate != breakpt){
+    jtag_goto_shift_dr();
+    // if the next instruction is to run using MCLK (master clock), set TDI
+    if (breakpt)
+      {
+      SETMOSI;
+      } 
+    else
+      {
+      CLRMOSI; 
+      }
+    jtag_tcktock();
+    
+    // Now shift in the 32 bits
+    retval = jtagtransn(instr, 32, 0);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
+    tapstate = RunTest_Idle;
+    last_instr = instr;
+    last_sysstate = breakpt;
+  } else
+    jtag_tcktock();
   return(retval);
 }
 
@@ -240,12 +256,13 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     txdata(app,verb,0);
     break;
   case JTAG_IR_SHIFT:
-    cmddataword[0] = shift_ir(cmddata[0], cmddata[1]);
+    cmddataword[0] = jtagarm_shift_ir(cmddata[0], cmddata[1]);
     txdata(app,verb,1);
     break;
   case JTAG_DR_SHIFT:
     jtag_goto_shift_dr();
     cmddatalong[0] = jtagtransn(cmddatalong[1],cmddata[0],cmddata[1]);
+    tapstate = (cmddata[1]&NORETIDLE)>0?Update_DR:RunTest_Idle;
     txdata(app,verb,4);
     break;
   case JTAGARM7_CHAIN0:
@@ -259,6 +276,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
     cmddatalong[2] = jtagtransn(cmddataword[4], 9, MSB| NOEND| NORETIDLE);
     cmddatalong[1] = jtagtransn(cmddatalong[1], 32, MSB| NOEND| NORETIDLE);
     cmddatalong[3] = jtagtransn(cmddatalong[3], 32, MSB);
+    tapstate = RunTest_Idle;
     txdata(app,verb,16);
     break;
   case JTAGARM7_SCANCHAIN1:

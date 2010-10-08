@@ -229,12 +229,12 @@ class GoodFETCC(GoodFET):
     def CCdebuginstr(self,instr):
         self.writecmd(self.APP,0x88,len(instr),instr);
         return ord(self.data[0]);
-    def peekblock(self,address,length,memory="vn"):
+    def peekblock(self,adr,length,memory="vn"):
         """Return a block of data."""
-        data=range(0,length);
-        for foo in range(0,length):
-            data[foo]=self.peek8(address+foo,memory);
-        return data;
+        data=[adr&0xff, (adr&0xff00)>>8,
+              length&0xFF,(length&0xFF00)>>8];
+        self.writecmd(self.APP,0x91,4,data);
+        return [ord(x) for x in self.data]
     def peek8(self,address, memory="code"):
         if(memory=="code" or memory=="flash" or memory=="vn"):
             return self.CCpeekcodebyte(address);

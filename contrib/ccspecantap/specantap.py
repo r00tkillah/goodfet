@@ -32,15 +32,18 @@ bytescount=8*132
 maxchan=132;
 round=0;
 
-print "time freq rssi";
+print "time freq rssi rssimax";
 
 while 1:
-    time.sleep(1);
-    client.CChaltcpu();
+    time.sleep(0.1);
+    client.halt();
     
     round=round+1;
     
+    print "# Requesting %i bytes." % bytescount;
     data=client.peekblock(bytestart,bytescount,"xdata");
+    client.CCreleasecpu();
+    print "# Got %i bytes." % len(data);
     dump="";
     for entry in range(0,maxchan):
         adr=entry*8;
@@ -50,9 +53,10 @@ while 1:
         hz=freq*396.728515625;
         mhz=hz/1000000.0
         rssi=data[adr+6];
-        print "%03i %3.3f %03i" % (round,mhz,rssi);
+        rssimax=data[adr+7];
+        print "%03i %3.3f %03i %03i" % (round,mhz,rssi,rssimax);
     print dump;
     sys.stdout.flush();
-    client.CCreleasecpu();
+    
 
 

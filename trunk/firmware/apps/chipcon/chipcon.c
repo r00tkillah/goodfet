@@ -255,7 +255,7 @@ void cchandle(unsigned char app,
     //Return that many bytes.
     for(i=0;i<blocklen;i++)
       cmddata[i]=cc_peekdatabyte(blockadr+i);
-    txdata(app,verb,1);
+    txdata(app,verb,blocklen);
     break;
     
   case CC_WRITE_XDATA_MEMORY:

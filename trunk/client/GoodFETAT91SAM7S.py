@@ -1,4 +1,5 @@
 from GoodFETARM7 import *
+
 """
 This is the ARM7 series of microcontrollers from Atmel, including:
 * AT91SAM7S512
@@ -10,14 +11,15 @@ This is the ARM7 series of microcontrollers from Atmel, including:
 * AT91SAM7S161
 * AT91SAM7S16
 
-
 SAM-BA boot-assistant can be used (not through this module) by setting PA0, PA1, and PA2 high for at least 10 seconds followed by a power cycle.  SAM-BA supports reprogramming through the DBGU port or USB port.
 
 The System Controller peripherals are all mapped to the highest 4 Kbytes of address space,
 between addresses 0xFFFF F000 and 0xFFFF FFFF.
 
 """
-
+#
+# Base Memory Addresses
+#
 FLASH_BASE =    0x100000
 TCx_BASE =      0xfffa0000      # Timer/Counter
 UDP_BASE =      0xfffb0000      # USB Device Port

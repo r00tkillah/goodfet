@@ -10,7 +10,6 @@
 #  * set security (chip-specific)
 
 import sys, binascii, struct, time
-import atlasutils.smartprint as asp
 from GoodFET import GoodFET
 from intelhex import IntelHex
 

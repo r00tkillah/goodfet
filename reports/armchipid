@@ -1,0 +1,25 @@
+# 
+# ARM Chip ID Database
+# 
+# ARM uses various 16-byte memory addresses
+# to store chip identification information.
+# Due to this our goodfet.arm client could
+# only correctly identify the Chip ID info
+# if the memory address of the family is
+# within this database. We will improve
+# the method through time, but for right
+# now we need to document as many mem
+# addresses as possible for the ARM
+# series. If you know where your ARM
+# chips ID register address is please
+# add it to this file. 
+# 
+# Example:
+#	<family,chip,memory_address>
+#
+# 	7TDMI,SAM7S256,FFF00000
+#
+# Any questions: <q@theqlabs.com>
+# 
+7TDMI,SAM7S256,FFF00000
+

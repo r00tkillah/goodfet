@@ -63,6 +63,8 @@ DP_CTRLSTAT_OFF =       0x4
 DP_SELECT_OFF =         0x8
 DP_RDBUFF_OFF =         0xC
 
+MAX_AP_COUNT = 16
+
 PM_usr = 0b10000
 PM_fiq = 0b10001
 PM_irq = 0b10010
@@ -155,7 +157,6 @@ ORUNDETECT =                1<<0
 ORUNDETECT =                1<<0
 
 
-
 def debugstr(strng):
     print >>sys.stderr,(strng)
 def PSRdecode(psrval):
@@ -181,7 +182,7 @@ class GoodFETADIv5(GoodFET):
         self.ir_status =        None
         self.ap_selected =      None
         self.ap_bank =          0
-        self.aps =              []
+        self.aps =              None
 
     def __del__(self):
         pass
@@ -261,6 +262,11 @@ class GoodFETADIv5(GoodFET):
         apbanksel = (raw>>4) & 0xf
         apsel = raw>>24
         return "SWDP_CTRLSEL = %d\nAPBANKSEL = %d\nAPSEL = %d\n"
+
+    def ADIgetAccessPorts(self):
+        if self.aps == None:
+            self.aps = [createAP(self, x) for x in xrange(MAX_AP_COUNT)]
+        return self.aps
 
     def ADIgetWCR(self):        # SWDP only
         raise Exception("IMPLEMENT ME: ADIgetWCR")
@@ -346,7 +352,14 @@ class GoodFETADIjtag(GoodFETADIv5):
             return self.ADIgetDPACC(0x8)
         return self.ap_selected
 
-
+def createAP(dp, apnum):
+    idr = 0xfc
+    bank = idr/16
+    self.dp.ADIsetSELECT(self.apnum, bank)
+    ident = self.dp.ADIgetAPACC(idr&0xf)
+    if ((ident>>16)&1):
+        return ADI_MEM_AP(dp, apnum)
+    return ADI_JTAG_AP(dp, apnum)
 
 class ADI_AccessPort:           # define common AP calls
     def __init__(self, DP, apnum):
@@ -377,6 +390,17 @@ class ADI_AccessPort:           # define common AP calls
     #def 
 
 class ADI_MEM_AP(ADI_AccessPort):
+    MEMAP_CSW_REG =             0x0
+    MEMAP_TAR_REG =             0x4
+    MEMAP_DRW_REG =             0xC
+    MEMAP_BD0 =                 0x10
+    MEMAP_BD1 =                 0x14
+    MEMAP_BD2 =                 0x18
+    MEMAP_BD3 =                 0x1C
+    MEMAP_CFG_REG =             0xF4
+    MEMAP_BASE_REG =            0xF8
+    MEMAP_IDR_REG =             0xFC
+
     def __init__(self, DP, apnum):
         ADI_AccessPort.__init__(self, DP, apnum)
         self.cfg = self.getCFG()                    # necessary to cache endianness information
@@ -390,36 +414,80 @@ class ADI_MEM_AP(ADI_AccessPort):
         self.setCSW(csw)
 
     def getCSW(self):
-        pass
+        return self.getRegister(MEMAP_CSW_REG)
     def setCSW(self, csw):
-        pass
+        return self.setRegister(MEMAP_CSW_REG, csw)
 
     def getTAR(self):
-        pass
-    def setTAR(self, csw):
-        pass
+        return self.getRegister(MEMAP_TAR_REG)
+    def setTAR(self, tar):
+        return self.setRegister(MEMAP_TAR_REG, tar)
 
     def getDRW(self):
-        pass
-    def setDRW(self, csw):
-        pass
+        return self.getRegister(MEMAP_DRW_REG)
+    def setDRW(self, drw):
+        return self.setRegister(MEMAP_DRW_REG, drw)
+
+    #FIXME: use one set of accessors... either keep the indexed version or the individuals.
+    def getBankedReg(self, index):
+        return self.getRegister(MEMAP_BD0_REG + (index*4))
+    def setBankedReg(self, index, bd):
+        return self.setRegister(MEMAP_BD0_REG + (index*4), bd0)
 
     def getBD0(self):
-        pass
-    def setBD0(self, csw):
-        pass
+        return self.getRegister(MEMAP_BD0_REG)
+    def setBD0(self, bd0):
+        return self.setRegister(MEMAP_BD0_REG, bd0)
+
+    def getBD1(self):
+        return self.getRegister(MEMAP_BD1_REG)
+    def setBD1(self, bd1):
+        return self.setRegister(MEMAP_BD1_REG, bd1)
+
+    def getBD2(self):
+        return self.getRegister(MEMAP_BD2_REG)
+    def setBD2(self, bd2):
+        return self.setRegister(MEMAP_BD2_REG, bd2)
+
+    def getBD3(self):
+        return self.getRegister(MEMAP_BD3_REG)
+    def setBD3(self, bd3):
+        return self.setRegister(MEMAP_BD3_REG, bd3)
 
     def getCFG(self):
-        pass
-    def setCFG(self, csw):
-        pass
+        return self.getRegister(MEMAP_CFG_REG)
+    def setCFG(self, cfg):
+        return self.setRegister(MEMAP_CFG_REG, cfg)
 
     def getBASE(self):
-        pass
-    def setBASE(self, csw):
-        pass
+        return self.getRegister(MEMAP_BASE_REG)
+    def setBASE(self, base):
+        return self.setRegister(MEMAP_BASE_REG, base)
 
     def getIDR(self):
-        pass
-    def setIDR(self, csw):
-        pass
+        return self.getRegister(MEMAP_IDR_REG)
+
+    # CFG accessors
+    CFG_DBGSWENABLE_BITS =      31
+    CFG_DBGSWENABLE =           1<<31
+    CFG_PROT_BITS =             24
+    CFG_PROT =               0x3f<<24
+    CFG_SPIDEN_BITS =           23
+    CFG_SPIDEN =                1<<23
+    CFG_MODE_BITS =             8
+    CFG_MODE =                0xf<<8
+    CFG_TRINPROG_BITS =         7
+    CFG_TRINPROG =              1<<7
+    CFG_DEVICEEN_BITS =         6
+    CFG_DEVICEEN =              1<<6
+    CFG_ADDRINC_BITS =          4
+    CFG_ADDRINC =               3<<4
+    CFG_SIZE_BITS =             0
+    CFG_SIZE =                  7
+    def CFG_setDbgSwEnable(self, bit):
+        cfg = self.getCFG() & CFG_DBGSWENABLE
+        cfg |= (bit<<CFG_DBGSWENABLE_BITS)
+    def CFG_getDbgSwEnable(self):
+        cfg = (self.getCFG() & CFG_DBGSWENABLE) >> CFG_DBGSWENABLE_BITS
+
+

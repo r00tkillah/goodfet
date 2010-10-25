@@ -249,7 +249,7 @@ mcr_ale = {
         }
 
 def mcr_decode(mcr):
-    validAddrBits,maxAddrSpace,validCS,codeLabel = mcr_decode[mcr&7]
+    validAddrBits,maxAddrSpace,validCS,codeLabel = mcr_ale[mcr&7]
     drp = mcr>>4
     output = ["Valid Address Bits: %s"%validAddrBits,
             "Maximum Address Space: %xMB"%maxAddrSpace,
@@ -299,7 +299,7 @@ class GoodFETAT91X40(GoodFETARM):
     def setRemap(self):
         self.ARMwriteChunk(EBI_BASE + EBI_OFF_RCR,[REMAP_CMD])
     def getMemoryControlRegister(self):
-        mcr = self.ARMreadMem(EBI_MCR)
+        mcr, = self.ARMreadMem(EBI_MCR)
         return mcr
     def getMemoryControlRegisterstr(self):
         return mcr_decode(self.getMemoryControlRegister())

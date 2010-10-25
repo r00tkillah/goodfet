@@ -407,65 +407,70 @@ class ADI_MEM_AP(ADI_AccessPort):
         # FIXME: how do i determine if this adi supports multibyte access or just word?  or packed transfers?
         self.setMemAccessSize(4)
 
-    def setMemAccessSize(self, bytecount):
-        csw = self.getCSW()
-        csw &= 0xfffffff8
-        csw |= (bytecount>>1)
-        self.setCSW(csw)
-
     def getCSW(self):
-        return self.getRegister(MEMAP_CSW_REG)
+        """ Control/Status Word reg  """
+        return self.getRegister(self.MEMAP_CSW_REG)
     def setCSW(self, csw):
-        return self.setRegister(MEMAP_CSW_REG, csw)
+        """ Control/Status Word reg.  Some bits are RO """
+        return self.setRegister(self.MEMAP_CSW_REG, csw)
+    def reprCSW(self):
+        csw = self.getCSW()
+        
 
     def getTAR(self):
-        return self.getRegister(MEMAP_TAR_REG)
+        """ Transfer Address Register.  Used for both DRW and BDx accesses.  Autoinc (see CSW) only works for DRW accesses, not Banked Regs"""
+        return self.getRegister(self.MEMAP_TAR_REG)
     def setTAR(self, tar):
-        return self.setRegister(MEMAP_TAR_REG, tar)
+        """ Transfer Address Register.  Used for both DRW and BDx accesses.  Autoinc (see CSW) only works for DRW accesses, not Banked Regs"""
+        return self.setRegister(self.MEMAP_TAR_REG, tar)
 
     def getDRW(self):
-        return self.getRegister(MEMAP_DRW_REG)
+        """ Data Read/Write reg. """
+        return self.getRegister(self.MEMAP_DRW_REG)
     def setDRW(self, drw):
-        return self.setRegister(MEMAP_DRW_REG, drw)
+        """ Data Read/Write reg. """
+        return self.setRegister(self.MEMAP_DRW_REG, drw)
 
     #FIXME: use one set of accessors... either keep the indexed version or the individuals.
-    def getBankedReg(self, index):
-        return self.getRegister(MEMAP_BD0_REG + (index*4))
-    def setBankedReg(self, index, bd):
-        return self.setRegister(MEMAP_BD0_REG + (index*4), bd0)
+    def getBDReg(self, index):
+        return self.getRegister(self.MEMAP_BD0_REG + (index*4))
+    def setBDReg(self, index, bd):
+        return self.setRegister(self.MEMAP_BD0_REG + (index*4), bd0)
 
     def getBD0(self):
-        return self.getRegister(MEMAP_BD0_REG)
+        return self.getRegister(self.MEMAP_BD0_REG)
     def setBD0(self, bd0):
-        return self.setRegister(MEMAP_BD0_REG, bd0)
+        return self.setRegister(self.MEMAP_BD0_REG, bd0)
 
     def getBD1(self):
-        return self.getRegister(MEMAP_BD1_REG)
+        return self.getRegister(self.MEMAP_BD1_REG)
     def setBD1(self, bd1):
-        return self.setRegister(MEMAP_BD1_REG, bd1)
+        return self.setRegister(self.MEMAP_BD1_REG, bd1)
 
     def getBD2(self):
-        return self.getRegister(MEMAP_BD2_REG)
+        return self.getRegister(self.MEMAP_BD2_REG)
     def setBD2(self, bd2):
-        return self.setRegister(MEMAP_BD2_REG, bd2)
+        return self.setRegister(self.MEMAP_BD2_REG, bd2)
 
     def getBD3(self):
-        return self.getRegister(MEMAP_BD3_REG)
+        return self.getRegister(self.MEMAP_BD3_REG)
     def setBD3(self, bd3):
-        return self.setRegister(MEMAP_BD3_REG, bd3)
+        return self.setRegister(self.MEMAP_BD3_REG, bd3)
 
     def getCFG(self):
-        return self.getRegister(MEMAP_CFG_REG)
+        return self.getRegister(self.MEMAP_CFG_REG)
     def setCFG(self, cfg):
-        return self.setRegister(MEMAP_CFG_REG, cfg)
+        return self.setRegister(self.MEMAP_CFG_REG, cfg)
 
     def getBASE(self):
-        return self.getRegister(MEMAP_BASE_REG)
+        """ BASE debug address.  RO """
+        return self.getRegister(self.MEMAP_BASE_REG)
     def setBASE(self, base):
-        return self.setRegister(MEMAP_BASE_REG, base)
+        """ BASE debug address.  RO """
+        return self.setRegister(self.MEMAP_BASE_REG, base)
 
     def getIDR(self):
-        return self.getRegister(MEMAP_IDR_REG)
+        return self.getRegister(self.MEMAP_IDR_REG)
 
     # CFG accessors
     CFG_DBGSWENABLE_BITS =      31
@@ -484,10 +489,27 @@ class ADI_MEM_AP(ADI_AccessPort):
     CFG_ADDRINC =               3<<4
     CFG_SIZE_BITS =             0
     CFG_SIZE =                  7
-    def CFG_setDbgSwEnable(self, bit):
-        cfg = self.getCFG() & CFG_DBGSWENABLE
-        cfg |= (bit<<CFG_DBGSWENABLE_BITS)
-    def CFG_getDbgSwEnable(self):
-        cfg = (self.getCFG() & CFG_DBGSWENABLE) >> CFG_DBGSWENABLE_BITS
+    CFG_ADDRINC_off =           0b00
+    CFG_ADDRINC_single =        0b01
+    CFG_ADDRINC_packed =        0b10
+    CFG_MEM_8bits =             0b000
+    CFG_MEM_16bits =            0b001
+    CFG_MEM_32bits =            0b010
+    def CSWsetDbgSwEnable(self, bit):
+        cfg = self.getCFG() & self.CFG_DBGSWENABLE
+        cfg |= (bit<<self.CFG_DBGSWENABLE_BITS)
+    def CSWgetDbgSwEnable(self):
+        cfg = (self.getCFG() & self.CFG_DBGSWENABLE) >> self.CFG_DBGSWENABLE_BITS
+        return cfg
+
+    def CSWsetAddrInc(self, bits=CFG_ADDRINC_single):
+        cfg = (self.getCFG() & self.CFG_ADDRINC) >> self.CFG_ADDRINC_BITS
+        cfg |= (bit<<self.CFG_DBGSWENABLE_BITS)
+    def CSWsetMemAccessSize(self, bytecount=self.CSW_MEM_32bits):        # 0b010 == 32bit words, necessary if the implementation allows for variable sizes
+        csw = self.getCSW()
+        csw &= 0xfffffff8
+        csw |= (bytecount>>1)
+        self.setCSW(csw)
+
 
 

@@ -14,7 +14,7 @@ the 4 Gbytes of address space.
 """
 
 class M29W640G:
-    def __init__(self, addrE, pinE, addrG, pinG, addrW, pinW, chipnum, chip_base_addr=0x1000000):
+    """def __init__(self, addrE, pinE, addrG, pinG, addrW, pinW, chipnum, chip_base_addr=0x1000000):
         self.addrE = addrE
         self.pinE = pinE
         self.addrG = addrG
@@ -23,4 +23,17 @@ class M29W640G:
         self.pinW pinW
         self.chipnum = chipnum
         self.base_addr = chip_base_addr
+        """
+    def __init__(self, gfclient, chipnum, chip_base_addr=0x10000000):
+        self.gfclient = gfclient
+        self.chipnum = chipnum
+        self.base_addr = chip_base_addr
 
+    def ChipErase(self, rusure=False):
+        if rusure:
+            self.gfclient.writeMemByte(self.base_addr + 0x555, [0xaa])
+            self.gfclient.writeMemByte(self.base_addr + 0x2aa, [0x55])
+            self.gfclient.writeMemByte(self.base_addr + 0x555, [0x80])
+            self.gfclient.writeMemByte(self.base_addr + 0x555, [0xaa])
+            self.gfclient.writeMemByte(self.base_addr + 0x2aa, [0x55])
+            self.gfclient.writeMemByte(self.base_addr + 0x555, [0x10])

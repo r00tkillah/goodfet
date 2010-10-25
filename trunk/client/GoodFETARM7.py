@@ -122,6 +122,8 @@ ARM_INSTR_LDR_R1_r0_4 =     0xe4901004L
 ARM_READ_MEM =              ARM_INSTR_LDR_R1_r0_4
 ARM_INSTR_STR_R1_r0_4 =     0xe4801004L
 ARM_WRITE_MEM =             ARM_INSTR_STR_R1_r0_4
+ARM_INSTR_STRB_R1_r0_1 =    0xe4c01001L
+ARM_WRITE_MEM_BYTE =        ARM_INSTR_STRB_R1_r0_1
 ARM_INSTR_MRS_R0_CPSR =     0xe10f0000L
 ARM_INSTR_MSR_cpsr_cxsf_R0 =0xe12ff000L
 ARM_INSTR_STMIA_R14_r0_rx = 0xE88e0000L      # add up to 65k to indicate which registers...
@@ -542,7 +544,7 @@ class GoodFETARM(GoodFET):
             adr += count*4
             #print hex(adr)
         # FIXME: handle the rest of the wordcount here.
-    def ARMwriteMem(self, adr, wordarray):
+    def ARMwriteMem(self, adr, wordarray, instr=ARM_WRITE_MEM):
         r0 = self.ARMget_register(0);        # store R0 and R1
         r1 = self.ARMget_register(1);
         #print >>sys.stderr,("CPSR:\t%x"%self.ARMget_regCPSR())
@@ -553,13 +555,16 @@ class GoodFETARM(GoodFET):
             self.ARMset_register(1, word);        # write address into R0
             self.ARM_nop(0)
             self.ARM_nop(1)
-            self.ARMdebuginstr(ARM_WRITE_MEM, 0); # push STR R1, [R0], #4 into instruction pipeline  (autoincrements for consecutive writes)
+            self.ARMdebuginstr(instr, 0); # push STR R1, [R0], #4 into instruction pipeline  (autoincrements for consecutive writes)
             self.ARM_nop(0)
             self.ARMrestart()
             self.ARMwaitDBG()
             print >>sys.stderr,hex(self.ARMget_register(1))
         self.ARMset_register(1, r1);       # restore R0 and R1 
         self.ARMset_register(0, r0);
+    def writeMemByte(self, adr, byte):
+        self.ARMwriteMem(adr, byte, ARM_WRITE_MEM_BYTE)
+
 
     ARMstatusbits={
                   0x10 : "TBIT",

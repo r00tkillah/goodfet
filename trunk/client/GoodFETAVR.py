@@ -80,6 +80,9 @@ class GoodFETAVR(GoodFET):
         0x9302: "ATmega85",
         0x9305: "ATmega83",
         0x9601: "ATmega603",
+        
+        #These are missing from the Fenceline DB.
+        0x960a: "ATmega644P",
         };
     
     def setup(self):

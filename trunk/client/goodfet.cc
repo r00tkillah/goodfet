@@ -14,13 +14,14 @@ from intelhex import IntelHex;
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
+    print "%s erase" % sys.argv[0];
+    print "%s flash $foo.hex" % sys.argv[0];
     print "%s test" % sys.argv[0];
     print "%s term" % sys.argv[0];
     print "%s info" % sys.argv[0];
     print "%s radioinfo" % sys.argv[0];
     print "%s dumpcode $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s dumpdata $foo.hex [0x$start 0x$stop]" % sys.argv[0];
-    print "%s erase" % sys.argv[0];
     print "%s writedata $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0];
     print "%s peekdata 0x$start [0x$stop]" % sys.argv[0];

@@ -55,3 +55,5 @@ u8 avr_isready();
 #define AVR_READFUSES 0x84
 //! Read calibration byte.
 #define AVR_READCAL 0x85
+//! Bulk load data
+#define AVR_BULKLOAD 0x86

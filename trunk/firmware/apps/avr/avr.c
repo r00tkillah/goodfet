@@ -130,6 +130,16 @@ u8 avr_peekflash(u16 adr){
     return avrexchange(0x20,a>>8,a&0xff,0);
 }
 
+void avr_bulk_load(u16 start, u16 len, u8 *data) {
+  u16 adr;
+  for (adr = 0; adr < len; adr++) {
+    u16 a = adr + start;
+    avrexchange((adr & 1) ? 0x48 : 0x40,
+		a >> 9,
+		(a >> 1) & 0xff,
+		data[adr]);
+  }
+}
 
 //! Handles an AVR command.
 void avrhandle(unsigned char app,
@@ -158,6 +168,9 @@ void avrhandle(unsigned char app,
     avrconnect();
     txdata(app,verb,0);
     break;//Used to fall through here.
+  case STOP:
+    SETSS;
+    txdata(app, verb, 0);
   case AVR_PEEKSIG:
     for(i=0;i<4;i++)
       cmddata[i]=avr_sig(i);
@@ -181,6 +194,16 @@ void avrhandle(unsigned char app,
   case AVR_PEEKEEPROM:
     cmddata[0]=avr_peekeeprom(cmddataword[0]);
     txdata(app,verb,1);
+    break;
+  case AVR_BULKLOAD:
+    if (len < 3) {
+      debugstr("Length too short");
+      txdata(app, NOK, 0);
+    } else {
+      at = cmddataword[0];
+      avr_bulk_load(at, len - 2, cmddata + 2);
+      txdata(app, verb, 0);
+    }
     break;
   case PEEK:
     //cmddata[0]=avr_peekflash(cmddataword[0]);

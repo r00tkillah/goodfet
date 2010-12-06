@@ -24,7 +24,7 @@ class GoodFETCC(GoodFET):
     def loadsymbols(self):
         try: self.SRF_loadsymbols();
         except:
-            if self.verbose==1: print "SmartRF load failed.";
+            if self.verbose>0: print "SmartRF not found at %s." % self.smartrfpath;
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
         #print "Opening %s" % fn;
@@ -32,7 +32,11 @@ class GoodFETCC(GoodFET):
         
     def CMDrs(self,args=[]):
         """Chip command to grab the radio state."""
-        self.SRF_radiostate();
+        try:
+            self.SRF_radiostate();
+        except:
+            print "Error printing radio state.";
+            print "SmartRF not found at %s." % self.smartrfpath;
     def SRF_bitfieldstr(self,bf):
         name="unused";
         start=0;

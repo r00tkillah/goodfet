@@ -98,7 +98,12 @@ if(sys.argv[1]=="status"):
     print "Status: %s" %client.status();
 if(sys.argv[1]=="info"):
     print "Ident   %s" % client.CCidentstr();
-    print "Freq    %10.3f MHz" % (client.RF_getfreq()/10**6);
+    
+    try:
+        print "Freq    %10.3f MHz" % (client.RF_getfreq()/10**6);
+        print "RSSI    %02x" % client.RF_getrssi();
+    except:
+        print "Freq, RSSI, etc unknown.  Install SmartRF7.";
     #print "Rate    %10i kbps" % (client.RF_getrate()/1000);
     #print "PacketLen %02i bytes" % client.RF_getpacketlen();
     #print "SMAC  0x%010x" % client.RF_getsmac();

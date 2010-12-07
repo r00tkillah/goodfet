@@ -95,23 +95,47 @@ class GoodFETCC(GoodFET):
         
         #return (2400+self.peek(0x05))*10**6
         #self.poke(0x05,chan);
-        freq2=self.CCpeekdatabyte(0xdf09);
-        freq1=self.CCpeekdatabyte(0xdf0a);
-        freq0=self.CCpeekdatabyte(0xdf0b);
-        freq=(freq2<<16)+(freq1<<8)+freq0;
+        
+        #freq2=self.CCpeekdatabyte(0xdf09);
+        #freq1=self.CCpeekdatabyte(0xdf0a);
+        #freq0=self.CCpeekdatabyte(0xdf0b);
+        freq=0;
+        try:
+            freq2=self.peekbysym("FREQ2");
+            freq1=self.peekbysym("FREQ1");
+            freq0=self.peekbysym("FREQ0");
+            freq=(freq2<<16)+(freq1<<8)+freq0;
+        except:
+            freq=0;
+            
         hz=freq*396.728515625;
         
         return hz;
     
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
-        # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP            
-        self.poke(0x06,8+10+4+2); 
-    
+        print "ERROR, this ain't working yet."
+
     def RF_getrssi(self):
-        """Returns the received signal strenght, from 0 to 1."""
-        rssireg=self.symbols.get("RSSI");
-        return self.CCpeekdatabyte(rssireg);
+        """Returns the received signal strenght, with a weird offset."""
+        try:
+            rssireg=self.symbols.get("RSSI");
+            return self.CCpeekdatabyte(rssireg);
+        except:
+            if self.verbose>0: print "RSSI reg doesn't exist.";
+        try:
+            #RSSI doesn't exist on 2.4GHz devices.  Maybe RSSIL and RSSIH?
+            rssilreg=self.symbols.get("RSSIL");
+            rssil=self.CCpeekdatabyte(rssilreg);
+            rssihreg=self.symbols.get("RSSIL");
+            rssih=self.CCpeekdatabyte(rssihreg);
+            return (rssih<<8)|rssil;
+        except:
+            if self.verbose>0: print "RSSIL/RSSIH regs don't exist.";
+        
+        return 0;
+            
+    
     def SRF_loadsymbols(self):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);

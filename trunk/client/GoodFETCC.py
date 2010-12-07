@@ -115,22 +115,132 @@ class GoodFETCC(GoodFET):
         
         return hz;
     
+    
+    def CC1110_crystal(self):
+        """Start the main crystal of the CC1110 oscillating, needed for radio use."""
+        
+        #//C code for the same.
+        #SLEEP &= ~SLEEP_OSC_PD;
+        #while( !(SLEEP & SLEEP_XOSC_S) ); 
+        #CLKCON = (CLKCON & ~(CLKCON_CLKSPD | CLKCON_OSC)) | CLKSPD_DIV_1;
+        #while (CLKCON & CLKCON_OSC); 
+        #SLEEP |= SLEEP_OSC_PD;
+        
+        #registers and constants.
+        #FIXME cc1110 specific
+        SLEEP=0xDFBE;
+        SLEEP_OSC_PD=0x04;
+        CLKCON=0xDFC6;
+        SLEEP_XOSC_S=0x40;
+        CLKCON_CLKSPD=0x07
+        CLKCON_OSC=0x40;
+        CLKSPD_DIV_1=0x00;
+        
+        sleep=self.peekbyte(SLEEP);
+        sleep&=~SLEEP_XOSC_S;
+        self.pokebyte(SLEEP,sleep);
+        while(0==(self.peekbyte(SLEEP)&SLEEP_XOSC_S)):
+            time.sleep(0.1);
+        clkcon=self.peekbyte(CLKCON);
+        clkcon=(clkcon & ~(CLKCON_CLKSPD | CLKCON_OSC)) | CLKSPD_DIV_1
+        self.pokebyte(CLKCON,clkcon);
+        clkcon=0;
+        while(clkcon&CLKCON_OSC):
+            clkcon=self.peekbyte(CLKCON);
+        sleep=self.peekbyte(SLEEP);
+        sleep|=SLEEP_OSC_PD;
+        self.pokebyte(SLEEP,sleep);
+        
+        return;
+    def RF_idle(self):
+        RFST=0xDFE1
+        self.pokebyte(RFST,0x04); #Return to idle state.
+        
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
+        
+        self.CC1110_crystal(); #FIXME, '1110 specific.
+        self.RF_idle();
+        
+        #self.resume();
+        #time.sleep(1);
+        #self.halt();
+        
+        RFST=0xDFE1;
+        
+        
+        #0a00
+        #self.pokebysym("FSCTRL1"  , 0x12)   # Frequency synthesizer control.
+        #self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
+        self.pokebysym("FSCTRL1"  , 0x0a)   # Frequency synthesizer control.
+        self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
+        
+        #Don't change these while the radio is active.
+        self.pokebysym("FSCAL3"   , 0xA9)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL2"   , 0x0A)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL0"   , 0x11)   # Frequency synthesizer calibration.
+        
+        #Ossmann's settings, not yet sure how they differ.
+        #self.pokebysym("FSCAL3"   , 0xEA)   # Frequency synthesizer calibration.
+        #self.pokebysym("FSCAL2"   , 0x2A)   # Frequency synthesizer calibration.
+        #self.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
+        #self.pokebysym("FSCAL0"   , 0x1F)   # Frequency synthesizer calibration.
+        
+        
+        #self.pokebysym("FREQ2"    , 0x10)   # Frequency control word, high byte.
+        #self.pokebysym("FREQ1"    , 0xEC)   # Frequency control word, middle byte.
+        #self.pokebysym("FREQ0"    , 0x4E)   # Frequency control word, low byte.
+        self.pokebysym("MDMCFG4"  , 0x86)   # Modem configuration.
+        self.pokebysym("MDMCFG3"  , 0x83)   # Modem configuration.
+        self.pokebysym("MDMCFG2"  , 0x30)   # Modem configuration.
+        self.pokebysym("MDMCFG1"  , 0x22)   # Modem configuration.
+        self.pokebysym("MDMCFG0"  , 0xF8)   # Modem configuration.
+        self.pokebysym("CHANNR"   , 0x00)   # Channel number.
+        self.pokebysym("DEVIATN"  , 0x00)   # Modem deviation setting (when FSK modulation is enabled).
+        self.pokebysym("FREND1"   , 0x56)   # Front end RX configuration.
+        
+        self.pokebysym("FREND0"   , 0x10)   # Front end RX configuration.
+        self.pokebysym("MCSM0"    , 0x14)   # Main Radio Control State Machine configuration.
+        self.pokebysym("FOCCFG"   , 0x16)   # Frequency Offset Compensation Configuration.
+        self.pokebysym("BSCFG"    , 0x6C)   # Bit synchronization Configuration.
+        
+        self.pokebysym("AGCCTRL2" , 0x03)   # AGC control.
+        self.pokebysym("AGCCTRL1" , 0x40)   # AGC control.
+        self.pokebysym("AGCCTRL0" , 0x91)   # AGC control.
+        
+        
+        
+        
+        
+        
+        self.pokebysym("TEST2"    , 0x88)   # Various test settings.
+        self.pokebysym("TEST1"    , 0x31)   # Various test settings.
+        self.pokebysym("TEST0"    , 0x09)   # Various test settings.
+        self.pokebysym("PA_TABLE0", 0xC0)   # PA output power setting.
+        self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control.
+        self.pokebysym("PKTCTRL0" , 0x22)   # Packet automation control.
+        self.pokebysym("ADDR"     , 0x00)   # Device address.
+        self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
+        
         self.pokebysym("SYNC1",0xAA);
         self.pokebysym("SYNC0",0xAA);
         
-        #Put radio in TX
-        self.pokebyte(0xdfe1,0x03); #RFST=RFST_STX
         
-        print "Holding a carrier on %f MHz." % (self.RF_getfreq()/10**6);
-        
+                
         #while ((MARCSTATE & MARCSTATE_MARC_STATE) != MARC_STATE_TX); 
         state=0;
-        while( (state!=0x13)):
+        
+        while((state!=0x13)):
+            self.pokebyte(RFST,0x03); #RFST=RFST_STX
             time.sleep(0.1);
             state=self.peekbysym("MARCSTATE")&0x1F;
             print "state=%02x" % state;
+        print "Holding a carrier on %f MHz." % (self.RF_getfreq()/10**6);
+        
+        #Not needed, radio works when CPU is halted.
+        #self.resume();
+        
         return;
             
             

@@ -350,6 +350,8 @@ class GoodFETCC(GoodFET):
         self.writecmd(self.APP,0x02, 2, self.data);
         return ord(self.data[0]);
     def pokebyte(self,adr,val,mem="data"):
+        if mem!="data":
+            print "FIXME: poking of non data bytes not yet supported.";
         self.CCpokedatabyte(adr,val);
     def CCpokedatabyte(self,adr,val):
         """Write a byte to data memory."""

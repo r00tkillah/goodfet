@@ -11,7 +11,7 @@ import binascii;
 from GoodFET import GoodFET;
 from intelhex import IntelHex;
 
-import xml.dom.minidom;
+import xml.dom.minidom, time;
 
 class GoodFETCC(GoodFET):
     """A GoodFET variant for use with Chipcon 8051 Zigbee SoC."""
@@ -87,9 +87,9 @@ class GoodFETCC(GoodFET):
         freq1=(freq&0xFF00)>>8;
         freq2=(freq&0xFF0000)>>16;
         
-        self.pokebysim("FREQ2",freq2);
-        self.pokebysim("FREQ1",freq1);
-        self.pokebysim("FREQ0",freq0);
+        self.pokebysym("FREQ2",freq2);
+        self.pokebysym("FREQ1",freq1);
+        self.pokebysym("FREQ0",freq0);
         
 
     def RF_getfreq(self):
@@ -117,8 +117,23 @@ class GoodFETCC(GoodFET):
     
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
-        print "ERROR, this ain't working yet."
-
+        self.pokebysym("SYNC1",0xAA);
+        self.pokebysym("SYNC0",0xAA);
+        
+        #Put radio in TX
+        self.pokebyte(0xdfe1,0x03); #RFST=RFST_STX
+        
+        print "Holding a carrier on %f MHz." % (self.RF_getfreq()/10**6);
+        
+        #while ((MARCSTATE & MARCSTATE_MARC_STATE) != MARC_STATE_TX); 
+        state=0;
+        while( (state!=0x13)):
+            time.sleep(0.1);
+            state=self.peekbysym("MARCSTATE")&0x1F;
+            print "state=%02x" % state;
+        return;
+            
+            
     def RF_getrssi(self):
         """Returns the received signal strenght, with a weird offset."""
         try:
@@ -334,7 +349,8 @@ class GoodFETCC(GoodFET):
         self.data=[adr&0xff, val&0xff];
         self.writecmd(self.APP,0x02, 2, self.data);
         return ord(self.data[0]);
-    
+    def pokebyte(self,adr,val,mem="data"):
+        self.CCpokedatabyte(adr,val);
     def CCpokedatabyte(self,adr,val):
         """Write a byte to data memory."""
         self.data=[adr&0xff, (adr&0xff00)>>8, val];

@@ -6,7 +6,7 @@
 # This code is being rewritten and refactored.  You've been warned!
 
 import sys;
-import binascii;
+import binascii, time;
 
 from GoodFETCC import GoodFETCC;
 from GoodFETConsole import GoodFETConsole;
@@ -29,6 +29,9 @@ if(len(sys.argv)==1):
     print "%s peek 0x$iram" % sys.argv[0];
     print "%s poke 0x$iram 0x$val" % sys.argv[0];
     print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
+    
+    print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
+    
     sys.exit();
 
 #Initailize FET and set baud rate
@@ -40,6 +43,15 @@ client.serInit()
 client.setup();
 client.start();
 
+
+if(sys.argv[1]=="carrier"):
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[2]));
+    client.RF_carrier();
+    #printconfig();
+    print "\nHolding a carrier wave.";
+    while(1):
+        time.sleep(1);
 
 if(sys.argv[1]=="explore"):
     print "Exploring undefined commands."

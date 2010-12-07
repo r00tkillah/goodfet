@@ -377,11 +377,11 @@ class GoodFET:
         #TODO include memory in symbol.
         reg=self.symbols.get(name);
         return self.peek8(reg,"data");
-    def pokebysym(self,name,val):
+    def pokebysim(self,name,val):
         """Write a value by its symbol name."""
         #TODO include memory in symbol.
         reg=self.symbols.get(name);
-        return self.poke8(reg,val,"data");
+        return self.pokebyte(reg,val);
     def pokebyte(self,address,value):
         """Set a byte of memory by the monitor."""
         self.data=[address&0xff,address>>8,value];

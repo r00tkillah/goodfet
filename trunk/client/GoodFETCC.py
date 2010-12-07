@@ -81,13 +81,16 @@ class GoodFETCC(GoodFET):
         #FIXME CC1110 specific
         
         hz=frequency;
-        freq=hz/396.728515625;
+        freq=int(hz/396.728515625);
+        
         freq0=freq&0xFF;
         freq1=(freq&0xFF00)>>8;
-        freq1=(freq&0xFF0000)>>16;
-        self.CCpokedatabyte(0xdf09,freq2);
-        self.CCpokedatabyte(0xdf09,freq1);
-        self.CCpokedatabyte(0xdf09,freq0);
+        freq2=(freq&0xFF0000)>>16;
+        
+        self.pokebysim("FREQ2",freq2);
+        self.pokebysim("FREQ1",freq1);
+        self.pokebysim("FREQ0",freq0);
+        
 
     def RF_getfreq(self):
         """Get the frequency in Hz."""

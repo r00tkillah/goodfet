@@ -115,42 +115,34 @@ class GoodFETCC(GoodFET):
         
         return hz;
     
-    
+    def shellcode(self,code,wait=1):
+        """Copy a block of code into RAM and execute it."""
+        i=0;
+        ram=0xF000;
+        for byte in code:
+            self.pokebyte(0xF000+i,byte);
+            i=i+1;
+        print "Code loaded, executing."
+        self.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
+        self.resume();
+        while wait>0 and (0==self.CCstatus()&0x20):
+            time.sleep(0.1);
+            print "Waiting for shell code to return.";
+        return;
     def CC1110_crystal(self):
         """Start the main crystal of the CC1110 oscillating, needed for radio use."""
-        
-        #//C code for the same.
-        #SLEEP &= ~SLEEP_OSC_PD;
-        #while( !(SLEEP & SLEEP_XOSC_S) ); 
-        #CLKCON = (CLKCON & ~(CLKCON_CLKSPD | CLKCON_OSC)) | CLKSPD_DIV_1;
-        #while (CLKCON & CLKCON_OSC); 
-        #SLEEP |= SLEEP_OSC_PD;
-        
-        #registers and constants.
-        #FIXME cc1110 specific
-        SLEEP=0xDFBE;
-        SLEEP_OSC_PD=0x04;
-        CLKCON=0xDFC6;
-        SLEEP_XOSC_S=0x40;
-        CLKCON_CLKSPD=0x07
-        CLKCON_OSC=0x40;
-        CLKSPD_DIV_1=0x00;
-        
-        sleep=self.peekbyte(SLEEP);
-        sleep&=~SLEEP_XOSC_S;
-        self.pokebyte(SLEEP,sleep);
-        while(0==(self.peekbyte(SLEEP)&SLEEP_XOSC_S)):
-            time.sleep(0.1);
-        clkcon=self.peekbyte(CLKCON);
-        clkcon=(clkcon & ~(CLKCON_CLKSPD | CLKCON_OSC)) | CLKSPD_DIV_1
-        self.pokebyte(CLKCON,clkcon);
-        clkcon=0;
-        while(clkcon&CLKCON_OSC):
-            clkcon=self.peekbyte(CLKCON);
-        sleep=self.peekbyte(SLEEP);
-        sleep|=SLEEP_OSC_PD;
-        self.pokebyte(SLEEP,sleep);
-        
+        code=[0x53, 0xBE, 0xFB, #anl SLEEP, #0xFB
+              #one:
+              0xE5, 0xBE,       #mov a,SLEEP
+              0x30, 0xE6, 0xFB, #jnb acc.6, back
+              0x53, 0xc6, 0xB8, #anl CLKCON, #0xB8
+              #two
+              0xE5, 0xC6,       #mov a,CLKCON
+              0x20, 0xE6, 0xFB, #jb acc.6, two
+              0x43, 0xBE, 0x04, #orl SLEEP, #0x04
+              0xA5,             #HALT
+              ];
+        self.shellcode(code);
         return;
     def RF_idle(self):
         RFST=0xDFE1

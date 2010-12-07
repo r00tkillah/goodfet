@@ -30,13 +30,21 @@ client.start();
 
 
 
+verb=sys.argv[2];
 
-
-if sys.argv[2]=='test':
+if verb=='test':
    client.test();
-if sys.argv[2]=='rssi':
+if verb=='rssi':
    rssireg=client.getrssi();
-   print "RSSI=%04x" % rssireg;
+   print "RSSI of %04x" % rssireg;
+if(verb=="carrier"):
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[3]));
+    client.RF_carrier();
+    print "\nHolding a carrier wave.";
+    while(1):
+        time.sleep(1);
+
 client.stop();
 
 

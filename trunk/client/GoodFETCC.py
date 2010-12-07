@@ -76,6 +76,38 @@ class GoodFETCC(GoodFET):
                     print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);
                     if bitfields!="": print bitfields.rstrip();
+    def RF_setfreq(self,frequency):
+        """Set the frequency in Hz."""
+        #FIXME CC1110 specific
+        
+        hz=frequency;
+        freq=hz/396.728515625;
+        freq0=freq&0xFF;
+        freq1=(freq&0xFF00)>>8;
+        freq1=(freq&0xFF0000)>>16;
+        self.CCpokedatabyte(0xdf09,freq2);
+        self.CCpokedatabyte(0xdf09,freq1);
+        self.CCpokedatabyte(0xdf09,freq0);
+
+    def RF_getfreq(self):
+        """Get the frequency in Hz."""
+        #FIXME CC1110 specific
+        
+        #return (2400+self.peek(0x05))*10**6
+        #self.poke(0x05,chan);
+        freq2=self.CCpeekdatabyte(0xdf09);
+        freq1=self.CCpeekdatabyte(0xdf0a);
+        freq0=self.CCpeekdatabyte(0xdf0b);
+        freq=(freq2<<16)+(freq1<<8)+freq0;
+        hz=freq*396.728515625;
+        
+        return hz;
+    
+    def RF_carrier(self):
+        """Hold a carrier wave on the present frequency."""
+        # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP            
+        self.poke(0x06,8+10+4+2); 
+    
     def RF_getrssi(self):
         """Returns the received signal strenght, from 0 to 1."""
         rssireg=self.symbols.get("RSSI");

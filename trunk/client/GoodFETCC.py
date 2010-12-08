@@ -147,6 +147,59 @@ class GoodFETCC(GoodFET):
     def RF_idle(self):
         RFST=0xDFE1
         self.pokebyte(RFST,0x04); #Return to idle state.
+    
+    def config_simpliciti(self,band="none"):
+        self.pokebysym("FSCTRL1"  , 0x08)   # Frequency synthesizer control.
+        self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
+        
+        #Don't change these while the radio is active.
+        self.pokebysym("FSCAL3"   , 0xEA)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL2"   , 0x2A)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL0"   , 0x1F)   # Frequency synthesizer calibration.
+        
+        if band=="ismeu" or band=="eu":
+            self.pokebysym("FREQ2"    , 0x21)   # Frequency control word, high byte.
+            self.pokebysym("FREQ1"    , 0x71)   # Frequency control word, middle byte.
+            self.pokebysym("FREQ0"    , 0x7a)   # Frequency control word, low byte.
+        if band=="ismus" or band=="us":
+            self.pokebysym("FREQ2"    , 0x22)   # Frequency control word, high byte.
+            self.pokebysym("FREQ1"    , 0xB1)   # Frequency control word, middle byte.
+            self.pokebysym("FREQ0"    , 0x3B)   # Frequency control word, low byte.
+        if band=="ismlf" or band=="lf":
+            self.pokebysym("FREQ2"    , 0x10)   # Frequency control word, high byte.
+            self.pokebysym("FREQ1"    , 0xB0)   # Frequency control word, middle byte.
+            self.pokebysym("FREQ0"    , 0x71)   # Frequency control word, low byte.
+        
+        self.pokebysym("MDMCFG4"  , 0x7B)   # Modem configuration.
+        self.pokebysym("MDMCFG3"  , 0x83)   # Modem configuration.
+        self.pokebysym("MDMCFG2"  , 0x13)   # Modem configuration.
+        self.pokebysym("MDMCFG1"  , 0x22)   # Modem configuration.
+        self.pokebysym("MDMCFG0"  , 0xF8)   # Modem configuration.
+        self.pokebysym("CHANNR"   , 0x00)   # Channel number.
+        self.pokebysym("DEVIATN"  , 0x42)   # Modem deviation setting (when FSK modulation is enabled).
+        
+        self.pokebysym("FREND1"   , 0xB6)   # Front end RX configuration.
+        self.pokebysym("FREND0"   , 0x10)   # Front end RX configuration.
+        self.pokebysym("MCSM0"    , 0x18)   # Main Radio Control State Machine configuration.
+        self.pokebysym("FOCCFG"   , 0x1D)   # Frequency Offset Compensation Configuration.
+        self.pokebysym("BSCFG"    , 0x1C)   # Bit synchronization Configuration.
+        
+        self.pokebysym("AGCCTRL2" , 0xC7)   # AGC control.
+        self.pokebysym("AGCCTRL1" , 0x00)   # AGC control.
+        self.pokebysym("AGCCTRL0" , 0xB2)   # AGC control.
+        
+        self.pokebysym("TEST2"    , 0x81)   # Various test settings.
+        self.pokebysym("TEST1"    , 0x35)   # Various test settings.
+        self.pokebysym("TEST0"    , 0x09)   # Various test settings.
+        #self.pokebysym("PA_TABLE0", 0xC0)   # PA output power setting.
+        self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control.
+        self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control.
+        self.pokebysym("ADDR"     , 0x00)   # Device address.
+        self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
+        
+        self.pokebysym("SYNC1",0xAA);
+        self.pokebysym("SYNC0",0xAA);
         
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
@@ -161,9 +214,6 @@ class GoodFETCC(GoodFET):
         RFST=0xDFE1;
         
         
-        #0a00
-        #self.pokebysym("FSCTRL1"  , 0x12)   # Frequency synthesizer control.
-        #self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
         self.pokebysym("FSCTRL1"  , 0x0a)   # Frequency synthesizer control.
         self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
         
@@ -172,12 +222,6 @@ class GoodFETCC(GoodFET):
         self.pokebysym("FSCAL2"   , 0x0A)   # Frequency synthesizer calibration.
         self.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
         self.pokebysym("FSCAL0"   , 0x11)   # Frequency synthesizer calibration.
-        
-        #Ossmann's settings, not yet sure how they differ.
-        #self.pokebysym("FSCAL3"   , 0xEA)   # Frequency synthesizer calibration.
-        #self.pokebysym("FSCAL2"   , 0x2A)   # Frequency synthesizer calibration.
-        #self.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
-        #self.pokebysym("FSCAL0"   , 0x1F)   # Frequency synthesizer calibration.
         
         
         #self.pokebysym("FREQ2"    , 0x10)   # Frequency control word, high byte.
@@ -201,11 +245,6 @@ class GoodFETCC(GoodFET):
         self.pokebysym("AGCCTRL1" , 0x40)   # AGC control.
         self.pokebysym("AGCCTRL0" , 0x91)   # AGC control.
         
-        
-        
-        
-        
-        
         self.pokebysym("TEST2"    , 0x88)   # Various test settings.
         self.pokebysym("TEST1"    , 0x31)   # Various test settings.
         self.pokebysym("TEST0"    , 0x09)   # Various test settings.
@@ -219,7 +258,7 @@ class GoodFETCC(GoodFET):
         self.pokebysym("SYNC0",0xAA);
         
         
-                
+        
         #while ((MARCSTATE & MARCSTATE_MARC_STATE) != MARC_STATE_TX); 
         state=0;
         
@@ -235,12 +274,42 @@ class GoodFETCC(GoodFET):
         
         return;
             
-            
+    def RF_getsmac(self):
+        """Return the source MAC address."""
+        
+        #Register 0A is RX_ADDR_P0, five bytes.
+        mac=self.peekbysym("ADDR");
+        return mac;
+    def RF_setsmac(self,mac):
+        """Set the source MAC address."""
+        self.pokebysym("ADDR",mac);
+        return 0;
+    def RF_gettmac(self):
+        """Return the target MAC address."""
+        return 0;
+    def RF_settmac(self,mac):
+        """Set the target MAC address."""
+        return 0;
+    def RF_rxpacket(self):
+        """Get a packet from the radio.  Returns None if none is waiting."""
+        RFST=0xDFE1
+        self.pokebyte(RFST,0x01); #SCAL
+        self.pokebyte(RFST,0x02); #SRX
+        
+        print "Packet reception isn't working yet.  Returning [RSSI].";
+        time.sleep(0.1);
+        return [chr(self.RF_getrssi())];
+    def RF_txpacket(self,payload):
+        """Transmit a packet.  Untested."""
+        
+        print "FIXME, Chipcon packet transmission is not yet implemented.";
+        return;
+
     def RF_getrssi(self):
         """Returns the received signal strenght, with a weird offset."""
         try:
             rssireg=self.symbols.get("RSSI");
-            return self.CCpeekdatabyte(rssireg);
+            return self.CCpeekdatabyte(rssireg)^0x80;
         except:
             if self.verbose>0: print "RSSI reg doesn't exist.";
         try:
@@ -254,7 +323,8 @@ class GoodFETCC(GoodFET):
             if self.verbose>0: print "RSSIL/RSSIH regs don't exist.";
         
         return 0;
-            
+    
+    
     
     def SRF_loadsymbols(self):
         ident=self.CCident();

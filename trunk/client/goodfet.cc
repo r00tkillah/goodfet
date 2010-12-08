@@ -12,6 +12,16 @@ from GoodFETCC import GoodFETCC;
 from GoodFETConsole import GoodFETConsole;
 from intelhex import IntelHex;
 
+
+def printpacket(packet):
+    s="";
+    i=0;
+    for foo in packet:
+        i=i+1;
+        #if i>client.packetlen: break;
+        s="%s %02x" % (s,ord(foo));
+    print "%s" %s;
+
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s erase" % sys.argv[0];
@@ -32,6 +42,8 @@ if(len(sys.argv)==1):
     print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
     
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
+    #print "%s reflex [freq]\n\tJams on [freq] Hz." % sys.argv[0];
+    print "%s sniffsimpliciti [us|eu|lf]\n\tSniffs SimpliciTI packets." % sys.argv[0];
     
     sys.exit();
 
@@ -45,6 +57,7 @@ client.setup();
 client.start();
 
 
+
 if(sys.argv[1]=="carrier"):
     if len(sys.argv)>2:
         client.RF_setfreq(eval(sys.argv[2]));
@@ -53,6 +66,87 @@ if(sys.argv[1]=="carrier"):
     #print "\nHolding a carrier wave.";
     while(1):
         time.sleep(1);
+
+if(sys.argv[1]=="reflex"):
+    client.CC1110_crystal();
+    client.RF_idle();
+    
+    client.config_simpliciti();
+    client.pokebysym("MDMCFG4",0x0c); #ultrawide
+    client.pokebysym("FSCTRL1",   0x12); #IF of 457.031
+    client.pokebysym("FSCTRL0",   0x00); 
+    client.pokebysym("FSCAL2",    0x2A); #above mid
+    client.pokebysym("MCSM0"    , 0x0)   # Main Radio Control State Machine
+    
+    client.pokebysym("FSCAL3"   , 0xEA)   # Frequency synthesizer calibration.
+    client.pokebysym("FSCAL2"   , 0x2A)   # Frequency synthesizer calibration.
+    client.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
+    client.pokebysym("FSCAL0"   , 0x1F)   # Frequency synthesizer calibration.
+        
+    client.pokebysym("TEST2"    , 0x88)   # Various test settings.
+    client.pokebysym("TEST1"    , 0x35)   # Various test settings.
+    client.pokebysym("TEST0"    , 0x09)   # Various test settings.
+    
+    threshold=200;
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[2]));
+    print "Listening on %f MHz." % (client.RF_getfreq()/10**6);
+    print "Jamming if RSSI>=%i" % threshold;
+    
+    #FIXME, ugly
+    RFST=0xDFE1
+    client.pokebyte(RFST,0x01); #SCAL
+    time.sleep(1);
+    
+    maxrssi=0;
+    while 1:
+        
+        client.pokebyte(RFST,0x02); #SRX
+        rssi=client.RF_getrssi();
+        client.pokebyte(RFST,0x04); #idle
+        time.sleep(0.1);
+        rssi=rssi;
+        string="";
+        for foo in range(0,rssi>>2):
+            string=("%s."%string);
+        print "%02x %04i %04i %s" % (rssi,rssi, maxrssi, string); 
+        if rssi>maxrssi:
+            maxrssi=(rssi);
+        if rssi>threshold:
+            print "Triggered jamming for 10s.";
+            client.RF_carrier();
+            time.sleep(10);
+
+if(sys.argv[1]=="sniffsimpliciti"):
+    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
+    #TODO remove all poke() calls.
+    
+    client.config_simpliciti("lf");
+    #client.RF_setfreq(2481 * 10**6);
+    
+    #OpenBeacon defines these in little endian as follows.
+    #client.RF_setmaclen(5); # SETUP_AW for 5-byte addresses.
+    #0x01, 0x02, 0x03, 0x02, 0x01
+    #client.RF_setsmac(0x0102030201);
+    #'O', 'C', 'A', 'E', 'B'
+    #client.RF_settmac(0x424541434F);
+    
+    #Set packet length of 16.
+    #client.RF_setpacketlen(16);
+    
+    
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            #time.sleep(0.1);
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
+
+
 
 if(sys.argv[1]=="explore"):
     print "Exploring undefined commands."

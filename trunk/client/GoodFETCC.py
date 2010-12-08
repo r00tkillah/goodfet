@@ -122,12 +122,12 @@ class GoodFETCC(GoodFET):
         for byte in code:
             self.pokebyte(0xF000+i,byte);
             i=i+1;
-        print "Code loaded, executing."
+        #print "Code loaded, executing."
         self.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
         self.resume();
         while wait>0 and (0==self.CCstatus()&0x20):
             time.sleep(0.1);
-            print "Waiting for shell code to return.";
+            #print "Waiting for shell code to return.";
         return;
     def CC1110_crystal(self):
         """Start the main crystal of the CC1110 oscillating, needed for radio use."""
@@ -227,7 +227,7 @@ class GoodFETCC(GoodFET):
             self.pokebyte(RFST,0x03); #RFST=RFST_STX
             time.sleep(0.1);
             state=self.peekbysym("MARCSTATE")&0x1F;
-            print "state=%02x" % state;
+            #print "state=%02x" % state;
         print "Holding a carrier on %f MHz." % (self.RF_getfreq()/10**6);
         
         #Not needed, radio works when CPU is halted.

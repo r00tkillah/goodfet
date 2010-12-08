@@ -50,7 +50,7 @@ if(sys.argv[1]=="carrier"):
         client.RF_setfreq(eval(sys.argv[2]));
     client.RF_carrier();
     #printconfig();
-    print "\nHolding a carrier wave.";
+    #print "\nHolding a carrier wave.";
     while(1):
         time.sleep(1);
 

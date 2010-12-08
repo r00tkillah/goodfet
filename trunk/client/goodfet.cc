@@ -104,7 +104,7 @@ if(sys.argv[1]=="reflex"):
         client.pokebyte(RFST,0x02); #SRX
         rssi=client.RF_getrssi();
         client.pokebyte(RFST,0x04); #idle
-        time.sleep(0.1);
+        time.sleep(0.01);
         rssi=rssi;
         string="";
         for foo in range(0,rssi>>2):
@@ -113,9 +113,10 @@ if(sys.argv[1]=="reflex"):
         if rssi>maxrssi:
             maxrssi=(rssi);
         if rssi>threshold:
-            print "Triggered jamming for 10s.";
+            #print "Triggered jamming for 1s.";
             client.RF_carrier();
-            time.sleep(10);
+            time.sleep(1);
+            print "JAMMING JAMMING JAMMING JAMMING";
 
 if(sys.argv[1]=="sniffsimpliciti"):
     #Reversal of transmitter code from nRF_CMD.c of OpenBeacon

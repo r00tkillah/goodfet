@@ -1,8 +1,14 @@
-# These targets are compiled to execute at the beginning of RAM.
-# Each should conclude with HALT (0xA5).
+# These targets are compiled to execute at the beginning of RAM.  Each
+# should conclude with HALT (0xA5).  Sometimes grabbing code from
+# foo.rst will be smaller, especially if no ljmps occur.
+
+
+# Input and output should be taken from a buffer at 0xFE00.
+# "char __xdata at 0xfe00 packet[256] ;"
+# Use lower RAM if needed.
 
 CC=sdcc --code-loc 0xF000 
-objs=crystal.ihx
+objs=crystal.ihx txpacket.ihx
 
 all: $(objs)
 

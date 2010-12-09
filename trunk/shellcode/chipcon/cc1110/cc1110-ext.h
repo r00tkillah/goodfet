@@ -9,6 +9,11 @@
 #define _IOCCXX10_BITDEF_H
 
 
+//Added by Travis Goodspeed
+#define HALT __asm \
+  .byte 0xA5 \
+  __endasm;
+
 
 /* SEE DATA SHEET FOR DETAILS ABOUT THE FOLLOWING BIT MASKS */
 

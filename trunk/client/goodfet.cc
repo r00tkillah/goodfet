@@ -40,7 +40,7 @@ if(len(sys.argv)==1):
     print "%s peek 0x$iram" % sys.argv[0];
     print "%s poke 0x$iram 0x$val" % sys.argv[0];
     print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
-    
+    print "\n"
     print "%s rssi [freq]\n\tGraphs signal strength on [freq] Hz." % sys.argv[0];
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
     print "%s reflex [freq]\n\tJams on [freq] Hz." % sys.argv[0];

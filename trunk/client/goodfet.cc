@@ -42,7 +42,7 @@ if(len(sys.argv)==1):
     print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
     
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
-    #print "%s reflex [freq]\n\tJams on [freq] Hz." % sys.argv[0];
+    print "%s reflex [freq]\n\tJams on [freq] Hz." % sys.argv[0];
     print "%s sniffsimpliciti [us|eu|lf]\n\tSniffs SimpliciTI packets." % sys.argv[0];
     
     sys.exit();
@@ -72,11 +72,11 @@ if(sys.argv[1]=="reflex"):
     client.RF_idle();
     
     client.config_simpliciti();
-    client.pokebysym("MDMCFG4",0x0c); #ultrawide
-    client.pokebysym("FSCTRL1",   0x12); #IF of 457.031
+    client.pokebysym("MDMCFG4",   0x0c);  #ultrawide
+    client.pokebysym("FSCTRL1",   0x12);  #IF of 457.031
     client.pokebysym("FSCTRL0",   0x00); 
-    client.pokebysym("FSCAL2",    0x2A); #above mid
-    client.pokebysym("MCSM0"    , 0x0)   # Main Radio Control State Machine
+    client.pokebysym("FSCAL2" ,   0x2A);  #above mid
+    client.pokebysym("MCSM0"  ,   0x00);  # Main Radio Control State Machine
     
     client.pokebysym("FSCAL3"   , 0xEA)   # Frequency synthesizer calibration.
     client.pokebysym("FSCAL2"   , 0x2A)   # Frequency synthesizer calibration.
@@ -121,6 +121,10 @@ if(sys.argv[1]=="reflex"):
 if(sys.argv[1]=="sniffsimpliciti"):
     #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
     #TODO remove all poke() calls.
+    
+    client.CC1110_crystal();
+    client.RF_idle();
+    
     
     client.config_simpliciti("lf");
     #client.RF_setfreq(2481 * 10**6);

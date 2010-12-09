@@ -19,7 +19,7 @@ def printpacket(packet):
     #print "Printing packet."
     for foo in packet:
         i=i+1;
-        #if i>client.packetlen: break;
+        #if i>packet[0]+1: break;
         s="%s %02x" % (s,foo);
     print "%s" %s;
 
@@ -155,15 +155,10 @@ if(sys.argv[1]=="sniffsimpliciti"):
     
     client.config_simpliciti(region);
     
-    #OpenBeacon defines these in little endian as follows.
-    #client.RF_setmaclen(5); # SETUP_AW for 5-byte addresses.
-    #0x01, 0x02, 0x03, 0x02, 0x01
-    #client.RF_setsmac(0x0102030201);
-    #'O', 'C', 'A', 'E', 'B'
-    #client.RF_settmac(0x424541434F);
-    
-    #Set packet length of 16.
-    #client.RF_setpacketlen(16);
+    #For BSL sniffing, different frequencies.
+    #client.pokebysym("FREQ2",0x25);
+    #client.pokebysym("FREQ1",0x95);
+    #client.pokebysym("FREQ0",0x55);
     
     
     print "Listening as %x on %f MHz" % (client.RF_getsmac(),

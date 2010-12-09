@@ -225,7 +225,7 @@ class GoodFETCC(GoodFET):
         self.pokebysym("MDMCFG1"  , 0x22)   # Modem configuration.
         self.pokebysym("MDMCFG0"  , 0xF8)   # Modem configuration.
         if band=="ismus" or band=="us":
-            self.pokebysym("CHANNR"   , 0); # 20)   # Channel number.
+            self.pokebysym("CHANNR"   , 20)   # Channel number.
         else:
             self.pokebysym("CHANNR"   , 0x00)   # Channel number.
         self.pokebysym("DEVIATN"  , 0x42)   # Modem deviation setting (when FSK modulation is enabled).
@@ -245,13 +245,13 @@ class GoodFETCC(GoodFET):
         self.pokebysym("TEST0"    , 0x09)   # Various test settings.
         #self.pokebysym("PA_TABLE0", 0xC0)   # PA output power setting.
         self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control.
-        #self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control, w/ checksum.
-        self.pokebysym("PKTCTRL0" , 0x01)   # Packet automation control, w/o checksum.
+        self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control, w/ checksum.
+        #self.pokebysym("PKTCTRL0" , 0x01)   # Packet automation control, w/o checksum.
         self.pokebysym("ADDR"     , 0x00)   # Device address.
         self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
         
-        self.pokebysym("SYNC1",0x04);
-        self.pokebysym("SYNC0",0x05);
+        self.pokebysym("SYNC1",0xD3);
+        self.pokebysym("SYNC0",0x91);
         
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
@@ -344,14 +344,16 @@ class GoodFETCC(GoodFET):
         return 0;
     def RF_rxpacket(self):
         """Get a packet from the radio.  Returns None if none is waiting."""
-        RFST=0xDFE1
-        self.pokebyte(RFST,0x01); #SCAL
+        #RFST=0xDFE1
+        #self.pokebyte(RFST,0x01); #SCAL
         #self.pokebyte(RFST,0x02); #SRX
         
         self.shellcodefile("rxpacket.ihx");
         #time.sleep(1);
         self.halt();
-        return self.peekblock(0xFE00,32,"data");
+        len=self.peek8(0xFE00,"xdata");
+        #print "Grabbing %i bytes." %len;
+        return self.peekblock(0xFE00,len,"data");
     def RF_txpacket(self,payload):
         """Transmit a packet.  Untested."""
         

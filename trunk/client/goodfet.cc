@@ -119,7 +119,6 @@ if(sys.argv[1]=="reflex"):
             print "JAMMING JAMMING JAMMING JAMMING";
 
 if(sys.argv[1]=="sniffsimpliciti"):
-    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
     #TODO remove all poke() calls.
     
     client.CC1110_crystal();

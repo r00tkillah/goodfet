@@ -145,9 +145,32 @@ class GoodFETCC(GoodFET):
         self.shellcode(code);
         return;
     def RF_idle(self):
-        RFST=0xDFE1
-        self.pokebyte(RFST,0x04); #Return to idle state.
+        """Move the radio to its idle state."""
+        self.CC_RFST_IDLE();
+        return;
     
+    #Chipcon RF strobes.  CC1110 specific
+    RFST_IDLE=0x04;
+    RFST_RX=0x02;
+    RFST_TX=0x03;
+    RFST_CAL=0x01;
+    def CC_RFST_IDLE(self):
+        """Switch the radio to idle mode, clearing overflows and errors."""
+        self.CC_RFST(self.RFST_IDLE);
+    def CC_RFST_TX(self):
+        """Switch the radio to TX mode."""
+        self.CC_RFST(self.RFST_TX);
+    def CC_RFST_RX(self):
+        """Switch the radio to RX mode."""
+        self.CC_RFST(self.RFST_RX);
+    def CC_RFST_CAL(self):
+        """Calibrate strobe the radio."""
+        self.CC_RFST(self.RFST_CAL);
+    def CC_RFST(self,state=RFST_IDLE):
+        RFST=0xDFE1
+        self.pokebyte(RFST,state); #Return to idle state.
+        return;
+        
     def config_simpliciti(self,band="none"):
         self.pokebysym("FSCTRL1"  , 0x08)   # Frequency synthesizer control.
         self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.

@@ -8,7 +8,7 @@ void main(){
   unsigned char len=packet[0], i=0;
   RFST=RFST_STX;     //Begin transmit.
   while(i!=len+1){
-    while(RFTXRXIF); //Wait for byte to be ready.
+    while(!RFTXRXIF); //Wait for byte to be ready.
     
     RFTXRXIF=0;      //Clear the flag.
     RFD=packet[i++]; //Send the next byte.

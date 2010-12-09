@@ -382,7 +382,7 @@ class GoodFET:
         #TODO include memory in symbol.
         reg=self.symbols.get(name);
         return self.pokebyte(reg,val);
-    def pokebyte(self,address,value):
+    def pokebyte(self,address,value,memory="vn"):
         """Set a byte of memory by the monitor."""
         self.data=[address&0xff,address>>8,value];
         self.writecmd(0,0x03,3,self.data);
@@ -544,6 +544,12 @@ class GoodFET:
         for foo in range(0,length):
             data[foo]=self.peek8(address+foo,memory);
         return data;
+    def pokeblock(self,address,bytes,memory="vn"):
+        """Poke a block of a data into memory at an address."""
+        for foo in bytes:
+            self.pokebyte(address,foo,memory);
+            address=address+1;
+        return;
     def loadsymbols(self):
         """Load symbols from a file."""
         return;

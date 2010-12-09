@@ -114,7 +114,29 @@ class GoodFETCC(GoodFET):
         hz=freq*396.728515625;
         
         return hz;
-    
+    def shellcodefile(self,filename,wait=1):
+        """Run a fragment of shellcode by name."""
+        #FIXME: should identify chip model number, use shellcode for that chip.
+        file=__file__;
+        file=file.replace("GoodFETCC.pyc","GoodFETCC.py");
+        path=file.replace("client/GoodFETCC.py","shellcode/chipcon/cc1110/");
+        #print "File\t%s" % file;
+        #print "Path\t%s" % path;
+        filename=path+filename;
+        #print "Loading shelcode from %s" % filename;
+        
+        #Load the shellcode.
+        h=IntelHex(filename);
+        for i in h._buf.keys():
+            self.CCpokedatabyte(i,h[i]);
+        
+        #Execute it.
+        self.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
+        self.resume();
+        while wait>0 and (0==self.CCstatus()&0x20):
+            time.sleep(0.1);
+            #print "Waiting for shell code to return.";
+        return;
     def shellcode(self,code,wait=1):
         """Copy a block of code into RAM and execute it."""
         i=0;
@@ -143,6 +165,9 @@ class GoodFETCC(GoodFET):
               0xA5,             #HALT
               ];
         self.shellcode(code);
+        
+        #Slower to load, but produced from C.
+        #self.shellcodefile("crystal.ihx");
         return;
     def RF_idle(self):
         """Move the radio to its idle state."""
@@ -199,7 +224,10 @@ class GoodFETCC(GoodFET):
         self.pokebysym("MDMCFG2"  , 0x13)   # Modem configuration.
         self.pokebysym("MDMCFG1"  , 0x22)   # Modem configuration.
         self.pokebysym("MDMCFG0"  , 0xF8)   # Modem configuration.
-        self.pokebysym("CHANNR"   , 0x00)   # Channel number.
+        if band=="ismus" or band=="us":
+            self.pokebysym("CHANNR"   , 0); # 20)   # Channel number.
+        else:
+            self.pokebysym("CHANNR"   , 0x00)   # Channel number.
         self.pokebysym("DEVIATN"  , 0x42)   # Modem deviation setting (when FSK modulation is enabled).
         
         self.pokebysym("FREND1"   , 0xB6)   # Front end RX configuration.
@@ -217,12 +245,13 @@ class GoodFETCC(GoodFET):
         self.pokebysym("TEST0"    , 0x09)   # Various test settings.
         #self.pokebysym("PA_TABLE0", 0xC0)   # PA output power setting.
         self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control.
-        self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control.
+        #self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control, w/ checksum.
+        self.pokebysym("PKTCTRL0" , 0x01)   # Packet automation control, w/o checksum.
         self.pokebysym("ADDR"     , 0x00)   # Device address.
         self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
         
-        self.pokebysym("SYNC1",0xAA);
-        self.pokebysym("SYNC0",0xAA);
+        self.pokebysym("SYNC1",0x04);
+        self.pokebysym("SYNC0",0x05);
         
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
@@ -317,11 +346,12 @@ class GoodFETCC(GoodFET):
         """Get a packet from the radio.  Returns None if none is waiting."""
         RFST=0xDFE1
         self.pokebyte(RFST,0x01); #SCAL
-        self.pokebyte(RFST,0x02); #SRX
+        #self.pokebyte(RFST,0x02); #SRX
         
-        print "Packet reception isn't working yet.  Returning [RSSI].";
-        time.sleep(0.1);
-        return [chr(self.RF_getrssi())];
+        self.shellcodefile("rxpacket.ihx");
+        #time.sleep(1);
+        self.halt();
+        return self.peekblock(0xFE00,32,"data");
     def RF_txpacket(self,payload):
         """Transmit a packet.  Untested."""
         
@@ -502,12 +532,12 @@ class GoodFETCC(GoodFET):
     def CCdebuginstr(self,instr):
         self.writecmd(self.APP,0x88,len(instr),instr);
         return ord(self.data[0]);
-    def peekblock(self,adr,length,memory="vn"):
-        """Return a block of data."""
-        data=[adr&0xff, (adr&0xff00)>>8,
-              length&0xFF,(length&0xFF00)>>8];
-        self.writecmd(self.APP,0x91,4,data);
-        return [ord(x) for x in self.data]
+    #def peekblock(self,adr,length,memory="vn"):
+    #    """Return a block of data, broken"""
+    #    data=[adr&0xff, (adr&0xff00)>>8,
+    #          length&0xFF,(length&0xFF00)>>8];
+    #    self.writecmd(self.APP,0x91,4,data);
+    #    return [ord(x) for x in self.data]
     def peek8(self,address, memory="code"):
         if(memory=="code" or memory=="flash" or memory=="vn"):
             return self.CCpeekcodebyte(address);

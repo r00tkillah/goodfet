@@ -16,10 +16,11 @@ from intelhex import IntelHex;
 def printpacket(packet):
     s="";
     i=0;
+    #print "Printing packet."
     for foo in packet:
         i=i+1;
         #if i>client.packetlen: break;
-        s="%s %02x" % (s,ord(foo));
+        s="%s %02x" % (s,foo);
     print "%s" %s;
 
 if(len(sys.argv)==1):
@@ -126,7 +127,7 @@ if(sys.argv[1]=="rssi"):
     threshold=200;
     if len(sys.argv)>2:
         client.RF_setfreq(eval(sys.argv[2]));
-    print "Listening on %f MHz." % (client.RF_getfreq()/10**6);
+    print "Listening on %3.6f MHz." % (client.RF_getfreq()/10.0**6);
         
     #FIXME, ugly
     RFST=0xDFE1
@@ -145,13 +146,14 @@ if(sys.argv[1]=="rssi"):
 
 if(sys.argv[1]=="sniffsimpliciti"):
     #TODO remove all poke() calls.
+    region="us";
+    if len(sys.argv)>2:
+        region=sys.argv[2];
     
     client.CC1110_crystal();
     client.RF_idle();
     
-    
-    client.config_simpliciti("lf");
-    #client.RF_setfreq(2481 * 10**6);
+    client.config_simpliciti(region);
     
     #OpenBeacon defines these in little endian as follows.
     #client.RF_setmaclen(5); # SETUP_AW for 5-byte addresses.
@@ -164,8 +166,8 @@ if(sys.argv[1]=="sniffsimpliciti"):
     #client.RF_setpacketlen(16);
     
     
-    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
-                                           client.RF_getfreq()/10**6);
+    print "Listening as %x on %f MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10.0**6);
     #Now we're ready to get packets.
     while 1:
         packet=None;
@@ -177,16 +179,6 @@ if(sys.argv[1]=="sniffsimpliciti"):
 
 
 
-if(sys.argv[1]=="explore"):
-    print "Exploring undefined commands."
-    print "Status: %s" %client.status();
-    
-    cmd=0x04; #read status
-    for foo in range(0,0x5):
-        client.CCcmd([(0x0F<<3)|(0x00)|0x03,0x09<<3]);
-        print "Status %02x: %s" % (foo,client.status());
-    for foo in range(0,3):
-        print "PC: %04x" % client.CCgetPC();
 if(sys.argv[1]=="term"):
     GoodFETConsole(client).run();
 if(sys.argv[1]=="test"):

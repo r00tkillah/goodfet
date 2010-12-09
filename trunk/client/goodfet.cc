@@ -41,6 +41,7 @@ if(len(sys.argv)==1):
     print "%s poke 0x$iram 0x$val" % sys.argv[0];
     print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
     
+    print "%s rssi [freq]\n\tGraphs signal strength on [freq] Hz." % sys.argv[0];
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
     print "%s reflex [freq]\n\tJams on [freq] Hz." % sys.argv[0];
     print "%s sniffsimpliciti [us|eu|lf]\n\tSniffs SimpliciTI packets." % sys.argv[0];
@@ -95,17 +96,16 @@ if(sys.argv[1]=="reflex"):
     
     #FIXME, ugly
     RFST=0xDFE1
-    client.pokebyte(RFST,0x01); #SCAL
+    client.CC_RFST_CAL(); #SCAL
     time.sleep(1);
     
     maxrssi=0;
     while 1:
         
-        client.pokebyte(RFST,0x02); #SRX
+        client.CC_RFST_RX(); #SRX
         rssi=client.RF_getrssi();
-        client.pokebyte(RFST,0x04); #idle
+        client.CC_RFST_IDLE(); #idle
         time.sleep(0.01);
-        rssi=rssi;
         string="";
         for foo in range(0,rssi>>2):
             string=("%s."%string);
@@ -117,6 +117,31 @@ if(sys.argv[1]=="reflex"):
             client.RF_carrier();
             time.sleep(1);
             print "JAMMING JAMMING JAMMING JAMMING";
+if(sys.argv[1]=="rssi"):
+    client.CC1110_crystal();
+    client.RF_idle();
+    
+    client.config_simpliciti();
+    
+    threshold=200;
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[2]));
+    print "Listening on %f MHz." % (client.RF_getfreq()/10**6);
+        
+    #FIXME, ugly
+    RFST=0xDFE1
+    client.CC_RFST_CAL();
+    time.sleep(1);
+    
+    while 1:
+        client.CC_RFST_RX();
+        rssi=client.RF_getrssi();
+        client.CC_RFST_IDLE(); #idle
+        time.sleep(0.01);
+        string="";
+        for foo in range(0,rssi>>2):
+            string=("%s."%string);
+        print "%02x %04i %s" % (rssi,rssi, string); 
 
 if(sys.argv[1]=="sniffsimpliciti"):
     #TODO remove all poke() calls.

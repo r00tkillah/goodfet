@@ -134,7 +134,8 @@ class GoodFETCC(GoodFET):
         self.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
         self.resume();
         while wait>0 and (0==self.CCstatus()&0x20):
-            time.sleep(0.1);
+            a=1;
+            #time.sleep(0.1);
             #print "Waiting for shell code to return.";
         return;
     def shellcode(self,code,wait=1):
@@ -148,7 +149,8 @@ class GoodFETCC(GoodFET):
         self.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
         self.resume();
         while wait>0 and (0==self.CCstatus()&0x20):
-            time.sleep(0.1);
+            a=1;
+            #time.sleep(0.1);
             #print "Waiting for shell code to return.";
         return;
     def CC1110_crystal(self):
@@ -243,11 +245,12 @@ class GoodFETCC(GoodFET):
         self.pokebysym("TEST2"    , 0x81)   # Various test settings.
         self.pokebysym("TEST1"    , 0x35)   # Various test settings.
         self.pokebysym("TEST0"    , 0x09)   # Various test settings.
-        #self.pokebysym("PA_TABLE0", 0xC0)   # PA output power setting.
-        self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control.
+        self.pokebysym("PA_TABLE0", 0xC0)   # PA output power setting.
+        self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control, w/ lqi
+        #self.pokebysym("PKTCTRL1" , 0x00)   # Packet automation control. w/o lqi
         self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control, w/ checksum.
-        #self.pokebysym("PKTCTRL0" , 0x01)   # Packet automation control, w/o checksum.
-        self.pokebysym("ADDR"     , 0x00)   # Device address.
+        self.pokebysym("PKTCTRL0" , 0x00)   # Packet automation control, w/o checksum, fixed length
+        self.pokebysym("ADDR"     , 0x01)   # Device address.
         self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
         
         self.pokebysym("SYNC1",0xD3);
@@ -344,21 +347,22 @@ class GoodFETCC(GoodFET):
         return 0;
     def RF_rxpacket(self):
         """Get a packet from the radio.  Returns None if none is waiting."""
-        #RFST=0xDFE1
-        #self.pokebyte(RFST,0x01); #SCAL
-        #self.pokebyte(RFST,0x02); #SRX
-        
         self.shellcodefile("rxpacket.ihx");
-        #time.sleep(1);
-        self.halt();
         len=self.peek8(0xFE00,"xdata");
-        #print "Grabbing %i bytes." %len;
-        return self.peekblock(0xFE00,len,"data");
-    def RF_txpacket(self,payload):
+        return self.peekblock(0xFE00,len+1,"data");
+    def RF_txpacket(self,packet):
         """Transmit a packet.  Untested."""
         
-        print "FIXME, Chipcon packet transmission is not yet implemented.";
+        self.pokeblock(0xFE00,packet,"data");
+        self.shellcodefile("txpacket.ihx");
         return;
+    def RF_txrxpacket(self,packet):
+        """Transmit a packet.  Untested."""
+        
+        self.pokeblock(0xFE00,packet,"data");
+        self.shellcodefile("txrxpacket.ihx");
+        len=self.peek8(0xFE00,"xdata");
+        return self.peekblock(0xFE00,len+1,"data");
 
     def RF_getrssi(self):
         """Returns the received signal strenght, with a weird offset."""

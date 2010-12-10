@@ -23,6 +23,64 @@ def printpacket(packet):
         s="%s %02x" % (s,foo);
     print "%s" %s;
 
+def handlesimplicitipacket(packet):
+    s="";
+    i=0;
+    
+    for foo in packet:
+        i=i+1;
+        #if i>packet[0]+1: break;
+        s="%s %02x" % (s,foo);
+    print "\n%s" %s;
+    
+    
+    len=packet[0];
+    if len<12: return;
+    
+    dst=[packet[1],
+             packet[2],
+             packet[3],
+             packet[4]];
+    src=[packet[5],
+             packet[6],
+             packet[7],
+             packet[8]];
+    port=packet[9];
+    info=packet[10];
+    seq=packet[11];
+    #payload begins at byte 12.
+    
+    
+    
+    if port==0x03:
+        #print "Join request.";
+        if packet[12]!=1:
+            print "Not a join request.  WTF?";
+            return;
+        tid=packet[13];
+        reply=[0x12, #reply is one byte shorter
+               src[0], src[1], src[2], src[3],
+               1,1,1,1,           #my address
+               port, 0x21, seq,
+               0x81, tid,         #reply, tid
+               
+               1,1,1,1,
+               #4,3,2,1,           #default join token
+               #8,7,6,5,          #default link token
+               #0xFF,0xFF,0xFF,0xFF,
+               0x00];             #no security
+        printpacket(reply);
+        client.RF_txpacket(reply);
+
+    elif port==0x04:
+        print "Security request.";
+    elif port==0x05:
+        print "Frequency request.";
+    elif port==0x06:
+        print "Management request.";
+    else:
+        print "Unknown Port %02x" %port;
+    
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s erase" % sys.argv[0];
@@ -155,11 +213,26 @@ if(sys.argv[1]=="sniffsimpliciti"):
     
     client.config_simpliciti(region);
     
-    #For BSL sniffing, different frequencies.
-    #client.pokebysym("FREQ2",0x25);
-    #client.pokebysym("FREQ1",0x95);
-    #client.pokebysym("FREQ0",0x55);
+    print "Listening as %x on %f MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10.0**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
+
+if(sys.argv[1]=="simpliciti"):
+    #TODO remove all poke() calls.
+    region="us";
+    if len(sys.argv)>2:
+        region=sys.argv[2];
     
+    client.CC1110_crystal();
+    client.RF_idle();
+    
+    client.config_simpliciti(region);
     
     print "Listening as %x on %f MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10.0**6);
@@ -167,9 +240,8 @@ if(sys.argv[1]=="sniffsimpliciti"):
     while 1:
         packet=None;
         while packet==None:
-            #time.sleep(0.1);
             packet=client.RF_rxpacket();
-        printpacket(packet);
+        handlesimplicitipacket(packet);
         sys.stdout.flush();
 
 

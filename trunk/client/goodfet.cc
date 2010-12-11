@@ -130,35 +130,29 @@ if(sys.argv[1]=="reflex"):
     client.RF_idle();
     
     client.config_simpliciti();
-    client.pokebysym("MDMCFG4",   0x0c);  #ultrawide
-    client.pokebysym("FSCTRL1",   0x12);  #IF of 457.031
-    client.pokebysym("FSCTRL0",   0x00); 
-    client.pokebysym("FSCAL2" ,   0x2A);  #above mid
-    client.pokebysym("MCSM0"  ,   0x00);  # Main Radio Control State Machine
     
-    client.pokebysym("FSCAL3"   , 0xEA)   # Frequency synthesizer calibration.
-    client.pokebysym("FSCAL2"   , 0x2A)   # Frequency synthesizer calibration.
-    client.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
-    client.pokebysym("FSCAL0"   , 0x1F)   # Frequency synthesizer calibration.
-        
-    client.pokebysym("TEST2"    , 0x88)   # Various test settings.
-    client.pokebysym("TEST1"    , 0x35)   # Various test settings.
-    client.pokebysym("TEST0"    , 0x09)   # Various test settings.
-    
-    threshold=200;
+    threshold=100;
     if len(sys.argv)>2:
         client.RF_setfreq(eval(sys.argv[2]));
     print "Listening on %f MHz." % (client.RF_getfreq()/10**6);
     print "Jamming if RSSI>=%i" % threshold;
     
-    #FIXME, ugly
+    client.pokebyte(0xFE00,threshold,"xdata"); #Write threshold to shellcode.
+    client.shellcodefile("reflex.ihx");
+    rssi=0;
+    while 1:
+        while(0==client.ishalted()):
+            rssi=0;
+        rssi=client.peek8(0xFE00,"xdata");
+        print "Activated jamming with RSSI of %i, going again for another packet." % rssi;
+        client.resume();
+    
     RFST=0xDFE1
     client.CC_RFST_CAL(); #SCAL
     time.sleep(1);
     
     maxrssi=0;
     while 1:
-        
         client.CC_RFST_RX(); #SRX
         rssi=client.RF_getrssi();
         client.CC_RFST_IDLE(); #idle
@@ -180,10 +174,9 @@ if(sys.argv[1]=="rssi"):
     
     client.config_simpliciti();
     
-    threshold=200;
     if len(sys.argv)>2:
         client.RF_setfreq(eval(sys.argv[2]));
-    print "Listening on %3.6f MHz." % (client.RF_getfreq()/10.0**6);
+    print "Listening on %f MHz." % (client.RF_getfreq()/10.0**6);
         
     #FIXME, ugly
     RFST=0xDFE1

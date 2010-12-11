@@ -150,6 +150,8 @@ class GoodFETCC(GoodFET):
             #time.sleep(0.1);
             #print "Waiting for shell code to return.";
         return;
+    def ishalted(self):
+        return self.CCstatus()&0x20;
     def shellcode(self,code,wait=1):
         """Copy a block of code into RAM and execute it."""
         i=0;
@@ -224,15 +226,19 @@ class GoodFETCC(GoodFET):
             self.pokebysym("FREQ2"    , 0x21)   # Frequency control word, high byte.
             self.pokebysym("FREQ1"    , 0x71)   # Frequency control word, middle byte.
             self.pokebysym("FREQ0"    , 0x7a)   # Frequency control word, low byte.
-        if band=="ismus" or band=="us":
+        elif band=="ismus" or band=="us":
             self.pokebysym("FREQ2"    , 0x22)   # Frequency control word, high byte.
             self.pokebysym("FREQ1"    , 0xB1)   # Frequency control word, middle byte.
             self.pokebysym("FREQ0"    , 0x3B)   # Frequency control word, low byte.
-        if band=="ismlf" or band=="lf":
+        elif band=="ismlf" or band=="lf":
             self.pokebysym("FREQ2"    , 0x10)   # Frequency control word, high byte.
             self.pokebysym("FREQ1"    , 0xB0)   # Frequency control word, middle byte.
             self.pokebysym("FREQ0"    , 0x71)   # Frequency control word, low byte.
-        
+        elif band=="none":
+            band="none";
+        else:
+            #Got a frequency, not a band.
+            self.RF_setfreq(eval(band));
         self.pokebysym("MDMCFG4"  , 0x7B)   # Modem configuration.
         self.pokebysym("MDMCFG3"  , 0x83)   # Modem configuration.
         self.pokebysym("MDMCFG2"  , 0x13)   # Modem configuration.
@@ -261,7 +267,7 @@ class GoodFETCC(GoodFET):
         self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control, w/ lqi
         #self.pokebysym("PKTCTRL1" , 0x00)   # Packet automation control. w/o lqi
         self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control, w/ checksum.
-        self.pokebysym("PKTCTRL0" , 0x00)   # Packet automation control, w/o checksum, fixed length
+        #self.pokebysym("PKTCTRL0" , 0x00)   # Packet automation control, w/o checksum, fixed length
         self.pokebysym("ADDR"     , 0x01)   # Device address.
         self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
         
@@ -565,9 +571,7 @@ class GoodFETCC(GoodFET):
         self.data=[adr&0xff, val&0xff];
         self.writecmd(self.APP,0x02, 2, self.data);
         return ord(self.data[0]);
-    def pokebyte(self,adr,val,mem="data"):
-        if mem!="data":
-            print "FIXME: poking of non data bytes not yet supported.";
+    def pokebyte(self,adr,val,mem="xdata"):
         self.CCpokedatabyte(adr,val);
     def CCpokedatabyte(self,adr,val):
         """Write a byte to data memory."""

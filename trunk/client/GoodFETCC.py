@@ -126,21 +126,22 @@ class GoodFETCC(GoodFET):
         hz=freq*396.728515625;
         
         return hz;
+    lastshellcode="none";
     def shellcodefile(self,filename,wait=1):
         """Run a fragment of shellcode by name."""
         #FIXME: should identify chip model number, use shellcode for that chip.
-        file=__file__;
-        file=file.replace("GoodFETCC.pyc","GoodFETCC.py");
-        path=file.replace("client/GoodFETCC.py","shellcode/chipcon/cc1110/");
-        #print "File\t%s" % file;
-        #print "Path\t%s" % path;
-        filename=path+filename;
-        #print "Loading shelcode from %s" % filename;
         
-        #Load the shellcode.
-        h=IntelHex(filename);
-        for i in h._buf.keys():
-            self.CCpokedatabyte(i,h[i]);
+        if self.lastshellcode!=filename:
+            self.lastshellcode=filename;
+            file=__file__;
+            file=file.replace("GoodFETCC.pyc","GoodFETCC.py");
+            path=file.replace("client/GoodFETCC.py","shellcode/chipcon/cc1110/");
+            filename=path+filename;
+        
+            #Load the shellcode.
+            h=IntelHex(filename);
+            for i in h._buf.keys():
+                self.CCpokedatabyte(i,h[i]);
         
         #Execute it.
         self.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000

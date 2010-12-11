@@ -17,8 +17,8 @@ void main(){
   RFTXRXIE=0;
   
   //idle a bit.
-  RFST=RFST_SIDLE;
-  while(MARCSTATE!=MARC_STATE_IDLE);
+  //RFST=RFST_SIDLE;
+  //while(MARCSTATE!=MARC_STATE_IDLE);
   
   //Begin to receive.
   RFST=RFST_SRX;
@@ -28,13 +28,9 @@ void main(){
     while(!RFTXRXIF); //Wait for byte to be ready.
     RFTXRXIF=0;      //Clear the flag.
     
-    if (MARCSTATE == MARC_STATE_RX) {
-      packet[i]=RFD; //Grab the next byte.
-      i++;
-      len=packet[0];   //First byte of the packet is the length.
-    }else
-      HALT;
-
+    packet[i]=RFD; //Grab the next byte.
+    i++;
+    len=packet[0];   //First byte of the packet is the length.
   }
   RFST = RFST_SIDLE; //End receive.
   HALT;

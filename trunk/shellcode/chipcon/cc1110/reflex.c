@@ -19,12 +19,13 @@ void main(){
   RFTXRXIE=0;
   
   //idle a bit.
-  RFST=RFST_SIDLE;
-  while(MARCSTATE!=MARC_STATE_IDLE);
+  //RFST=RFST_SIDLE;
+  //while(MARCSTATE!=MARC_STATE_IDLE);
 
   while(1){
     //Wait for the transmission.
     RFST=RFST_SRX;
+    while(MARCSTATE!=MARC_STATE_RX);
     rssi=0;
     //Wait for RSSI to settle.
     sleepMillis(10);

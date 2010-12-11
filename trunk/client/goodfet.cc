@@ -48,11 +48,16 @@ def handlesimplicitipacket(packet):
     port=packet[9];
     info=packet[10];
     seq=packet[11];
-    #payload begins at byte 12.
+    #payload begins at byte 10.
     
     
-    
-    if port==0x03:
+    if port==0x20:
+        #data packet
+        x=packet[11];
+        y=packet[13];
+        z=packet[15];
+        print "%02x: %i %i %i" % (seq,x,y,z);
+    elif port==0x03:
         #print "Join request.";
         if packet[12]!=1:
             print "Not a join request.  WTF?";
@@ -145,6 +150,7 @@ if(sys.argv[1]=="reflex"):
             rssi=0;
         rssi=client.peek8(0xFE00,"xdata");
         print "Activated jamming with RSSI of %i, going again for another packet." % rssi;
+        #client.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
         client.resume();
     
     RFST=0xDFE1

@@ -79,6 +79,7 @@ class GoodFETCC(GoodFET):
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         #FIXME CC1110 specific
+        #Some frequencies fail, probably and FSCAL thing.
         
         hz=frequency;
         freq=int(hz/396.728515625);
@@ -91,7 +92,18 @@ class GoodFETCC(GoodFET):
         self.pokebysym("FREQ1",freq1);
         self.pokebysym("FREQ0",freq0);
         
-
+        self.pokebysym("TEST1",0x31);
+        self.pokebysym("TEST0",0x09);
+        
+        #self.pokebysym("PA_TABLE0" ,   0x60);  #above mid
+        
+        #self.pokebysym("FSCAL2" ,   0x2A);  #above mid
+        self.pokebysym("FSCAL2" ,   0x0A);  #beneath mid
+        
+        #self.CC_RFST_CAL(); #SCAL
+        #time.sleep(1);
+    
+        
     def RF_getfreq(self):
         """Get the frequency in Hz."""
         #FIXME CC1110 specific
@@ -262,52 +274,28 @@ class GoodFETCC(GoodFET):
         self.CC1110_crystal(); #FIXME, '1110 specific.
         self.RF_idle();
         
-        #self.resume();
-        #time.sleep(1);
-        #self.halt();
         
         RFST=0xDFE1;
         
-        
-        self.pokebysym("FSCTRL1"  , 0x0a)   # Frequency synthesizer control.
-        self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
+        self.config_simpliciti();
         
         #Don't change these while the radio is active.
-        self.pokebysym("FSCAL3"   , 0xA9)   # Frequency synthesizer calibration.
-        self.pokebysym("FSCAL2"   , 0x0A)   # Frequency synthesizer calibration.
-        self.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
-        self.pokebysym("FSCAL0"   , 0x11)   # Frequency synthesizer calibration.
+        #self.pokebysym("FSCAL3"   , 0xA9)   # Frequency synthesizer calibration.
+        #self.pokebysym("FSCAL2"   , 0x0A)   # Frequency synthesizer calibration.
+        #self.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
+        #self.pokebysym("FSCAL0"   , 0x11)   # Frequency synthesizer calibration.
         
+        #Ramp up the power.
+        #self.pokebysym("PA_TABLE0", 0xFF)   # PA output power setting.
         
-        #self.pokebysym("FREQ2"    , 0x10)   # Frequency control word, high byte.
-        #self.pokebysym("FREQ1"    , 0xEC)   # Frequency control word, middle byte.
-        #self.pokebysym("FREQ0"    , 0x4E)   # Frequency control word, low byte.
+        #This is what drops to OOK.
+        #Comment to keep GFSK, might be better at jamming.
         self.pokebysym("MDMCFG4"  , 0x86)   # Modem configuration.
         self.pokebysym("MDMCFG3"  , 0x83)   # Modem configuration.
         self.pokebysym("MDMCFG2"  , 0x30)   # Modem configuration.
         self.pokebysym("MDMCFG1"  , 0x22)   # Modem configuration.
         self.pokebysym("MDMCFG0"  , 0xF8)   # Modem configuration.
-        self.pokebysym("CHANNR"   , 0x00)   # Channel number.
-        self.pokebysym("DEVIATN"  , 0x00)   # Modem deviation setting (when FSK modulation is enabled).
-        self.pokebysym("FREND1"   , 0x56)   # Front end RX configuration.
         
-        self.pokebysym("FREND0"   , 0x10)   # Front end RX configuration.
-        self.pokebysym("MCSM0"    , 0x14)   # Main Radio Control State Machine configuration.
-        self.pokebysym("FOCCFG"   , 0x16)   # Frequency Offset Compensation Configuration.
-        self.pokebysym("BSCFG"    , 0x6C)   # Bit synchronization Configuration.
-        
-        self.pokebysym("AGCCTRL2" , 0x03)   # AGC control.
-        self.pokebysym("AGCCTRL1" , 0x40)   # AGC control.
-        self.pokebysym("AGCCTRL0" , 0x91)   # AGC control.
-        
-        self.pokebysym("TEST2"    , 0x88)   # Various test settings.
-        self.pokebysym("TEST1"    , 0x31)   # Various test settings.
-        self.pokebysym("TEST0"    , 0x09)   # Various test settings.
-        self.pokebysym("PA_TABLE0", 0xC0)   # PA output power setting.
-        self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control.
-        self.pokebysym("PKTCTRL0" , 0x22)   # Packet automation control.
-        self.pokebysym("ADDR"     , 0x00)   # Device address.
-        self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
         
         self.pokebysym("SYNC1",0xAA);
         self.pokebysym("SYNC0",0xAA);
@@ -323,9 +311,6 @@ class GoodFETCC(GoodFET):
             state=self.peekbysym("MARCSTATE")&0x1F;
             #print "state=%02x" % state;
         print "Holding a carrier on %f MHz." % (self.RF_getfreq()/10**6);
-        
-        #Not needed, radio works when CPU is halted.
-        #self.resume();
         
         return;
             

@@ -95,7 +95,6 @@ class GoodFETCC(GoodFET):
         self.pokebysym("TEST1",0x31);
         self.pokebysym("TEST0",0x09);
         
-        #self.pokebysym("PA_TABLE0" ,   0x60);  #above mid
         
         #self.pokebysym("FSCAL2" ,   0x2A);  #above mid
         self.pokebysym("FSCAL2" ,   0x0A);  #beneath mid
@@ -214,7 +213,7 @@ class GoodFETCC(GoodFET):
         return;
         
     def config_simpliciti(self,band="none"):
-        self.pokebysym("FSCTRL1"  , 0x08)   # Frequency synthesizer control.
+        self.pokebysym("FSCTRL1"  , 0x0C) #08   # Frequency synthesizer control.
         self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
         
         #Don't change these while the radio is active.
@@ -264,7 +263,7 @@ class GoodFETCC(GoodFET):
         self.pokebysym("TEST2"    , 0x81)   # Various test settings.
         self.pokebysym("TEST1"    , 0x35)   # Various test settings.
         self.pokebysym("TEST0"    , 0x09)   # Various test settings.
-        self.pokebysym("PA_TABLE0", 0xC0)   # PA output power setting.
+        self.pokebysym("PA_TABLE0", 0xc0)   # Max output power.
         self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control, w/ lqi
         #self.pokebysym("PKTCTRL1" , 0x00)   # Packet automation control. w/o lqi
         self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control, w/ checksum.
@@ -341,7 +340,7 @@ class GoodFETCC(GoodFET):
         """Get a packet from the radio.  Returns None if none is waiting."""
         self.shellcodefile("rxpacket.ihx");
         len=self.peek8(0xFE00,"xdata");
-        return self.peekblock(0xFE00,len+1,"data");
+        return self.peekblock(0xFE00,len+3,"data");
     def RF_txpacket(self,packet):
         """Transmit a packet.  Untested."""
         
@@ -354,7 +353,7 @@ class GoodFETCC(GoodFET):
         self.pokeblock(0xFE00,packet,"data");
         self.shellcodefile("txrxpacket.ihx");
         len=self.peek8(0xFE00,"xdata");
-        return self.peekblock(0xFE00,len+1,"data");
+        return self.peekblock(0xFE00,len+3,"data");
 
     def RF_getrssi(self):
         """Returns the received signal strenght, with a weird offset."""

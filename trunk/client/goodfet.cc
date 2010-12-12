@@ -16,23 +16,17 @@ from intelhex import IntelHex;
 def printpacket(packet):
     s="";
     i=0;
-    #print "Printing packet."
     for foo in packet:
         i=i+1;
-        #if i>packet[0]+1: break;
         s="%s %02x" % (s,foo);
-    print "%s" %s;
+    print "# %s" %s;
 
+simplepacketcount=0;
 def handlesimplicitipacket(packet):
     s="";
     i=0;
-    
-    for foo in packet:
-        i=i+1;
-        #if i>packet[0]+1: break;
-        s="%s %02x" % (s,foo);
-    print "\n%s" %s;
-    
+    global simplepacketcount;
+    simplepacketcount=simplepacketcount+1;
     
     len=packet[0];
     if len<12: return;
@@ -50,13 +44,38 @@ def handlesimplicitipacket(packet):
     seq=packet[11];
     #payload begins at byte 10.
     
-    
-    if port==0x20:
+    if packet[len+2]&0x80==0:
+        print "# Dropped broken packet.";
+    elif port==0x20:
         #data packet
-        x=packet[11];
-        y=packet[13];
+        counter=packet[11];
+        button=packet[12];
+        x=packet[13];
+        y=packet[14];
         z=packet[15];
-        print "%02x: %i %i %i" % (seq,x,y,z);
+        print "%09i %03i %4i %4i %4i" % (simplepacketcount,button,x,y,z);
+        sys.stdout.flush();
+    elif port==0x02:
+        #Link request.  Gotta send a proper reply to get data.
+        tid=packet[13];
+        #14 ff ff ff ff 3c b7 e3 98 
+        #02 03 c9
+        #01 97
+        #ef be ad de 3d 00 02 
+        reply=[0x10,
+               src[0], src[1], src[2], src[3],
+               0x78,0x56,0x34,0x10, #my address.
+               port, 0x21, seq,
+               0x81, tid,         #reply, tid
+               
+               0x20,0x00,0xad,0xde, #Join token
+               0x00];             #no security
+        printpacket(reply);
+        print "#FIXME FAST: repeatedly broadcasting ACK to catch LINK on the next attempt.";
+        for foo in range(1,50):
+            client.RF_txpacket(reply);
+        
+        pass;
     elif port==0x03:
         #print "Join request.";
         if packet[12]!=1:
@@ -65,18 +84,18 @@ def handlesimplicitipacket(packet):
         tid=packet[13];
         reply=[0x12, #reply is one byte shorter
                src[0], src[1], src[2], src[3],
-               1,1,1,1,           #my address
+               0x78,0x56,0x34,0x10, #my address.
                port, 0x21, seq,
                0x81, tid,         #reply, tid
                
-               1,1,1,1,
-               #4,3,2,1,           #default join token
-               #8,7,6,5,          #default link token
-               #0xFF,0xFF,0xFF,0xFF,
+               0xef,0xbe,0xad,0xde, #Join token
                0x00];             #no security
         printpacket(reply);
-        client.RF_txpacket(reply);
-
+        print "#FIXME FAST: repeatedly broadcasting ACK to catch JOIN on the next attempt.";
+        for foo in range(1,50):
+            client.RF_txpacket(reply);
+        #printpacket(reply);
+        
     elif port==0x04:
         print "Security request.";
     elif port==0x05:
@@ -231,7 +250,7 @@ if(sys.argv[1]=="simpliciti"):
     
     client.config_simpliciti(region);
     
-    print "Listening as %x on %f MHz" % (client.RF_getsmac(),
+    print "# Listening as %x on %f MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10.0**6);
     #Now we're ready to get packets.
     while 1:

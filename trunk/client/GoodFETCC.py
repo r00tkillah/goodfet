@@ -211,7 +211,76 @@ class GoodFETCC(GoodFET):
         RFST=0xDFE1
         self.pokebyte(RFST,state); #Return to idle state.
         return;
+    def config_dash7(self,band="lf"):
+        #These settings came from the OpenTag project's GIT repo on 18 Dec, 2010.
+        #Waiting for official confirmation of the accuracy.
+
+        self.pokebysym("FSCTRL1"  , 0x08)   # Frequency synthesizer control.
+        self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
         
+        #Don't change these while the radio is active.
+        self.pokebysym("FSCAL3"   , 0xEA)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL2"   , 0x2A)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL1"   , 0x00)   # Frequency synthesizer calibration.
+        self.pokebysym("FSCAL0"   , 0x1F)   # Frequency synthesizer calibration.
+        
+        if band=="ismeu" or band=="eu":
+            print "There is no official eu band for dash7."
+            self.pokebysym("FREQ2"    , 0x21)   # Frequency control word, high byte.
+            self.pokebysym("FREQ1"    , 0x71)   # Frequency control word, middle byte.
+            self.pokebysym("FREQ0"    , 0x7a)   # Frequency control word, low byte.
+        elif band=="ismus" or band=="us":
+            print "There is no official us band for dash7."
+            self.pokebysym("FREQ2"    , 0x22)   # Frequency control word, high byte.
+            self.pokebysym("FREQ1"    , 0xB1)   # Frequency control word, middle byte.
+            self.pokebysym("FREQ0"    , 0x3B)   # Frequency control word, low byte.
+        elif band=="ismlf" or band=="lf":
+            # 433.9198 MHz, same as Simpliciti.
+            self.pokebysym("FREQ2"    , 0x10)   # Frequency control word, high byte.
+            self.pokebysym("FREQ1"    , 0xB0)   # Frequency control word, middle byte.
+            self.pokebysym("FREQ0"    , 0x71)   # Frequency control word, low byte.
+        elif band=="none":
+            pass;
+        else:
+            #Got a frequency, not a band.
+            self.RF_setfreq(eval(band));
+        self.pokebysym("MDMCFG4"  , 0x8B)   # 62.5 kbps w/ 200 kHz filter
+        self.pokebysym("MDMCFG3"  , 0x3B)
+        self.pokebysym("MDMCFG2"  , 0x11)
+        self.pokebysym("MDMCFG1"  , 0x02)
+        self.pokebysym("MDMCFG0"  , 0x53)
+        self.pokebysym("CHANNR"   , 0x00)   # Channel zero.
+        self.pokebysym("DEVIATN"  , 0x50)   # 50 kHz deviation
+        
+        self.pokebysym("FREND1"   , 0xB6)   # Front end RX configuration.
+        self.pokebysym("FREND0"   , 0x10)   # Front end RX configuration.
+        self.pokebysym("MCSM2"    , 0x1E)
+        self.pokebysym("MCSM1"    , 0x3F)
+        self.pokebysym("MCSM0"    , 0x30)
+        self.pokebysym("FOCCFG"   , 0x1D)   # Frequency Offset Compensation Configuration.
+        self.pokebysym("BSCFG"    , 0x1E)   # 6.25% data error rate
+        
+        self.pokebysym("AGCCTRL2" , 0xC7)   # AGC control.
+        self.pokebysym("AGCCTRL1" , 0x00)   # AGC control.
+        self.pokebysym("AGCCTRL0" , 0xB2)   # AGC control.
+        
+        self.pokebysym("TEST2"    , 0x81)   # Various test settings.
+        self.pokebysym("TEST1"    , 0x35)   # Various test settings.
+        self.pokebysym("TEST0"    , 0x09)   # Various test settings.
+        self.pokebysym("PA_TABLE0", 0xc0)   # Max output power.
+        self.pokebysym("PKTCTRL1" , 0x04)   # Packet automation control, w/ lqi
+        #self.pokebysym("PKTCTRL1" , 0x00)   # Packet automation control. w/o lqi
+        self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control, w/ checksum.
+        #self.pokebysym("PKTCTRL0" , 0x00)   # Packet automation control, w/o checksum, fixed length
+        self.pokebysym("ADDR"     , 0x01)   # Device address.
+        self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
+        
+        
+        
+        
+        self.pokebysym("SYNC1",0xD3);
+        self.pokebysym("SYNC0",0x91);
+        return;
     def config_simpliciti(self,band="none"):
         self.pokebysym("FSCTRL1"  , 0x0C) #08   # Frequency synthesizer control.
         self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.

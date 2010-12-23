@@ -134,7 +134,7 @@ class GoodFETCC(GoodFET):
             self.lastshellcode=filename;
             file=__file__;
             file=file.replace("GoodFETCC.pyc","GoodFETCC.py");
-            path=file.replace("client/GoodFETCC.py","shellcode/chipcon/cc1110/");
+            path=file.replace("GoodFETCC.py","shellcode/chipcon/cc1110/");
             filename=path+filename;
         
             #Load the shellcode.
@@ -274,9 +274,6 @@ class GoodFETCC(GoodFET):
         #self.pokebysym("PKTCTRL0" , 0x00)   # Packet automation control, w/o checksum, fixed length
         self.pokebysym("ADDR"     , 0x01)   # Device address.
         self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
-        
-        
-        
         
         self.pokebysym("SYNC1",0xD3);
         self.pokebysym("SYNC0",0x91);

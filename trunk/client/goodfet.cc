@@ -68,9 +68,9 @@ def handlesimplicitipacket(packet):
                port, 0x21, seq,
                0x81, tid,         #reply, tid
                
-               0x20,0x00,0xad,0xde, #Join token
-               0x00];             #no security
-        printpacket(reply);
+               0x20,0x00,0xad,0xde, #link token
+               0x00];               #no security
+        #printpacket(reply);
         print "#FIXME FAST: repeatedly broadcasting ACK to catch LINK on the next attempt.";
         for foo in range(1,50):
             client.RF_txpacket(reply);
@@ -78,6 +78,7 @@ def handlesimplicitipacket(packet):
         pass;
     elif port==0x03:
         #print "Join request.";
+        #printpacket(packet);
         if packet[12]!=1:
             print "Not a join request.  WTF?";
             return;
@@ -90,11 +91,12 @@ def handlesimplicitipacket(packet):
                
                0xef,0xbe,0xad,0xde, #Join token
                0x00];             #no security
-        printpacket(reply);
+        #printpacket(reply);
         print "#FIXME FAST: repeatedly broadcasting ACK to catch JOIN on the next attempt.";
+        #printpacket(reply);
         for foo in range(1,50):
             client.RF_txpacket(reply);
-        #printpacket(reply);
+        
         
     elif port==0x04:
         print "Security request.";

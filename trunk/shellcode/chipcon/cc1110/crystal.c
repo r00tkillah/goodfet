@@ -3,11 +3,19 @@
 
 //! Start the crystal oscillator at 26MHz.
 void main(){
-  SLEEP &= ~SLEEP_OSC_PD; // Turn both high speed oscillators on
-  while( !(SLEEP & SLEEP_XOSC_S) ); // Wait until xtal oscillator is stable
-  CLKCON = (CLKCON & ~(CLKCON_CLKSPD | CLKCON_OSC)) | CLKSPD_DIV_1; // Select xtal osc, 26 MHz
-  while (CLKCON & CLKCON_OSC); // Wait for change to take effect
-  SLEEP |= SLEEP_OSC_PD; // Turn off the other high speed oscillator (the RC osc)
+  // Turn both high speed oscillators on
+  SLEEP &= ~SLEEP_OSC_PD;
+  // Wait until xtal oscillator is stable
+  while( !(SLEEP & SLEEP_XOSC_S) ); 
+
+  // Select xtal osc, 26 MHz
+  CLKCON = 
+    (CLKCON & ~(CLKCON_CLKSPD | CLKCON_OSC))
+    | CLKSPD_DIV_1; 
+  // Wait for change to take effect
+  while (CLKCON & CLKCON_OSC); 
+  // Turn off the RC osc.
+  SLEEP |= SLEEP_OSC_PD; 
   
   HALT;
 }

@@ -24,13 +24,25 @@ void main(){
     //Begin to receive.
     RFST=RFST_SRX;
     while(MARCSTATE!=MARC_STATE_RX);
-  
-    while(i<len+3){ //len+3 if status is appended.
-      while(!RFTXRXIF); //Wait for byte to be ready.
-      RFTXRXIF=0;      //Clear the flag.
-      
-      packet[i++]=RFD; //Grab the next byte.
-      len=packet[0];   //First byte of the packet is the length.
+    
+    if(PKTCTRL0&1){
+      //auto length
+      while(i<len+3){ //len+3 if status is appended.
+	while(!RFTXRXIF); //Wait for byte to be ready.
+	RFTXRXIF=0;      //Clear the flag.
+	
+	packet[i++]=RFD; //Grab the next byte.
+	len=packet[0];   //First byte of the packet is the length.
+      }
+    }else{
+      //Fixed length
+      packet[i++]=PKTLEN;
+      while(i<PKTLEN){
+	while(!RFTXRXIF); //Wait for byte to be ready.
+	RFTXRXIF=0;      //Clear the flag.
+	
+	packet[i++]=RFD; //Grab the next byte.
+      }
     }
     RFST = RFST_SIDLE; //End receive.
     

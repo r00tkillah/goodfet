@@ -16,3 +16,6 @@ all: $(objs)
 	$(CC) $<
 clean:
 	rm -f *.ihx *.rel *.hex *.sym *.asm *.lst *.lnk *.map *.mem *.rst *.adb
+install: all
+	cp $(objs) ../../../client/shellcode/chipcon/cc1110/
+	#Shellcode installed.

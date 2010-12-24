@@ -85,42 +85,6 @@ void sleepMillis(int ms) {
 	};
 }
 
-//! Wait for a packet to come, then immediately return.
-void rxwait(){
-  int i=0;
-
-  //Disable interrupts.
-  RFTXRXIE=0;
-  
-  //idle a bit.
-  RFST=RFST_SIDLE;
-  while(MARCSTATE!=MARC_STATE_IDLE);
-  
-  sleepMillis(10);
-  //Begin to receive.
-  RFST=RFST_SRX;
-  while(MARCSTATE!=MARC_STATE_RX);
-    
-  //Incoming!
-  
-  
-  //Fixed length
-  packet[i++]=PKTLEN;
-  while(i<PKTLEN && MARCSTATE==MARC_STATE_RX){
-    
-    while(MARCSTATE==MARC_STATE_RX && !RFTXRXIF); //Wait for byte to be ready.
-    RFTXRXIF=0;      //Clear the flag.
-    
-    return;
-    
-    packet[i++]=RFD; //Grab the next byte.
-  }
-  
-  
-  
-  //sleepMillis(10);
-  //RFST = RFST_SIDLE; //End receive.  
-}
 
 //! Reflexively jam on the present channel by responding to a signal with a carrier wave.
 void main(){
@@ -132,16 +96,21 @@ void main(){
   //carrier();
   
   //idle a bit.
-  //RFST=RFST_SIDLE;
-  //while(MARCSTATE!=MARC_STATE_IDLE);
+  RFST=RFST_SIDLE;
+  while(MARCSTATE!=MARC_STATE_IDLE);
 
   while(1){
+    //idle a bit.
+    RFST=RFST_SFSTXON;
+    while(MARCSTATE!=MARC_STATE_FSTXON);
+    
+    
     sleepMillis(5);
     rxwait();
     
-    //idle a bit.
-    //RFST=RFST_SIDLE;
-    //while(MARCSTATE!=MARC_STATE_IDLE);
+    //idle w/ oscillator
+    RFST=RFST_SFSTXON;
+    while(MARCSTATE!=MARC_STATE_FSTXON);
     //HALT;
     
     //RFOFF;
@@ -151,7 +120,55 @@ void main(){
     
     //Transmit carrier for 10ms
     carrier();
-    //RFON;
+    RFON;
     HALT;
   }
 }
+
+//! Receives a packet out of the radio from 0xFE00.
+void rxwait(){
+  unsigned char len=16, i=0;
+  
+  do{
+    //1-out the buffer.
+    for(i=0;i<64;i++)
+      packet[i]=0xFF;
+    i=0;
+    
+    //Disable interrupts.
+    RFTXRXIE=0;
+    
+    //idle a bit.
+    RFST=RFST_SIDLE;
+    while(MARCSTATE!=MARC_STATE_IDLE);
+    
+    //Begin to receive.
+    RFST=RFST_SRX;
+    while(MARCSTATE!=MARC_STATE_RX);
+    
+    if(PKTCTRL0&1){
+      //auto length
+      while(i<len+3){ //len+3 if status is appended.
+	while(!RFTXRXIF); //Wait for byte to be ready.
+	RFTXRXIF=0;      //Clear the flag.
+	
+	packet[i++]=RFD; //Grab the next byte.
+	len=packet[0];   //First byte of the packet is the length.
+      }
+    }else{
+      //Fixed length
+      packet[i++]=PKTLEN;
+      while(i<PKTLEN){
+	while(!RFTXRXIF); //Wait for byte to be ready.
+	RFTXRXIF=0;      //Clear the flag.
+	
+	packet[i++]=RFD; //Grab the next byte.
+      }
+    }
+    RFST = RFST_SIDLE; //End receive.
+    
+    //This while loop can be used for filtering.  Unused for now.
+  }while(0); //packet[0]==(char) 0x0f || packet[1]==(char) 0xFF || packet[9]==(char) 0x03);
+}
+
+

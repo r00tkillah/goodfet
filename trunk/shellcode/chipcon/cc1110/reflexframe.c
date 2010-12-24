@@ -40,7 +40,6 @@ void carrier(){
   //FSCTRL0   = 0x00;   // Frequency synthesizer control.
   
   
-  
   MDMCFG4   = 0x86;   // Modem configuration.
   MDMCFG3   = 0x83;   // Modem configuration.
   MDMCFG2   = 0x30;   // Modem configuration.
@@ -84,11 +83,13 @@ void main(){
   
   //carrier();
   
-  //idle a bit.
-  RFST=RFST_SIDLE;
-  while(MARCSTATE!=MARC_STATE_IDLE);
-
+  
   while(1){
+    //idle a bit.
+    RFST=RFST_SIDLE;
+    while(MARCSTATE!=MARC_STATE_IDLE);
+  
+    
     restore_settings();
     //idle a bit.
     RFST=RFST_SFSTXON;
@@ -115,10 +116,10 @@ void main(){
     carrier();
     RFON;
     
-    //sleepMillis(2000);
+    sleepMillis(2000);
     
-    sleepMillis(500);
-    HALT;
+    //sleepMillis(20);
+    //HALT;
   }
 }
 

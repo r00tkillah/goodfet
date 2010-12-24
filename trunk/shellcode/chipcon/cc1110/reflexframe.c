@@ -27,33 +27,6 @@ void carrier(){
   MDMCFG1   = 0x22;   // Modem configuration.
   MDMCFG0   = 0xF8;   // Modem configuration.
   
-  /*
-  CHANNR    = 0x00;   // Channel number.
-  DEVIATN   = 0x00;   // Modem deviation setting (when FSK modulation is enabled).
-  FREND1    = 0x56;   // Front end RX configuration.
-  FREND0    = 0x10;   // Front end RX configuration.
-  MCSM0     = 0x14;   // Main Radio Control State Machine configuration.
-  FOCCFG    = 0x16;   // Frequency Offset Compensation Configuration.
-  BSCFG     = 0x6C;   // Bit synchronization Configuration.
-  AGCCTRL2  = 0x03;   // AGC control.
-  AGCCTRL1  = 0x40;   // AGC control.
-  AGCCTRL0  = 0x91;   // AGC control.
-  FSCAL3    = 0xE9;   // Frequency synthesizer calibration.
-  FSCAL2    = 0x2a;   // Frequency synthesizer calibration.
-  FSCAL1    = 0x00;   // Frequency synthesizer calibration.
-  FSCAL0    = 0x1f;   // Frequency synthesizer calibration
-  
-  TEST2     = 0x88;   // Various test settings.
-  TEST1     = 0x31;   // Various test settings.
-  TEST0     = 0x09;   // Various test settings.
-  
-  //FE is too high
-  PA_TABLE0 = 0xFF;   // PA output power setting.
-  PKTCTRL1  = 0x04;   // Packet automation control.
-  PKTCTRL0  = 0x22;   // Packet automation control.
-  ADDR      = 0x00;   // Device address.
-  PKTLEN    = 0xFF;   // Packet length.
-  */
   /* Settings not from SmartRF® Studio. Setting both sync word registers to
    * 0xAA = 0b10101010, i.e., the same as the preamble pattern. Not necessary,
    * but gives control of what the radio attempts to transmit.
@@ -62,12 +35,6 @@ void carrier(){
   //These sync values are better for jamming, but they break reception.
   //SYNC1     = 0xAA;
   //SYNC0     = 0xAA;
-
-  /* Put radio in TX. 
-  RFST      = RFST_STX;
-  while ((MARCSTATE & MARCSTATE_MARC_STATE) != MARC_STATE_TX);
-  */
-
   
 #define RFON RFST = RFST_SIDLE; RFST = RFST_STX; while ((MARCSTATE & MARCSTATE_MARC_STATE) != MARC_STATE_TX);
 #define RFOFF RFST = RFST_SIDLE; //while ((MARCSTATE & MARCSTATE_MARC_STATE) != MARC_STATE_IDLE);
@@ -111,6 +78,9 @@ void main(){
     //idle w/ oscillator
     RFST=RFST_SFSTXON;
     while(MARCSTATE!=MARC_STATE_FSTXON);
+    
+    //HALT;
+    //sleepMillis(500);
     //HALT;
     
     //RFOFF;
@@ -121,6 +91,10 @@ void main(){
     //Transmit carrier for 10ms
     carrier();
     RFON;
+    
+    sleepMillis(2000);
+    
+    //sleepMillis(500);
     HALT;
   }
 }

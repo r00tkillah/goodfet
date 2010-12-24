@@ -153,5 +153,5 @@ void main(){
     carrier();
     //RFON;
     HALT;
-  }  
+  }
 }

@@ -88,15 +88,14 @@ void main(){
     //idle a bit.
     RFST=RFST_SIDLE;
     while(MARCSTATE!=MARC_STATE_IDLE);
-  
+    
     
     restore_settings();
-    //idle a bit.
-    RFST=RFST_SFSTXON;
-    while(MARCSTATE!=MARC_STATE_FSTXON);
+    //idle a bit, unecessary
+    //RFST=RFST_SFSTXON;
+    //while(MARCSTATE!=MARC_STATE_FSTXON);
     
-    
-    sleepMillis(5);
+    //sleepMillis(5);
     rxwait();
     
     //idle w/ oscillator
@@ -116,7 +115,7 @@ void main(){
     carrier();
     RFON;
     
-    sleepMillis(2000);
+    sleepMillis(200);
     
     //sleepMillis(20);
     //HALT;

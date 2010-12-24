@@ -8,7 +8,7 @@
 # Use lower RAM if needed.
 
 CC=sdcc --code-loc 0xF000 
-objs=crystal.ihx txpacket.ihx rxpacket.ihx txrxpacket.ihx reflex.ihx rxpacketp25.ihx reflexframe.ihx
+objs=crystal.ihx txpacket.ihx rxpacket.ihx txrxpacket.ihx reflex.ihx rxpacketp25.ihx reflexframe.ihx carrier.ihx
 
 all: $(objs)
 

@@ -37,7 +37,7 @@ void main(){
     RFST = RFST_SIDLE; //End receive.
     
     //This while loop can be used for filtering.  Unused for now.
-  }while(packet[1]!=(char) 0xdd || packet[2]!=(char) 0x55);
+  }while(0);//packet[1]!=(char) 0xdd || packet[2]!=(char) 0x55);
   
   HALT;
 }

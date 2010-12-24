@@ -115,9 +115,10 @@ void main(){
     carrier();
     RFON;
     
-    sleepMillis(200);
-    
-    //sleepMillis(20);
+    //sleepMillis(200);
+    //sleepMillis(100);
+    //sleepMillis(50);
+    sleepMillis(25);
     //HALT;
   }
 }
@@ -143,6 +144,7 @@ void rxwait(){
     RFST=RFST_SRX;
     while(MARCSTATE!=MARC_STATE_RX);
     
+    /*
     if(PKTCTRL0&1){
       //auto length
       while(i<len+3){ //len+3 if status is appended.
@@ -153,15 +155,16 @@ void rxwait(){
 	len=packet[0];   //First byte of the packet is the length.
       }
     }else{
+    */
       //Fixed length
       packet[i++]=PKTLEN;
-      while(i<PKTLEN){
+      while(i<3){ //PKTLEN){
 	while(!RFTXRXIF); //Wait for byte to be ready.
 	RFTXRXIF=0;      //Clear the flag.
 	
 	packet[i++]=RFD; //Grab the next byte.
       }
-    }
+      //}
     RFST = RFST_SIDLE; //End receive.
     
     //This while loop can be used for filtering.  Unused for now.

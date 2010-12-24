@@ -111,7 +111,7 @@ void rxwait(){
     while(MARCSTATE==MARC_STATE_RX && !RFTXRXIF); //Wait for byte to be ready.
     RFTXRXIF=0;      //Clear the flag.
     
-    HALT;
+    return;
     
     packet[i++]=RFD; //Grab the next byte.
   }
@@ -136,7 +136,7 @@ void main(){
   //while(MARCSTATE!=MARC_STATE_IDLE);
 
   while(1){
-    
+    sleepMillis(5);
     rxwait();
     
     //idle a bit.
@@ -150,15 +150,8 @@ void main(){
     //SYNC0=0xAA;
     
     //Transmit carrier for 10ms
-    /*
-      RFST=RFST_STX;
-      while(MARCSTATE!=MARC_STATE_TX);
-      sleepMillis(20);
-    */
-    
-    RFON;
-    
-    sleepMillis(200);
-    RFOFF;
+    carrier();
+    //RFON;
+    HALT;
   }  
 }

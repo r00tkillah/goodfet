@@ -2,6 +2,26 @@
 #include "cc1110-ext.h"
 
 char __xdata at 0xfe00 packet[256] ;
+
+char __xdata at 0xfdf0 cfg[5] ;
+//! Save MDMCFG*
+void save_settings(){
+  cfg[0]=MDMCFG0;
+  cfg[1]=MDMCFG1;
+  cfg[2]=MDMCFG2;
+  cfg[3]=MDMCFG3;
+  cfg[4]=MDMCFG4;
+  
+}
+//! Restore MDMCFG*
+void restore_settings(){
+  MDMCFG0=cfg[0];
+  MDMCFG1=cfg[1];
+  MDMCFG2=cfg[2];
+  MDMCFG3=cfg[3];
+  MDMCFG4=cfg[4];
+}
+
 void carrier(){
   // Set the system clock source to HS XOSC and max CPU speed,
   // ref. [clk]=>[clk_xosc.c]
@@ -60,6 +80,8 @@ void main(){
   //Disable interrupts.
   RFTXRXIE=0;
   
+  save_settings();
+  
   //carrier();
   
   //idle a bit.
@@ -67,6 +89,7 @@ void main(){
   while(MARCSTATE!=MARC_STATE_IDLE);
 
   while(1){
+    restore_settings();
     //idle a bit.
     RFST=RFST_SFSTXON;
     while(MARCSTATE!=MARC_STATE_FSTXON);
@@ -92,9 +115,9 @@ void main(){
     carrier();
     RFON;
     
-    sleepMillis(2000);
+    //sleepMillis(2000);
     
-    //sleepMillis(500);
+    sleepMillis(500);
     HALT;
   }
 }

@@ -95,7 +95,7 @@ void main(){
     //RFST=RFST_SFSTXON;
     //while(MARCSTATE!=MARC_STATE_FSTXON);
     
-    //sleepMillis(5);
+    //sleepMillis(100);
     rxwait();
     
     //idle w/ oscillator
@@ -118,7 +118,7 @@ void main(){
     //sleepMillis(200);
     //sleepMillis(100);
     //sleepMillis(50);
-    sleepMillis(25);
+    sleepMillis(10);
     //HALT;
   }
 }

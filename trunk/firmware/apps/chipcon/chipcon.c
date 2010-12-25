@@ -34,11 +34,12 @@
 #define MISO BIT2
 #define SCK  BIT3
 
+
 //This could be more accurate.
 //Does it ever need to be?
 #define CCSPEED 3
-//#define CCDELAY(x) delay(x)
-#define CCDELAY(x) 
+#define CCDELAY(x) delay(x)
+//#define CCDELAY(x) 
 
 #define SETMOSI P5OUT|=MOSI
 #define CLRMOSI P5OUT&=~MOSI
@@ -82,14 +83,21 @@ void ccdebuginit(){
   //Two positive debug clock pulses while !RST is low.
   //Take RST low, pulse twice, then high.
   P5OUT&=~SCK;
+  delay(10);
   P5OUT&=~RST;
+  
+  delay(10);
   
   //Two rising edges.
   P5OUT^=SCK; //up
+  delay(1);
   P5OUT^=SCK; //down
+  delay(1);
   P5OUT^=SCK; //up
+  delay(1);
   P5OUT^=SCK; //Unnecessary.
-  
+  delay(1);
+  //delay(0);
   
   //Raise !RST.
   P5OUT|=RST;

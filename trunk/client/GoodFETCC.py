@@ -687,7 +687,12 @@ class GoodFETCC(GoodFET):
         """Start debugging."""
         self.setup();
         self.writecmd(self.APP,0x20,0,self.data);
-        ident=self.CCidentstr();
+        ident=self.CCident();
+        if ident==0xFFFF or ident==0x0000:
+            self.writecmd(self.APP,0x20,0,self.data);
+            ident=self.CCident();
+        
+        
         #print "Target identifies as %s." % ident;
         #print "Status: %s." % self.status();
         self.CCreleasecpu();

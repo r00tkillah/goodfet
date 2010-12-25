@@ -114,6 +114,7 @@ if(len(sys.argv)==1):
     print "%s test" % sys.argv[0];
     print "%s term" % sys.argv[0];
     print "%s info" % sys.argv[0];
+    print "%s infotest" % sys.argv[0];
     print "%s halt"  % sys.argv[0];
     print "%s regs" % sys.argv[0];
     print "%s dumpcode $foo.hex [0x$start 0x$stop]" % sys.argv[0];
@@ -176,27 +177,7 @@ if(sys.argv[1]=="reflex"):
         #client.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
         client.resume();
     
-    RFST=0xDFE1
-    client.CC_RFST_CAL(); #SCAL
-    time.sleep(1);
-    
-    maxrssi=0;
-    while 1:
-        client.CC_RFST_RX(); #SRX
-        rssi=client.RF_getrssi();
-        client.CC_RFST_IDLE(); #idle
-        time.sleep(0.01);
-        string="";
-        for foo in range(0,rssi>>2):
-            string=("%s."%string);
-        print "%02x %04i %04i %s" % (rssi,rssi, maxrssi, string); 
-        if rssi>maxrssi:
-            maxrssi=(rssi);
-        if rssi>threshold:
-            #print "Triggered jamming for 1s.";
-            client.RF_carrier();
-            time.sleep(1);
-            print "JAMMING JAMMING JAMMING JAMMING";
+
 if(sys.argv[1]=="rssi"):
     client.CC1110_crystal();
     client.RF_idle();
@@ -331,6 +312,11 @@ if(sys.argv[1]=="status"):
 if(sys.argv[1]=="halt"):
     print "Halting CPU."
     client.halt();
+
+if(sys.argv[1]=="infotest"):
+    while 1:
+        client.start();
+        print "Ident   %s" % client.CCidentstr();
 if(sys.argv[1]=="info"):
     print "Ident   %s" % client.CCidentstr();
     

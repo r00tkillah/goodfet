@@ -203,6 +203,22 @@ if(sys.argv[1]=="rssi"):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
 
+if(sys.argv[1]=="sniff"):
+    client.CC1110_crystal();
+    client.RF_idle();
+    
+    #client.config_simpliciti(region);
+    
+    print "Listening as %x on %f MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10.0**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
+
 if(sys.argv[1]=="sniffsimpliciti"):
     region="us";
     if len(sys.argv)>2:

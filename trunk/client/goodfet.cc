@@ -132,6 +132,7 @@ if(len(sys.argv)==1):
     print "%s reflex [freq]\n\tJams on [freq] Hz." % sys.argv[0];
     print "%s sniffsimpliciti [us|eu|lf]\n\tSniffs SimpliciTI packets." % sys.argv[0];
     print "%s sniffdash7 [lf]\n\tSniffs Dash7. (untested)" % sys.argv[0];
+    print "%s snifficlicker [us]\n\tSniffs iClicker." % sys.argv[0];
     
     
     sys.exit();
@@ -247,6 +248,25 @@ if(sys.argv[1]=="sniffdash7"):
     client.RF_idle();
     
     client.config_dash7(region);
+    
+    print "Listening as %x on %f MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10.0**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
+if(sys.argv[1]=="snifficlicker"):
+    region="us";
+    if len(sys.argv)>2:
+        region=sys.argv[2];
+    
+    client.CC1110_crystal();
+    client.RF_idle();
+    
+    client.config_iclicker(region);
     
     print "Listening as %x on %f MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10.0**6);

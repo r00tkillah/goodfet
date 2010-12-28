@@ -278,6 +278,69 @@ class GoodFETCC(GoodFET):
         self.pokebysym("SYNC1",0xD3);
         self.pokebysym("SYNC0",0x91);
         return;
+    def config_iclicker(self,band="lf"):
+        #Mike Ossmann figured most of this out, with help from neighbors.
+        
+        self.pokebysym("FSCTRL1"  , 0x06)   # Frequency synthesizer control.
+        self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
+        
+        #Don't change these while the radio is active.
+        self.pokebysym("FSCAL3"   , 0xE9)
+        self.pokebysym("FSCAL2"   , 0x2A)
+        self.pokebysym("FSCAL1"   , 0x00)
+        self.pokebysym("FSCAL0"   , 0x1F)
+        
+        if band=="ismeu" or band=="eu":
+            print "The EU band is unknown.";
+        elif band=="ismus" or band=="us":
+            #905.5MHz
+            self.pokebysym("FREQ2"    , 0x22)   # Frequency control word, high byte.
+            self.pokebysym("FREQ1"    , 0xD3)   # Frequency control word, middle byte.
+            self.pokebysym("FREQ0"    , 0xAC)   # Frequency control word, low byte.
+        elif band=="ismlf" or band=="lf":
+            print "There is no LF version of the iclicker."
+        elif band=="none":
+            pass;
+        else:
+            #Got a frequency, not a band.
+            self.RF_setfreq(eval(band));
+        # 812.5kHz bandwidth, 152.34 kbaud
+        self.pokebysym("MDMCFG4"  , 0x1C)   
+        self.pokebysym("MDMCFG3"  , 0x80)
+        # no FEC, 2 byte preamble, 250kHz chan spacing
+        
+        #15/16 sync
+        #self.pokebysym("MDMCFG2"  , 0x01)
+        #16/16 sync
+        self.pokebysym("MDMCFG2"  , 0x02)
+        
+        self.pokebysym("MDMCFG1"  , 0x03)
+        self.pokebysym("MDMCFG0"  , 0x3b)
+        
+        self.pokebysym("CHANNR"   , 0x2e)   # Channel zero.
+        
+        #self.pokebysym("DEVIATN"  , 0x71)  # 118.5
+        self.pokebysym("DEVIATN"  , 0x72)   # 253.9 kHz deviation
+        
+        self.pokebysym("FREND1"   , 0x56)   # Front end RX configuration.
+        self.pokebysym("FREND0"   , 0x10)   # Front end RX configuration.
+        self.pokebysym("MCSM2"    , 0x07)
+        self.pokebysym("MCSM1"    , 0x30)   #Auto freq. cal.
+        self.pokebysym("MCSM0"    , 0x14)
+        
+        self.pokebysym("TEST2"    , 0x88)   # 
+        self.pokebysym("TEST1"    , 0x31)   # 
+        self.pokebysym("TEST0"    , 0x09)   # High VCO (Upper band.)
+        self.pokebysym("PA_TABLE0", 0xC0)   # Max output power.
+        self.pokebysym("PKTCTRL1" , 0x45)   # Preamble qualidy 2*4=6, adr check, status
+        self.pokebysym("PKTCTRL0" , 0x00)   # No whitening, CR, fixed len.
+        
+        self.pokebysym("PKTLEN"   , 0x09)   # Packet length.
+        
+        self.pokebysym("SYNC1",0xB0);
+        self.pokebysym("SYNC0",0xB0);
+        self.pokebysym("ADDR", 0xB0);
+        return;
     def config_simpliciti(self,band="none"):
         self.pokebysym("FSCTRL1"  , 0x0C) #08   # Frequency synthesizer control.
         self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.

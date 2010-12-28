@@ -51,8 +51,12 @@ def handlesimplicitipacket(packet):
         counter=packet[11];
         button=packet[12];
         x=packet[13];
+        if x>=128: x=0-(x^0xFF)-1;
         y=packet[14];
+        if y>=128: y=0-(y^0xFF)-1;
         z=packet[15];
+        if z>=128: z=0-(z^0xFF)-1;
+        
         print "%09i %03i %4i %4i %4i" % (simplepacketcount,button,x,y,z);
         sys.stdout.flush();
     elif port==0x02:
@@ -133,7 +137,9 @@ if(len(sys.argv)==1):
     print "%s sniffsimpliciti [us|eu|lf]\n\tSniffs SimpliciTI packets." % sys.argv[0];
     print "%s sniffdash7 [lf]\n\tSniffs Dash7. (untested)" % sys.argv[0];
     print "%s snifficlicker [us]\n\tSniffs iClicker." % sys.argv[0];
-    
+    print "\n";
+    print "%s simpliciti [us|eu|lf]\n\tSimpliciti access point for Chronos watch." % sys.argv[0];
+    print "%s iclicker [us|eu|lf]\n\tSniffs iClicker packets as ASCII." % sys.argv[0];
     
     sys.exit();
 
@@ -276,6 +282,30 @@ if(sys.argv[1]=="snifficlicker"):
         while packet==None:
             packet=client.RF_rxpacket();
         printpacket(packet);
+        sys.stdout.flush();
+if(sys.argv[1]=="iclicker"):
+    buttons=[0, 'A', 'j', 3, 4, 'B',
+             6, 7, 8, 9, 'E', 0xB, 0xC,
+             'C', 'D', 0xF];
+    region="us";
+    if len(sys.argv)>2:
+        region=sys.argv[2];
+    
+    client.CC1110_crystal();
+    client.RF_idle();
+    
+    client.config_iclicker(region);
+    
+    print "Listening as %x on %f MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10.0**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        button=((packet[5]&1)<<3) | (packet[6]>>5);
+        print "Button %c" % buttons[button];
         sys.stdout.flush();
 
 if(sys.argv[1]=="simpliciti"):

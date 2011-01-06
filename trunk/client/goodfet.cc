@@ -245,6 +245,24 @@ if(sys.argv[1]=="sniffsimpliciti"):
             packet=client.RF_rxpacket();
         printpacket(packet);
         sys.stdout.flush();
+if(sys.argv[1]=="sniffook"):
+    region="lf";
+    if len(sys.argv)>2:
+        region=sys.argv[2];
+    
+    client.CC1110_crystal();
+    client.RF_idle();
+    
+    client.config_ook(region);
+    
+    print "Listening for OOK on %f MHz" % (client.RF_getfreq()/10.0**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
 if(sys.argv[1]=="sniffdash7"):
     region="lf";
     if len(sys.argv)>2:

@@ -368,6 +368,7 @@ class GoodFETCC(GoodFET):
         else:
             #Got a frequency, not a band.
             self.RF_setfreq(eval(band));
+        
         #data rate
         #~1
         #self.pokebysym("MDMCFG4"  , 0x85)
@@ -379,13 +380,24 @@ class GoodFETCC(GoodFET):
         #self.pokebysym("MDMCFG4"  , 0xf6)
         #self.pokebysym("MDMCFG3"  , 0x83)
         
+        #4.8 kbaud
+        #print "Warning: Default to 4.8kbaud.";
+        #self.pokebysym("MDMCFG4"  , 0xf7)
+        #self.pokebysym("MDMCFG3"  , 0x83)
         #9.6 kbaud
-        print "Warning: Default to 9.6kbaud.";
+        #print "Warning: Default to 9.6kbaud.";
+        #
+        
         self.pokebysym("MDMCFG4"  , 0xf8)
         self.pokebysym("MDMCFG3"  , 0x83)
+        self.pokebysym("MDMCFG2"  , 0x34)   # OOK, carrier-sense, no-manchester
         
-
-        self.pokebysym("MDMCFG2"  , 0x34)   # OOK, carrier-sense in leiu of sync.
+        #Kind aright for keeloq
+        print "Warning: Guessing baud rate.";
+        #self.pokebysym("MDMCFG4"  , 0xf6)
+        #self.pokebysym("MDMCFG3"  , 0x93)
+        #self.pokebysym("MDMCFG2"  , 0x3C)   # OOK, carrier-sense, manchester
+        
         self.pokebysym("MDMCFG1"  , 0x00)   # Modem configuration.
         self.pokebysym("MDMCFG0"  , 0xF8)   # Modem configuration.
         self.pokebysym("CHANNR"   , 0x00)   # Channel number.
@@ -409,7 +421,7 @@ class GoodFETCC(GoodFET):
         #self.pokebysym("PKTCTRL0" , 0x05)   # Packet automation control, w/ checksum.
         self.pokebysym("PKTCTRL0" , 0x00)   # Packet automation control, w/o checksum, fixed length
         self.pokebysym("ADDR"     , 0x01)   # Device address.
-        self.pokebysym("PKTLEN"   , 0x20)   # Packet length.
+        self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
         
         self.pokebysym("SYNC1",0xD3);
         self.pokebysym("SYNC0",0x91);

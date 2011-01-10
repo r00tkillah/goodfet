@@ -18,7 +18,7 @@ regnames=["CONFIG","EN_AA","EN_RXADDR","SETUP_AW","SETUP_RET",
           "TX_ADDR",
           "RX_PW_P0","RX_PW_P1","RX_PW_P2","RX_PW_P3","RX_PW_P4","RX_PW_P5",
           "FIFO_STATUS","?",
-          "?","?","DYNPD","?","?","?","?","?",
+          "?","?","?","DYNPD","FEATURE","AGC_CONFIG","?","?",
           "?","?","?","?","?","?","?","?"];
 
 def printpacket(packet):
@@ -155,6 +155,58 @@ if(sys.argv[1]=="sniffob"):
     
     #Power radio, prime for RX, one-byte checksum.
     client.poke(0x00,0x70|0x03|0x08); #0x08 for one byte, 0x04 for two.
+    
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            #time.sleep(0.1);
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
+
+if(sys.argv[1]=="regbits"):
+    print "Scanning registers to determine which bits are valid."
+    regbits=range(0,0x30);
+    for r in range(0,0x30):
+        old=client.peek(r);
+        #Which bits can be set?
+        client.poke(r,0xFF);
+        ones=client.peek(r);
+        #Which bits can be clear?
+        client.poke(r,0x00);
+        zeroes=client.peek(r);
+        regbits[r]=(ones & (~zeroes));
+    for r in range(0,0x30):
+        if regbits[r]!=0:
+            print "r[0x%02x] masked %02x // %s" % (r,regbits[r], regnames[r]);
+if(sys.argv[1]=="sniffprom"):
+    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
+    #TODO remove all poke() calls.
+    
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    
+    client.RF_setfreq(2481 * 10**6);
+    client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
+    client.poke(0x07,0x78); #Reset status register
+    
+    #OpenBeacon defines these in little endian as follows.
+    client.RF_setmaclen(5); # SETUP_AW for 3-byte addresses.
+    #0x01, 0x02, 0x03, 0x02, 0x01
+    client.RF_setsmac(0x0102030201);
+    #'O', 'C', 'A', 'E', 'B'
+    client.RF_settmac(0x424541434F);
+    
+    #Mac packet length, illegally 0-length address field.
+    client.RF_setpacketlen(32);
+    client.poke(0x03,0);
+    
+    #Power radio, prime for RX, one-byte checksum.
+    client.poke(0x00,0x70|0x03); #0x08 for one byte, 0x04 for two.
     
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);

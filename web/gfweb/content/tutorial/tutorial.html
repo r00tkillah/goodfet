@@ -1,16 +1,5 @@
 <h1>GoodFET Tutorials</h1>
 
-<!--June 2009-->
-<!-- Outdated stuff
-<p>The <a href="http://travisgoodspeed.blogspot.com/2009/06/goodfet-msp430-tutorial.html">
-GoodFET MSP430 Tutorial</a> details compiling the GoodFET firmware, loading it
-into hardware, and using the <a href="/clients/goodfet.msp430/">goodfet.msp430</a> client.</p>
-<p>The <a href="http://travisgoodspeed.blogspot.com/2009/06/spi-client-tutorial-for-goodfet.html">
-SPI Client Tutorial for the GoodFET</a> explains how to write a GoodFET client.</p>
--->
-
-<!--huseby: 1. Here's how to build it: (solder this here, solder that
-here...here's how to tell which way the LED's should go)-->
 <h3>Construction</h3>
 <p>Construct your GoodFET using the components listed in its Hardware page.  As of
 March 2010, you probably want a GoodFET3x for embedded systems
@@ -21,7 +10,6 @@ software.</p>
 <!--jbest: finally added the construction tutorial. March 2010-->
 <p>If you are new to surface mount components, start <a href=/tutorial/construction/>here</a>.</p>
 
-<!--huseby: 2. Now that it's built, here's how to verify it is built correctly-->
 <h3>Verification</h3>
 
 <p>If your GoodFET is properly assembled, you should see a notice in
@@ -35,8 +23,6 @@ need to desolder and rotate them.  For those without an SMD rework
 station, it might be easier to burn the LEDs off and apply fresh
 ones.</p>
 
-<!--huseby: 3. Now that you know it is built correctly, here's how to
-grab the software and firmware -->
 <h3>Software</h3>
 
 <p>Until a first version of the GoodFET software is released, you will
@@ -78,7 +64,6 @@ next session.</p>
 goodfet.monitor test
 </pre><br/></p>
 
-<!--huseby: 4. here's now to load the firmware you want-->
 <h3>Firmware</h3>
 
 <p>There are two ways to get the firmware.  By far the fastest is to
@@ -87,14 +72,24 @@ development of the project will require you to build it from
 scratch.</p>
 
 <p>The <a href="http://mspgcc.sourceforge.net/">mspgcc</a> compiler is
-preferred for the project.  You will need a recent build from CVS in
-order to build the project, and most prebuilt versions floating around
-the Internet are too old to be of use.  Grab the version from
-<a href="http://goodserv.cis.upenn.edu/mspgcc/">http://goodserv.cis.upenn.edu/mspgcc/</a>
-that matches your operating system, then extract it in /opt/ and add
-/opt/mspgcc/bin to your $PATH.</p>
+preferred for the project.  Binary packages are hard to find, if they
+exist at all.  If you are running Linux, I suggest you follow 
+<a href="http://sourceforge.net/apps/mediawiki/mspgcc/index.php?title=Linux_installation#Building_from_Source">
+the build instructions found in the mspgcc wiki.</a>  The instructions
+have been verified to work on Debian 5 (Lenny) as of January 9, 2011.
+The build instructions will result in the toolchain being installed in
+a folder named /opt/mspgcc.  You must add /opt/mspgcc/bin to your PATH
+environment variable before you can build the firmware.
 
-<!--huseby: 5. here's how to use it-->
+NOTE: There appears to be a newer version of the mspgcc toolchain
+located in the <a href="http://mspgcc4.sourceforge.net/">mspgcc4</a>
+project.  However, after building mspgcc4 from source on my Debian 5
+(Lenny) machine, it was able to build the firmware, but it did not
+successfully run on my GoodFET board.
+
+If you are using Windows, the mspgcc sourceforge page has pre-built
+binary installers for Windows.
+
 <h3>Use</h3>
 
 <p><i>(TODO: Write this section.)</i></p>

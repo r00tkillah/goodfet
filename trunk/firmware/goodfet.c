@@ -112,9 +112,9 @@ void handle(unsigned char app,
   case PIC:
     pichandle(app,verb,len);
     break;
-	case ADC10:
-		adchandle(app,verb,len);
-		break;
+  case ADC10:
+    adchandle(app,verb,len);
+    break;
   case I2CAPP:
     i2chandle(app,verb,len);
     break;
@@ -126,6 +126,9 @@ void handle(unsigned char app,
     break;
   case EJTAG:
     ejtaghandle(app,verb,len);
+    break;
+  case JTAGXSCALE:
+    xscalehandle(app,verb,len);
     break;
   case JTAG430: //Also JTAG430X, JTAG430X2
     //Revert this when X2 support returns.

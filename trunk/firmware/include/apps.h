@@ -14,6 +14,7 @@
 #define EJTAG 0x12
 #define JTAGARM7TDMI 0x13
 #define ADIv5 0x14
+#define JTAGXSCALE 0x15
 
 //Manufacturer-specific protocols go in 0x30 and 0x40.
 #define CHIPCON 0x30

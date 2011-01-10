@@ -66,7 +66,7 @@ class GoodFETMSP430(GoodFET):
         self.writecmd(self.MSP430APP,0x03,6,self.data);
         written=ord(self.data[0])+(ord(self.data[1])<<8);
         if(written!=val):
-            print "Failed to write 0x%04x to 0x$04x" % (val,adr);
+            print "Failed to write 0x%04x to 0x%04x" % (val,adr);
         return written;
     def MSP430pokeflash(self,adr,val):
         """Write the contents of flash memory at an address."""

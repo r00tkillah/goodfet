@@ -178,14 +178,16 @@ class GoodFETNRF(GoodFET):
     maclen=5;
     def RF_getmaclen(self):
         """Get the number of bytes in the MAC address."""
-        choices=[0, 3, 4, 5];
+        choices=[2, 3, 4, 5];
         choice=self.peek(0x03)&3;
         self.maclen=choices[choice];
         return self.maclen;
     def RF_setmaclen(self,len):
         """Set the number of bytes in the MAC address."""
-        choices=["illegal", "illegal", "illegal", 
-                 1, 2, 3];
+        choices=["illegal", "illegal",
+                 0,       #undocumented 
+                 1, 2, 3  #documented
+                 ];
         choice=choices[len];
         self.poke(0x03,choice);
         self.maclen=len;

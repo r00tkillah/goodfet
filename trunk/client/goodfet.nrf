@@ -54,6 +54,9 @@ if(len(sys.argv)==1):
     print "%s snifftp\n\tSniffs SparkFun Dongle traffic." % sys.argv[0];
     
     print "%s sniffprom\n\tSniffs promiscuously." % sys.argv[0];
+    print "%s sniffskybrake\n\tSniffs skybrake. [broken?]" % sys.argv[0];
+    print "%s sniffmskb\n\tSniffs MS KB. [broken?]" % sys.argv[0];
+    
     
     print "%s hosttp\n\tHosts Turning Point Clicker traffic." % sys.argv[0];
 
@@ -212,6 +215,47 @@ if(sys.argv[1]=="sniffprom"):
     
     #Power radio, prime for RX, one-byte checksum.
     client.poke(0x00,0x70|0x03); #0x08 for one byte, 0x04 for two.
+    
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            #time.sleep(0.1);
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
+
+if(sys.argv[1]=="sniffmskb"):
+    #MSWK 3000 v2.0
+    #TODO remove all poke() calls.
+    
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    
+    client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
+    client.poke(0x07,0x78); #Reset status register
+    
+    #This is the address of a specific keyboard.
+    #Other keyboards will be different.
+    
+    
+    client.RF_setmaclen(2);
+    
+    #Known pairs.  The channel and the low address bytes must match.
+    #client.RF_setfreq((2400+0x13) * 10**6);
+    #client.RF_setsmac(0x0c00a3598cd);
+    
+    client.RF_setfreq((2400+0x15) * 10**6);
+    client.RF_setsmac( 0x0c10446facd);
+    
+    #Mac packet length, illegally 0-length address field.
+    client.RF_setpacketlen(32);
+    
+    #Power radio, prime for RX, no checksum
+    client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
     
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);

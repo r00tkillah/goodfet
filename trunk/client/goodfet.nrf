@@ -28,7 +28,7 @@ def printpacket(packet):
         i=i+1;
         if i>client.packetlen: break;
         s="%s %02x" % (s,ord(foo));
-    print "%s" %s;
+    print "%s" % s;
 
 def printconfig():
     print "Encoding %s" % client.RF_getenc();
@@ -233,6 +233,76 @@ if(sys.argv[1]=="sniffprom"):
             #time.sleep(0.1);
             packet=client.RF_rxpacket();
         printpacket(packet);
+        sys.stdout.flush();
+
+class AddressGuesser():
+    """This guesses addresses by searching through packets."""
+    #packets=[];
+    addresses={};
+    def packetaddr(self,packet):
+        s="";
+        for i in range(0,5):
+            s="%s%02x" % (s,ord(packet[i]));
+        return s;
+    def handle(self,packet):
+        #printpacket(packet);
+        #self.packets.append(packet);
+        addr=self.packetaddr(packet);
+        
+        #Increment the address.
+        count=0;
+        try:
+            count=self.addresses[addr];
+        except:
+            pass;
+        self.addresses[addr]=count+1;
+        if self.addresses[addr]>5:
+            print "'%s' looks like a valid address." % addr;
+        return;
+        
+if(sys.argv[1]=="autotune"):
+    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
+    #TODO remove all poke() calls.
+    guesser=AddressGuesser();
+    
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    
+    #client.RF_setfreq(2481 * 10**6);
+    #client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
+    client.poke(0x07,0x78); #Reset status register
+    
+    #OpenBeacon defines these in little endian as follows.
+    client.RF_setmaclen(2); # SETUP_AW for shortest
+    
+    #It's better to have a known fragment, when one is available.
+    #client.RF_setsmac(0x00AA);
+    #client.RF_setsmac(0x0055);
+    
+    #Should end in 55 or AA depending upon the packet.
+    tail=0x55
+    if(len(sys.argv)>2):
+        tail=int(sys.argv[2],16);
+    else:
+        print "Please specify a tail of 0xAA or 0x55.";
+        sys.exit(1);
+    client.RF_setsmac(tail);
+    
+    #Longest length.
+    client.RF_setpacketlen(32);
+    
+    #Power radio, prime for RX, no checksum
+    client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
+    
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+        guesser.handle(packet);
         sys.stdout.flush();
 
 if(sys.argv[1]=="sniffmskb"):

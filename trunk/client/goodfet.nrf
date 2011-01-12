@@ -235,19 +235,29 @@ if(sys.argv[1]=="sniffprom"):
         printpacket(packet);
         sys.stdout.flush();
 
-class AddressGuesser():
+class AutoTuner():
     """This guesses addresses by searching through packets."""
     #packets=[];
     addresses={};
     client=None;
     def init(self,goodfet):
+        """Initializes a link to the GoodFET for autotuning."""
         self.client=goodfet;
     def packetaddr(self,packet):
-        s="";
+        """Returns a loaded packet address, including channel and rate."""
+        
+        sync=self.client.RF_getsmac()&0xFF;
+        
+        mac="";
+        #MAC,RF_CH,RATE
         for i in range(0,5):
-            s="%s%02x" % (s,ord(packet[i]));
-        return s;
+            mac="%s%02x" % (mac,ord(packet[i]));
+        ch=self.client.peek(0x05);
+        rate=self.client.peek(0x06);
+        return "%02x,%s,%02x,%02x" % (
+            sync,mac,ch,rate);
     def handle(self,packet):
+        """Handles a packet."""
         #printpacket(packet);
         #self.packets.append(packet);
         addr=self.packetaddr(packet);
@@ -264,11 +274,44 @@ class AddressGuesser():
             print "'%s' looks valid\t%i\t%0.5f" % (
                 addr,count,rate);
         return;
+    tunecount=0;
+    def retune(self,freqmod=0x52):
+        """Tunes to another channel or preamble looking for the next packet."""
+        count=self.tunecount+1;
+        self.tunecount=count;
+        
+        #Swap the SYNC value most often.
+        sync=0xAA;
+        if count&1:
+            sync=0x55;
+        self.client.RF_setsmac(sync);
+        count=(count>>1);
+        
+        #Then the data rate.
+        rate=0;
+        
+        #This swaps between 1Mbps and 2Mbps.
+        #TODO add support for 256kbps, if anyone uses it.
+        if count&1:
+            rate=rate|0x08;
+        #print "Setting rate to 0x%02x" % rate;
+        if(rate==0x20):
+            rate=0x08;
+        self.client.poke(0x06,rate);
+        count=(count>>2);
+        
+        #Grab two packets to clear buffers.
+        #Should retune only after a few packets to reduce this delay.
+        packet=client.RF_rxpacket();
+        packet=client.RF_rxpacket();
+        return;
+        
         
 if(sys.argv[1]=="autotune"):
     #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
     #TODO remove all poke() calls.
-    guesser=AddressGuesser();
+    guesser=AutoTuner();
+    guesser.init(client);
     
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst
@@ -281,18 +324,10 @@ if(sys.argv[1]=="autotune"):
     #OpenBeacon defines these in little endian as follows.
     client.RF_setmaclen(2); # SETUP_AW for shortest
     
-    #It's better to have a known fragment, when one is available.
+    #This is determined by the MAC, which we don't yet know.
+    #AutoTuner() takes care of finding it.
     #client.RF_setsmac(0x00AA);
     #client.RF_setsmac(0x0055);
-    
-    #Should end in 55 or AA depending upon the packet.
-    tail=0x55
-    if(len(sys.argv)>2):
-        tail=int(sys.argv[2],16);
-    else:
-        print "Please specify a tail of 0xAA or 0x55.";
-        sys.exit(1);
-    client.RF_setsmac(tail);
     
     #Longest length.
     client.RF_setpacketlen(32);
@@ -300,14 +335,16 @@ if(sys.argv[1]=="autotune"):
     #Power radio, prime for RX, no checksum
     client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
     
-    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+    print "Autotuning as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);
+    print "sync,mac,r5,r6";
     #Now we're ready to get packets.
     while 1:
         packet=None;
         while packet==None:
             packet=client.RF_rxpacket();
         guesser.handle(packet);
+        guesser.retune();
         sys.stdout.flush();
 
 if(sys.argv[1]=="sniffmskb"):

@@ -256,8 +256,10 @@ class AddressGuesser():
         except:
             pass;
         self.addresses[addr]=count+1;
-        if self.addresses[addr]>5:
-            print "'%s' looks like a valid address." % addr;
+        rate=count*1.0/len(self.addresses);
+        if self.addresses[addr]>1:
+            print "'%s' looks valid, %0.5f" % (
+                addr,rate);
         return;
         
 if(sys.argv[1]=="autotune"):

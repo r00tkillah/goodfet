@@ -256,10 +256,20 @@ class AutoTuner():
         rate=self.client.peek(0x06);
         return "%02x,%s,%02x,%02x" % (
             sync,mac,ch,rate);
+    def validmac(self,packet):
+        sync=self.client.RF_getsmac()&0xFF;
+        if (ord(packet[0])&0x80)^(sync&0x80):
+            #print "%02x%02x invalid entry." % (sync,ord(packet[0]));
+            return False;
+        return True;
+        
     def handle(self,packet):
         """Handles a packet."""
         #printpacket(packet);
-        #self.packets.append(packet);
+        if not self.validmac(packet):
+            #print "Dropped packet:";
+            #printpacket(packet);
+            return;
         addr=self.packetaddr(packet);
         
         #Increment the address count.
@@ -340,11 +350,12 @@ if(sys.argv[1]=="autotune"):
     print "sync,mac,r5,r6";
     #Now we're ready to get packets.
     while 1:
-        packet=None;
-        while packet==None:
-            packet=client.RF_rxpacket();
-        guesser.handle(packet);
-        guesser.retune();
+        for foo in range(1,10):
+            packet=None;
+            while packet==None:
+                packet=client.RF_rxpacket();
+            guesser.handle(packet);
+            guesser.retune();
         sys.stdout.flush();
 
 if(sys.argv[1]=="sniffmskb"):

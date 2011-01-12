@@ -47,13 +47,15 @@ if(len(sys.argv)==1):
     print "%s regs" % sys.argv[0];
     print "%s regbits" % sys.argv[0];
     print "%s pyregs" % sys.argv[0];
-
+    print "";
     print "%s sniff\n\tSniffs packets by current config." % sys.argv[0];
     print "%s sniffob\n\tSniffs OpenBeacon traffic." % sys.argv[0];
     print "%s snifftp\n\tSniffs Turning Point Clicker traffic." % sys.argv[0];
-    print "%s snifftp\n\tSniffs SparkFun Dongle traffic." % sys.argv[0];
-    
-    print "%s sniffprom\n\tSniffs promiscuously." % sys.argv[0];
+    print "%s sniffsf\n\tSniffs SparkFun Dongle traffic." % sys.argv[0];
+    print "";
+    print "%s sniffprom [0xaa|0x55]\n\tSniffs promiscuously for a preamble of 0xAA or 0x55" % sys.argv[0];
+    print "%s autotune\n\tSearches for a valid destination address." % sys.argv[0];
+    print "";
     print "%s sniffskybrake\n\tSniffs skybrake. [broken?]" % sys.argv[0];
     print "%s sniffmskb\n\tSniffs MS KB. [broken?]" % sys.argv[0];
     
@@ -196,25 +198,31 @@ if(sys.argv[1]=="sniffprom"):
     client.poke(0x01,0x00); #Disable Shockburst
     client.poke(0x02,0x01); #Set RX Pipe 0
     
-    client.RF_setfreq(2481 * 10**6);
-    client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
+    #client.RF_setfreq(2481 * 10**6);
+    #client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
     client.poke(0x07,0x78); #Reset status register
     
     #OpenBeacon defines these in little endian as follows.
-    client.RF_setmaclen(5); # SETUP_AW for 3-byte addresses.
-    #0x01, 0x02, 0x03, 0x02, 0x01
-    #client.RF_setsmac(0x0102030201);
-    #client.RF_setsmac(0x0000000201);
-    client.RF_setsmac(0x0102);
-    #'O', 'C', 'A', 'E', 'B'
-    #client.RF_settmac(0x424541434F);
+    client.RF_setmaclen(2); # SETUP_AW for shortest
     
-    #Mac packet length, illegally 0-length address field.
+    #It's better to have a known fragment, when one is available.
+    #client.RF_setsmac(0x00AA);
+    #client.RF_setsmac(0x0055);
+    
+    #Should end in 55 or AA depending upon the packet.
+    tail=0x55
+    if(len(sys.argv)>2):
+        tail=int(sys.argv[2],16);
+    else:
+        print "Please specify a tail of 0xAA or 0x55.";
+        sys.exit(1);
+    client.RF_setsmac(tail);
+    
+    #Longest length.
     client.RF_setpacketlen(32);
-    client.poke(0x03,0);
     
-    #Power radio, prime for RX, one-byte checksum.
-    client.poke(0x00,0x70|0x03); #0x08 for one byte, 0x04 for two.
+    #Power radio, prime for RX, no checksum
+    client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
     
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);
@@ -323,9 +331,7 @@ if(sys.argv[1]=="sniffsf"):
     
     #OpenBeacon defines these in little endian as follows.
     client.RF_setmaclen(5); # SETUP_AW for 5-byte addresses.
-    #0x01, 0x02, 0x03, 0x02, 0x01
     client.RF_setsmac(0xe7e7e7e7e7);
-    #'O', 'C', 'A', 'E', 'B'
     client.RF_settmac(0xe7e7e7e7e7);
     
     #Set packet length of 16.

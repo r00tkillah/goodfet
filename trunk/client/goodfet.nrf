@@ -237,12 +237,21 @@ if(sys.argv[1]=="sniffprom"):
 
 class AutoTuner():
     """This guesses addresses by searching through packets."""
-    #packets=[];
     addresses={};
     client=None;
-    def init(self,goodfet):
+    
+    #Limits on search space, because you usually know what you're looking for.
+    rate=False;
+    chan=False;
+    sync=False;
+    def init(self,goodfet,
+             rate=True,chan=True,sync=True):
         """Initializes a link to the GoodFET for autotuning."""
         self.client=goodfet;
+        self.rate=rate;
+        self.chan=chan;
+        self.sync=sync;
+        return;
     def packetaddr(self,packet):
         """Returns a loaded packet address, including channel and rate."""
         
@@ -285,31 +294,39 @@ class AutoTuner():
                 addr,count,rate);
         return;
     tunecount=0;
-    def retune(self,freqmod=0x52):
+    def retune(self):
         """Tunes to another channel or preamble looking for the next packet."""
-        count=self.tunecount+1;
-        self.tunecount=count;
+        count=self.tunecount;
+        self.tunecount=count+1;
         
         #Swap the SYNC value most often.
-        sync=0xAA;
-        if count&1:
-            sync=0x55;
-        self.client.RF_setsmac(sync);
-        count=(count>>1);
+        if self.sync:
+            sync=0xAA;
+            if count&1:
+                sync=0x55;
+            self.client.RF_setsmac(sync);
+            count=(count>>1);
         
-        #Then the data rate.
-        rate=0;
+        if self.rate:
+            #Then the data rate.
+            rate=0;
+            
+            #This swaps between 1Mbps and 2Mbps.
+            #TODO add support for 256kbps, if anyone uses it.
+            if count&1:
+                rate=rate|0x08;
+            #print "Setting rate to 0x%02x" % rate;
+            if(rate==0x20):
+                rate=0x08;
+            self.client.poke(0x06,rate);
+            count=(count>>1);
         
-        #This swaps between 1Mbps and 2Mbps.
-        #TODO add support for 256kbps, if anyone uses it.
-        if count&1:
-            rate=rate|0x08;
-        #print "Setting rate to 0x%02x" % rate;
-        if(rate==0x20):
-            rate=0x08;
-        self.client.poke(0x06,rate);
-        count=(count>>2);
-        
+        if self.chan:
+            self.client.poke(0x05,
+                             (count+40)&0x7f);
+            print "Tuned to %i MHz" % (
+                self.client.RF_getfreq()
+                /(10**6));
         #Grab two packets to clear buffers.
         #Should retune only after a few packets to reduce this delay.
         packet=client.RF_rxpacket();
@@ -321,7 +338,7 @@ if(sys.argv[1]=="autotune"):
     #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
     #TODO remove all poke() calls.
     guesser=AutoTuner();
-    guesser.init(client);
+    guesser.init(client,rate=False,sync=False,chan=True);
     
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst
@@ -350,12 +367,15 @@ if(sys.argv[1]=="autotune"):
     print "sync,mac,r5,r6";
     #Now we're ready to get packets.
     while 1:
-        for foo in range(1,10):
+        #Full second on each packet.
+        start=time.mktime(time.localtime());
+        while (time.mktime(time.localtime())-start) < 5:
             packet=None;
             while packet==None:
                 packet=client.RF_rxpacket();
             guesser.handle(packet);
-            guesser.retune();
+        #print "Retuning."
+        guesser.retune();
         sys.stdout.flush();
 
 if(sys.argv[1]=="sniffmskb"):

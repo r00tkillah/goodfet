@@ -6,6 +6,7 @@
 #ifndef GLITCH_H
 #define GLITCH_H
 
+#include "command.h"
 #include "app.h"
 
 #include <signal.h>

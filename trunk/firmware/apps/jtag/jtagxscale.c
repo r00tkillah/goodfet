@@ -9,6 +9,31 @@
 #include "jtag.h"
 #include "jtagxscale.h"
 
+#define JTAGXSCALE_APP
+
+/* Handles XScale JTAG commands.  Forwards others to JTAG. */
+void jtag_xscale_handle_fn( uint8_t const app,
+							uint8_t const verb,
+							uint32_t const len);
+
+// define the jtag xscale app's app_t
+app_t const jtagxscale_app = {
+
+	/* app number */
+	JTAGXSCALE,
+
+	/* handle fn */
+	jtag_xscale_handle_fn,
+
+	/* name */
+	"JTAG XScale",
+
+	/* desc */
+	"\tThe JTAG Xscale app extends the JTAG app adding support\n"
+	"\tfor JTAG'ing Intel XScale devices.\n"
+};
+
+
 /* From the Intel XScale Core Developer's Manual:
  *
  * The Intel XScale® core provides test features compatible with IEEE Standard
@@ -140,9 +165,9 @@ unsigned long jtag_xscale_idcode()
 }
 
 /* Handles XScale JTAG commands.  Forwards others to JTAG. */
-void xscalehandle(unsigned char app,
-                  unsigned char verb,
-                  unsigned long len)
+void jtag_xscale_handle_fn( uint8_t const app,
+							uint8_t const verb,
+							uint32_t const len)
 {    
     switch(verb) 
     {

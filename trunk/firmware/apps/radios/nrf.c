@@ -15,6 +15,27 @@
 #include "nrf.h"
 #include "spi.h"
 
+//! Handles a Nordic RF command.
+void nrf_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len);
+
+// define the nrf app's app_t
+app_t const nrf_app = {
+
+	/* app number */
+	NRF,
+
+	/* handle fn */
+	nrf_handle_fn,
+
+	/* name */
+	"NRF",
+
+	/* desc */
+	"\tThe NRF app adds support for the NordicRF register\n"
+	"\tinterface.\n"
+};
 
 #define RADIOACTIVE SETCE
 #define RADIOPASSIVE CLRCE
@@ -81,9 +102,10 @@ u8 nrf_regread(u8 reg, u8 *buf, int len){
 }
 
 //! Handles a Nordic RF command.
-void nrfhandle(unsigned char app,
-	       unsigned char verb,
-	       unsigned long len){
+void nrf_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len)
+{
   unsigned long i;
   
   //Drop CE to passify radio.

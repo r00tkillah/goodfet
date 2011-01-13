@@ -6,10 +6,9 @@
 #ifndef JTAG_H
 #define JTAG_H
 
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
+#include "app.h"
 
+#define JTAG 0x10
 
 // Generic Commands
 
@@ -101,9 +100,7 @@ extern int savedtclk;
 #define NOEND       2
 #define NORETIDLE   4
 
-
 //JTAG430 commands
-//#include "jtag430.h"
 #define Exit2_DR 0x0
 #define Exit_DR 0x1
 #define Shift_DR 0x2
@@ -120,5 +117,7 @@ extern int savedtclk;
 #define Update_IR 0xd
 #define Capture_IR 0xe
 #define Test_Reset 0xf
-                                                                                                                                
+
+extern app_t const jtag_app;
+
 #endif

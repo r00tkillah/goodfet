@@ -3,8 +3,13 @@
   \brief JTAG handler functions.
 */
 
+#ifndef JTAG430_H
+#define JTAG430_H
 
+#include "app.h"
 #include "jtag.h"
+
+#define JTAG430 0x11
 
 extern unsigned int drwidth;
 
@@ -96,3 +101,7 @@ void jtag430_por();
 #define JTAG430_ERASEINFO 0xE8
 #define JTAG430_COREIP_ID 0xF0
 #define JTAG430_DEVICE_ID 0xF1
+
+extern app_t const jtag430_app;
+
+#endif // JTAG430_H

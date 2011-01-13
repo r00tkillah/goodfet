@@ -20,6 +20,32 @@
 #include "ccspi.h"
 #include "spi.h"
 
+//! Handles a Chipcon SPI command.
+void ccspi_handle_fn( uint8_t const app,
+					  uint8_t const verb,
+					  uint32_t const len);
+
+// define the ccspi app's app_t
+app_t const ccspi_app = {
+
+	/* app number */
+	CCSPI,
+
+	/* handle fn */
+	ccspi_handle_fn,
+
+	/* name */
+	"CCSPI",
+
+	/* desc */
+	"\tThe CCSPI app adds support for the Chipcon SPI register\n"
+	"\tinterface. Unfortunately, there is very little similarity\n"
+	"\tbetween the CC2420 and the CC2500, to name just two of the\n"
+	"\tmyriad of Chipcon SPI radios.  Auto-detection will be a bit\n"
+	"\tdifficult, but more to the point, all high level functionality\n"
+	"\tmust be moved into the client.\n"
+};
+
 
 #define RADIOACTIVE SETCE
 #define RADIOPASSIVE CLRCE
@@ -86,9 +112,10 @@ u8 ccspi_regread(u8 reg, u8 *buf, int len){
 }
 
 //! Handles a Chipcon SPI command.
-void ccspihandle(unsigned char app,
-	       unsigned char verb,
-	       unsigned long len){
+void ccspi_handle_fn( uint8_t const app,
+					  uint8_t const verb,
+					  uint32_t const len)
+{
   unsigned long i;
   
   //Drop CE to passify radio.

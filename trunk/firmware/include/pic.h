@@ -11,6 +11,12 @@
 
 */
 
+#ifndef PIC_H
+#define PIC_H
+
+#include "app.h"
+
+#define PIC 0x34
 
 /*! Magic, device family specific constants (these are drawn from the
     dsPIC33F/PIC24H Flash Programming Specification). Note that the
@@ -94,3 +100,7 @@ void pic33f_trans8( unsigned char byte );
 #define PIC_RESET33F   0x87 // Reset attached dsPIC33F/PIC24H chip.
 #define PIC_START33F   0x84 // Start ICSP session
 #define PIC_STOP33F    0x85 // Stop ICSP (basically, drop !MCLR pin and pause briefly)
+
+extern app_t const pic_app;
+
+#endif // PIC_H

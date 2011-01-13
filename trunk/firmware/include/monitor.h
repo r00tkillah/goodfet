@@ -3,22 +3,18 @@
   \brief Debug monitor commands.
 */
 
-#ifdef MSP430
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
-#endif
+#ifndef MONITOR_H
+#define MONITOR_H
 
-// Generic Commands
+#include "app.h"
 
-//! Overwrite all of RAM with 0xBEEF, then reboot.
-void monitor_ram_pattern();
-//! Return the number of contiguous bytes 0xBEEF, to measure RAM usage.
-unsigned int monitor_ram_depth();
+// Montir app number
+#define MONITOR 0x00
 
 // Monitor Commands
 #define MONITOR_CHANGE_BAUD 0x80
 #define MONITOR_ECHO 0x81
+#define MONITOR_LIST_APPS 0x82
 #define MONITOR_RAM_PATTERN 0x90
 #define MONITOR_RAM_DEPTH 0x91
 
@@ -33,4 +29,7 @@ unsigned int monitor_ram_depth();
 #define MONITOR_WRITEBUF 0xC1
 #define MONITOR_SIZEBUF 0xC2
 
+extern app_t const monitor_app;
+
+#endif // MONITOR_H
 

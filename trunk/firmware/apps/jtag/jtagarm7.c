@@ -4,8 +4,39 @@
 
 #include "platform.h"
 #include "command.h"
+#include "jtag.h"
 #include "jtagarm7.h"
 
+//! Handles ARM7TDMI JTAG commands.  Forwards others to JTAG.
+void jtagarm7_handle_fn( uint8_t const app,
+						 uint8_t const verb,
+						 uint32_t const len);
+
+// define the jtagarm7 app's app_t
+app_t const jtagarm7_app = {
+
+	/* app number */
+	JTAGARM7,
+
+	/* handle fn */
+	jtagarm7_handle_fn,
+
+	/* name */
+	"JTAGARM7",
+
+	/* desc */
+	"\tThe JTAGARM7 app extends the basic JTAG app with support\n"
+	"\tfor JTAG'ing ARM7TDMI based devices.\n"
+};
+
+unsigned long last_instr = -1;
+unsigned char last_sysstate = 0;
+unsigned char last_ir = -1;
+unsigned char last_scanchain = -1;
+unsigned char tapstate = 15;
+unsigned char current_dbgstate = -1;
+//unsigned char last_halt_debug_state = -1;
+//unsigned long last_halt_pc = -1;
 
 /**** 20-pin Connection Information (pin1 is on top-right for both connectors)****
 GoodFET  ->  7TDMI 20-pin connector (HE-10 connector)
@@ -246,7 +277,10 @@ void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val) {          
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //! Handles ARM7TDMI JTAG commands.  Forwards others to JTAG.
-void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len){
+void jtagarm7_handle_fn( uint8_t const app,
+						 uint8_t const verb,
+						 uint32_t const len)
+{
   unsigned int val;
  
   switch(verb){
@@ -321,7 +355,7 @@ void jtagarm7tdmihandle(unsigned char app, unsigned char verb, unsigned long len
   case JTAGARM7_CHIP_ERASE:
   */
   default:
-    jtaghandle(app,verb,len);
+    (*(jtag_app.handle))(app,verb,len);
   }
 }
 

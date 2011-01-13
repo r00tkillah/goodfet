@@ -8,12 +8,31 @@
 	\date September 2010
 */
 
-#include "apps.h"
 #include "platform.h"
 #include "command.h"
-
 #include "adc.h"
 
+//! Handle an ADC10 command; currently assumes x2274, on a GoodFET31 board.
+void adc_handle_fn( uint8_t const app,
+					  uint8_t const verb,
+					  uint32_t const len);
+
+// define the adc app's app_t
+app_t const adc_app = {
+
+	/* app number */
+	ADC,
+
+	/* handle fn */
+	adc_handle_fn,
+
+	/* name */
+	"ADC",
+
+	/* desc */
+	"\tThe ADC app adds simple A/D sampling of a GoodFET pin.\n"
+	"\tCurrently assumes x2274 chip, on a GoodFET31 board.\n"
+};
 
 void init_adc10()
 {
@@ -32,7 +51,9 @@ void uninit_adc10()
 
 
 //! Handle an ADC10 command; currently assumes x2274, on a GoodFET31 board.
-void adchandle( unsigned char app, unsigned char verb, unsigned long len )
+void adc_handle_fn( uint8_t const app,
+					  uint8_t const verb,
+					  uint32_t const len)
 {
 	u16 sample;
 	u16 actual_N;

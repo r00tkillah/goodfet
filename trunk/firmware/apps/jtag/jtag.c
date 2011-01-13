@@ -8,6 +8,32 @@
 #include "command.h"
 #include "jtag.h"
 
+#define JTAG_APP
+
+//! Handles a monitor command.
+void jtag_handle_fn(uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len);
+
+// define the jtag app's app_t
+app_t const jtag_app = {
+
+	/* app number */
+	JTAG,
+
+	/* handle fn */
+	jtag_handle_fn,
+
+	/* name */
+	"JTAG",
+
+	/* desc */
+	"\tThe JTAG app handles basic JTAG operations such as\n"
+	"\tresetting the TAP, resetting the target, detecting\n"
+	"\tthe instruction register width, shifting bits into\n"
+	"\tboth the instruction and data registers.\n"
+};
+
 
 //! Set up the pins for JTAG mode.
 void jtagsetup(){
@@ -61,18 +87,24 @@ void jtag_resettap(){
 
 
 int savedtclk=0;
-//  NOTE: important: THIS MODULE REVOLVES AROUND RETURNING TO RUNTEST/IDLE, OR THE FUNCTIONAL EQUIVALENT
-//! Shift N bits over TDI/TDO.  May choose LSB or MSB, and select whether to terminate (TMS-high on last bit) and whether to return to RUNTEST/IDLE
+//  NOTE: important: THIS MODULE REVOLVES AROUND RETURNING TO RUNTEST/IDLE, OR 
+//  THE FUNCTIONAL EQUIVALENT
+//! Shift N bits over TDI/TDO.  May choose LSB or MSB, and select whether to 
+//  terminate (TMS-high on last bit) and whether to return to RUNTEST/IDLE
 //      flags should be 0 for most uses.  
 //      for the extreme case, flags should be  (NOEND|NORETDLE|LSB)
 //      other edge cases can involve a combination of those three flags
 //
 //      the max bit-size that can be be shifted is 32-bits.  
-//      for longer shifts, use the NOEND flag (which infers NORETIDLE so the additional flag is unnecessary)
+//      for longer shifts, use the NOEND flag (which infers NORETIDLE so the 
+//      additional flag is unnecessary)
 //
-//      NORETIDLE is used for special cases where (as with arm) the debug subsystem does not want to 
-//      return to the RUN-TEST/IDLE state between setting IR and DR
-unsigned long jtagtransn(unsigned long word, unsigned char bitcount, unsigned char flags){            
+//      NORETIDLE is used for special cases where (as with arm) the debug 
+//      subsystem does not want to return to the RUN-TEST/IDLE state between 
+//      setting IR and DR
+unsigned long jtagtransn(unsigned long word, 
+                         unsigned char bitcount, 
+                         unsigned char flags) {
   unsigned char bit;
   unsigned long high = 1L;
   unsigned long mask;
@@ -292,34 +324,41 @@ unsigned char jtag_ir_shift8(unsigned char in){
 }
 
 //! Handles a monitor command.
-void jtaghandle(unsigned char app,
-	       unsigned char verb,
-	       unsigned long len){
-  switch(verb){
-    //START handled by specific JTAG
-  case STOP:
-    jtag_stop();
-    txdata(app,verb,0);
-    break;
-  case SETUP:
-    jtagsetup();
-    txdata(app,verb,0);
-    break;
-  case JTAG_IR_SHIFT:
-    cmddata[0]=jtag_ir_shift8(cmddata[0]);
-    txdata(app,verb,1);
-    break;
-  case JTAG_DR_SHIFT:
-    cmddataword[0]=jtag_dr_shift16(cmddataword[0]);
-    txdata(app,verb,2);
-    break;
-  case JTAG_RESETTAP:
-    jtag_resettap();
-    txdata(app,verb,0);
-    break;
-  default:
-    txdata(app,NOK,0);
-  }
+void jtag_handle_fn(uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len)
+{
+	switch(verb)
+	{
+		//START handled by specific JTAG
+	case STOP:
+		jtag_stop();
+		txdata(app,verb,0);
+		break;
+
+	case SETUP:
+		jtagsetup();
+		txdata(app,verb,0);
+		break;
+
+	case JTAG_IR_SHIFT:
+		cmddata[0]=jtag_ir_shift8(cmddata[0]);
+		txdata(app,verb,1);
+		break;
+
+	case JTAG_DR_SHIFT:
+		cmddataword[0]=jtag_dr_shift16(cmddataword[0]);
+		txdata(app,verb,2);
+		break;
+
+	case JTAG_RESETTAP:
+		jtag_resettap();
+		txdata(app,verb,0);
+		break;
+
+	default:
+		txdata(app,NOK,0);
+	}
 }
 
 

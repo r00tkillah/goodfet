@@ -7,6 +7,27 @@
 #include "command.h"
 #include "jtag430.h"
 
+//! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
+void jtag430_handle_fn(uint8_t const app,
+					   uint8_t const verb,
+					   uint32_t const len);
+
+// define the jtag430 app's app_t
+app_t const jtag430_app = {
+
+	/* app number */
+	JTAG430,
+
+	/* handle fn */
+	jtag430_handle_fn,
+
+	/* name */
+	"JTAG430",
+
+	/* desc */
+	"\tThe JTAG430 app adds to the basic JTAG app\n"
+	"\tsupport for JTAG'ing MSP430 devices.\n"
+};
 
 unsigned int jtag430mode=MSP430X2MODE;
 
@@ -313,10 +334,11 @@ void jtag430_setinstrfetch(){
 
 
 //! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
-void jtag430handle(unsigned char app,
-		   unsigned char verb,
-		   unsigned long len){
-  unsigned long at;
+void jtag430_handle_fn(uint8_t const app,
+					   uint8_t const verb,
+					   uint32_t const len)
+{
+  unsigned long at, l;
   unsigned int i, val;
   
   
@@ -369,13 +391,13 @@ void jtag430handle(unsigned char app,
     //Fetch large blocks for bulk fetches,
     //small blocks for individual peeks.
     if(len>5)
-      len=(cmddataword[2]);//always even.
+      l=(cmddataword[2]);//always even.
     else
-      len=2;
-    len&=~1;//clear lsbit
+      l=2;
+    l&=~1;//clear lsbit
     
-    txhead(app,verb,len);
-    for(i=0;i<len;i+=2){
+    txhead(app,verb,l);
+    for(i = 0; i < l; i += 2) {
       jtag430_resettap();
       val=jtag430_readmem(at);
       
@@ -456,7 +478,7 @@ void jtag430handle(unsigned char app,
     break;
     
   default:
-    jtaghandle(app,verb,len);
+    (*(jtag_app.handle))(app,verb,len);
   }
   //jtag430_resettap();  //DO NOT UNCOMMENT
 }

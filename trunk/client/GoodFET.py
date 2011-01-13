@@ -478,6 +478,30 @@ class GoodFET:
             if self.verbose: print "Comm error recognized by monitorecho().";
             return 0;
         return 1;
+
+    def monitor_info(self):
+        print "GoodFET with %s MCU" % self.infostring();
+        print "Clocked at %s" % self.monitorclocking();
+        return 1;
+
+    def monitor_list_apps(self, full=False): 
+        self.monitor_info()
+        old_value = self.besilent
+        self.besilent = True    # turn off automatic call to readcmd
+        self.writecmd(self.MONITORAPP, 0x82, 1, [int(full)]);
+        self.besilent = old_value
+        
+        # read the build date string 
+        self.readcmd()
+        print "Build Date: %s" % self.data
+        print "Firmware apps:"
+        while True:
+            self.readcmd()
+            if self.count == 0:
+                break
+            print self.data
+        return 1;
+
     def monitorclocking(self):
         """Return the 16-bit clocking value."""
         return "0x%04x" % self.monitorgetclock();

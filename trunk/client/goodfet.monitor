@@ -18,6 +18,7 @@ if(len(sys.argv)==1):
     print "%s info" % sys.argv[0];
     print "%s call 0x$start" % sys.argv[0];
     print "%s exec '0x35 0x00 0x..'" % sys.argv[0];
+    print "%s listapps [full]" % sys.argv[0]
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -46,8 +47,7 @@ if(sys.argv[1]=="exec"):
     client.execute(code);
     
 if(sys.argv[1]=="info"):
-    print "GoodFET with %s MCU" % client.infostring();
-    print "Clocked at %s" % client.monitorclocking();
+    client.monitor_info()
 if(sys.argv[1]=="clocktest"):
     print "GoodFET with %s MCU" % client.infostring();
     clocking=client.monitorgetclock();
@@ -58,6 +58,9 @@ if(sys.argv[1]=="clocktest"):
         client.monitorsetclock(clocking-foo);
         print "-0x%04x: %s" % (foo,client.infostring());
         
+if(sys.argv[1]=="listapps"):
+    full = (len(sys.argv) > 2) and (sys.argv[2]=="full")
+    client.monitor_list_apps(full);
     
 if(sys.argv[1]=="ramfill"):
     client.monitor_ram_pattern();

@@ -3,7 +3,13 @@
   \brief Chipcon application functions.
 */
 
+#ifndef CHIPCON_H
+#define CHIPCON_H
+
 #include "command.h"
+#include "app.h"
+
+#define CHIPCON 0x30
 
 //Chipcon command definitions.
 #define CCCMD_CHIP_ERASE 0x14
@@ -107,3 +113,7 @@ void cc_lockchip();
 #define CC_PROGRAM_FLASH 0x98
 #define CC_WIPEFLASHBUFFER 0x99
 #define CC_LOCKCHIP 0x9A
+
+extern app_t const chipcon_app;
+
+#endif // CHIPCON_H

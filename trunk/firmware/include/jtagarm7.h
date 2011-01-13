@@ -2,21 +2,15 @@
   \brief JTAG handler functions for the ARM7TDMI family of processors
 */
 
-#include "jtag.h"
+#ifndef JTAGARM7_H
+#define JTAGARM7_H
 
+#include "app.h"
+
+#define JTAGARM7 0x13
 
 #define JTAGSTATE_ARM 0         // bit 4 on dbg status reg is low
 #define JTAGSTATE_THUMB 1
-
-unsigned long last_instr = -1;
-unsigned char last_sysstate = 0;
-unsigned char last_ir = -1;
-unsigned char last_scanchain = -1;
-unsigned char tapstate = 15;
-unsigned char current_dbgstate = -1;
-//unsigned char last_halt_debug_state = -1;
-//unsigned long last_halt_pc = -1;
-
 
 // JTAGARM7 Commands
 
@@ -144,4 +138,8 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define JTAG_ARM7TDMI_DBG_IFEN      4
 #define JTAG_ARM7TDMI_DBG_cgenL     8
 #define JTAG_ARM7TDMI_DBG_TBIT      16
+
+extern app_t const jtagarm7_app;
+
+#endif // JTAGARM7_H
 

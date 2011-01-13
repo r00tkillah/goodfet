@@ -13,12 +13,13 @@
 	\date September 2010
 */
 
+#ifndef ADC_H
+#define ADC_H
 
-// Identical to that in command.h, but to avoid cyclic dependencies...
-#define u8 unsigned char
-#define u16 unsigned int
-#define u32 unsigned long
+#include "command.h"
+#include "app.h"
 
+#define ADC 0x74
 
 //! Initialize ADC10 module (specific to 2xx chip family).
 void init_adc10();
@@ -69,3 +70,8 @@ u16 nsamples_adc10( u8 N_count, //! Number samples to obtain (bounded w.r.t. cmd
            1  =>  user-specified sequence length, t_sample = 3, clock_div = 8;
            3  =>  user-specified length, t_sample and clock_div. */
 #define ADC10_NSAMPLE 0x84 
+
+extern app_t const adc_app;
+
+#endif // ADC_H
+

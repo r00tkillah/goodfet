@@ -3,6 +3,13 @@
   \brief Constants for CCSPI Driver
 */
 
+#ifndef CCSPI_H
+#define CCSPI_H
+
+#include "app.h"
+
+#define CCSPI 0x51
+
 //Chipcon SPI Commands
 
 //Grab a packet, if one is available.
@@ -30,3 +37,8 @@
 #define CCSPI_RXFIFO  0x3F
 #define CCSPI_SFLUSHRX 0x08
 #define CCSPI_SFLUSHTX 0x09
+
+extern app_t const ccspi_app;
+
+#endif // CCSPI_H
+

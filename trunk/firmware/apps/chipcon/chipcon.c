@@ -19,6 +19,27 @@
 #include <io.h>
 #include <iomacros.h>
 
+//! Handles a chipcon command.
+void cc_handle_fn( uint8_t const app,
+				   uint8_t const verb,
+				   uint32_t const len);
+
+// define the jtag app's app_t
+app_t const chipcon_app = {
+
+	/* app number */
+	CHIPCON,
+
+	/* handle fn */
+	cc_handle_fn,
+
+	/* name */
+	"CHIPCON",
+
+	/* desc */
+	"\tThe CHIPCON app adds support for debugging the chipcon\n"
+	"\t8051 processor.\n"
+};
 
 /* Concerning clock rates, the maximimum clock rates are defined on
    page 4 of the spec.  They vary, but are roughly 30MHz.  Raising
@@ -148,10 +169,11 @@ void ccread(unsigned char len){
     cmddata[i]=cctrans8(0);
 }
 
-//! Handles a monitor command.
-void cchandle(unsigned char app,
-	       unsigned char verb,
-	       unsigned long len){
+//! Handles a chipcon command.
+void cc_handle_fn( uint8_t const app,
+				   uint8_t const verb,
+				   uint32_t const len)
+{
   //Always init.  Might help with buggy lines.
   //Might hurt too.
   //ccdebuginit();

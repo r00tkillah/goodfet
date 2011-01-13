@@ -11,6 +11,30 @@
 #include "ps2.h"
 #include "jtag.h"
 
+//! Handles a monitor command.
+void ps2_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len);
+
+
+// define the ps2 app's app_t
+app_t const ps2_app = {
+
+	/* app number */
+	PS2,
+
+	/* handle fn */
+	ps2_handle_fn,
+
+	/* name */
+	"PS2",
+
+	/* desc */
+	"\tThe PS2 app spies on PS/2.  For now, it just reports the\n"
+	"\tinter-character timing information.\n"
+};
+
+
 u32 mclock=0;
 u32 clock=0;
 
@@ -29,15 +53,12 @@ interrupt(TIMERA0_VECTOR) Timer_A (void)
     TDO P5.2
 */
 
-// This is just a plugin for now.
-#define ps2handle pluginhandle
-
 u32 oldclock=0;
 //! Handles a monitor command.
-int ps2handle(unsigned char app,
-	      unsigned char verb,
-	      unsigned int len){
-  
+void ps2_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len)
+{
   switch(verb){
   case START:
     WDTCTL = WDTPW + WDTHOLD;             // Stop WDT

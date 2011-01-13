@@ -3,9 +3,16 @@
   \brief Glitch handler functions.
 */
 
+#ifndef GLITCH_H
+#define GLITCH_H
+
+#include "app.h"
+
 #include <signal.h>
 #include <io.h>
 #include <iomacros.h>
+
+#define GLITCH 0x71
 
 //Command codes
 #define GLITCHAPP      0x80
@@ -29,7 +36,7 @@ void glitchvoltages(u16 gnd, u16 vcc);
 //! Set glitching rate.
 void glitchrate(u16 rate);
 
-//! Handles a monitor command.
-extern void glitchhandle(unsigned char app,
-		  unsigned char verb,
-		  unsigned long len) WEAKDEF;
+extern app_t const glitch_app;
+
+#endif // GLITCH_H
+

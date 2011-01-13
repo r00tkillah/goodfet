@@ -11,6 +11,29 @@
 #include "command.h"
 #include "glitch.h"
 
+//! Handles a monitor command.
+void glitch_handle_fn( uint8_t const app,
+					   uint8_t const verb,
+					   uint32_t const len);
+
+// define the glitch app's app_t
+app_t const glitch_app = {
+
+	/* app number */
+	GLITCH,
+
+	/* handle fn */
+	glitch_handle_fn,
+
+	/* name */
+	"GLITCH",
+
+	/* desc */
+	"\tThe GLITCH app adds support for doing glitch research.\n"
+	"\tSee the TI example MSP430x261x_dac12_01.c for usage of the DAC.\n"
+	"\tThis module sends odd and insufficient voltages on P6.6/DAC0\n"
+	"\tin order to bypass security restrictions of target devices.\n"
+};
 
 //! Call this before the function to be glitched.
 void glitchprime(){
@@ -102,9 +125,10 @@ void glitchrate(u16 rate){
 }
 
 //! Handles a monitor command.
-void glitchhandle(unsigned char app,
-		  unsigned char verb,
-		  unsigned long len){
+void glitch_handle_fn( uint8_t const app,
+					   uint8_t const verb,
+					   uint32_t const len)
+{
   switch(verb){
   case GLITCHVOLTAGES:
     glitchvoltages(cmddataword[0],

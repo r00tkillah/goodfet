@@ -1,11 +1,5 @@
 #!/usr/bin/env python
-# GoodFET Client Library
-# 
-#
-# Good luck with alpha / beta code.
-# Contributions and bug reports welcome.
-#
-# NOTE: this is just a hacked up copy of the GoodFETARM.py file
+# GoodFET XScale JTAG Client
 
 import sys, binascii, struct
 
@@ -25,14 +19,14 @@ OK    = 0x7F
 # XSCALE JTAG verbs
 GET_CHIP_ID         = 0xF1
 
-from GoodFET import GoodFET
+from GoodFETJTAG import GoodFETJTAG
 from intelhex import IntelHex
 
-class GoodFETXSCALE(GoodFET):
+class GoodFETXSCALE(GoodFETJTAG):
 
     """A GoodFET variant for use with XScale processors."""
 
-    XSCALEAPP=0x13;
+    XSCALEAPP=0x15;
     APP=XSCALEAPP;
  
     def setup(self):

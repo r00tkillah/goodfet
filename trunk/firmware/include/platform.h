@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <io.h>
 #include <iomacros.h>
+#include <stdint.h>
 
 #include "config.h"
 

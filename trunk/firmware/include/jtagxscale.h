@@ -7,6 +7,13 @@
 /* NOTE: I heavily cribbed from the ARM7TDMI jtag implementation. Credit where
  * credit is due. */
 
+#ifndef JTAGXSCALE_H
+#define JTAGXSCALE_H
+
+#include "app.h"
+
+#define JTAGXSCALE 0x15
+
 /* 
  * Utility Macros 
  */
@@ -81,4 +88,7 @@ unsigned long jtag_xscale_shift_n(unsigned long word,
  * out the TDO and return it. */
 unsigned long jtag_xscale_idcode();
 
+extern app_t const jtagxscale_app;
+
+#endif // JTAGXSCALE_H
 

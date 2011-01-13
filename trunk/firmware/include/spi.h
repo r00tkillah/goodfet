@@ -3,6 +3,12 @@
   \brief Definitions for the SPI application.
 */
 
+#ifndef SPI_H
+#define SPI_H
+
+#include "app.h"
+
+#define SPI 0x01
 
 //Pins and I/O
 //#define SS BIT0
@@ -20,7 +26,6 @@
 #define CLRTST P4OUT&=~TST
 #define SETRST P2OUT|=RST
 #define CLRRST P2OUT&=~RST
-
 
 //! Set up the pins for SPI mode.
 void spisetup();
@@ -49,3 +54,7 @@ unsigned char spitrans8(unsigned char byte);
 unsigned char spiflash_status();
 //! Erase a sector.
 void spiflash_erasesector(unsigned long adr);
+
+extern app_t const spi_app;
+
+#endif

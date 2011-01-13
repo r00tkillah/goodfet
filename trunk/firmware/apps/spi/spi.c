@@ -14,6 +14,28 @@
 
 #include "spi.h"
 
+//! Handles a monitor command.
+void spi_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len);
+
+// define the spi app's app_t
+app_t const spi_app = {
+
+	/* app number */
+	SPI,
+
+	/* handle fn */
+	spi_handle_fn,
+
+	/* name */
+	"SPI",
+
+	/* desc */
+	"\tThe SPI app handles the SPI bus protocol, turning\n"
+	"\tyour GoodFET into a USB-to-SPI adapter.\n"
+};
+
 //This could be more accurate.
 //Does it ever need to be?
 #define SPISPEED 0
@@ -299,73 +321,68 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
 }
 
 //! Handles a monitor command.
-void spihandle(unsigned char app,
-	       unsigned char verb,
-	       unsigned long len){
-  unsigned long i;
-  
-  
-  //Raise !SS to end transaction, just in case we forgot.
-  SETSS;
-  //spisetup();
-  
-  switch(verb){
-    //PEEK and POKE might come later.
-  case READ:
-  case WRITE:
-    CLRSS; //Drop !SS to begin transaction.
-    for(i=0;i<len;i++)
-      cmddata[i]=spitrans8(cmddata[i]);
-    SETSS;  //Raise !SS to end transaction.
-    txdata(app,verb,len);
-    break;
-    
-  case SPI_RW_EM260:  //SPI exchange with an EM260
-    spi_rw_em260(app,verb,len);
-    break;
-    
-  case SPI_JEDEC://Grab 3-byte JEDEC ID.
-    CLRSS; //Drop !SS to begin transaction.
-    spitrans8(0x9f);
-    len=3;  //Length is variable in some chips, 3 minimum.
-    for(i=0;i<len;i++)
-      cmddata[i]=spitrans8(cmddata[i]);
-    txdata(app,verb,len);
-    SETSS;  //Raise !SS to end transaction.
-    break;
-    
-  case PEEK://Grab 128 bytes from an SPI Flash ROM
-    spiflash_peek(app,verb,len);
-    break;
+void spi_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len)
+{
+	unsigned long i, l;
 
+	//Raise !SS to end transaction, just in case we forgot.
+	SETSS;
+	//spisetup();
 
-  case POKE://Poke up bytes from an SPI Flash ROM.
-    spiflash_pokeblocks(cmddatalong[0],//adr
-			cmddata+4,//buf
-			len-4);//len    
-    
-    txdata(app,verb,0);
-    break;
+	switch(verb)
+	{
+	case READ:
+	case WRITE:
+		CLRSS; //Drop !SS to begin transaction.
+		for(i=0;i<len;i++)
+		cmddata[i]=spitrans8(cmddata[i]);
+		SETSS;  //Raise !SS to end transaction.
+		txdata(app,verb,len);
+		break;
 
+	case SPI_RW_EM260:  //SPI exchange with an EM260
+		spi_rw_em260(app,verb,len);
+		break;
 
-  case SPI_ERASE://Erase the SPI Flash ROM.
-    spiflash_wrten();
-    CLRSS; //Drop !SS to begin transaction.
-    spitrans8(0xC7);//Chip Erase
-    SETSS;  //Raise !SS to end transaction.
-    
-    
-    while(spiflash_status()&0x01)//while busy
-      PLEDOUT^=PLEDPIN;
-    PLEDOUT&=~PLEDPIN;
-    
-    txdata(app,verb,0);
-    break;
+	case SPI_JEDEC://Grab 3-byte JEDEC ID.
+		CLRSS; //Drop !SS to begin transaction.
+		spitrans8(0x9f);
+		l=3;  //Length is variable in some chips, 3 minimum.
+		for(i = 0; i < l; i++)
+			cmddata[i]=spitrans8(cmddata[i]);
+		txdata(app,verb,len);
+		SETSS;  //Raise !SS to end transaction.
+		break;
 
-  case SETUP:
-    spisetup();
-    txdata(app,verb,0);
-    break;
-  }
-  
+	case PEEK://Grab 128 bytes from an SPI Flash ROM
+		spiflash_peek(app,verb,len);
+		break;
+
+	case POKE://Poke up bytes from an SPI Flash ROM.
+		spiflash_pokeblocks(cmddatalong[0],//adr
+		cmddata+4,//buf
+		len-4);//len    
+		txdata(app,verb,0);
+		break;
+
+	case SPI_ERASE://Erase the SPI Flash ROM.
+		spiflash_wrten();
+		CLRSS; //Drop !SS to begin transaction.
+		spitrans8(0xC7);//Chip Erase
+		SETSS;  //Raise !SS to end transaction.
+
+		while(spiflash_status()&0x01)//while busy
+		PLEDOUT^=PLEDPIN;
+		PLEDOUT&=~PLEDPIN;
+
+		txdata(app,verb,0);
+		break;
+
+	case SETUP:
+		spisetup();
+		txdata(app,verb,0);
+		break;
+	}
 }

@@ -9,12 +9,32 @@
 */
 
 
-#include "apps.h"
 #include "platform.h"
 #include "command.h"
 
-#include "dspic33f.h"
+#include "pic.h"
 
+//! Handle a PIC command; currently assumes dsPIC33F/PIC24H
+void pic_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len );
+
+// define the pic app's app_t
+app_t const pic_app = {
+
+	/* app number */
+	PIC,
+
+	/* handle fn */
+	pic_handle_fn,
+
+	/* name */
+	"PIC",
+
+	/* desc */
+	"\tThe PIC app adds support for programming/debugging\n"
+	"\tdsPIC33F based devices.\n"
+};
 
 void pic33f_setup()
 {
@@ -32,9 +52,9 @@ void pic33f_setup()
 
 
 //! Handle a PIC command; currently assumes dsPIC33F/PIC24H
-void pichandle( unsigned char app,
-				unsigned char verb,
-				unsigned long len )
+void pic_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len )
 {
 	unsigned int nb; // Number of bytes
 	unsigned int highb, loww; // Used for ICSP commands

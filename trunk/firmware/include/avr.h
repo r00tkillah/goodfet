@@ -3,7 +3,13 @@
   \brief AVR SPI Programmer
 */
 
+#ifndef AVR_H
+#define AVR_H
+
 #include "spi.h"
+#include "app.h"
+
+#define AVR 0x32
 
 //! Setup the AVR pins.
 void avrsetup();
@@ -57,3 +63,7 @@ u8 avr_isready();
 #define AVR_READCAL 0x85
 //! Bulk load data
 #define AVR_BULKLOAD 0x86
+
+extern app_t const avr_app;
+
+#endif // AVR_H

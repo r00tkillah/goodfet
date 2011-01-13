@@ -11,6 +11,7 @@
 
 #include "platform.h"
 #include "command.h"
+#include "i2c.h"
 
 #include <signal.h>
 #include <io.h>
@@ -19,6 +20,29 @@
 
 //Pins and I/O
 #include <jtag.h>
+
+//! Handles an i2c command.
+void i2c_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len);
+
+// define the i2c app's app_t
+app_t const i2c_app = {
+
+	/* app number */
+	I2C,
+
+	/* handle fn */
+	i2c_handle_fn,
+
+	/* name */
+	"I2C",
+
+	/* desc */
+	"\tThe I2C app implements the i2c bus protocol thus\n"
+	"\tturning your GoodFET into a USB-to-i2c adapter.\n"
+};
+
 #define SDA TDI
 #define SCL TDO
 
@@ -156,44 +180,48 @@ unsigned char I2C_Read( unsigned char ack )
 }
 
 
-//! Handles a monitor command.
-void i2chandle(unsigned char app,
-	       unsigned char verb,
-	       unsigned long len){
-  unsigned char i;
-  switch(verb){
-    
-  case PEEK:
-    break;
-  case POKE:
-    break;
-    
-  case READ:
-    if(len>0)          //optional parameter of length
-      len=cmddata[0];
-    if(!len)           //default value of 1
-      len=1;
-    for(i=0;i<len;i++)
-      cmddata[i]=I2C_Read(1);  //Always acknowledge
-    txdata(app,verb,len);
-    break;
-  case WRITE:
-    cmddata[0]=0;
-    for(i=0;i<len;i++)
-      cmddata[0]+=I2C_Write(cmddata[i]);
-    txdata(app,verb,1);
-    break;
-  case START:
-    I2C_Start();
-    txdata(app,verb,0);
-    break;
-  case STOP:
-    I2C_Stop();
-    txdata(app,verb,0);
-    break;
-  case SETUP:
-    I2C_Init();
-    txdata(app,verb,0);
-    break;
-  }
+//! Handles an i2c command.
+void i2c_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len)
+{
+	unsigned char i;
+	unsigned long l;
+	switch(verb)
+	{
+
+	case PEEK:
+		break;
+	case POKE:
+		break;
+
+	case READ:
+		l = len;
+		if(l > 0)					//optional parameter of length
+			l=cmddata[0];
+		if(!l)						//default value of 1
+			l=1;
+		for(i = 0; i < l; i++)
+			cmddata[i]=I2C_Read(1);	//Always acknowledge
+		txdata(app,verb,l);
+		break;
+	case WRITE:
+		cmddata[0]=0;
+		for(i=0;i<len;i++)
+			cmddata[0]+=I2C_Write(cmddata[i]);
+		txdata(app,verb,1);
+		break;
+	case START:
+		I2C_Start();
+		txdata(app,verb,0);
+		break;
+	case STOP:
+		I2C_Stop();
+		txdata(app,verb,0);
+		break;
+	case SETUP:
+		I2C_Init();
+		txdata(app,verb,0);
+		break;
+	}
 }

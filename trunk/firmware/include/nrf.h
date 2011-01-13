@@ -3,6 +3,13 @@
   \brief Constants for NRF Driver
 */
 
+#ifndef NRF_H
+#define NRF_H
+
+#include "app.h"
+
+#define NRF   0x50
+
 //Nordic RF Commands
 
 //Grab a packet, if one is available.
@@ -57,6 +64,7 @@
 //Also 32-byte buffers for ACK_PLD, TX_PLD, and RX_PLD.
 //Separate SPI commands.
 
+extern app_t const nrf_app;
 
-
+#endif // NRF_H
 

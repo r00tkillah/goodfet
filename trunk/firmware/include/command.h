@@ -4,6 +4,11 @@
 */
 
 
+#ifndef COMMAND_H
+#define COMMAND_H
+
+#include <stdint.h>
+
 //Types
 #define u8 unsigned char
 #define u16 unsigned int
@@ -66,17 +71,10 @@ extern unsigned char silent;
 #define WEAKDEF
 #endif
 
-//! Handle a plugin, weak-linked to error.
-extern int pluginhandle(unsigned char app,
-			unsigned char verb,
-			unsigned int len)
-  WEAKDEF;
-
-
 //! Handle a command.  Defined in goodfet.c
-void handle(unsigned char app,
-	    unsigned char verb,
-	    unsigned long len);
+void handle(uint8_t const app,
+			uint8_t const verb,
+			uint32_t const len);
 //! Transmit a header.
 void txhead(unsigned char app,
 	    unsigned char verb,
@@ -127,34 +125,4 @@ void delay_us( unsigned int us );
 //! Delay for specified number of clock ticks (16 MHz clock implies 62.5 ns per tick).
 void delay_ticks( unsigned int num_ticks );
 
-
-void monitorhandle(unsigned char, unsigned char, unsigned long);
-WEAKDEF void spihandle(unsigned char, unsigned char, unsigned long);
-WEAKDEF void i2chandle(unsigned char, unsigned char, unsigned long);
-WEAKDEF void cchandle(unsigned char, unsigned char, unsigned long);
-WEAKDEF void jtaghandle(unsigned char, unsigned char, unsigned long);
-WEAKDEF void jtag430handle(unsigned char, unsigned char, unsigned long);
-WEAKDEF void ejtaghandle(unsigned char, unsigned char, unsigned long);
-WEAKDEF void jtagarm7tdmihandle(unsigned char, unsigned char, unsigned long);
-WEAKDEF void xscalehandle(unsigned char, unsigned char, unsigned long);
-
-WEAKDEF void jtag430x2handle(unsigned char, unsigned char, unsigned long);
-
-WEAKDEF void nrfhandle(unsigned char,
-		       unsigned char,
-		       unsigned long);
-WEAKDEF void ccspihandle(unsigned char,
-		       unsigned char,
-		       unsigned long);
-WEAKDEF void avrhandle(unsigned char app,
-		       unsigned char verb,
-		       unsigned long len);  
-WEAKDEF int smartcardhandle(unsigned char app,
-			    unsigned char verb,
-			    unsigned int len);
-
-WEAKDEF void pichandle( unsigned char app,
-			unsigned char verb,
-			unsigned long len );
-
-WEAKDEF void adchandle( unsigned char app, unsigned char verb, unsigned long len );
+#endif // COMMAND_H

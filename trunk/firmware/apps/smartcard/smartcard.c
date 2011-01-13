@@ -8,6 +8,30 @@
 #include "platform.h"
 #include "command.h"
 #include "jtag.h"
+#include "smartcard.h"
+
+//! Handles a monitor command.
+void smartcard_handle_fn( uint8_t const app,
+						  uint8_t const verb,
+						  uint32_t const len);
+
+// define the smartcard app's app_t
+app_t const smartcard_app = {
+
+	/* app number */
+	SMARTCARD,
+
+	/* handle fn */
+	smartcard_handle_fn,
+
+	/* name */
+	"SMARTCARD",
+
+	/* desc */
+	"\tThe SMARTCARD app allows for communication with smart\n"
+	"\tcards and SIM cards.\n"
+};
+
 
 //TDO/P5.2 is Data
 
@@ -35,9 +59,10 @@ void smartcardsetup(){
 u16 sctime=0, foo=0;
 
 //! Handles a monitor command.
-int smartcardhandle(unsigned char app,
-	      unsigned char verb,
-	      unsigned int len){
+void smartcard_handle_fn( uint8_t const app,
+						  uint8_t const verb,
+						  uint32_t const len)
+{
   switch(verb){
   case SETUP:
     smartcardsetup();
@@ -74,5 +99,4 @@ int smartcardhandle(unsigned char app,
     debugstr("Unknown smartcard verb.");
     txdata(app,NOK,0);
   }
-  return 0;
 }

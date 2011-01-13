@@ -12,6 +12,27 @@
 
 #include "avr.h"
 //#include "glitch.h"
+//
+//! Handles an AVR command.
+void avr_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len);
+
+// define the jtag app's app_t
+app_t const avr_app = {
+
+	/* app number */
+	AVR,
+
+	/* handle fn */
+	avr_handle_fn,
+
+	/* name */
+	"AVR",
+
+	/* desc */
+	"\tThe AVR app adds support for debugging AVR based devices.\n"
+};
 
 //! Setup the AVR pins.
 void avrsetup(){
@@ -142,10 +163,11 @@ void avr_bulk_load(u16 start, u16 len, u8 *data) {
 }
 
 //! Handles an AVR command.
-void avrhandle(unsigned char app,
-	       unsigned char verb,
-	       unsigned long len){
-  unsigned long i;
+void avr_handle_fn( uint8_t const app,
+					uint8_t const verb,
+					uint32_t const len)
+{
+  unsigned long i, l;
   unsigned int at;
   
   /*
@@ -212,13 +234,14 @@ void avrhandle(unsigned char app,
     
     //Fetch large blocks for bulk fetches,
     //small blocks for individual peeks.
-    if(len>2){
-      len=(cmddataword[1]);//always even.
+	l = len;
+    if(l>2){
+      l=(cmddataword[1]);//always even.
     }else{
-      len=1;
+      l=1;
     }
-    txhead(app,verb,len);
-    for(i=0;i<len;i++){
+    txhead(app,verb,l);
+    for(i=0;i<l;i++){
       serial_tx(avr_peekflash(at++));
     }
     break;

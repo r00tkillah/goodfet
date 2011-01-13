@@ -6,6 +6,30 @@
 #include "platform.h"
 #include "command.h"
 #include "jtag430.h"
+#include "jtag430x2.h"
+
+void jtag430x2_handle_fn( uint8_t const app,
+						  uint8_t const verb,
+						  uint32_t const len);
+
+
+// define the jtag430x2 app's app_t
+app_t const jtag430x2_app = {
+
+	/* app number */
+	JTAG430X2,
+
+	/* handle fn */
+	jtag430x2_handle_fn,
+
+	/* name */
+	"JTAG430X2",
+
+	/* desc */
+	"\tThe JTAG430X2 app extends the basic JTAG app with support\n"
+	"\tfor 20-bit MSP430 devices.\n"
+};
+
 
 unsigned char jtagid;
 
@@ -185,18 +209,19 @@ unsigned int jtag430x2_fusecheck(){
 
 
 //! Handles MSP430X2 JTAG commands.  Forwards others to JTAG.
-void jtag430x2handle(unsigned char app,
-		     unsigned char verb,
-		     unsigned long len){
+void jtag430x2_handle_fn( uint8_t const app,
+						  uint8_t const verb,
+						  uint32_t const len)
+{
   register char blocks;
   
   unsigned int i,val;
-  unsigned long at;
+  unsigned long at, l;
   
   //jtag430_resettap();
   
   if(verb!=START && jtag430mode==MSP430MODE){
-    jtag430handle(app,verb,len);
+    (*(jtag430_app.handle))(app,verb,len);
     return;
   }
   
@@ -251,11 +276,11 @@ void jtag430x2handle(unsigned char app,
     blocks=(len>4?cmddata[4]:1);
     at=cmddatalong[0];
     
-    len=0x80;
-    txhead(app,verb,len);
+    l=0x80;
+    txhead(app,verb,l);
     
     while(blocks--){
-      for(i=0;i<len;i+=2){
+      for(i=0;i<l;i+=2){
 	jtag430_resettap();
 	delay(10);
 	
@@ -297,7 +322,8 @@ void jtag430x2handle(unsigned char app,
     txdata(app,NOK,0);
     break;
   default:
-    jtaghandle(app,verb,len);
+    (*(jtag_app.handle))(app,verb,len);
   }
   jtag430_resettap();
 }
+

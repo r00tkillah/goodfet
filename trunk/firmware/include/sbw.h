@@ -3,7 +3,12 @@
   \brief Spy-Bi-Wire Stuff
 */
 
+#ifndef SBW_H
+#define SBW_H
+
 #include "platform.h"
+#include "command.h"
+#include "app.h"
 
 //IO Pins; these are for EZ430, not GoodFET/UIF
 #define SBWTCK  BIT3
@@ -79,5 +84,5 @@ void sbwCLRTCLK();
 //Do nothing for this.
 #define SAVETCLK 
 
-
+#endif // SBW_H
 

@@ -85,10 +85,10 @@ CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(plat
 # config = monitor glitch
 
 # XScale PXA255 JTAG
-config = monitor jtagxscale
+# config = monitor jtagxscale
 
 # Old Default Config
-#config = monitor sbw glitch chipcon nrf ccspi spi jtagarm7 jtag430 jtag430x2 avr
+config = monitor sbw glitch chipcon nrf ccspi spi jtagarm7 jtag430 jtag430x2 avr
 
 
 # Build the needed list of app and lib object files from the config
@@ -125,7 +125,6 @@ ifeq ($(filter sbw, $(config)), sbw)
 		hdrs+= jtag.h
 	endif
 	apps+= apps/jtag/sbw.o
-	hdrs+= sbw.h
 endif
 
 # include jtag430 app
@@ -153,6 +152,10 @@ ifeq ($(filter jtag430x2, $(config)), jtag430x2)
 	# add in the jtag430asm code if needed
 	ifneq ($(filter jtag430asm.o, $(libs)), jtag430asm.o)
 		libs+= apps/jtag/jtag430asm.o
+	endif
+	#add in the jtag430 app if not already
+	ifneq ($(filter apps/jtag/jtag430.o, $(apps)), apps/jtag/jtag430.0)
+		apps+= apps/jtag/jtag430.o
 		hdrs+= jtag430.h
 	endif
 	apps+= apps/jtag/jtag430x2.o
@@ -307,7 +310,7 @@ m4s: $(app).hex
 erase:
 	$(BSL) -e 
 clean:
-	rm -f $(app) $(app).hex $(libs) $(apps) include/config.h include/builddate.h include/apps.h
+	rm -f $(app) $(app).hex $(libs) $(apps) lib/apps.c include/config.h include/builddate.h include/apps.h
 docs:
 	doxygen
 pushdocs: docs

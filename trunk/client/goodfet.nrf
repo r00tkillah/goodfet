@@ -252,7 +252,7 @@ class AutoTuner():
         self.chan=chan;
         self.sync=sync;
         return;
-    def packetaddr(self,packet):
+    def packetaddr(self,packet,justmac=False):
         """Returns a loaded packet address, including channel and rate."""
         
         sync=self.client.RF_getsmac()&0xFF;
@@ -261,14 +261,19 @@ class AutoTuner():
         #MAC,RF_CH,RATE
         for i in range(0,5):
             mac="%s%02x" % (mac,ord(packet[i]));
+        if justmac:
+            return mac;
         ch=self.client.peek(0x05);
         rate=self.client.peek(0x06);
         return "%02x,%s,%02x,%02x" % (
             sync,mac,ch,rate);
     def validmac(self,packet):
         sync=self.client.RF_getsmac()&0xFF;
+        mac=self.packetaddr(packet,justmac=True);
         if (ord(packet[0])&0x80)^(sync&0x80):
             #print "%02x%02x invalid entry." % (sync,ord(packet[0]));
+            return False;
+        if mac=='5555555555' or mac=='aaaaaaaaaa':
             return False;
         return True;
         
@@ -323,7 +328,7 @@ class AutoTuner():
         
         if self.chan:
             self.client.poke(0x05,
-                             (count+40)&0x7f);
+                             (count+16)&0x7f);
             print "Tuned to %i MHz" % (
                 self.client.RF_getfreq()
                 /(10**6));
@@ -338,14 +343,14 @@ if(sys.argv[1]=="autotune"):
     #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
     #TODO remove all poke() calls.
     guesser=AutoTuner();
-    guesser.init(client,rate=False,sync=False,chan=True);
+    guesser.init(client,rate=True,sync=True,chan=True);
     
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst
     client.poke(0x02,0x01); #Set RX Pipe 0
     
     #client.RF_setfreq(2481 * 10**6);
-    #client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
+    client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
     client.poke(0x07,0x78); #Reset status register
     
     #OpenBeacon defines these in little endian as follows.
@@ -393,7 +398,7 @@ if(sys.argv[1]=="sniffmskb"):
     #Other keyboards will be different.
     
     
-    client.RF_setmaclen(2);
+    client.RF_setmaclen(5);
     
     #Known pairs.  The channel and the low address bytes must match.
     #client.RF_setfreq((2400+0x13) * 10**6);
@@ -557,8 +562,12 @@ if(sys.argv[1]=="sniff"):
     #client.poke(0x00,0x00); #Stop nRF
     client.poke(0x07,0x78); #Reset status register
     
-    #Power radio, prime for RX, checksum.
-    client.poke(0x00,0x70|0x03|0x08);
+    #Power radio, prime for RX, no checksum.
+    client.poke(0x00,0x70|0x03);
+    #Mac packet length.
+    client.RF_setpacketlen(32);
+    #Mac length, reduced
+    client.RF_setmaclen(3); # SETUP_AW for shortest
     
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);

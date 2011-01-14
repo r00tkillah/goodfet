@@ -30,6 +30,23 @@ def printpacket(packet):
         s="%s %02x" % (s,ord(foo));
     print "%s" % s;
 
+def printmspacket(packet,offset=1):
+    keyword=client.RF_getsmac();
+    #print "keyword=%010x" % key;
+    key=[];
+    for foo in range(0,5):
+        key.append(keyword&0xFF);
+        keyword=(keyword>>8);
+        #print "Keybyte %02x" % key[foo];
+    i=0;
+    s="";
+    for foo in packet:
+        if i>=4:
+            s="%s %02x" % (s,ord(foo)^key[(i+offset)%5]);
+        else:
+            s="%s %02x" % (s,ord(foo));
+        i=i+1;
+    print "%s" % (s);
 def printconfig():
     print "Encoding %s" % client.RF_getenc();
     print "Freq    %10i MHz" % (client.RF_getfreq()/10**6);
@@ -48,6 +65,7 @@ if(len(sys.argv)==1):
     print "%s regbits" % sys.argv[0];
     print "%s pyregs" % sys.argv[0];
     print "";
+    print "%s tune aa|55,mac,r5,r6\n\tTunes to a configuration." % sys.argv[0];
     print "%s sniff\n\tSniffs packets by current config." % sys.argv[0];
     print "%s sniffob\n\tSniffs OpenBeacon traffic." % sys.argv[0];
     print "%s snifftp\n\tSniffs Turning Point Clicker traffic." % sys.argv[0];
@@ -100,7 +118,7 @@ if(sys.argv[1]=="test"):
         print "ERROR: Failed to set MAC address.";
     print "Final registers:"
     printconfig();
-    
+
 if(sys.argv[1]=="carrier"):
     if len(sys.argv)>2:
         client.RF_setfreq(eval(sys.argv[2]));
@@ -109,6 +127,12 @@ if(sys.argv[1]=="carrier"):
     print "\nHolding a carrier wave.";
     while(1):
         time.sleep(1);
+
+if(sys.argv[1]=="tune"):
+    if len(sys.argv)>2:
+        client.tune(sys.argv[2]);
+    else:
+        print "Specify a tuning, such as 'aa,c78c65805e,14,09'";
 if(sys.argv[1]=="regs"):
     for r in range(0,0x20):
         print "r[0x%02x]=0x%010x //%16s " % (r,client.peek(r),regnames[r]);
@@ -251,6 +275,18 @@ class AutoTuner():
         self.rate=rate;
         self.chan=chan;
         self.sync=sync;
+        
+        client.poke(0x00,0x00); #Stop nRF
+        client.poke(0x01,0x00); #Disable Shockburst
+        client.poke(0x02,0x01); #Set RX Pipe 0
+        client.RF_setmaclen(2); # SETUP_AW for shortest
+        
+        #historic
+        #client.RF_setsmac(0x00AA);
+        #client.RF_setsmac(0x0055);
+        
+        client.poke(0x00,0x70|0x03); #prime radio.
+        
         return;
     def packetaddr(self,packet,justmac=False):
         """Returns a loaded packet address, including channel and rate."""
@@ -272,6 +308,7 @@ class AutoTuner():
         mac=self.packetaddr(packet,justmac=True);
         if (ord(packet[0])&0x80)^(sync&0x80):
             #print "%02x%02x invalid entry." % (sync,ord(packet[0]));
+            #This is a special kind of failure.  Freq is probably right, but MAC is wrong.
             return False;
         if mac=='5555555555' or mac=='aaaaaaaaaa':
             return False;
@@ -297,8 +334,31 @@ class AutoTuner():
         if self.addresses[addr]>1 or rate>0.01:
             print "'%s' looks valid\t%i\t%0.5f" % (
                 addr,count,rate);
-        return;
+        return addr;
     tunecount=0;
+    def selftune(self,threshold=2,forever=False,
+                 delay=5.0):
+        """Tunes to the first strong signal.
+        It's important that this not get triggered by false positives."""
+        
+        while 1:
+            start=time.mktime(time.localtime());
+            while (time.mktime(time.localtime())-start) < delay:
+                packet=None;
+                while packet==None:
+                    packet=client.RF_rxpacket();
+                addr=guesser.handle(packet);
+                try:
+                    count=self.addresses[addr];
+                except:
+                    count=0;
+                if count>threshold:
+                    #Tune it in here?
+                    client.tune(addr);
+                    return addr;
+            self.retune();
+            sys.stdout.flush();
+        
     def retune(self):
         """Tunes to another channel or preamble looking for the next packet."""
         count=self.tunecount;
@@ -328,7 +388,7 @@ class AutoTuner():
         
         if self.chan:
             self.client.poke(0x05,
-                             (count+16)&0x7f);
+                             (count+0x12)&0x7f);
             print "Tuned to %i MHz" % (
                 self.client.RF_getfreq()
                 /(10**6));
@@ -345,21 +405,12 @@ if(sys.argv[1]=="autotune"):
     guesser=AutoTuner();
     guesser.init(client,rate=True,sync=True,chan=True);
     
-    client.poke(0x00,0x00); #Stop nRF
-    client.poke(0x01,0x00); #Disable Shockburst
-    client.poke(0x02,0x01); #Set RX Pipe 0
     
     #client.RF_setfreq(2481 * 10**6);
     client.poke(0x06,0x09); #2MBps, -18dBm in RF_SETUP
     client.poke(0x07,0x78); #Reset status register
     
-    #OpenBeacon defines these in little endian as follows.
-    client.RF_setmaclen(2); # SETUP_AW for shortest
-    
     #This is determined by the MAC, which we don't yet know.
-    #AutoTuner() takes care of finding it.
-    #client.RF_setsmac(0x00AA);
-    #client.RF_setsmac(0x0055);
     
     #Longest length.
     client.RF_setpacketlen(32);
@@ -367,21 +418,12 @@ if(sys.argv[1]=="autotune"):
     #Power radio, prime for RX, no checksum
     client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
     
-    print "Autotuning as %010x on %i MHz" % (client.RF_getsmac(),
-                                           client.RF_getfreq()/10**6);
+    print "Autotuning on %i MHz" % (
+        client.RF_getfreq()/10**6);
     print "sync,mac,r5,r6";
     #Now we're ready to get packets.
-    while 1:
-        #Full second on each packet.
-        start=time.mktime(time.localtime());
-        while (time.mktime(time.localtime())-start) < 5:
-            packet=None;
-            while packet==None:
-                packet=client.RF_rxpacket();
-            guesser.handle(packet);
-        #print "Retuning."
-        guesser.retune();
-        sys.stdout.flush();
+    guesser.selftune(threshold=2,
+                     forever=True);
 
 if(sys.argv[1]=="sniffmskb"):
     #MSWK 3000 v2.0
@@ -397,31 +439,51 @@ if(sys.argv[1]=="sniffmskb"):
     #This is the address of a specific keyboard.
     #Other keyboards will be different.
     
-    
     client.RF_setmaclen(5);
     
     #Known pairs.  The channel and the low address bytes must match.
     #client.RF_setfreq((2400+0x13) * 10**6);
-    #client.RF_setsmac(0x0c00a3598cd);
+    #client.RF_setsmac(0xc00a3598cd);
     
-    client.RF_setfreq((2400+0x15) * 10**6);
-    client.RF_setsmac( 0x0c10446facd);
+    #client.RF_setfreq((2400+0x15) * 10**6);
+    #client.RF_setsmac(0xc10446facd);
     
     #Mac packet length, illegally 0-length address field.
-    client.RF_setpacketlen(32);
+    client.RF_setpacketlen(16);
     
-    #Power radio, prime for RX, no checksum
-    client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
+    #aa,c00a3598cd,13,09
+    if len(sys.argv)>2:
+        client.tune(sys.argv[2]);
+    else:
+        
+        print "Searching for a keyboard.";
+        
+        guesser=AutoTuner();
+        guesser.init(client, rate=False, sync=True, chan=False);
+        guesser.selftune(threshold=4,forever=False,
+                         delay=3.0);
     
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    #client.RF_setmaclen(3);
+    
+    #Finally, dynamic payload lengths need to be enabled.
+    #client.poke(0x01,0x01);
+    client.poke(0x1C,0x01);
+    client.poke(0x1D,0x06);
+    
+    client.poke(0x00,0x70|0x03); #prime radio.
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);
     #Now we're ready to get packets.
     while 1:
         packet=None;
         while packet==None:
-            #time.sleep(0.1);
+            #time.sleep(1);
             packet=client.RF_rxpacket();
-        printpacket(packet);
+            #print ".";
+        printmspacket(packet);
         sys.stdout.flush();
 
 
@@ -567,7 +629,7 @@ if(sys.argv[1]=="sniff"):
     #Mac packet length.
     client.RF_setpacketlen(32);
     #Mac length, reduced
-    client.RF_setmaclen(3); # SETUP_AW for shortest
+    #client.RF_setmaclen(3); # SETUP_AW for shortest
     
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);

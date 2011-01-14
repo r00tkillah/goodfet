@@ -26,6 +26,18 @@ class GoodFETNRF(GoodFET):
         self.writecmd(self.NRFAPP,0x00,len(data),data);
         return self.data;
     
+    def tune(self,tuning="aa,c78c65805e,14,09"):
+        """Tune the radio."""
+        #MAC,rA,r5,r6
+        fields=tuning.split(",");
+        ra=int(fields[1],16);
+        r5=int(fields[2],16);
+        r6=int(fields[3],16);
+        self.poke(0x0a,ra,5);
+        self.poke(0x05,r5,1);
+        self.poke(0x06,r6,1);
+        self.RF_setmaclen(3);
+        return;
     def peek(self,reg,bytes=-1):
         """Read an NRF Register.  For long regs, result is flipped."""
         data=[reg,0,0,0,0,0];

@@ -1,3 +1,4 @@
+/* -*- mode: c; c-basic-offset: 8; indent-tabs-mode: t -*- */
 /*! \file dspic33f.c
 
   \author Scott Livingston
@@ -13,6 +14,8 @@
 #include "command.h"
 
 #include "pic.h"
+
+#define CYCLE_DELAY() delay_ticks(10);
 
 //! Handle a PIC command; currently assumes dsPIC33F/PIC24H
 void pic_handle_fn( uint8_t const app,
@@ -101,6 +104,10 @@ void pic_handle_fn( uint8_t const app,
 		txdata(app,verb,0);
 		break;
 
+	case PIC_CMDLIST:
+		pic33f_cmdlist(len); // reply is handled by pic33f_cmdlist
+		break;
+
 	default:
 		debugstr( "Verb unimplemented in PIC application." );
 		txdata(app,NOK,0);
@@ -109,6 +116,23 @@ void pic_handle_fn( uint8_t const app,
 	}
 }
 
+void pic33f_transcmd(unsigned char cmd) {
+  int i = 0;
+  DIR_PGD_WR;
+  CLR_PGC;
+  for (i = 0; i < 4; i++) {
+    if (cmd & 0x1)
+      SET_PGD;
+    else
+      CLR_PGD;
+    CYCLE_DELAY();
+    SET_PGC;
+    cmd >>= 1;
+    CYCLE_DELAY();
+    CLR_PGC;
+  }
+  CLR_PGD;
+}
 
 void pic33f_trans8( unsigned char byte )
 {
@@ -117,20 +141,19 @@ void pic33f_trans8( unsigned char byte )
 	unsigned int i;
 	
 	DIR_PGD_WR; // Write mode
-	i = 1;
-	while (i & 0xff) {
-		if (byte & i) {
+	for (i = 0; i < 8; i++) {
+		if (byte & 0x01) {
 			SET_PGD;
 		} else {
 			CLR_PGD;
 		}
-		delay_ticks(10);
+		CYCLE_DELAY();
 		SET_PGC;
-		delay_ticks(10);
+		byte >>= 1;
+		CYCLE_DELAY();
 
 		CLR_PGC;
-		delay_ticks(10);
-		i = i << 1;
+		//CYCLE_DELAY();
 	}
 	CLR_PGD;
 	DIR_PGD_RD; // Read mode
@@ -152,16 +175,7 @@ void pic33f_six( unsigned int highb, unsigned int loww )
 	   Shift in the instruction.  Note that it does not execute until
 	   the next 4 clock cycles (which also corresponds to a command
 	   receipt time). */
-	unsigned int i;
-	DIR_PGD_WR;
-	CLR_PGD;
-	CLR_PGC;
-	for (i = 0; i < 4; i++) {
-		SET_PGC;
-		delay_ticks(10);
-		CLR_PGC;
-		delay_ticks(10);
-	}
+	pic33f_transcmd(0);
 	pic33f_trans16( loww );
 	pic33f_trans8( highb );
 	DIR_PGD_RD;
@@ -176,28 +190,14 @@ unsigned int pic33f_regout()
 	DIR_PGD_WR;
 	
 	// Shift in command (REGOUT: 0001b).
-	SET_PGD;
-	delay_ticks(10);
-	SET_PGC;
-	delay_ticks(10);
-	CLR_PGC;
-	delay_ticks(10);
-	
-	CLR_PGD;
-	delay_ticks(10);
-	for (i = 0; i < 3; i++) {
-		SET_PGC;
-		delay_ticks(10);
-		CLR_PGC;
-		delay_ticks(10);
-	}
+	pic33f_transcmd(1);
 
 	// Pump clock for 8 cycles, and switch PGD direction to read.
 	for (i = 0; i < 7; i++) {
 		SET_PGC;
-		delay_ticks(10);
+		CYCLE_DELAY();
 		CLR_PGC;
-		delay_ticks(10);
+		CYCLE_DELAY();
 	}
 	DIR_PGD_RD;
 
@@ -206,24 +206,90 @@ unsigned int pic33f_regout()
 	   be read) on falling clock edges. */
 	for (i = 0; i < 16; i++) {
 		SET_PGC;
-		delay_ticks(10);
+		CYCLE_DELAY();
 		CLR_PGC;
 		result |= READ_PGD << i;
-		delay_ticks(10);
+		CYCLE_DELAY();
 	}
-
+#if 1
 	/* One last tick apparently is needed here, at least by the
 	   dsPIC33FJ128GP708 chip that I am working with. Note that this
 	   is not in the flash programming specs. */
 	SET_PGC; 
-	delay_ticks(10);
+	CYCLE_DELAY();
 	CLR_PGC;
-	delay_ticks(10);
+	CYCLE_DELAY();
+#endif
 
 	return result;
 }
 
+void pic33f_cmdlist(unsigned int list_len) {
+	/* commands are written as 4-byte little-endian records, where
+	   the low 4 bits of first byte contains the command, and the
+	   next three bytes contain the data.
 
+	   Currently this only supports the SIX and REGOUT
+	   instructions.
+
+	   SIX instructions return no data. REGOUT instructions return
+	   the 16-bit value read as two bytes, lower byte first.
+	   
+	   The final two bytes of the response are the 2's complement
+	   inverse of the sum of the response words. i.e., if the
+	   response is correctly recieved, the sum of the words should
+	   be 0.
+
+	   This is sent when the goodfet is done running the command
+	   list, and is ready for further commands.
+	*/
+	
+	unsigned char cmd;
+	unsigned int response_word;
+	unsigned int checksum = 0;
+	int response_count;
+	int i;
+	list_len &= ~3; // truncate to multiple of 4 bytes.
+	if (list_len > CMDDATALEN)
+		list_len = CMDDATALEN;
+	response_count = 1;
+	for (i = 0; i < list_len; i += 4) {
+		cmd = cmddata[i];
+		if (cmd == 0)
+			continue;
+		else if (cmd == 1)
+			response_count ++;
+		else
+			goto error;
+	}
+	txhead(PIC, PIC_CMDLIST, response_count << 1);
+
+	for (i = 0; i < list_len; i+= 4) {
+		cmd = cmddata[i];
+		if (cmd == 0) {
+			// SIX command
+			pic33f_transcmd(0);
+			pic33f_trans8(cmddata[i+1]);
+			pic33f_trans8(cmddata[i+2]);
+			pic33f_trans8(cmddata[i+3]);
+			
+		} else if (cmd == 1) {
+			// REGOUT command
+			response_word = pic33f_regout();
+			checksum += response_word;
+			response_count--;
+			txword(response_word);
+		}
+	}
+	txword(~checksum + 1);
+	if (response_count != 1)
+		debugstr("Response count wrong");
+	return;
+ error:
+	txdata(PIC, NOK, 0);
+}
+
+/* This should be replaced by pic33f_cmdlist */
 void pic33f_sixlist( unsigned int list_len )
 {
 	unsigned int k;
@@ -245,6 +311,7 @@ void pic33f_sixlist( unsigned int list_len )
 }
 
 
+/* This is slated to be replaced by pic33f_cmdlist */
 unsigned int pic33f_getid()
 {
 	unsigned int result;
@@ -336,9 +403,9 @@ void pic33f_connect()
 	CLR_PGC;
 	for (key_low = 0; key_low < 33; key_low++) {
 		SET_PGC;
-		delay_us(1);
+		CYCLE_DELAY();
 		CLR_PGC;
-		delay_us(1);
+		CYCLE_DELAY();
 	}
 	DIR_PGD_RD;
 

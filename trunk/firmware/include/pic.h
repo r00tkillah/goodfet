@@ -69,6 +69,9 @@ unsigned int pic33f_regout();
 //! Execute a list of commands on attached dsPIC33F/PIC24H.
 void pic33f_sixlist( unsigned int list_len );
 
+//! Execute a list of ICSP commands on attached PIC
+void pic33f_cmdlist(unsigned int list_len);
+
 //! Start Enhanced ICSP session with dsPIC33F/PIC24H (assumes Programming Executive is present).
 void pic33f_eicsp_connect();
 
@@ -96,6 +99,7 @@ void pic33f_trans8( unsigned char byte );
 #define PIC_SIXLIST33F 0x86 /* Buffers list of instructions to MSP430,
 							   then executes them over ICSP session
 							   with target dsPIC33F/PIC24H chip. */
+#define PIC_CMDLIST    0x88 /* Similar to PIC_SIXLIST33F, but includes ICSP command */
 
 #define PIC_RESET33F   0x87 // Reset attached dsPIC33F/PIC24H chip.
 #define PIC_START33F   0x84 // Start ICSP session

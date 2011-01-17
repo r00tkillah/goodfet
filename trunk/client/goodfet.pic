@@ -24,6 +24,14 @@ from intelhex import IntelHex
 PICAPP = 0x34
 MONITORAPP = 0x00
 NOK = 0x7E
+
+VERB_CMDLIST = 0x88
+
+# 0x32 is the normal address of the TBLPAG register. On some PICs,
+# though, it appears at 0x54 (see DS39970B). Affected PIC families
+# include: PIC24FJxxx{DA1,DA2,GB2,GA3}xx
+tblpag = 0x32
+
 dev_table = { 0x00EE : "dsPIC33FJ128GP708",
               0x00EF : "dsPIC33FJ128GP710",
               0x080A : "PIC24HJ12GP201",
@@ -44,7 +52,26 @@ dev_table = { 0x00EE : "dsPIC33FJ128GP708",
               0x040C : "PIC24FJ96GA010",
               0x0407 : "PIC24FJ128GA006",
               0x040A : "PIC24FJ128GA008",
-              0x040D : "PIC24FJ128GA010" }
+              0x040D : "PIC24FJ128GA010",
+              0x4109 : "PIC24FJ128DA106",
+              0x410D : "PIC24FJ256DA106",
+              0x410B : "PIC24FJ128DA110",
+              0x410F : "PIC24FJ256DA110",
+              0x4108 : "PIC24FJ128DA206",
+              0x410C : "PIC24FJ256DA206",
+              0x410A : "PIC24FJ128DA210",
+              0x410E : "PIC24FJ256DA210",
+              0x46C0 : "PIC24FJ64GA306",
+              0x46C4 : "PIC24FJ64GA308",
+              0x46C8 : "PIC24FJ64GA310",
+              0x46C2 : "PIC24FJ128GA306",
+              0x46C6 : "PIC24FJ128GA308",
+              0x46CA : "PIC24FJ128GA310",
+              0x4100 : "PIC24FJ128GB206",
+              0x4104 : "PIC24FJ256GB206",
+              0x4102 : "PIC24FJ128GB210",
+              0x4106 : "PIC24FJ256GB210",
+              }
 cfg_table = { 0xF80000 : "FBS",
               0xF80002 : "FSS",
               0xF80004 : "FGS",
@@ -80,6 +107,84 @@ Assumes ICSP session already started."""
         stopICSP()
         exit(-1)
 
+class PicResponseThunk(object):
+    """A holder for a response value from the PIC, eg from a REGOUT
+    command.
+
+    To retrieve the value, simply call the object. If the value has
+    not yet been retrieved, any pending commands in the command buffer
+    will be executed. You can determine whether the response has been
+    recieved by calling the have_response function.
+    
+    Objects of this class should only be created by the PicCmdBuffer
+    class"""
+
+    def __init__(self, cmdbuf):
+        self.holder = cmdbuf
+        self.value = None
+
+    def _set_value(self, value):
+        self.value = value
+    def have_response(self):
+        return self.value is not None
+    def __call__(self):
+        if self.value is None:
+            self.holder.force()
+        assert self.value is not None
+        return self.value
+
+class PicCmdBuffer(object):
+    def __init__(self, client):
+        self.client = client
+        self.buffered_commands = []
+        self.response_buffer = []
+        data = client.writecmd(MONITORAPP, 0xc2)
+        assert data is not None and len(data) is 2
+        # buffer size is the size of the goodfet's recieve buffer, in
+        # instructions
+        self.buffer_size = (ord(data[0]) + (ord(data[1]) << 8)) >> 2
+    def force(self):
+        assert len(self.buffered_commands) <= self.buffer_size
+        command = ''.join(self.buffered_commands)
+        self.buffered_commands = []
+        #print "Running: " + command.encode('hex')
+        data = self.client.writecmd(PICAPP, VERB_CMDLIST,
+                                    len(command), map(ord, command))
+        #print "Recieved: " + data.encode('hex')
+        assert len(data) == (len(self.response_buffer) + 1) * 2
+        orig_data = data
+        checksum = 0
+        for resp in self.response_buffer:
+            wd, data = data[0:2],data[2:]
+            val = ord(wd[0]) + (ord(wd[1]) << 8)
+            checksum += val
+            resp._set_value(val)
+        assert len(data) == 2
+        checksum += ord(data[0]) + (ord(data[1]) << 8)
+        checksum &= 0xffff
+        assert checksum == 0
+        self.response_buffer = []
+    def _add_command(self, command, data):
+        assert command in (0,1)
+        assert (data >> 24) == 0
+        full_cmd = [chr(command)]
+        for i in (0,1,2):
+            full_cmd.append(chr((data >> (8*i)) & 0xff))
+        if len(self.buffered_commands) >= self.buffer_size:
+            self.force()
+        self.buffered_commands.append(''.join(full_cmd))
+    def SIX(self, *insns):
+        """Run a list of instructions"""
+        for insn in insns:
+            self._add_command(0, insn)
+        return self
+    def REGOUT(self):
+        "Read the VISI register. Returns a PicResponseThunk"
+        thunk = PicResponseThunk(self)
+        self.response_buffer.append(thunk)
+        self._add_command(1, 0)
+        return thunk
+    
 def build_instr_stream( cmd_li ):
     """Given a list of instruction words, returns a list of bytes of
 the same, in little endian ordering."""
@@ -148,7 +253,7 @@ Returns an instance of IntelHex corresponding to result.
 Note that we start and stop an ICSP session here! This means an
 existing session will be broken."""
     readpm_cmd_li = [0x200000, # MOV #addr<23:16>, W0
-                     0x880190, # MOV W0, TBLPAG
+                     0x880000 | tblpag << 3, # MOV W0, TBLPAG
                      0x200006, # MOV #addr<15:0>, W6
                      0xEB0380, # CLR W7
                      0x000000, # NOP
@@ -259,7 +364,7 @@ Returns [-1] on failure."""
 #############
 
 if len(sys.argv) == 1:
-    print "Usage: %s verb [objects]\n" % sys.argv[0]
+    print "Usage: %s [-alt_tblpag] verb [objects]\n" % sys.argv[0]
     print "%s devid" % sys.argv[0]
     print "%s read 0x$addr" % sys.argv[0]
     print "%s dump $foo.hex [0x$start 0x$stop] [pretty]" % sys.argv[0]
@@ -275,6 +380,7 @@ if len(sys.argv) == 1:
     print "%s regout" % sys.argv[0]
     print """
 Note: use - for stdout.
+      use -alt_tblpag for PIC24FJxxx{DA1,DA2,GB2,GA3}xx with tblpag at 0x54
 Warning: only formally supports dsPIC33F/PIC24H,
          but read/write flash memory works with PIC24F ...
 """
@@ -285,33 +391,58 @@ client = GoodFET()
 client.verbose = False # Dump activity to terminal
 client.serInit( timeout=10 ) # UART comm timeout (in seconds)
 
+if sys.argv[1] == "-alt_tblpag":
+    del sys.argv[1]
+    tblpag = 0x54
 
 # Handle each possible PIC verb in turn
-
 if sys.argv[1] == "devid": #0x81
     print "Requesting Application ID, DEVID and hardware revision..."
-    data = client.writecmd( PICAPP, 0x81, 0 )
-    
-    if len(data) > 0:
-        appid = ord(data[0])
-    else:
-        appid = -1
-    if len(data) > 2:
-        devid = ord(data[1]) + (ord(data[2]) << 8)
-    else:
-        devid = -1
-    if len(data) > 4:
-        hwrev = ord(data[3]) + (ord(data[4]) << 8)
-    else:
-        hwrev = -1
-    print "Application ID:   0x%02X" % appid
-    if dev_table.has_key( devid ):
-        print "DEVID:          0x%04X  (%s)" % ( devid, dev_table[devid] )
-    else:
-        print "DEVID:          0x%04X  (unknown)" %  devid
-    print "revision:       0x%04X"% hwrev
+    startICSP()
+    cmdbuf = PicCmdBuffer(client)
+    cmdbuf.SIX(0x040200, # GOTO 0x200
+               0x000000, # NOP
+               0x200FF0, # MOV #0xff, W0
+               0x880000 | tblpag << 3, # MOV W0, TBLPAG
+               0x200006, # MOV #0x0000, W6
+               0x207847, # MOV #VISI, W7
+               0x000000, # NOP
+               0xBA0B96, # TBLRDL [W6],[W7]
+               0x000000, # NOP
+               0x000000) # NOP
+    devid = cmdbuf.REGOUT()
+    cmdbuf.SIX(0x200026, # MOV #0x0002, W6
+               0x000000, # NOP
+               0xBA0B96, # TBLRDL [W6],[W7]
+               0x000000, # NOP
+               0x000000) # NOP
+    devidrev = cmdbuf.REGOUT()
+    cmdbuf.SIX(0x200800, # MOV #0x80, W0
+               0x880000 | tblpag << 3, # MOV W0, TBLPAG
+               0x207F00, # MOV #0x07F0, W6
+               0x000000, # NOP
+               0xBA0B96, # TBLRDL [W6],[W7]
+               0x000000, # NOP
+               0x000000) # NOP
+    appid = cmdbuf.REGOUT()
+    print "Application ID:   0x%02x" % appid()
+    print "DEVID:            0x%04x  (%s)" % (
+        devid(), dev_table.get(devid(), "unknown"))
+    print "Revision:  0x%04x" % devidrev()
+    stopICSP()
     #print "\n(Note that -1 indicates failure to read a value.)"
 
+elif sys.argv[1] == "test":
+    startICSP()
+    cmdbuf = PicCmdBuffer(client)
+    cmdbuf.SIX(0x2BEEF6, # MOV #0xBEEF, W6
+               0x000000,
+               0x780B86, # MOV W6, [W7]
+               0x000000, # NOP
+               0x000000) # NOP
+    assert cmdbuf.REGOUT()() == 0xbeef
+    stopICSP()
+    
 elif sys.argv[1] == "reset":
     client.writecmd( PICAPP, 0x87, 0 )
 
@@ -319,7 +450,7 @@ elif sys.argv[1] == "config": # Dump configuration registers
     prep_cmd_li = [0x040200, # GOTO 0x0200
                    0x000000, #
                    0x200F80, # MOV #0x00F8, W0
-                   0x880190, # MOV W0, TBLPAG
+                   0x880000 | tblpag << 3, # MOV W0, TBLPAG
                    0xEB0300, # CLR W6
                    0x207847, # MOV #VISI, W7
                    0x000000] # NOP
@@ -366,7 +497,7 @@ elif sys.argv[1] == "program":
                           0x24001A, # MOV $0x4001, W10
                           0x883B0A, # MOV W10, NVMCON
                           0x200000, # + ((addr>>12)&0xff0),  # MOV #addr<23:16>, W0
-                          0x880190, # MOV W0, TBLPAG
+                          0x880000 | tblpag << 3, # MOV W0, TBLPAG
                           0x200007] # + ((addr&0xffff)<<4), # MOV #addr<15:0>, W7
 
     # Load 4 instructions into write latches
@@ -458,7 +589,7 @@ elif sys.argv[1] == "program":
                      0x24000A, # MOV #0x4000, W10
                      0x883B0A, # MOV W10, NVMCON
                      0x200F80, # MOV #0xF8, W0
-                     0x880190, # MOV W0, TBLPAG
+                     0x880000 | tblpag<< 3, # MOV W0, TBLPAG
                      0x200000 + ((proghex[addr]&0x00ff)<<4), # MOV #new_val<7:0>, W0
                      0xBB0B80, # TBLWTL W0, [W7]
                      0x000000, # NOP
@@ -539,7 +670,7 @@ elif sys.argv[1] == "write":
                 0x24003A, # MOV $0x4003, W10
                 0x883B0A, # MOV W10, NVMCON
                 0x200000 + ((addr>>12)&0xff0),  # MOV #addr<23:16>, W0
-                0x880190, # MOV W0, TBLPAG
+                0x880000 | tblpag << 3, # MOV W0, TBLPAG
                 0x200007 + ((addr&0xffff)<<4), # MOV #addr<15:0>, W7
 
                 # Here we load the instruction into registers W0:W1
@@ -618,7 +749,7 @@ elif sys.argv[1] == "write_config":
                  0x24000A, # MOV #0x4000, W10
                  0x883B0A, # MOV W10, NVMCON
                  0x200F80, # MOV #0xF8, W0
-                 0x880190, # MOV W0, TBLPAG
+                 0x880000 | tblpag << 3, # MOV W0, TBLPAG
                  0x200000 + ((new_val&0xffff)<<4), # MOV #<new_val>, W0
                  0xBB0B80, # TBLWTL W0, [W7]
                  0x000000, # NOP
@@ -648,7 +779,7 @@ elif sys.argv[1] == "read": # Read an address of program memory
     readpm_cmd_li = [0x040200,                         # GOTO 0x0200
                      0x000000,                         #
                      0x200000+((addr & 0xff0000)>>12), # MOV #addr<23:16>, W0
-                     0x880190,                         # MOV W0, TBLPAG
+                     0x880000 | tblpag << 3,                         # MOV W0, TBLPAG
                      0x200006+((addr & 0xffff)<<4),    # MOV #addr<15:0>, W6
                      0xEB0380,                         # CLR W7
                      0xEB0080,                         # CLR W1
@@ -722,7 +853,7 @@ elif sys.argv[1] == "erase": # Bulk (all program memory) or page erase
                         0x24042A, # MOV $0x4042, W10
                         0x883B0A, # MOV W10, NVMCON
                         0x200000+((addr & 0xff0000)>>12), # MOV #addr<23:16>, W0
-                        0x880190, # MOV W0, TBLPAG
+                        0x880000 | tblpag << 3, # MOV W0, TBLPAG
                         0x200001+((addr&0xffff)<<4), # MOV addr<15:0>, W1
                         0x000000, # NOP
                         0xBB0881, # TBLTWL W1, [W1]

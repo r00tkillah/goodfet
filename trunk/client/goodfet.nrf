@@ -268,6 +268,7 @@ class AutoTuner():
     rate=False;
     chan=False;
     sync=False;
+    startch=0; #Useful for forcing an early match.
     def init(self,goodfet,
              rate=True,chan=True,sync=True):
         """Initializes a link to the GoodFET for autotuning."""
@@ -279,6 +280,11 @@ class AutoTuner():
         client.poke(0x00,0x00); #Stop nRF
         client.poke(0x01,0x00); #Disable Shockburst
         client.poke(0x02,0x01); #Set RX Pipe 0
+        
+        #Disable shockburst.
+        client.poke(0x1C,0x00);
+        client.poke(0x1D,0x00);
+    
         client.RF_setmaclen(2); # SETUP_AW for shortest
         
         #historic
@@ -317,10 +323,12 @@ class AutoTuner():
     def handle(self,packet):
         """Handles a packet."""
         #printpacket(packet);
+        
         if not self.validmac(packet):
-            #print "Dropped packet:";
+            #print "Dropped packet from %s" % self.packetaddr(packet,justmac=True);
             #printpacket(packet);
             return;
+        
         addr=self.packetaddr(packet);
         
         #Increment the address count.
@@ -342,6 +350,7 @@ class AutoTuner():
         It's important that this not get triggered by false positives."""
         
         while 1:
+            self.retune();
             start=time.mktime(time.localtime());
             while (time.mktime(time.localtime())-start) < delay:
                 packet=None;
@@ -356,7 +365,6 @@ class AutoTuner():
                     #Tune it in here?
                     client.tune(addr);
                     return addr;
-            self.retune();
             sys.stdout.flush();
         
     def retune(self):
@@ -388,7 +396,7 @@ class AutoTuner():
         
         if self.chan:
             self.client.poke(0x05,
-                             (count+0x12)&0x7f);
+                             (count+self.startch)&0x7f);
             print "Tuned to %i MHz" % (
                 self.client.RF_getfreq()
                 /(10**6));
@@ -459,9 +467,9 @@ if(sys.argv[1]=="sniffmskb"):
         print "Searching for a keyboard.";
         
         guesser=AutoTuner();
-        guesser.init(client, rate=False, sync=True, chan=False);
+        guesser.init(client, rate=False, sync=True, chan=True);
         guesser.selftune(threshold=4,forever=False,
-                         delay=3.0);
+                         delay=10.0);
     
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst

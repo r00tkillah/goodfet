@@ -316,7 +316,7 @@ class AutoTuner():
             #print "%02x%02x invalid entry." % (sync,ord(packet[0]));
             #This is a special kind of failure.  Freq is probably right, but MAC is wrong.
             return False;
-        if mac=='5555555555' or mac=='aaaaaaaaaa':
+        if mac=='5555555555' or mac=='aaaaaaaaaa' or mac=='0000000000':
             return False;
         return True;
         
@@ -474,7 +474,7 @@ if(sys.argv[1]=="sniffmskb"):
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst
     client.poke(0x02,0x01); #Set RX Pipe 0
-    #client.RF_setmaclen(3);
+    client.RF_setmaclen(5);
     
     #Finally, dynamic payload lengths need to be enabled.
     #client.poke(0x01,0x01);
@@ -629,6 +629,9 @@ if(sys.argv[1]=="hosttp"):
         sys.stdout.flush();
 
 if(sys.argv[1]=="sniff"):
+    if len(sys.argv)>2:
+        client.tune(sys.argv[2]);
+    
     #client.poke(0x00,0x00); #Stop nRF
     client.poke(0x07,0x78); #Reset status register
     

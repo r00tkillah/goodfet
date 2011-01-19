@@ -26,6 +26,6 @@ all:
 	#cp $(hwpath)/*.sch $(hwpath)/*.brd dist/
 	cd dist && zip goodfet.zip *
 clean:
-	rm -f *.hex *~ $(gfpath)
+	rm -rf *.hex *~ $(gfpath)
 upload: all
 	rsync --exclude .svn -ave ssh --delete dist travisutk,goodfet@web.sourceforge.net:htdocs/

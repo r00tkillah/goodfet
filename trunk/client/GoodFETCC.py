@@ -275,8 +275,9 @@ class GoodFETCC(GoodFET):
         self.pokebysym("ADDR"     , 0x01)   # Device address.
         self.pokebysym("PKTLEN"   , 0xFF)   # Packet length.
         
-        self.pokebysym("SYNC1",0xD3);
-        self.pokebysym("SYNC0",0x91);
+        #Sync word hack
+        self.pokebysym("SYNC1",0x83);
+        self.pokebysym("SYNC0",0xFE);
         return;
     def config_iclicker(self,band="lf"):
         #Mike Ossmann figured most of this out, with help from neighbors.

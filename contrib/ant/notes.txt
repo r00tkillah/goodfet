@@ -1,0 +1,41 @@
+Watch (or dongle) appears at 3ba36c3001 on rotating channels.
+Device ID is given as 3815321708, or e369:306c in hex.
+0x01 is the default Manuf. ID.
+3ba3 is still unexplained.
+
+dsl-dhcp-121% goodfet.nrf sniff 55,3ba36c3001,1d,00
+Listening as 3ba36c3001 on 2429 MHz
+ 05 0a 43 09 01 03 aa 00 00 80 f7 f7 7a ad 7a 6b 9a ad 55 aa 95 95 74 95 ab 72 a8 bb 6a 24 d5 e4
+ 05 0a 43 09 01 03 aa 00 00 00 f7 f7 7f fd fe ff bf df ff fd bf 7f 6f ff bf bf f7 ff fe ff ef ff
+ 05 0a 43 09 01 03 aa 00 00 00 f7 f7 7f ff ef fb df ff fd fe ff ff fb ff af ff 76 ff ff ff ff bf
+ 05 0a 43 09 01 03 aa 00 00 00 f7 f7 7d ff ff f7 bf ff f7 ff 7f ff 7f fa fe f5 fd ff db ff ba bf
+ 05 0a 43 09 01 03 aa 00 00 00 f7 f7 7f ff ef fe ff 55 bb 55 9a aa ac 51 96 ea b3 62 55 b8 d5 5b
+ 05 0a 43 09 01 03 aa 00 00 00 f7 f7 6f ff e7 ff 7f 7d bf ff fb fe ef 5d 68 d5 36 4a 51 5d 56 2a
+ 05 0a 43 09 01 03 aa 00 00 00 f7 f7 7f fb 7f fb ef ff ff 7b ff fd f7 ff fe a2 4c 5b 21 9c d7 2d
+ 05 0a 43 09 01 03 aa 00 00 00 f7 f7 7d bf fd ef 7f db f7 be 8a ba 52 b5 bd ae d1 69 d5 5b 67 69
+ 05 0a 43 09 01 03 aa 00 00 00 f7 f7 7f ef fd ef df fa ff f5 fd ed ff ef ff ff db df fd bf f7 fe
+Later,
+Tuned to 2414 MHz
+'55,3ba36c3001,0e,00' looks valid	1	0.00030
+'55,3ba36c3001,0e,00' looks valid	2	0.00060
+
+
+Spurious bursts include:
+aa,fa51c63fba,2b,00 -- Lots of noise, shitloads of traffic.
+55,016b91c078,2e,00 -- Looks valid, unsure of meaning:
+ 86 9b 04 a4 f0 fe 39 64 a5 cf 84 3b 4e aa 60 a6 4c 90 6e 79 26 5b a2 a9 0c d1 c3 8b 41 2a 4a 4a
+ 86 9b 04 a4 f0 fe 73 53 96 52 6d 2d 85 9a 5a ba 62 83 d6 d9 5e 52 aa 59 36 c3 d9 2f 7f 6f 7d fd
+ 86 9b 04 ac f0 fe 78 fe 44 3a af 5b 45 33 60 ad 6d 72 af ad 36 4a 1c ca 95 b2 16 62 4d 03 d7 dd
+ 86 9b 04 a4 f0 fe 39 64 a5 cf cb 35 4d 6a 44 f6 2c b5 2d 75 7d b6 c8 bb 80 b4 ad 0e f6 5d 79 ef
+ 86 9b 05 a4 f0 fe 39 64 a5 cf cc b7 5f 6a d3 cb 58 9a d5 9a af 5a ba a7 7f 2a 85 9d 2a 65 5a 57
+ 86 9b 04 a4 f0 fe 39 64 a5 cf dd 7b 5e ea 72 96 56 ce d7 ad 6e ac 97 fb 52 bf b0 d5 2d 57 b8 9f
+ 86 93 04 a4 f0 fe 07 f0 bf 97 ab 4d 4a ae d5 6a 2a 99 5b d1 8a 12 96 db 57 74 d9 64 4d 57 a9 57
+ 86 9b 04 a4 f0 fe 78 fe 44 3a ae a6 a7 9b 75 6d fb 6b e6 f5 76 7d 6e cd ef ed b5 d5 56 d9 cb 56
+ 86 9b 04 a4 f0 fe 73 53 96 52 6d 2d 95 bb 7a f6 6d b4 9a 41 3f 2b aa aa ae 95 9c ab bf fd de d7
+ 86 9b 05 a4 f0 fe 78 fe c4 3a ae b2 2a a8 d5 ba d5 bc 53 2d 4a 94 ab a7 5a a4 da 85 a3 13 6d d6
+ 86 9b 04 a4 ab f8 78 55 83 0b ac 90 22 62 93 e6 56 30 97 aa 73 a1 3f 99 b1 a7 45 27 cc ac 61 2f
+ 86 9b 04 a4 f0 fe 39 64 a5 cf cd 2a 5d 6b 2f 5e 0d 55 bb 92 6a d5 75 ca 71 4a 6b 2a d2 8b e5 61
+ 86 9b 04 a4 f0 fe 39 64 a5 cf cd 73 4d 6a dd d5 52 d5 d7 ba ad a7 45 a9 95 52 b6 d7 96 ae d6 d5
+ 86 9b 05 a4 f1 fe 39 65 ad cf cc bb 4e aa e9 db 5a d6 13 57 7e ad 95 7a ee da b0 9a b9 aa bb bb
+ 86 9b 04 ac f0 fe 39 64 ad cf ce b7 4e aa e7 55 7b a7 44 43 55 93 6a aa 67 56 6c a5 41 09 29 92
+

@@ -71,12 +71,12 @@ if(len(sys.argv)==1):
     print "%s snifftp\n\tSniffs Turning Point Clicker traffic." % sys.argv[0];
     print "%s sniffsf\n\tSniffs SparkFun Dongle traffic." % sys.argv[0];
     print "";
+    print "%s sniffmacs \n\tSniffs for MAC addresses on the present channel.";
     print "%s sniffprom [0xaa|0x55]\n\tSniffs promiscuously for a preamble of 0xAA or 0x55" % sys.argv[0];
     print "%s autotune\n\tSearches for a valid destination address." % sys.argv[0];
     print "";
     print "%s sniffskybrake\n\tSniffs skybrake. [broken?]" % sys.argv[0];
     print "%s sniffmskb\n\tSniffs MS KB. [broken?]" % sys.argv[0];
-    
     
     print "%s hosttp\n\tHosts Turning Point Clicker traffic." % sys.argv[0];
 
@@ -352,6 +352,7 @@ class AutoTuner():
         while 1:
             self.retune();
             start=time.mktime(time.localtime());
+            sys.stdout.flush();
             while (time.mktime(time.localtime())-start) < delay:
                 packet=None;
                 while packet==None:
@@ -361,11 +362,11 @@ class AutoTuner():
                     count=self.addresses[addr];
                 except:
                     count=0;
-                if count>threshold:
+                if count>threshold and forever==False:
                     #Tune it in here?
                     client.tune(addr);
                     return addr;
-            sys.stdout.flush();
+            
         
     def retune(self):
         """Tunes to another channel or preamble looking for the next packet."""
@@ -374,9 +375,9 @@ class AutoTuner():
         
         #Swap the SYNC value most often.
         if self.sync:
-            sync=0xAA;
+            sync=0x00AA;
             if count&1:
-                sync=0x55;
+                sync=0x0055;
             self.client.RF_setsmac(sync);
             count=(count>>1);
         
@@ -427,6 +428,25 @@ if(sys.argv[1]=="autotune"):
     client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
     
     print "Autotuning on %i MHz" % (
+        client.RF_getfreq()/10**6);
+    print "sync,mac,r5,r6";
+    #Now we're ready to get packets.
+    guesser.selftune(threshold=2,
+                     forever=True);
+
+if(sys.argv[1]=="sniffmacs"):
+    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
+    #TODO remove all poke() calls.
+    guesser=AutoTuner();
+    guesser.init(client,rate=False,sync=True,chan=False);
+    
+    #Longest length.
+    client.RF_setpacketlen(32);
+    
+    #Power radio, prime for RX, no checksum
+    client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
+    
+    print "Holding autotune on %i MHz" % (
         client.RF_getfreq()/10**6);
     print "sync,mac,r5,r6";
     #Now we're ready to get packets.
@@ -492,6 +512,59 @@ if(sys.argv[1]=="sniffmskb"):
             packet=client.RF_rxpacket();
             #print ".";
         printmspacket(packet);
+        sys.stdout.flush();
+
+if(sys.argv[1]=="sniffant"):
+    #Prototyped on Garmin device.
+    #Channel hopping is pretty damned fast, hard to follow.
+    #This doesn't really work yet, still experimenting.
+    
+    #Might be more effective to sniff knowing the MFG ID and Dev. ID,
+    #as these predict a lot of the MAC address.
+    
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    
+    client.poke(0x05,57); #broadcast-only channel
+    client.poke(0x06,0x00); #1MBps
+    client.poke(0x07,0x78); #Reset status register
+    
+    #Is this appropriate?  Might be 3.
+    client.RF_setmaclen(5);
+    
+    
+    #Mac packet length, illegally 0-length address field.
+    client.RF_setpacketlen(16);
+    
+    if len(sys.argv)>2:
+        client.tune(sys.argv[2]);
+    else:
+        
+        print "Searching for ANT+.";
+        
+        guesser=AutoTuner();
+        guesser.init(client, rate=False, sync=True, chan=True);
+        guesser.selftune(threshold=2,forever=False,
+                         delay=9.0);
+    
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    client.RF_setmaclen(5);
+    
+    
+    client.poke(0x00,0x70|0x03); #prime radio.
+    print "Dumping ANT as %010x on %i MHz" % (client.RF_getsmac(),
+                                              client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            #time.sleep(1);
+            packet=client.RF_rxpacket();
+            #print ".";
+        printpacket(packet);
         sys.stdout.flush();
 
 
@@ -630,8 +703,10 @@ if(sys.argv[1]=="hosttp"):
 
 if(sys.argv[1]=="sniff"):
     if len(sys.argv)>2:
+        print "Set MAC to %s" % sys.argv[2];
         client.tune(sys.argv[2]);
-    
+        client.RF_setmaclen(5);
+        
     #client.poke(0x00,0x00); #Stop nRF
     client.poke(0x07,0x78); #Reset status register
     

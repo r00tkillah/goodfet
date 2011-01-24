@@ -125,12 +125,28 @@ class GoodFETCC(GoodFET):
         hz=freq*396.728515625;
         
         return hz;
+    
+    def RF_getchannel(self):
+        """Get the frequency in Hz."""
+        #FIXME CC1110 specific
+        freq=0;
+        try:
+            freq2=self.peekbysym("FREQ2");
+            freq1=self.peekbysym("FREQ1");
+            freq0=self.peekbysym("FREQ0");
+            freq=(freq2<<16)+(freq1<<8)+freq0;
+        except:
+            freq=0;
+            
+        return freq;
+    
+    
     lastshellcode="none";
-    def shellcodefile(self,filename,wait=1):
+    def shellcodefile(self,filename,wait=1, alwaysreload=0):
         """Run a fragment of shellcode by name."""
         #FIXME: should identify chip model number, use shellcode for that chip.
         
-        if self.lastshellcode!=filename:
+        if self.lastshellcode!=filename or alwaysreload>0:
             self.lastshellcode=filename;
             file=__file__;
             file=file.replace("GoodFETCC.pyc","GoodFETCC.py");

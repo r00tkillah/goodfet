@@ -123,12 +123,12 @@ void main(){
     RFON;
     //HALT;
     //while(1);
-    sleepMillis(200);
+    //sleepMillis(200);
     //sleepMillis(100);
     //sleepMillis(50);
     
     
-    //sleepMillis(10);
+    sleepMillis(10);
     //HALT;
   }
 }

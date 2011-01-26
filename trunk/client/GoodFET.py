@@ -150,7 +150,7 @@ class GoodFET:
                     break;
         if self.verbose: print "Connected after %02i attempts." % attempts;
         self.mon_connected();
-        self.serialport.setTimeout(5);
+        self.serialport.setTimeout(12);
     def telosSetSCL(self, level):
         self.serialport.setRTS(not level)
     def telosSetSDA(self, level):

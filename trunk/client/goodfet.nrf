@@ -71,7 +71,7 @@ if(len(sys.argv)==1):
     print "%s snifftp\n\tSniffs Turning Point Clicker traffic." % sys.argv[0];
     print "%s sniffsf\n\tSniffs SparkFun Dongle traffic." % sys.argv[0];
     print "";
-    print "%s sniffmacs \n\tSniffs for MAC addresses on the present channel.";
+    print "%s sniffmacs \n\tSniffs for MAC addresses on the present channel." % sys.argv[0];
     print "%s sniffprom [0xaa|0x55]\n\tSniffs promiscuously for a preamble of 0xAA or 0x55" % sys.argv[0];
     print "%s autotune\n\tSearches for a valid destination address." % sys.argv[0];
     print "";

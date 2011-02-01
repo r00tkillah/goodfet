@@ -30,23 +30,32 @@ def printpacket(packet):
         s="%s %02x" % (s,ord(foo));
     print "%s" % s;
 
+
 def printmspacket(packet,offset=1):
     keyword=client.RF_getsmac();
     #print "keyword=%010x" % key;
     key=[];
+    ct=[];
     for foo in range(0,5):
         key.append(keyword&0xFF);
         keyword=(keyword>>8);
         #print "Keybyte %02x" % key[foo];
     i=0;
     s="";
+    
     for foo in packet:
         if i>=4:
+            ct.append(ord(foo)^key[(i+offset)%5]);
             s="%s %02x" % (s,ord(foo)^key[(i+offset)%5]);
         else:
+            ct.append(ord(foo));
             s="%s %02x" % (s,ord(foo));
         i=i+1;
-    print "%s" % (s);
+    #print "%s" % (s);
+    
+    if ct[0]==0x0a and ct[1]==0x78 and ct[9]!=0:
+        letter=ct[9]+ord('A')-4;
+        print "%c" % letter;
 def printconfig():
     print "Encoding %s" % client.RF_getenc();
     print "Freq    %10i MHz" % (client.RF_getfreq()/10**6);
@@ -284,7 +293,7 @@ class AutoTuner():
         #Disable shockburst.
         client.poke(0x1C,0x00);
         client.poke(0x1D,0x00);
-    
+        
         client.RF_setmaclen(2); # SETUP_AW for shortest
         
         #historic
@@ -646,6 +655,10 @@ if(sys.argv[1]=="snifftp"):
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst
     client.poke(0x02,0x01); #Set RX Pipe 0
+    
+    #Disable shockburst.
+    client.poke(0x1C,0x00);
+    client.poke(0x1D,0x00);
     
     client.RF_setfreq((2400+0x29) * 10**6);
     client.poke(0x06,0x00); #1Mbps

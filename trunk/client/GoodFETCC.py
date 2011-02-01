@@ -705,8 +705,10 @@ class GoodFETCC(GoodFET):
                 0x8900:"cc2431",
                 0x8100:"cc2510",
                 0x9100:"cc2511",
-                0xA500:"cc2530", #page 52 of SWRU191
+                0xA500:"cc2530", #page 57 of SWRU191B
                 0xB500:"cc2531",
+                0x9500:"CC2533",
+                0x8D00:"CC2540",
                 0xFF00:"CCmissing"};
     CCpagesizes={0x01: 1024, #"CC1110",
                  0x11: 1024, #"CC1111",
@@ -714,8 +716,10 @@ class GoodFETCC(GoodFET):
                  0x89: 2048, #"CC2431",
                  0x81: 1024, #"CC2510",
                  0x91: 1024, #"CC2511",
-                 0xA5: 2048, #"CC2530", #page 52 of SWRU191
+                 0xA5: 2048, #"CC2530", #page 57 of SWRU191B
                  0xB5: 2048, #"CC2531",
+                 0x95: 2048, #"CC2533",
+                 0x8D: 2048, #"CC2540",
                  0xFF: 0    } #"CCmissing"};
     def infostring(self):
         return self.CCidentstr();

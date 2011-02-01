@@ -59,8 +59,8 @@ app_t const chipcon_app = {
 //This could be more accurate.
 //Does it ever need to be?
 #define CCSPEED 3
-#define CCDELAY(x) delay(x)
-//#define CCDELAY(x) 
+//#define CCDELAY(x) delay(x)
+#define CCDELAY(x) 
 
 #define SETMOSI P5OUT|=MOSI
 #define CLRMOSI P5OUT&=~MOSI

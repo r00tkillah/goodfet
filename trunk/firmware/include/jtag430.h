@@ -20,8 +20,10 @@ extern unsigned int jtag430mode;
 
 // JTAG430 Commands
 
-//! Start JTAG, unique to the '430.
+//! Start JTAG, unique to the '430.  Deprecated.
 void jtag430_start();
+//! Same thing, but also for '430X2.
+unsigned char jtag430x2_start();
 //! Reset the TAP state machine, check the fuse.
 void jtag430_resettap();
 

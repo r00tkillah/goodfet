@@ -91,7 +91,7 @@ CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(plat
 #config = monitor sbw  chipcon nrf ccspi spi jtagarm7 jtag430 jtag430x2 avr
 
 # New default.
-config = monitor chipcon nrf spi jtagarm7 jtag430 avr
+config = monitor chipcon nrf spi jtagarm7 jtag430 jtag430x2 avr
 
 
 # Build the needed list of app and lib object files from the config

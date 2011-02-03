@@ -31,6 +31,17 @@ app_t const jtag430x2_app = {
 };
 
 
+//! Grab the core ID.
+unsigned int jtag430_coreid(){
+  jtag_ir_shift8(IR_COREIP_ID);
+  return jtag_dr_shift16(0);
+}
+
+//! Grab the device ID.
+unsigned long jtag430_deviceid(){
+  jtag_ir_shift8(IR_DEVICE_ID);
+  return jtag_dr_shift20(0);
+}
 
 
 //! Write data to address

@@ -10,6 +10,10 @@
 
 #define JTAG 0x10
 
+//! JTAG device ID.
+extern unsigned char jtagid;
+
+
 // Generic Commands
 
 //! Shift n bytes.

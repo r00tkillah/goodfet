@@ -174,8 +174,6 @@ void jtag430_writeflash(unsigned int adr, unsigned int data){
 
 //! Power-On Reset
 void jtag430_por(){
-  unsigned int jtagid;
-
   // Perform Reset
   jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
   jtag_dr_shift16(0x2C01); // apply
@@ -373,17 +371,6 @@ void jtag430_setinstrfetch(){
   }
 }
 
-//! Grab the core ID.
-unsigned int jtag430_coreid(){
-  jtag_ir_shift8(IR_COREIP_ID);
-  return jtag_dr_shift16(0);
-}
-
-//! Grab the device ID.
-unsigned long jtag430_deviceid(){
-  jtag_ir_shift8(IR_DEVICE_ID);
-  return jtag_dr_shift20(0);
-}
 
 
 
@@ -551,11 +538,14 @@ void jtag430_handle_fn(uint8_t const app,
     txdata(app,verb,2);
     break;
   case JTAG430_COREIP_ID:
-    cmddataword[0]=jtag430_coreid();
+    //cmddataword[0]=jtag430_coreid();
+    cmddataword[0]=0xdead;
     txdata(app,verb,2);
     break;
   case JTAG430_DEVICE_ID:
-    cmddatalong[0]=jtag430_deviceid();
+    //cmddatalong[0]=jtag430_deviceid();
+    cmddataword[0]=0xdead;
+    cmddataword[0]=0xbeef;
     txdata(app,verb,4);
     break;
   default:

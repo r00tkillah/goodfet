@@ -12,8 +12,11 @@
 
 //! Handles a monitor command.
 void jtag_handle_fn(uint8_t const app,
-					uint8_t const verb,
-					uint32_t const len);
+		    uint8_t const verb,
+		    uint32_t const len);
+
+//! JTAG device ID.
+unsigned char jtagid=0;
 
 // define the jtag app's app_t
 app_t const jtag_app = {

@@ -9,8 +9,8 @@
 
 //! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
 void jtag430_handle_fn(uint8_t const app,
-					   uint8_t const verb,
-					   uint32_t const len);
+		       uint8_t const verb,
+		       uint32_t const len);
 
 // define the jtag430 app's app_t
 app_t const jtag430_app = {

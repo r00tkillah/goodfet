@@ -41,7 +41,6 @@ void sbwhandle(u8 app, u8 verb, u8 len){
 }
 
 
-
 //FIXME these should be prefixed with sbw
 //to prevent name pollution.
 int tms=1, tdi=1, tdo=0;

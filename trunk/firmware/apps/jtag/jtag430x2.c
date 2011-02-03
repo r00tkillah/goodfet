@@ -9,25 +9,24 @@
 #include "jtag430x2.h"
 
 void jtag430x2_handle_fn( uint8_t const app,
-						  uint8_t const verb,
-						  uint32_t const len);
+			  uint8_t const verb,
+			  uint32_t const len);
 
 
 // define the jtag430x2 app's app_t
 app_t const jtag430x2_app = {
-
-	/* app number */
-	JTAG430X2,
-
-	/* handle fn */
-	jtag430x2_handle_fn,
-
-	/* name */
-	"JTAG430X2",
-
-	/* desc */
-	"\tThe JTAG430X2 app extends the basic JTAG app with support\n"
-	"\tfor 20-bit MSP430 devices.\n"
+  /* app number */
+  JTAG430X2,
+  
+  /* handle fn */
+  jtag430x2_handle_fn,
+  
+  /* name */
+  "JTAG430X2",
+  
+  /* desc */
+  "\tThe JTAG430X2 app extends the basic JTAG app with support\n"
+  "\tfor 20-bit MSP430X2 devices, such as the MSP430F5xx Family.\n"
 };
 
 

@@ -17,26 +17,24 @@ class GoodFETCC(GoodFET):
     """A GoodFET variant for use with Chipcon 8051 Zigbee SoC."""
     APP=0x30;
     
-    
-    
-    
     smartrfpath="/opt/smartrf7";
     def loadsymbols(self):
         try: self.SRF_loadsymbols();
         except:
             if self.verbose>0: print "SmartRF not found at %s." % self.smartrfpath;
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
+        """Loads the chip XML definitions from SmartRF7."""
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
         #print "Opening %s" % fn;
         return xml.dom.minidom.parse(fn)
         
     def CMDrs(self,args=[]):
         """Chip command to grab the radio state."""
-        try:
-            self.SRF_radiostate();
-        except:
-            print "Error printing radio state.";
-            print "SmartRF not found at %s." % self.smartrfpath;
+        #try:
+        self.SRF_radiostate();
+        #except:
+        #    print "Error printing radio state.";
+        #    print "SmartRF not found at %s." % self.smartrfpath;
     def SRF_bitfieldstr(self,bf):
         name="unused";
         start=0;

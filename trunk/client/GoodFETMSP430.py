@@ -11,7 +11,8 @@ from GoodFET import GoodFET;
 
 class GoodFETMSP430(GoodFET):
     APP=0x11;
-    MSP430APP=0x11;  #Changed by inheritors.
+    MSP430APP=0x11;    #Changed by inheritors.
+    MSP430X2APP=0x16;  #Changed by inheritors.
     CoreID=0;
     DeviceID=0;
     JTAGID=0;
@@ -25,12 +26,12 @@ class GoodFETMSP430(GoodFET):
         self.writecmd(self.MSP430APP,0x21,0,self.data);
     
     def MSP430coreid(self):
-        """Get the Core ID."""
+        """Get the Core ID. (MSP430X2 only?)"""
         self.writecmd(self.MSP430APP,0xF0);
         CoreID=ord(self.data[0])+(ord(self.data[1])<<8);
         return CoreID;
     def MSP430deviceid(self):
-        """Get the Device ID."""
+        """Get the Device ID. (MSP430X2 only?)"""
         self.writecmd(self.MSP430APP,0xF1);
         DeviceID=(
             ord(self.data[0])+(ord(self.data[1])<<8)+

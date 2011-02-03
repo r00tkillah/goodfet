@@ -31,52 +31,6 @@ app_t const jtag430x2_app = {
 };
 
 
-unsigned char jtagid;
-
-//! Get the JTAG ID
-unsigned char jtag430x2_jtagid(){
-  jtag430_resettap();
-  return jtagid=jtag_ir_shift8(IR_BYPASS);
-}
-//! Start JTAG, take pins
-unsigned char jtag430x2_start(){
-  jtagsetup();
-  
-  //Known-good starting position.
-  //Might be unnecessary.
-  SETTST;
-  SETRST;
-  
-  delay(0xFFFF);
-  
-  //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
-  CLRRST;
-  delay(20);//10
-  CLRTST;
-
-  delay(10);//5
-  SETTST;
-  msdelay(10);//5
-  SETRST;
-  P5DIR&=~RST;
-  
-  delay(0xFFFF);
-  
-  //Perform a reset and disable watchdog.
-  return jtag430x2_jtagid();
-}
-
-//! Grab the core ID.
-unsigned int jtag430_coreid(){
-  jtag_ir_shift8(IR_COREIP_ID);
-  return jtag_dr_shift16(0);
-}
-
-//! Grab the device ID.
-unsigned long jtag430_deviceid(){
-  jtag_ir_shift8(IR_DEVICE_ID);
-  return jtag_dr_shift20(0);
-}
 
 
 //! Write data to address
@@ -234,25 +188,7 @@ void jtag430x2_handle_fn( uint8_t const app,
     
     //MSP430 or MSP430X
     if(jtagid==MSP430JTAGID){ 
-      jtag430mode=MSP430MODE;
-      
-      /* So the way this works is that a width of 20 does some
-	 backward-compatibility finagling, causing the correct value
-	 to be exchanged for addresses on 16-bit chips as well as the
-	 new MSP430X chips.  (This has only been verified on the
-	 MSP430F2xx family.  TODO verify for others.)
-       */
-
-      drwidth=20;
-      
-      //Perform a reset and disable watchdog.
-      jtag430_por();
-      jtag430_writemem(0x120,0x5a80);//disable watchdog
-      
-      jtag430_haltcpu();
-      
-      jtag430_resettap();
-      txdata(app,verb,1);
+      debugstr("ERROR, using JTAG430X2 instead of JTAG430!");
       return;
     }else if(jtagid==MSP430X2JTAGID){
       jtag430mode=MSP430X2MODE;

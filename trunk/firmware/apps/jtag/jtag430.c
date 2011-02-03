@@ -266,6 +266,47 @@ void jtag430_resettap(){
   
 }
 
+unsigned char jtagid;
+
+//! Get the JTAG ID
+unsigned char jtag430x2_jtagid(){
+  jtag430_resettap();
+  jtagid=jtag_ir_shift8(IR_BYPASS);
+  if(jtagid!=0x89 && jtagid!=0x91){
+    debugstr("Unknown JTAG ID");
+    debughex(jtagid);
+  }
+  return jtagid;
+}
+//! Start JTAG, take pins
+unsigned char jtag430x2_start(){
+  jtagsetup();
+  
+  //Known-good starting position.
+  //Might be unnecessary.
+  SETTST;
+  SETRST;
+  
+  delay(0xFFFF);
+  
+  //Entry sequence from Page 67 of SLAU265A for 4-wire MSP430 JTAG
+  CLRRST;
+  delay(20);//10
+  CLRTST;
+
+  delay(10);//5
+  SETTST;
+  msdelay(10);//5
+  SETRST;
+  P5DIR&=~RST;
+  
+  delay(0xFFFF);
+  
+  //Perform a reset and disable watchdog.
+  return jtag430x2_jtagid();
+}
+
+
 //! Start JTAG, take pins
 void jtag430_start(){
   jtagsetup();
@@ -332,6 +373,20 @@ void jtag430_setinstrfetch(){
   }
 }
 
+//! Grab the core ID.
+unsigned int jtag430_coreid(){
+  jtag_ir_shift8(IR_COREIP_ID);
+  return jtag_dr_shift16(0);
+}
+
+//! Grab the device ID.
+unsigned long jtag430_deviceid(){
+  jtag_ir_shift8(IR_DEVICE_ID);
+  return jtag_dr_shift20(0);
+}
+
+
+
 
 //! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
 void jtag430_handle_fn(uint8_t const app,
@@ -350,7 +405,7 @@ void jtag430_handle_fn(uint8_t const app,
    */
   while((i=jtag430_readmem(0xff0))==0xFFFF){
     debugstr("Reconnecting to target MSP430.");
-    jtag430_start();
+    jtag430x2_start();
     PLEDOUT^=PLEDPIN;
   }
   PLEDOUT&=~PLEDPIN;
@@ -358,14 +413,38 @@ void jtag430_handle_fn(uint8_t const app,
   
   switch(verb){
   case START:
+    /* old method, classic MSP430. 
     //Enter JTAG mode.
-    jtag430_start();
+    jtag430x2_start();
     //TAP setup, fuse check
     jtag430_resettap();
     
     cmddata[0]=jtag_ir_shift8(IR_BYPASS);    
     txdata(app,verb,1);
-
+    */
+    jtag430x2_start();
+    cmddata[0]=jtagid;
+    
+    jtag430mode=MSP430MODE;
+    
+    /* So the way this works is that a width of 20 does some
+       backward-compatibility finagling, causing the correct value
+       to be exchanged for addresses on 16-bit chips as well as the
+       new MSP430X chips.  (This has only been verified on the
+       MSP430F2xx family.  TODO verify for others.)
+    */
+    
+    drwidth=20;
+    
+    //Perform a reset and disable watchdog.
+    jtag430_por();
+    jtag430_writemem(0x120,0x5a80);//disable watchdog
+    
+    jtag430_haltcpu();
+    
+    jtag430_resettap();
+    txdata(app,verb,1);
+    
     break;
   case STOP:
     jtag430_stop();
@@ -471,12 +550,13 @@ void jtag430_handle_fn(uint8_t const app,
     txdata(app,verb,2);
     break;
   case JTAG430_COREIP_ID:
+    cmddataword[0]=jtag430_coreid();
+    txdata(app,verb,2);
+    break;
   case JTAG430_DEVICE_ID:
-    cmddataword[0]=0;
-    cmddataword[1]=0;
+    cmddatalong[0]=jtag430_deviceid();
     txdata(app,verb,4);
     break;
-    
   default:
     (*(jtag_app.handle))(app,verb,len);
   }

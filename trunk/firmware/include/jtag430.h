@@ -9,7 +9,7 @@
 #include "app.h"
 #include "jtag.h"
 
-#define JTAG430 0x11
+#define JTAG430 0x16
 
 extern unsigned int drwidth;
 

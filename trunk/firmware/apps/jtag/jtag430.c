@@ -400,22 +400,11 @@ void jtag430_handle_fn(uint8_t const app,
   
   switch(verb){
   case START:
-    /* old method, classic MSP430. 
-    //Enter JTAG mode.
-    jtag430x2_start();
-    //TAP setup, fuse check
-    jtag430_resettap();
-    
-    cmddata[0]=jtag_ir_shift8(IR_BYPASS);    
-    txdata(app,verb,1);
-    */
+    debugstr("Using JTAG430 (instead of JTAG430X2)!");
     
     jtag430x2_start();
     cmddata[0]=jtagid;
     
-    if(jtagid!=MSP430JTAGID){
-      debugstr("Using JTAG430 (instead of JTAG430X2)!");
-    }
     jtag430mode=MSP430MODE;
     
     /* So the way this works is that a width of 20 does some
@@ -548,7 +537,7 @@ void jtag430_handle_fn(uint8_t const app,
   case JTAG430_DEVICE_ID:
     //cmddatalong[0]=jtag430_deviceid();
     cmddataword[0]=0xdead;
-    cmddataword[0]=0xbeef;
+    cmddataword[1]=0xbeef;
     txdata(app,verb,4);
     break;
   default:

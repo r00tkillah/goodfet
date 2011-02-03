@@ -8,7 +8,7 @@
 
 #include "app.h"
 
-#define JTAG430X2 0x16
+#define JTAG430X2 0x11
 
 extern app_t const jtag430x2_app;
 

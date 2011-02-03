@@ -198,7 +198,27 @@ void jtag430x2_handle_fn( uint8_t const app,
     
     //MSP430 or MSP430X
     if(jtagid==MSP430JTAGID){ 
-      debugstr("ERROR, using JTAG430X2 instead of JTAG430!");
+      //debugstr("ERROR, using JTAG430X2 instead of JTAG430!");
+      jtag430mode=MSP430MODE;
+      
+      /* So the way this works is that a width of 20 does some
+	 backward-compatibility finagling, causing the correct value
+	 to be exchanged for addresses on 16-bit chips as well as the
+	 new MSP430X chips.  (This has only been verified on the
+	 MSP430F2xx family.  TODO verify for others.)
+      */
+      
+      drwidth=20;
+      
+      //Perform a reset and disable watchdog.
+      jtag430_por();
+      jtag430_writemem(0x120,0x5a80);//disable watchdog
+      
+      jtag430_haltcpu();
+      
+      jtag430_resettap();
+      txdata(app,verb,1);
+      
       return;
     }else if(jtagid==MSP430X2JTAGID){
       jtag430mode=MSP430X2MODE;

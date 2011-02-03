@@ -34,8 +34,8 @@ client.setup();
 client.start();
 
 if(sys.argv[1]=="info"):
-    #print "Model    %08x " % client.MSP430deviceid();
-    #print "Core     %04x " % client.MSP430coreid();
+    print "Model    %08x " % client.MSP430deviceid();
+    print "Core     %04x " % client.MSP430coreid();
     #print "Identity %04x" % client.MSP430ident();
     print "Identifies as %s (%04x)" % (
         client.MSP430identstr(),

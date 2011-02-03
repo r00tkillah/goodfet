@@ -10,9 +10,10 @@ import sys, time, string, cStringIO, struct, glob, serial, os;
 from GoodFET import GoodFET;
 
 class GoodFETMSP430(GoodFET):
+    #Set APP to be MSP430APP or MSP430X2APP, the latter being preferred.
     APP=0x11;
     MSP430APP=0x11;    #Changed by inheritors.
-    MSP430X2APP=0x16;  #Changed by inheritors.
+    
     CoreID=0;
     DeviceID=0;
     JTAGID=0;
@@ -49,7 +50,7 @@ class GoodFETMSP430(GoodFET):
                    (adr&0xff0000)>>16,(adr&0xff000000)>>24,
                    ];
         self.writecmd(self.MSP430APP,0x02,4,self.data);
-        
+        #print "Got %i bytes peeking 0x%04x." % (len(self.data),adr);
         return ord(self.data[0])+(ord(self.data[1])<<8);
     def MSP430peekblock(self,adr):
         """Grab a few block from an SPI Flash ROM.  Block size is unknown"""

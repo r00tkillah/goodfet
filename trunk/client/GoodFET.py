@@ -358,21 +358,21 @@ class GoodFET:
         """Execute supplied code."""
         self.writecmd(0,0x31,2,#len(code),
                       code);
-    def peekbyte(self,address):
+    def MONpeek8(self,address):
         """Read a byte of memory from the monitor."""
         self.data=[address&0xff,address>>8];
         self.writecmd(0,0x02,2,self.data);
         #self.readcmd();
         return ord(self.data[0]);
-    def peekword(self,address):
+    def MONpeek16(self,address):
         """Read a word of memory from the monitor."""
-        return self.peekbyte(address)+(self.peekbyte(address+1)<<8);
+        return self.MONpeek8(address)+(self.MONpeek8(address+1)<<8);
     def peek(self,address):
         """Read a word of memory from the monitor."""
-        return self.peekbyte(address)+(self.peekbyte(address+1)<<8);
+        return self.MONpeek8(address)+(self.MONpeek8(address+1)<<8);
     def eeprompeek(self,address):
         """Read a word of memory from the monitor."""
-        return self.peekbyte(address)+(self.peekbyte(address+1)<<8);
+        return self.MONpeek8(address)+(self.MONpeek8(address+1)<<8);
     def peekbysym(self,name):
         """Read a value by its symbol name."""
         #TODO include memory in symbol.
@@ -404,7 +404,7 @@ class GoodFET:
     def dumpmem(self,begin,end):
         i=begin;
         while i<end:
-            print "%04x %04x" % (i, self.peekword(i));
+            print "%04x %04x" % (i, self.MONpeek16(i));
             i+=2;
     def monitor_ram_pattern(self):
         """Overwrite all of RAM with 0xBEEF."""
@@ -460,12 +460,12 @@ class GoodFET:
         print "Performing monitor self-test.";
         self.monitorclocking();
         for f in range(0,3000):
-            a=self.peekword(0x0c00);
-            b=self.peekword(0x0c02);
+            a=self.MONpeek16(0x0c00);
+            b=self.MONpeek16(0x0c02);
             if a!=0x0c04 and a!=0x0c06:
                 print "ERROR Fetched %04x, %04x" % (a,b);
             self.pokebyte(0x0021,0); #Drop LED
-            if self.peekbyte(0x0021)!=0:
+            if self.MONpeek8(0x0021)!=0:
                 print "ERROR, P1OUT not cleared.";
             self.pokebyte(0x0021,1); #Light LED
             if not self.monitorecho():
@@ -509,16 +509,16 @@ class GoodFET:
     
     def monitorsetclock(self,clock):
         """Set the clocking value."""
-        self.poke16(0x56, clock);
+        self.MONpoke16(0x56, clock);
     def monitorgetclock(self):
         """Get the clocking value."""
-        return self.peek16(0x56);
+        return self.MONpeek16(0x56);
     # The following functions ought to be implemented in
     # every client.
     
     def infostring(self):
-        a=self.peekbyte(0xff0);
-        b=self.peekbyte(0xff1);
+        a=self.MONpeek8(0xff0);
+        b=self.MONpeek8(0xff1);
         return "%02x%02x" % (a,b);
     def lock(self):
         print "Locking Unsupported.";
@@ -559,10 +559,7 @@ class GoodFET:
                 (self.peek8(address+1,memory)<<8));
     def peek8(self,address, memory="vn"):
         """Peek a byte of memory."""
-        return self.peekbyte(address); #monitor
-    def peekword(self,address, memory="vn"):
-        """Peek a natively sized word of memory."""
-        return self.peek16(address); #monitor
+        return self.MONpeek8(address); #monitor
     def peekblock(self,address,length,memory="vn"):
         """Return a block of data."""
         data=range(0,length);

@@ -220,23 +220,28 @@ void jtag430x2_handle_fn( uint8_t const app,
     break;
   case JTAG430_READMEM:
   case PEEK:
-    blocks=(len>4?cmddata[4]:1);
     at=cmddatalong[0];
     
-    l=0x80;
-    txhead(app,verb,l);
+    //Fetch large blocks for bulk fetches,
+    //small blocks for individual peeks.
+    if(len>5)
+      l=(cmddataword[2]);//always even.
+    else
+      l=2;
+    l&=~1;//clear lsbit
     
-    while(blocks--){
-      for(i=0;i<l;i+=2){
-	jtag430_resettap();
-	delay(10);
-	
-	val=jtag430x2_readmem(at);
-		
-	at+=2;
-	serial_tx(val&0xFF);
-	serial_tx((val&0xFF00)>>8);
-      }
+    if(l<2) l=2;
+    
+    txhead(app,verb,l);
+    for(i=0;i<l;i+=2){
+      //jtag430_resettap();
+      //delay(10);
+      
+      val=jtag430x2_readmem(at);
+      
+      at+=2;
+      serial_tx(val&0xFF);
+      serial_tx((val&0xFF00)>>8);
     }
     
     break;
@@ -258,7 +263,11 @@ void jtag430x2_handle_fn( uint8_t const app,
     break;
 
     //unimplemented functions
-  case JTAG430_HALTCPU:  
+  case JTAG430_HALTCPU:
+    //jtag430x2_haltcpu();
+    debugstr("Warning, not trying to halt for lack of code.");
+    txdata(app,verb,0);
+    break;
   case JTAG430_RELEASECPU:
   case JTAG430_SETINSTRFETCH:
 

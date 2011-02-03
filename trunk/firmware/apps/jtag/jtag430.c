@@ -403,11 +403,12 @@ void jtag430_handle_fn(uint8_t const app,
    * chip ID cannot be read.  Should print warning
    * for testing server.
    */
-  while((i=jtag430_readmem(0xff0))==0xFFFF){
-    debugstr("Reconnecting to target MSP430.");
-    jtag430x2_start();
-    PLEDOUT^=PLEDPIN;
-  }
+  if (jtagid!=0)
+    while((i=jtag430_readmem(0xff0))==0xFFFF){
+      debugstr("Reconnecting to target MSP430.");
+      jtag430x2_start();
+      PLEDOUT^=PLEDPIN;
+    }
   PLEDOUT&=~PLEDPIN;
   
   

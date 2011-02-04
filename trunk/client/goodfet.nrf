@@ -31,7 +31,10 @@ def printpacket(packet):
     print "%s" % s;
 
 
+mskbstring="";
 def printmspacket(packet,offset=1):
+    """Decodes a Microsoft keyboard packet and maintains the typed strings."""
+    global mskbstring;
     keyword=client.RF_getsmac();
     #print "keyword=%010x" % key;
     key=[];
@@ -51,11 +54,36 @@ def printmspacket(packet,offset=1):
             ct.append(ord(foo));
             s="%s %02x" % (s,ord(foo));
         i=i+1;
+    #Uncomment this to print the raw packet, kinda noisy.
     #print "%s" % (s);
     
-    if ct[0]==0x0a and ct[1]==0x78 and ct[9]!=0:
-        letter=ct[9]+ord('A')-4;
-        print "%c" % letter;
+    letter=None;
+    if ct[0]==0x0a and ct[1]==0x78:
+        if ct[9]==0:
+            #Key up event, not worth logging.
+            pass;
+        elif ct[9]>=4 and ct[9]<0x1E:
+            letter=ct[9]+ord('A')-4;
+        elif ct[9]>=0x1E and ct[9]<0x27:
+            letter=ct[9]+ord('1')-0x1E;
+        elif ct[9]==0x27:
+            letter=ord('0');
+        elif ct[9]==0x29:
+            #escape
+            letter=ord('e');
+        elif ct[9]==0x2d:
+            letter=ord('-');
+        elif ct[9]==0x2e:
+            letter=ord('=');
+        elif ct[9]==0x35:
+            letter=ord('`');
+        elif ct[9]==0x2C:
+            letter=ord('_');
+        else:
+            print "Unknown character 0x%02x." % ct[9];
+    if letter!=None:
+        mskbstring="%s%c" % (mskbstring,letter);
+        print "# %s" % mskbstring
 def printconfig():
     print "Encoding %s" % client.RF_getenc();
     print "Freq    %10i MHz" % (client.RF_getfreq()/10**6);

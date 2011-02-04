@@ -26,16 +26,15 @@ if(len(sys.argv)==1):
 client=GoodFETMSP430();
 client.serInit()
 
-#Connect to target
 client.setup();
-#print "setup"
-
-#Identify model number.
 client.start();
 
+if(sys.argv[1]=="starttest"):
+    for foo in range(1,10):
+        client.start();
 if(sys.argv[1]=="info"):
-    print "Model    %08x " % client.MSP430deviceid();
-    print "Core     %04x " % client.MSP430coreid();
+    #print "Model    %08x " % client.MSP430deviceid();
+    #print "Core     %04x " % client.MSP430coreid();
     #print "Identity %04x" % client.MSP430ident();
     print "Identifies as %s (%04x)" % (
         client.MSP430identstr(),

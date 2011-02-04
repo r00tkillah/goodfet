@@ -11,8 +11,10 @@ from GoodFET import GoodFET;
 
 class GoodFETMSP430(GoodFET):
     #Set APP to be MSP430APP or MSP430X2APP, the latter being preferred.
+    
+    #0x16 for class, 0x17 for SBW, 0x11 by default
     APP=0x11;
-    MSP430APP=0x11;    #Changed by inheritors.
+    MSP430APP=0x11;    
     
     CoreID=0;
     DeviceID=0;

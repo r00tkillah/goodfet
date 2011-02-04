@@ -59,6 +59,7 @@ def printmspacket(packet,offset=1):
     
     letter=None;
     if ct[0]==0x0a and ct[1]==0x78:
+        #TODO replace this with a dictionary, and support modifiers.
         if ct[9]==0:
             #Key up event, not worth logging.
             pass;
@@ -79,8 +80,13 @@ def printmspacket(packet,offset=1):
             letter=ord('`');
         elif ct[9]==0x2C:
             letter=ord('_');
+        elif ct[9]==0x34:
+            letter=ord('\'');
+        elif ct[9]==0x36:
+            letter=ord(',');
         else:
             print "Unknown character 0x%02x." % ct[9];
+            letter=ord('?');
     if letter!=None:
         mskbstring="%s%c" % (mskbstring,letter);
         print "# %s" % mskbstring

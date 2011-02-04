@@ -6,6 +6,11 @@
 #ifndef SBW_H
 #define SBW_H
 
+#include "app.h"
+extern app_t const sbw_app;
+
+#define SBW 0x17
+
 #include "platform.h"
 #include "command.h"
 #include "app.h"
@@ -23,13 +28,21 @@
 
 // I/O Redefintions
 extern int tms, tdi, tdo;
+#undef SETTMS
 #define SETTMS tms=1
+#undef CLRTMS
 #define CLRTMS tms=0
+#undef SETTDI
 #define SETTDI tdi=1
+#undef CLRTDI
 #define CLRTDI tdi=0
+#undef TCKTOCK
 #define TCKTOCK clock_sbw()
+#undef SETMOSI
 #define SETMOSI SETTDI
+#undef CLRMOSI
 #define CLRMOSI CLRTDI
+#undef READMISO
 #define READMISO tdo
 
 #endif
@@ -38,7 +51,7 @@ extern int tms, tdi, tdo;
 void sbwsetup();
 
 //! Handle a SBW request.
-void sbwhandle(u8 app, u8 verb, u8 len);
+void sbw_handler_fn(u8 app, u8 verb, u32 len);
 
 //! Perform a SBW bit transaction.
 void clock_sbw();

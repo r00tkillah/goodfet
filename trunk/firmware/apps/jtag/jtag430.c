@@ -14,19 +14,18 @@ void jtag430_handle_fn(uint8_t const app,
 
 // define the jtag430 app's app_t
 app_t const jtag430_app = {
-
-	/* app number */
-	JTAG430,
-
-	/* handle fn */
-	jtag430_handle_fn,
-
-	/* name */
-	"JTAG430",
-
-	/* desc */
-	"\tThe JTAG430 app adds to the basic JTAG app\n"
-	"\tsupport for JTAG'ing MSP430 devices.\n"
+  /* app number */
+  JTAG430,
+  
+  /* handle fn */
+  jtag430_handle_fn,
+  
+  /* name */
+  "JTAG430",
+  
+  /* desc */
+  "\tThe JTAG430 app adds to the basic JTAG app\n"
+  "\tsupport for JTAG'ing MSP430 devices.\n"
 };
 
 unsigned int jtag430mode=MSP430X2MODE;
@@ -376,8 +375,8 @@ void jtag430_setinstrfetch(){
 
 //! Handles classic MSP430 JTAG commands.  Forwards others to JTAG.
 void jtag430_handle_fn(uint8_t const app,
-					   uint8_t const verb,
-					   uint32_t const len)
+		       uint8_t const verb,
+		       uint32_t const len)
 {
   unsigned long at, l;
   unsigned int i, val;
@@ -472,21 +471,6 @@ void jtag430_handle_fn(uint8_t const app,
     cmddataword[0]=jtag430_readmem(cmddataword[0]);
     txdata(app,verb,2);
     break;
-    /*
-  case JTAG430_WRITEFLASH:
-
-    //debugstr("Poking flash memory.");
-    jtag430_writeflash(cmddataword[0],cmddataword[2]);
-    
-    //Try again if failure.
-    //if(cmddataword[2]!=jtag430_readmem(cmddataword[0]))
-    //  jtag430_writeflash(cmddataword[0],cmddataword[2]);
-    
-    //Return result.
-    cmddataword[0]=jtag430_readmem(cmddataword[0]);
-    
-    txdata(app,verb,2);
-    break; */
   case JTAG430_WRITEFLASH:
     at=cmddataword[0];
     

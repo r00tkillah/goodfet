@@ -175,8 +175,6 @@ void jtag430x2_handle_fn( uint8_t const app,
 						  uint8_t const verb,
 						  uint32_t const len)
 {
-  register char blocks;
-  
   unsigned int i,val;
   unsigned long at, l;
   

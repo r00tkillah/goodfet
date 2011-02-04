@@ -128,6 +128,7 @@ ifeq ($(filter sbw, $(config)), sbw)
 		hdrs+= jtag.h
 	endif
 	apps+= apps/jtag/sbw.o
+	hdrs+= sbw.h
 endif
 
 # include jtag430 app
@@ -226,6 +227,8 @@ ifeq ($(filter avr, $(config)), avr)
 	apps+= apps/avr/avr.o
 	hdrs+= avr.h
 endif
+
+
 
 # include pic app
 ifeq ($(filter pic, $(config)), pic)

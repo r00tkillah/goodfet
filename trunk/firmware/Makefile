@@ -16,6 +16,8 @@ mcu?=RUNCONFIG
 #platform=goodfet
 #platform=telosb
 #platform=z1
+#platform=nhbadge
+#platform=nhbadgeb
 platform?=goodfet
 
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.

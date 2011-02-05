@@ -32,9 +32,10 @@ def printpacket(packet):
 
 
 mskbstring="";
+oldseq=-1;
 def printmspacket(packet,offset=1):
     """Decodes a Microsoft keyboard packet and maintains the typed strings."""
-    global mskbstring;
+    global mskbstring, oldseq;
     keyword=client.RF_getsmac();
     #print "keyword=%010x" % key;
     key=[];
@@ -55,10 +56,12 @@ def printmspacket(packet,offset=1):
             s="%s %02x" % (s,ord(foo));
         i=i+1;
     #Uncomment this to print the raw packet, kinda noisy.
-    #print "%s" % (s);
+    print "%s" % (s);
     
     letter=None;
-    if ct[0]==0x0a and ct[1]==0x78:
+    seq=ct[4];
+    if ct[0]==0x0a and ct[1]==0x78 and seq!=oldseq:
+        oldseq=seq;
         #TODO replace this with a dictionary, and support modifiers.
         if ct[9]==0:
             #Key up event, not worth logging.
@@ -89,7 +92,7 @@ def printmspacket(packet,offset=1):
             letter=ord('?');
     if letter!=None:
         mskbstring="%s%c" % (mskbstring,letter);
-        print "# %s" % mskbstring
+    print "# %s" % mskbstring
 def printconfig():
     print "Encoding %s" % client.RF_getenc();
     print "Freq    %10i MHz" % (client.RF_getfreq()/10**6);
@@ -113,16 +116,12 @@ if(len(sys.argv)==1):
     print "%s sniffob\n\tSniffs OpenBeacon traffic." % sys.argv[0];
     print "%s snifftp\n\tSniffs Turning Point Clicker traffic." % sys.argv[0];
     print "%s sniffsf\n\tSniffs SparkFun Dongle traffic." % sys.argv[0];
+    print "%s sniffmskb\n\tSniffs Microsoft Keyboard traffic." % sys.argv[0];
     print "";
     print "%s sniffmacs \n\tSniffs for MAC addresses on the present channel." % sys.argv[0];
     print "%s sniffprom [0xaa|0x55]\n\tSniffs promiscuously for a preamble of 0xAA or 0x55" % sys.argv[0];
     print "%s autotune\n\tSearches for a valid destination address." % sys.argv[0];
     print "";
-    print "%s sniffskybrake\n\tSniffs skybrake. [broken?]" % sys.argv[0];
-    print "%s sniffmskb\n\tSniffs MS KB. [broken?]" % sys.argv[0];
-    
-    print "%s hosttp\n\tHosts Turning Point Clicker traffic." % sys.argv[0];
-
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
     sys.exit();
 
@@ -612,44 +611,6 @@ if(sys.argv[1]=="sniffant"):
 
 
 
-if(sys.argv[1]=="sniffskybrake"):
-    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
-    #TODO remove all poke() calls.
-    
-    client.poke(0x00,0x00); #Stop nRF
-    client.poke(0x01,0x00); #Disable Shockburst
-    client.poke(0x02,0x01); #Set RX Pipe 0
-    
-    client.RF_setfreq(2439 * 10**6);
-    client.poke(0x06,0x00); #1MBps
-    client.poke(0x07,0x78); #Reset status register
-    
-    #OpenBeacon defines these in little endian as follows.
-    client.RF_setmaclen(2); # SETUP_AW for 3-byte addresses.
-    #0x01, 0x02, 0x03, 0x02, 0x01
-    
-    client.RF_setsmac(0x070700d2c4); #reversed
-    
-    #client.RF_setsmac(0xd2c4);
-    #client.RF_setsmac(0);
-    
-    #Mac packet length, illegally 0-length address field.
-    client.RF_setpacketlen(32);
-    
-    #Power radio, prime for RX, one-byte checksum.
-    client.poke(0x00,0x70|0x03); #0x08 for one byte, 0x04 for two.
-    
-    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
-                                           client.RF_getfreq()/10**6);
-    print "%i byte mac match." % client.RF_getmaclen();
-    #Now we're ready to get packets.
-    while 1:
-        packet=None;
-        while packet==None:
-            #time.sleep(0.1);
-            packet=client.RF_rxpacket();
-        printpacket(packet);
-        sys.stdout.flush();
 
 if(sys.argv[1]=="sniffsf"):
     #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
@@ -716,37 +677,6 @@ if(sys.argv[1]=="snifftp"):
         printpacket(packet);
         sys.stdout.flush();
 
-if(sys.argv[1]=="hosttp"):
-    client.poke(0x00,0x00); #Stop nRF
-    client.poke(0x01,0x00); #Disable Shockburst
-    client.poke(0x02,0x01); #Set RX Pipe 0
-    
-    chan=0x29;
-
-    client.RF_setfreq((2400+chan) * 10**6);
-    client.poke(0x06,0x00); #1Mbps
-    client.poke(0x07,0x78); #Reset status register
-    
-    client.RF_setmaclen(3); # SETUP_AW for 3-byte addresses.
-    client.RF_setsmac(0x123456);
-    client.RF_setpacketlen(4);
-    
-    #Power radio, prime for RX, two-byte checksum.
-    client.poke(0x00,0x70|0x03|0x04|0x08);
-    
-    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
-                                           client.RF_getfreq()/10**6);
-    #Now we're ready to get packets.
-    while 1:
-        packet=None;
-        while packet==None:
-            packet=client.RF_rxpacket();
-        mac=((ord(packet[0])<<16)+
-             (ord(packet[1])<<8)+
-             ord(packet[2]));
-        key=packet[3];
-        print "%c from %06x" % (key,mac);
-        sys.stdout.flush();
 
 if(sys.argv[1]=="sniff"):
     if len(sys.argv)>2:

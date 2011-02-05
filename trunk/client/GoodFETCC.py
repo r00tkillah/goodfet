@@ -148,6 +148,7 @@ class GoodFETCC(GoodFET):
             self.lastshellcode=filename;
             file=__file__;
             file=file.replace("GoodFETCC.pyc","GoodFETCC.py");
+            #TODO make this generic
             path=file.replace("GoodFETCC.py","shellcode/chipcon/cc1110/");
             filename=path+filename;
         

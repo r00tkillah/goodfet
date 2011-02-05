@@ -8,17 +8,29 @@
 goodfet.nrf info
 goodfet.nrf test
 goodfet.nrf regs
+goodfet.nrf regbits
 goodfet.nrf pyregs
+
+goodfet.nrf tune aa|55,mac,r5,r6
+        Tunes to a configuration.
 goodfet.nrf sniff
         Sniffs packets by current config.
 goodfet.nrf sniffob
         Sniffs OpenBeacon traffic.
 goodfet.nrf snifftp
         Sniffs Turning Point Clicker traffic.
-goodfet.nrf snifftp
+goodfet.nrf sniffsf
         Sniffs SparkFun Dongle traffic.
-goodfet.nrf hosttp
-        Hosts Turning Point Clicker traffic.
+goodfet.nrf sniffmskb
+        Sniffs Microsoft Keyboard traffic.
+
+goodfet.nrf sniffmacs 
+        Sniffs for MAC addresses on the present channel.
+goodfet.nrf sniffprom [0xaa|0x55]
+        Sniffs promiscuously for a preamble of 0xAA or 0x55
+goodfet.nrf autotune
+        Searches for a valid destination address.
+
 goodfet.nrf carrier [freq]
         Holds a carrier on [freq] Hz.
 </pre></p>
@@ -39,6 +51,8 @@ goodfet.nrf carrier [freq]
 
 <h2>Examples</h2>
 
+<h3>Turning Point Clicker</h3>
+
 <p>The Turning
 Point <a href="http://www.turningtechnologies.com/audienceresponseproducts/responseoptions/responsecards/responsecardrf/">ResponseCardRF</a>
 series of audience response devices can be sniffed using 'goodfet.nrf
@@ -51,6 +65,8 @@ engineered.</p>
 title="Turning Point Clicker by Travis Goodspeed, on
 Flickr"><img src="http://farm5.static.flickr.com/4079/4747156868_867d3e6c09.jpg"
 width="500" height="375" alt="Turning Point Clicker" /></a></p>
+
+<h3>OpenBeacon</h3>
 
 <p>The <a href="http://www.openbeacon.org/">OpenBeacon</a>
 and <a href="http://amd.hope.net/">OpenAMD</a> projects use Nordic
@@ -68,7 +84,19 @@ title="NHBadge by Travis Goodspeed, on
 Flickr"><img src="http://farm5.static.flickr.com/4093/4746123271_7888160588.jpg"
 width="500" height="375" alt="NHBadge" /></a></p>
 
+<h3>Sparkfun Fob</h3>
+
 <p>A mode also exists to sniff the example firmware of
 Sparkfun's <a href="http://www.sparkfun.com/commerce/product_info.php?products_id=8602">WRL-08602
 Nordic FOB</a> by 'goodfet.nrf sniffsf'.</p>  Additional sniffing
 scripts are simple to add, and patches are most welcome.</p>
+
+<h3>Microsoft Keyboard</h3>
+
+<p>Many Microsoft wireless keyboards use their MAC address as an XOR key, allowing
+packets to be easily intercepted and deciphered.  More details coming soon.</p>
+
+<a href="http://www.flickr.com/photos/travisgoodspeed/5416657948/"
+title="NHBadge Key Sniffer by Travis Goodspeed, on
+Flickr"><img src="http://farm6.static.flickr.com/5052/5416657948_8fe0b0b4c6.jpg"
+width="289" height="500" alt="NHBadge Key Sniffer" /></a>

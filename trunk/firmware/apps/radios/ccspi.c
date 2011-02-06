@@ -46,10 +46,6 @@ app_t const ccspi_app = {
 	"\tmust be moved into the client.\n"
 };
 
-
-#define RADIOACTIVE CLRCE
-#define RADIOPASSIVE SETCE
-
 //! Set up the pins for CCSPI mode.
 void ccspisetup(){
   SPIDIR&=~MISO;
@@ -57,10 +53,8 @@ void ccspisetup(){
   DIRSS;
   DIRCE;
   
-  //Telos B Radio VReg Enable
-  P4DIR|=BIT5+BIT2+BIT6+BIT7;
-  P4OUT|=BIT5+BIT7;
-  P4OUT&=~(BIT6+BIT2);
+  P4OUT|=BIT5; //activate CC2420 voltage regulator
+  P4OUT|=BIT6; //bring CC2420 out of reset
   
   //Begin a new transaction.
   CLRSS; 

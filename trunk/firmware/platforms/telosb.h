@@ -22,11 +22,6 @@
 #define SPIDIR P3DIR
 #define SPIIN  P3IN
 #define SPIREN P3REN
- 
-#define P5OUT P3OUT
-#define P5DIR P3DIR
-#define P5IN  P3IN
-#define P5REN P3REN
 
 
 /* For the radio to be used:
@@ -36,21 +31,31 @@
 */
 
 #define INITPLATFORM \
-  P4DIR|=BIT6+BIT5+BIT2+BIT7+BIT4; \
-  P4OUT=BIT5;
+  P1DIR = 0xe0;\
+  P1OUT = 0x00;\
+  P2DIR = 0x7b;\
+  P2OUT = 0x10;\
+  P3DIR = 0xf1;\
+  P3OUT = 0x00;\
+  P4DIR = 0xfd;\
+  P4OUT = 0xdd;\
+  P5DIR = 0xff;\
+  P5OUT = 0xff;\
+  P6DIR = 0xff;\
+  P6OUT = 0x00;
 
 //Radio CS is P4.2
-#define SETSS P4OUT|=BIT2
-#define CLRSS P4OUT&=~BIT2
-#define DIRSS P4DIR|=BIT2
+//#define SETSS P4OUT|=BIT2
+//#define CLRSS P4OUT&=~BIT2
+//#define DIRSS P4DIR|=BIT2
 
 //Flash CS is P4.4
-//#define SETSS P4OUT|=BIT4
-//#define CLRSS P4OUT&=~BIT4
-//#define DIRSS P4DIR|=BIT4
+#define SETSS P4OUT|=BIT4
+#define CLRSS P4OUT&=~BIT4
+#define DIRSS P4DIR|=BIT4
 
 
-//CC2420 Chip Reset.  Need to document this.
+//CC2420 Chip Enable
 #define SETCE P4OUT|=BIT6
 #define CLRCE P4OUT&=~BIT6
 #define DIRCE P4DIR|=BIT6

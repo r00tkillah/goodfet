@@ -11,17 +11,17 @@
 #define SPI 0x01
 
 //Pins and I/O
-//#define SS BIT0
 #define MOSI BIT1
 #define MISO BIT2
 #define SCK  BIT3
 
-#define SETMOSI P5OUT|=MOSI
-#define CLRMOSI P5OUT&=~MOSI
-#define SETCLK P5OUT|=SCK
-#define CLRCLK P5OUT&=~SCK
-#define READMISO (P5IN&MISO?1:0)
+#define SETMOSI SPIOUT|=MOSI
+#define CLRMOSI SPIOUT&=~MOSI
+#define SETCLK SPIOUT|=SCK
+#define CLRCLK SPIOUT&=~SCK
+#define READMISO (SPIIN&MISO?1:0)
 
+//FIXME this should be defined by the platform.
 #define SETTST P4OUT|=TST
 #define CLRTST P4OUT&=~TST
 #define SETRST P2OUT|=RST

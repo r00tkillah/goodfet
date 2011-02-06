@@ -43,8 +43,8 @@ app_t const nrf_app = {
 //! Set up the pins for NRF mode.
 void nrfsetup(){
   SETSS;
-  P5DIR&=~MISO;
-  P5DIR|=MOSI+SCK;
+  SPIDIR&=~MISO;
+  SPIDIR|=MOSI+SCK;
   DIRSS;
   DIRCE;
   

@@ -62,19 +62,19 @@ app_t const chipcon_app = {
 //#define CCDELAY(x) delay(x)
 #define CCDELAY(x) 
 
-#define SETMOSI P5OUT|=MOSI
-#define CLRMOSI P5OUT&=~MOSI
-#define SETCLK P5OUT|=SCK
-#define CLRCLK P5OUT&=~SCK
-#define READMISO (P5IN&MISO?1:0)
+#define SETMOSI SPIOUT|=MOSI
+#define CLRMOSI SPIOUT&=~MOSI
+#define SETCLK SPIOUT|=SCK
+#define CLRCLK SPIOUT&=~SCK
+#define READMISO (SPIIN&MISO?1:0)
 
-#define CCWRITE P5DIR|=MOSI
-#define CCREAD P5DIR&=~MISO
+#define CCWRITE SPIDIR|=MOSI
+#define CCREAD SPIDIR&=~MISO
 
 //! Set up the pins for CC mode.  Does not init debugger.
 void ccsetup(){
-  P5OUT|=MOSI+SCK+RST;
-  P5DIR|=MOSI+SCK+RST;
+  SPIOUT|=MOSI+SCK+RST;
+  SPIDIR|=MOSI+SCK+RST;
   //P5REN=0xFF;
 }
 
@@ -97,31 +97,31 @@ void ccsetup(){
 //! Initialize the debugger
 void ccdebuginit(){
   //Port output BUT NOT DIRECTION is set at start.
-  P5OUT|=MOSI+SCK+RST;
+  SPIOUT|=MOSI+SCK+RST;
   
   //delay(30); //So the beginning is ready for glitching.
   
   //Two positive debug clock pulses while !RST is low.
   //Take RST low, pulse twice, then high.
-  P5OUT&=~SCK;
+  SPIOUT&=~SCK;
   delay(10);
-  P5OUT&=~RST;
+  SPIOUT&=~RST;
   
   delay(10);
   
   //Two rising edges.
-  P5OUT^=SCK; //up
+  SPIOUT^=SCK; //up
   delay(1);
-  P5OUT^=SCK; //down
+  SPIOUT^=SCK; //down
   delay(1);
-  P5OUT^=SCK; //up
+  SPIOUT^=SCK; //up
   delay(1);
-  P5OUT^=SCK; //Unnecessary.
+  SPIOUT^=SCK; //Unnecessary.
   delay(1);
   //delay(0);
   
   //Raise !RST.
-  P5OUT|=RST;
+  SPIOUT|=RST;
 }
 
 //! Read and write a CC bit.
@@ -206,9 +206,9 @@ void cc_handle_fn( uint8_t const app,
     break;
   case STOP://exit debugger
     //Take RST low, then high.
-    P5OUT&=~RST;
+    SPIOUT&=~RST;
     CCDELAY(CCSPEED);
-    P5OUT|=RST;
+    SPIOUT|=RST;
     txdata(app,verb,0);
     break;
   case SETUP:

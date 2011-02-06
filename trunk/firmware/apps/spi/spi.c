@@ -45,15 +45,14 @@ app_t const spi_app = {
 //! Set up the pins for SPI mode.
 void spisetup(){
   SETSS;
-  P5DIR|=MOSI+SCK+BIT0; //BIT0 might be SS
-  P5DIR&=~MISO;
+  SPIDIR|=MOSI+SCK+BIT0; //BIT0 might be SS
+  SPIDIR&=~MISO;
   DIRSS;
   
   //Begin a new transaction.
   
   CLRSS; 
   SETSS;
-  
 }
 
 

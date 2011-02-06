@@ -84,37 +84,38 @@ void init()
 
 	//Enable Interrupts.
 	//eint();
+	
+	#ifdef INITPLATFORM
+	INITPLATFORM;
+	#endif
 }
 
 
 //! Handle a command.
 void handle(uint8_t const app,
-			uint8_t const verb,
-			uint32_t const len)
-{
-	int i;
+	    uint8_t const verb,
+	    uint32_t const len){
+  int i;
 
-	//debugstr("GoodFET");
-	PLEDOUT&=~PLEDPIN;
+  //debugstr("GoodFET");
+  PLEDOUT&=~PLEDPIN;
 
-	// find the app and call the handle fn
-	for(i = 0; i < num_apps; i++)
-	{
-		if(apps[i]->app == app)
-		{
-			// call the app's handle fn
-			(*(apps[i]->handle))(app, verb, len);
+  // find the app and call the handle fn
+  for(i = 0; i < num_apps; i++){
+    if(apps[i]->app == app){
+      // call the app's handle fn
+      (*(apps[i]->handle))(app, verb, len);
+      
+      // exit early
+      return;
+    }
+  }
 
-			// exit early
-			return;
-		}
-	}
-
-	// if we get here, then the desired app is not copiled in 
-	// this firmware
-	debugstr("App missing.");
-	debughex(app);
-	txdata(app, NOK, 0);
+  // if we get here, then the desired app is not copiled in 
+  // this firmware
+  debugstr("App missing.");
+  debughex(app);
+  txdata(app, NOK, 0);
 }
 
 

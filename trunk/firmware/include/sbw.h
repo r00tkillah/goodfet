@@ -62,17 +62,17 @@ void sbwCLRTCLK();
 
 // Macros
 #define SBWCLK() do { \
-    P5OUT &= ~SBWTCK; \
+    SPIOUT &= ~SBWTCK; \
     asm("nop");	      \
     asm("nop");	      \
     asm("nop");	      \
-    P5OUT |= SBWTCK;  \
+    SPIOUT |= SBWTCK;  \
   } while (0)
 #define SETSBWIO(x) do { 			\
   if (x)					\
-    P5OUT |= SBWTDIO;				\
+    SPIOUT |= SBWTDIO;				\
   else						\
-    P5OUT &= ~SBWTDIO;				\
+    SPIOUT &= ~SBWTDIO;				\
   } while (0)
 #undef RESTORETCLK
 #define RESTORETCLK do {			\

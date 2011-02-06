@@ -65,17 +65,18 @@ void jtag_resettap();
 #define JTAGSPEED 20
 #define JTAGDELAY(x) delay(x)
 
-#define SETMOSI P5OUT|=MOSI
-#define CLRMOSI P5OUT&=~MOSI
-#define SETCLK P5OUT|=SCK
-#define CLRCLK P5OUT&=~SCK
-#define READMISO (P5IN&MISO?1:0)
-#define SETTMS P5OUT|=TMS
-#define CLRTMS P5OUT&=~TMS
-#define SETTCK P5OUT|=TCK
-#define CLRTCK P5OUT&=~TCK
-#define SETTDI P5OUT|=TDI
-#define CLRTDI P5OUT&=~TDI
+
+#define SETMOSI SPIOUT|=MOSI
+#define CLRMOSI SPIOUT&=~MOSI
+#define SETCLK SPIOUT|=SCK
+#define CLRCLK SPIOUT&=~SCK
+#define READMISO (SPIIN&MISO?1:0)
+#define SETTMS SPIOUT|=TMS
+#define CLRTMS SPIOUT&=~TMS
+#define SETTCK SPIOUT|=TCK
+#define CLRTCK SPIOUT&=~TCK
+#define SETTDI SPIOUT|=TDI
+#define CLRTDI SPIOUT&=~TDI
 
 #define SETTST P4OUT|=TST
 #define CLRTST P4OUT&=~TST
@@ -86,8 +87,8 @@ void jtag_resettap();
 #define CLRTCLK CLRTDI
 
 extern int savedtclk;
-#define SAVETCLK savedtclk=P5OUT&TCLK;
-#define RESTORETCLK if(savedtclk) P5OUT|=TCLK; else P5OUT&=~TCLK
+#define SAVETCLK savedtclk=SPIOUT&TCLK;
+#define RESTORETCLK if(savedtclk) SPIOUT|=TCLK; else SPIOUT&=~TCLK
 
 //Replace every "CLRTCK SETTCK" with this.
 #define TCKTOCK CLRTCK,SETTCK

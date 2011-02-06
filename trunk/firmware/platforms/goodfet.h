@@ -20,6 +20,18 @@
 #define P5DIR P3DIR
 #define P5IN P3IN
 #define P5REN P3REN
+
+#define SPIOUT P3OUT
+#define SPIDIR P3DIR
+#define SPIIN  P3IN
+#define SPIREN P3REN
+#else
+
+#define SPIOUT P5OUT
+#define SPIDIR P5DIR
+#define SPIIN  P5IN
+#define SPIREN P5REN
+
 #endif
 
 //This is how things used to work, don't do it anymore.

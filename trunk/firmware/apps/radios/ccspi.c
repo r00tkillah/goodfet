@@ -47,16 +47,20 @@ app_t const ccspi_app = {
 };
 
 
-#define RADIOACTIVE SETCE
-#define RADIOPASSIVE CLRCE
+#define RADIOACTIVE CLRCE
+#define RADIOPASSIVE SETCE
 
 //! Set up the pins for CCSPI mode.
 void ccspisetup(){
-  SETSS;
-  P5DIR&=~MISO;
-  P5DIR|=MOSI+SCK;
+  SPIDIR&=~MISO;
+  SPIDIR|=MOSI+SCK;
   DIRSS;
   DIRCE;
+  
+  //Telos B Radio VReg Enable
+  P4DIR|=BIT5+BIT2+BIT6+BIT7;
+  P4OUT|=BIT5+BIT7;
+  P4OUT&=~(BIT6+BIT2);
   
   //Begin a new transaction.
   CLRSS; 
@@ -113,20 +117,14 @@ u8 ccspi_regread(u8 reg, u8 *buf, int len){
 
 //! Handles a Chipcon SPI command.
 void ccspi_handle_fn( uint8_t const app,
-					  uint8_t const verb,
-					  uint32_t const len)
-{
+		      uint8_t const verb,
+		      uint32_t const len){
   unsigned long i;
   
-  //Drop CE to passify radio.
-  RADIOPASSIVE;
-  //Raise !SS to end transaction, just in case we forgot.
-  SETSS;
-  ccspisetup();
+  //debugstr("Chipcon SPI handler.");
   
   switch(verb){
-    //PEEK and POKE might come later.
-  case READ:  
+  case READ:
   case WRITE:
     CLRSS; //Drop !SS to begin transaction.
     for(i=0;i<len;i++)
@@ -137,7 +135,7 @@ void ccspi_handle_fn( uint8_t const app,
 
   case PEEK://Grab CCSPI Register
     CLRSS; //Drop !SS to begin transaction.
-    ccspitrans8(CCSPI_R_REGISTER | cmddata[0]); //000A AAAA
+    cmddata[0]=ccspitrans8(/*CCSPI_R_REGISTER |*/ cmddata[0]); //000A AAAA
     for(i=1;i<len;i++)
       cmddata[i]=ccspitrans8(cmddata[i]);
     SETSS;  //Raise !SS to end transaction.
@@ -146,7 +144,7 @@ void ccspi_handle_fn( uint8_t const app,
     
   case POKE://Poke CCSPI Register
     CLRSS; //Drop !SS to begin transaction.
-    ccspitrans8(CCSPI_W_REGISTER | cmddata[0]); //001A AAAA
+    cmddata[0]=ccspitrans8(/* CCSPI_W_REGISTER |*/ 0x40 | cmddata[0]); //02AA AAAA
     for(i=1;i<len;i++)
       cmddata[i]=ccspitrans8(cmddata[i]);
     SETSS;  //Raise !SS to end transaction.
@@ -157,7 +155,6 @@ void ccspi_handle_fn( uint8_t const app,
     txdata(app,verb,0);
     break;
   case CCSPI_RX:
-    RADIOPASSIVE;
     //Get the packet.
     CLRSS;
     ccspitrans8(CCSPI_RXFIFO);
@@ -185,6 +182,4 @@ void ccspi_handle_fn( uint8_t const app,
   }
   
 
-  SETSS;//End session
-  RADIOACTIVE;
 }

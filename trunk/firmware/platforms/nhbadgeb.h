@@ -8,10 +8,18 @@
 #include <io.h>
 #endif
 
+//This nonsense is deprecated.
+//Remove as soon as is convenient.
 #define P5OUT P4OUT
 #define P5DIR P4DIR
 #define P5IN P4IN
 #define P5REN P4REN
+
+#define SPIOUT P4OUT
+#define SPIDIR P4DIR
+#define SPIIN  P4IN
+#define SPIREN P4REN
+
 
 
 //LED on P1.0
@@ -19,8 +27,6 @@
 #define PLEDDIR P1DIR
 #define PLEDPIN BIT0
 
-
-//No longer works for Hope badge.
 #define SETSS P4OUT|=BIT4
 #define CLRSS P4OUT&=~BIT4
 #define DIRSS P4DIR|=BIT4;
@@ -31,3 +37,4 @@
 #define SETCE P4OUT|=BIT5
 #define CLRCE P4OUT&=~BIT5
 #define DIRCE P4DIR|=BIT5
+

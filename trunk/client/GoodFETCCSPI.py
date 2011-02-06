@@ -50,7 +50,7 @@ class GoodFETCCSPI(GoodFET):
         return ord(self.data[0]);
     def CC_RFST_IDLE(self):
         """Switch the radio to idle mode, clearing overflows and errors."""
-        self.strobe(0x00); #SNOP?
+        self.strobe(0x06); #SRXOFF
     def CC_RFST_TX(self):
         """Switch the radio to TX mode."""
         self.strobe(0x04);  #0x05 for CCA
@@ -132,10 +132,30 @@ class GoodFETCCSPI(GoodFET):
         """Returns the received signal strenght, with a weird offset."""
         rssival=self.peek(0x13)&0xFF; #raw RSSI register, should normalize this
         return rssival^0x80;
+    lastpacket=range(0,0xff);
     def RF_rxpacket(self):
-        """Get a packet from the radio.  Returns None if none is waiting."""
-        print "Don't know how to get a packet.";
-        return None;
+        """Get a packet from the radio.  Returns None if none is waiting.  In
+        order to not require the SFD, FIFO, or FIFOP lines, this
+        implementation works by comparing the buffer to the older
+        contents.
+        """
+        self.strobe(0x03); #SRXON
+        self.strobe(0x08); #SFLUSHRX
+        
+        buffer=range(0,0xff);
+        buffer[0]=0x3F | 0x40; #RXFIFO
+        buffer=self.trans(buffer);
+        
+        new=False;
+        for foo in range(2,20):
+            if buffer[foo]!=self.lastpacket[foo]:
+                new=True;
+        if not new:
+            return None;
+        
+        
+        self.lastpacket=buffer;
+        return buffer;
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
         print "Don't know how to hold a carrier.";

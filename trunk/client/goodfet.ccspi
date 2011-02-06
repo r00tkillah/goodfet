@@ -12,6 +12,17 @@ import array, time;
 
 from GoodFETCCSPI import GoodFETCCSPI;
 
+def printpacket(packet):
+    s="";
+    i=0;
+    for foo in packet:
+        i=i+1;
+        if i>ord(packet[1])+2: break;
+        if i<2: continue;
+        s="%s %02x" % (s,ord(foo));
+    print "%s" % s;
+
+
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s regs" % sys.argv[0];
@@ -60,7 +71,24 @@ if(sys.argv[1]=="rssi"):
         for foo in range(0,rssi>>2):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
-
+if(sys.argv[1]=="sniff"):
+    #if len(sys.argv)>2:
+        #print "Set MAC to %s" % sys.argv[2];
+        #client.tune(sys.argv[2]);
+        #client.RF_setmaclen(5);
+        
+    client.CC_RFST_RX();
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                            client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    
+    while 1:
+        packet=None;
+        while packet==None:
+            #time.sleep(0.1);
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
 if(sys.argv[1]=="peek"):
     start=0x0000;
     if(len(sys.argv)>2):

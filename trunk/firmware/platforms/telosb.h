@@ -38,7 +38,7 @@
   P3DIR = 0xf1;\
   P3OUT = 0x00;\
   P4DIR = 0xfd;\
-  P4OUT = 0xdd;\
+  P4OUT = 0xFd;\
   P5DIR = 0xff;\
   P5OUT = 0xff;\
   P6DIR = 0xff;\

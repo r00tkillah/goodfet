@@ -10,33 +10,36 @@ import sys, time, string, cStringIO, struct, glob, serial, os;
 from GoodFET import GoodFET;
 
 class GoodFETCCSPI(GoodFET):
-    CCSPIAPP=0x50;
-    def CCSPIsetup(self):
+    CCSPIAPP=0x51;
+    def setup(self):
         """Move the FET into the CCSPI application."""
         self.writecmd(self.CCSPIAPP,0x10,0,self.data); #CCSPI/SETUP
         
-    def CCSPItrans8(self,byte):
+    def trans8(self,byte):
         """Read and write 8 bits by CCSPI."""
         data=self.CCSPItrans([byte]);
         return ord(data[0]);
     
-    def CCSPItrans(self,data):
+    def trans(self,data):
         """Exchange data by CCSPI."""
         self.data=data;
         self.writecmd(self.CCSPIAPP,0x00,len(data),data);
         return self.data;
-    
-    def peek(self,reg,bytes=-1):
+    def strobe(self,reg=0x00):
+        """Strobes a strobe register, returning the status."""
+        data=[reg];
+        self.trans(data);
+        return ord(self.data[0]);
+    def peek(self,reg,bytes=2):
         """Read a CCSPI Register.  For long regs, result is flipped."""
-        data=[reg,0,0,0,0,0];
+        data=[reg,0,0];
         
         #Automatically calibrate the len.
-        if bytes==-1:
-            bytes=1;
-            if reg==0x0a or reg==0x0b or reg==0x10: bytes=5;
+        bytes=2;
         
         self.writecmd(self.CCSPIAPP,0x02,len(data),data);
         toret=0;
+        #print "Status: %02x" % ord(self.data[0]);
         for i in range(0,bytes):
             toret=toret|(ord(self.data[i+1])<<(8*i));
         return toret;
@@ -54,13 +57,13 @@ class GoodFETCCSPI(GoodFET):
         self.writecmd(self.CCSPIAPP,0x03,len(data),data);
         if self.peek(reg,bytes)!=val and reg!=0x07:
             print "Warning, failed to set r%02x=%02x, got %02x." %(reg,
-                                                                 val,
-                                                                 self.peek(reg,bytes));
+                                                                   val,
+                                                                   self.peek(reg,bytes));
         return;
     
     def status(self):
         """Read the status byte."""
-        status=self.peek(0x07);
+        status=self.strobe(0x00);
         print "Status=%02x" % status;
     
     #Radio stuff begins here.
@@ -95,69 +98,40 @@ class GoodFETCCSPI(GoodFET):
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         
-        #On the CCSPI24L01+, register 0x05 is the offset in
-        #MHz above 2400.
-        
-        chan=frequency/1000000-2400;
-        self.poke(0x05,chan);
+        print "TODO write the setfreq() function.";
     def RF_getfreq(self):
         """Get the frequency in Hz."""
-        
-        #On the CCSPI24L01+, register 0x05 is the offset in
-        #MHz above 2400.
-        
-        return (2400+self.peek(0x05))*10**6
-        self.poke(0x05,chan);
+        print "TODO write the getfreq() function.";
+        return 0;
     def RF_getsmac(self):
         """Return the source MAC address."""
         
-        #Register 0A is RX_ADDR_P0, five bytes.
-        mac=self.peek(0x0A, 5);
-        return mac;
+        return 0xdeadbeef;
     def RF_setsmac(self,mac):
         """Set the source MAC address."""
-        
-        #Register 0A is RX_ADDR_P0, five bytes.
-        self.poke(0x0A, mac, 5);
-        return mac;
+        return 0xdeadbeef;
     def RF_gettmac(self):
         """Return the target MAC address."""
-        
-        #Register 0x10 is TX_ADDR, five bytes.
-        mac=self.peek(0x10, 5);
-        return mac;
+        return 0xdeadbeef;
     def RF_settmac(self,mac):
         """Set the target MAC address."""
-        
-        #Register 0x10 is TX_ADDR, five bytes.
-        self.poke(0x10, mac, 5);
-        return mac;
+        return 0xdeadbeef;
 
     def RF_rxpacket(self):
         """Get a packet from the radio.  Returns None if none is waiting."""
-        if self.peek(0x07) & 0x40:
-            #Packet has arrived.
-            self.writecmd(self.CCSPIAPP,0x80,0,None); #RX Packet
-            data=self.data;
-            self.poke(0x07,0x40);#clear bit.
-            return data;
-        elif self.peek(0x07)==0:
-            self.writecmd(self.CCSPIAPP,0x82,0,None); #Flush
-            self.poke(0x07,0x40);#clear bit.
+        print "Don't know how to get a packet.";
         return None;
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
-        # Set CONT_WAVE, PLL_LOCK, and 0dBm in RF_SETUP            
-        self.poke(0x06,8+10+4+2); 
-        
+        print "Don't know how to hold a carrier.";
     packetlen=16;
     def RF_setpacketlen(self,len=16):
         """Set the number of bytes in the expected payload."""
-        self.poke(0x11,len);
+        #self.poke(0x11,len);
         self.packetlen=len;
     def RF_getpacketlen(self):
         """Set the number of bytes in the expected payload."""
-        len=self.peek(0x11);
+        #len=self.peek(0x11);
         self.packetlen=len;
         return len;
     maclen=5;

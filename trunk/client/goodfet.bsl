@@ -1428,7 +1428,8 @@ def main(itest=1):
              "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
              "tmote","no-BSL-download", "force-BSL-download", "slow",
              "dumpivt", "dumpinfo", "fromweb",
-             "goodfet30", "goodfet20", "goodfet10"
+             "goodfet40", "goodfet30", "goodfet20", "goodfet10",
+             "nhbadge", "nhbadgeb", "goodfet"
             ]
         )
     except getopt.GetoptError:
@@ -1578,6 +1579,15 @@ def main(itest=1):
         elif o in ("--goodfet30", ):
             bsl.invertRST = 1
             bsl.invertTEST = 0
+        elif o in ("--goodfet40", ):
+            bsl.invertRST = 1
+            bsl.invertTEST = 1
+        elif o in ("--goodfet", ):
+            bsl.invertRST = 1
+            bsl.invertTEST = 1
+        elif o in ("--nhbadge", "--nhbadgeb" ):
+            bsl.invertRST = 1
+            bsl.invertTEST = 1
         elif o in ("--telosb", ):
             bsl.swapRSTTEST = 1
             bsl.telosI2C = 1

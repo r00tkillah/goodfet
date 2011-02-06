@@ -140,6 +140,7 @@ if(sys.argv[1]=="flash"):
         stop=int(sys.argv[4],16);
     
     print "Flashing code from %06x to %06x with %s." % (start,stop,f);
+    print "FIXME This might fail if the file is of an odd size.";
     file = open(f, mode='rb')
 
     i=start;

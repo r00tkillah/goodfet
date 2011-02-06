@@ -8,7 +8,7 @@
 
 import sys;
 import binascii;
-import array;
+import array, time;
 
 from GoodFETCCSPI import GoodFETCCSPI;
 
@@ -31,17 +31,36 @@ client.setup();
 #Might read as all ones if chip has a startup delay.
 
 if(sys.argv[1]=="info"):
-    print "Status is %02x" % client.strobe(0x00);
+    print "Found %s" % client.identstr();
+    print "Freq: %05.05f MHz" % (client.RF_getfreq()/(10**6));
 if(sys.argv[1]=="regs"):
     for adr in range(0x10,0x40): #*1024):
         val=client.peek(adr);
-        print "%04x:=%02x" % (adr,val);
+        print "%04x:=0x%04x" % (adr,val);
 if(sys.argv[1]=="test"):
     data=client.trans([0x20, 0xde, 0xad]);
     print "%02x %02x" % (ord(data[1]), ord(data[2]));
     data=client.trans([0x40|0x20, 0xde, 0xad]);
     print "%02x %02x" % (ord(data[1]), ord(data[2]));
+if(sys.argv[1]=="rssi"):
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[2]));
+    print "Listening on %f MHz." % (client.RF_getfreq()/10.0**6);
+        
+    client.strobe(0x02); #Calibrate
+    time.sleep(1);
     
+    while 1:
+        client.CC_RFST_RX();
+        #client.strobe(0x03); #SRXON
+        rssi=client.RF_getrssi();
+        #client.CC_RFST_IDLE(); #idle
+        time.sleep(0.01);
+        string="";
+        for foo in range(0,rssi>>2):
+            string=("%s."%string);
+        print "%02x %04i %s" % (rssi,rssi, string); 
+
 if(sys.argv[1]=="peek"):
     start=0x0000;
     if(len(sys.argv)>2):
@@ -51,7 +70,7 @@ if(sys.argv[1]=="peek"):
         stop=int(sys.argv[3],16);
     print "Peeking from %04x to %04x." % (start,stop);
     while start<=stop:
-        print "%04x: %02x" % (start,client.peek(start));
+        print "%04x: 0x%04x" % (start,client.peek(start));
         start=start+1;
 if(sys.argv[1]=="poke"):
     start=0x0000;
@@ -60,7 +79,7 @@ if(sys.argv[1]=="poke"):
         start=int(sys.argv[2],16);
     if(len(sys.argv)>3):
         val=int(sys.argv[3],16);
-    print "Poking %02x to become %010x." % (start,val);
+    print "Poking r%02x to become 0x%04x." % (start,val);
     
     client.poke(start,val);
 

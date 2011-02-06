@@ -5,7 +5,7 @@
 
 //Higher level left to client application.
 
-#include "platform.h"
+
 #include "command.h"
 
 #include <signal.h>
@@ -13,6 +13,10 @@
 #include <iomacros.h>
 
 #include "spi.h"
+
+#define SPIAPPLICATION
+
+#include "platform.h"
 
 //! Handles a monitor command.
 void spi_handle_fn( uint8_t const app,

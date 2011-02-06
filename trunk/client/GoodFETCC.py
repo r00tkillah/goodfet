@@ -593,7 +593,7 @@ class GoodFETCC(GoodFET):
         except:
             if self.verbose>0: print "RSSI reg doesn't exist.";
         try:
-            #RSSI doesn't exist on 2.4GHz devices.  Maybe RSSIL and RSSIH?
+            #RSSI doesn't exist on some 2.4GHz devices.  Maybe RSSIL and RSSIH?
             rssilreg=self.symbols.get("RSSIL");
             rssil=self.CCpeekdatabyte(rssilreg);
             rssihreg=self.symbols.get("RSSIL");

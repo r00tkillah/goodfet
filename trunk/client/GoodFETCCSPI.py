@@ -11,10 +11,28 @@ from GoodFET import GoodFET;
 
 class GoodFETCCSPI(GoodFET):
     CCSPIAPP=0x51;
+    CCversions={0x233d: "CC2420",
+                }
     def setup(self):
         """Move the FET into the CCSPI application."""
         self.writecmd(self.CCSPIAPP,0x10,0,self.data); #CCSPI/SETUP
         
+        #Set up the radio for ZigBee
+        self.strobe(0x01);       #SXOSCON
+        self.poke(0x11, 0x0AC2); #MDMCTRL0
+        self.poke(0x12, 0x0500); #MDMCTRL1
+        self.poke(0x1C, 0x007F); #IOCFG0
+        self.poke(0x19, 0x01C4); #SECCTRL0, disabling crypto
+        
+    def ident(self):
+        return self.peek(0x1E); #MANFIDL
+    def identstr(self):
+        manfidl=self.peek(0x1E);
+        #manfidh=self.peek(0x1f);
+        try:
+            return "%s" % (self.CCversions[manfidl]); 
+        except:
+            return "Unknown0x%04x" % manfidl;
     def trans8(self,byte):
         """Read and write 8 bits by CCSPI."""
         data=self.CCSPItrans([byte]);
@@ -30,35 +48,45 @@ class GoodFETCCSPI(GoodFET):
         data=[reg];
         self.trans(data);
         return ord(self.data[0]);
+    def CC_RFST_IDLE(self):
+        """Switch the radio to idle mode, clearing overflows and errors."""
+        self.strobe(0x00); #SNOP?
+    def CC_RFST_TX(self):
+        """Switch the radio to TX mode."""
+        self.strobe(0x04);  #0x05 for CCA
+    def CC_RFST_RX(self):
+        """Switch the radio to RX mode."""
+        self.strobe(0x03);
+    def CC_RFST_CAL(self):
+        """Calibrate strobe the radio."""
+        self.strobe(0x02);
+    def CC_RFST(self,state=0x00):
+        self.strobe(state);
+        return;
     def peek(self,reg,bytes=2):
         """Read a CCSPI Register.  For long regs, result is flipped."""
+        
+        #Reg is ORed with 0x40 by the GoodFET.
         data=[reg,0,0];
         
         #Automatically calibrate the len.
         bytes=2;
         
         self.writecmd(self.CCSPIAPP,0x02,len(data),data);
-        toret=0;
-        #print "Status: %02x" % ord(self.data[0]);
-        for i in range(0,bytes):
-            toret=toret|(ord(self.data[i+1])<<(8*i));
+        toret=(
+            ord(self.data[2])+
+            (ord(self.data[1])<<8)
+            );
         return toret;
-    def poke(self,reg,val,bytes=-1):
+    def poke(self,reg,val,bytes=2):
         """Write a CCSPI Register."""
-        data=[reg];
-        
-        #Automatically calibrate the len.
-        if bytes==-1:
-            bytes=1;
-            if reg==0x0a or reg==0x0b or reg==0x10: bytes=5;
-        
-        for i in range(0,bytes):
-            data=data+[(val>>(8*i))&0xFF];
+        data=[reg,(val>>8)&0xFF,val&0xFF];
         self.writecmd(self.CCSPIAPP,0x03,len(data),data);
-        if self.peek(reg,bytes)!=val and reg!=0x07:
-            print "Warning, failed to set r%02x=%02x, got %02x." %(reg,
-                                                                   val,
-                                                                   self.peek(reg,bytes));
+        if self.peek(reg,bytes)!=val:
+            print "Warning, failed to set r%02x=0x%04x, got %02x." %(
+                reg,
+                val,
+                self.peek(reg,bytes));
         return;
     
     def status(self):
@@ -67,45 +95,29 @@ class GoodFETCCSPI(GoodFET):
         print "Status=%02x" % status;
     
     #Radio stuff begins here.
-    def RF_setenc(self,code="GFSK"):
+    def RF_setenc(self,code="802.15.4"):
         """Set the encoding type."""
-        if code!=GFSK:
-            return "%s not supported by the CCSPI24L01.  Try GFSK."
         return;
     def RF_getenc(self):
         """Get the encoding type."""
-        return "GFSK";
+        return "802.15.4";
     def RF_getrate(self):
-        rate=self.peek(0x06)&0x28;
-        if rate==0x28:
-            rate=250*10**3; #256kbps
-        elif rate==0x08:
-            rate=2*10**6;  #2Mbps
-        elif rate==0x00: 
-            rate=1*10**6;  #1Mbps
-        return rate;
-    def RF_setrate(self,rate=2*10**6):
-        r6=self.peek(0x06); #RF_SETUP register
-        r6=r6&(~0x28);   #Clear rate fields.
-        if rate==2*10**6:
-            r6=r6|0x08;
-        elif rate==1*10**6:
-            r6=r6;
-        elif rate==250*10**3:
-            r6=r6|0x20;
-        print "Setting r6=%02x." % r6;
-        self.poke(0x06,r6); #Write new setting.
+        return 0;
+    def RF_setrate(self,rate=0):
+        return 0;
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
-        
-        print "TODO write the setfreq() function.";
+        mhz=frequency/1000000;
+        fsctrl=self.peek(0x18)&~0x3FF;
+        fsctrl=fsctrl+int(mhz-2048)
+        self.poke(0x18,fsctrl);
     def RF_getfreq(self):
         """Get the frequency in Hz."""
-        print "TODO write the getfreq() function.";
-        return 0;
+        fsctrl=self.peek(0x18);
+        mhz=2048+(fsctrl&0x3ff)
+        return mhz*1000000;
     def RF_getsmac(self):
         """Return the source MAC address."""
-        
         return 0xdeadbeef;
     def RF_setsmac(self,mac):
         """Set the source MAC address."""
@@ -116,7 +128,10 @@ class GoodFETCCSPI(GoodFET):
     def RF_settmac(self,mac):
         """Set the target MAC address."""
         return 0xdeadbeef;
-
+    def RF_getrssi(self):
+        """Returns the received signal strenght, with a weird offset."""
+        rssival=self.peek(0x13)&0xFF; #raw RSSI register, should normalize this
+        return rssival^0x80;
     def RF_rxpacket(self):
         """Get a packet from the radio.  Returns None if none is waiting."""
         print "Don't know how to get a packet.";

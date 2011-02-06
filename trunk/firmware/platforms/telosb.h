@@ -45,15 +45,20 @@
   P6OUT = 0x00;
 
 //Radio CS is P4.2
-//#define SETSS P4OUT|=BIT2
-//#define CLRSS P4OUT&=~BIT2
-//#define DIRSS P4DIR|=BIT2
+#define SETSS P4OUT|=BIT2
+#define CLRSS P4OUT&=~BIT2
+#define DIRSS P4DIR|=BIT2
 
-//Flash CS is P4.4
+
+//Flash CS is P4.4, redefine only for the SPI app.
+#ifdef SPIAPPLICATION
+#undef SETSS
+#undef CLRSS
+#undef DIRSS
 #define SETSS P4OUT|=BIT4
 #define CLRSS P4OUT&=~BIT4
 #define DIRSS P4DIR|=BIT4
-
+#endif
 
 //CC2420 Chip Enable
 #define SETCE P4OUT|=BIT6

@@ -54,10 +54,14 @@ void ccspisetup(){
   DIRCE;
   
   P4OUT|=BIT5; //activate CC2420 voltage regulator
-  P4OUT|=BIT6; //bring CC2420 out of reset
+  msdelay(100);
+  
+  //Reset the CC2420.
+  P4OUT&=~BIT6;
+  P4OUT|=BIT6;
   
   //Begin a new transaction.
-  CLRSS; 
+  CLRSS;
   SETSS;
 }
 
@@ -118,28 +122,14 @@ void ccspi_handle_fn( uint8_t const app,
   //debugstr("Chipcon SPI handler.");
   
   switch(verb){
+  case PEEK:
+    cmddata[0]|=0x40; //Set the read bit.
+    //DO NOT BREAK HERE.
   case READ:
   case WRITE:
+  case POKE:
     CLRSS; //Drop !SS to begin transaction.
     for(i=0;i<len;i++)
-      cmddata[i]=ccspitrans8(cmddata[i]);
-    SETSS;  //Raise !SS to end transaction.
-    txdata(app,verb,len);
-    break;
-
-  case PEEK://Grab CCSPI Register
-    CLRSS; //Drop !SS to begin transaction.
-    cmddata[0]=ccspitrans8(/*CCSPI_R_REGISTER |*/ cmddata[0]); //000A AAAA
-    for(i=1;i<len;i++)
-      cmddata[i]=ccspitrans8(cmddata[i]);
-    SETSS;  //Raise !SS to end transaction.
-    txdata(app,verb,len);
-    break;
-    
-  case POKE://Poke CCSPI Register
-    CLRSS; //Drop !SS to begin transaction.
-    cmddata[0]=ccspitrans8(/* CCSPI_W_REGISTER |*/ 0x40 | cmddata[0]); //02AA AAAA
-    for(i=1;i<len;i++)
       cmddata[i]=ccspitrans8(cmddata[i]);
     SETSS;  //Raise !SS to end transaction.
     txdata(app,verb,len);

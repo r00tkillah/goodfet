@@ -61,6 +61,7 @@ class GoodFETSPIFlash(GoodFETSPI):
                   0xC22014: "MX25L8005",
                   0xC22013: "MX25L4005",
                   0x204011: "M45PE10",
+                  0x202014: "M25P80",
                   0x1f4501: "AT24DF081",
                   };
     

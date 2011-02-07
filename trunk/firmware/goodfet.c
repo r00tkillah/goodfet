@@ -56,12 +56,13 @@ void init()
 	//Setup clocks, unique to each '430.
 	msp430_init_dco();
 	msp430_init_uart();
-
+	
+	
 	//DAC should be at full voltage if it exists.
 #ifdef DAC12IR
 	//glitchvoltages(0xfff,0xfff);
 	ADC12CTL0 = REF2_5V + REFON;					// Internal 2.5V ref on
-	for(i=0;i!=0xFFFF;i++) asm("nop");
+	//for(i=0;i!=0xFFFF;i++) asm("nop"); //DO NOT UNCOMMENT, break GCC4.
 	DAC12_0CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
 	DAC12_0DAT = 0xFFF; //Max voltage 0xfff
 	DAC12_1CTL = DAC12IR + DAC12AMP_5 + DAC12ENC; // Int ref gain 1
@@ -71,7 +72,7 @@ void init()
 	/** FIXME
 	  
 	  This part is really ugly.  GSEL (P5.7) must be high to select
-	  normal voltage, but a lot of applications light to swing it low
+	  normal voltage, but a lot of applications like to swing it low
 	  to be a nuissance.  To get around this, we assume that anyone
 	  with a glitching FET will also have a DAC, then we set that DAC
 	  to a high voltage.
@@ -84,6 +85,8 @@ void init()
 
 	//Enable Interrupts.
 	//eint();
+	
+	
 	
 	#ifdef INITPLATFORM
 	INITPLATFORM;
@@ -120,71 +123,61 @@ void handle(uint8_t const app,
 
 
 //! Main loop.
-int main(void)
-{
-	volatile unsigned int i;
-	unsigned char app, verb;
-	unsigned long len;
-	// MSP reboot count for reset input & reboot function located at 0xFFFE
-	volatile unsigned int reset_count = 0;
-	void (*reboot_function)(void) = (void *) 0xFFFE;
-
-	init();
+int main(void){
+  volatile unsigned int i;
+  unsigned char app, verb;
+  unsigned long len;
+  // MSP reboot count for reset input & reboot function located at 0xFFFE
+  volatile unsigned int reset_count = 0;
+  void (*reboot_function)(void) = (void *) 0xFFFE;
   
-	txstring(MONITOR,OK,"http://goodfet.sf.net/");
+  init();
   
-	//Command loop.  There's no end!
-	while(1)
-	{
-		//Magic 3
-		app = serial_rx();
+  txstring(MONITOR,OK,"http://goodfet.sf.net/");
+  
+  //Command loop.  There's no end!
+  while(1){
+    //Magic 3
+    app = serial_rx();
+    
+    // If the app is the reset byte (0x80) increment and loop
+    if (app == RESET){
+      reset_count++;
+      
+      if (reset_count > 4){
+	// We could trigger the WDT with either:
+	// WDTCTL = 0;
+	// or
+	// WDTCTL = WDTPW + WDTCNTCL + WDTSSEL + 0x00;
+	// but instead we'll jump to our reboot function pointer
+	(*reboot_function)();
+      }
+      
+      continue;
+    }else{
+      reset_count = 0;
+    }
 
-		// If the app is the reset byte (0x80) increment and loop
-		if (app == RESET)
-		{
-			reset_count++;
+    verb = serial_rx();
+    //len=serial_rx();
+    len = rxword();
+    
+    //Read data, looking for buffer overflow.y
+    if(len <= CMDDATALEN){
+      for(i = 0; i < len; i++){
+	cmddata[i] = serial_rx();
+      }
 
-			if (reset_count > 4) 
-			{
-				// We could trigger the WDT with either:
-				// WDTCTL = 0;
-				// or
-				// WDTCTL = WDTPW + WDTCNTCL + WDTSSEL + 0x00;
-				// but instead we'll jump to our reboot function pointer
-				(*reboot_function)();
-			}
-
-			continue;
-		} 
-		else 
-		{
-			reset_count = 0;
-		}
-
-		verb = serial_rx();
-		//len=serial_rx();
-		len = rxword();
-
-		//Read data, looking for buffer overflow.y
-		if(len <= CMDDATALEN)
-		{
-			for(i = 0; i < len; i++)
-			{
-				cmddata[i] = serial_rx();
-			}
-
-			handle(app,verb,len);
-		}
-		else
-		{
-			//Listen to the blaberring.
-			for(i = 0; i < len; i++)
-				serial_rx();
-
-			//Reply with an error.
-			debugstr("Buffer length exceeded.");
-			txdata(MONITOR,NOK,0);
-		}
-	}
+      handle(app,verb,len);
+    }else{
+      //Listen to the blaberring.
+      for(i = 0; i < len; i++)
+	serial_rx();
+      
+      //Reply with an error.
+      debugstr("Buffer length exceeded.");
+      txdata(MONITOR,NOK,0);
+    }
+  }
 }
 

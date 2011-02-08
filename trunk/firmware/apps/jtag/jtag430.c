@@ -30,24 +30,43 @@ app_t const jtag430_app = {
 
 unsigned int jtag430mode=MSP430X2MODE;
 
+unsigned int drwidth=16;
+
+//! Shift an address width of data
+uint32_t jtag430_shift_addr( uint32_t addr )
+{
+	if (!in_run_test_idle())
+	{
+		debugstr("Not in run-test-idle state");
+		return 0;
+	}
+
+	// get intot the right state
+	jtag_capture_dr();
+	jtag_shift_register();
+
+	// shift DR, then idle
+	return jtag_trans_n(addr, drwidth, MSB);
+}
+
 //! Set a register.
 void jtag430_setr(u8 reg, u16 val){
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x3401);// release low byte
-  jtag_ir_shift8(IR_DATA_16BIT);
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x3401);// release low byte
+  jtag_ir_shift_8(IR_DATA_16BIT);
   
   //0x4030 is "MOV #foo, r0"
   //Right-most field is register, so 0x4035 loads r5
-  jtag_dr_shift16(0x4030+reg);
+  jtag_dr_shift_16(0x4030+reg);
   CLRTCLK;
   SETTCLK;
-  jtag_dr_shift16(val);// Value for the register
+  jtag_dr_shift_16(val);// Value for the register
   CLRTCLK;
-  jtag_ir_shift8(IR_ADDR_CAPTURE);
+  jtag_ir_shift_8(IR_ADDR_CAPTURE);
   SETTCLK;
   CLRTCLK ;// Now reg is set to new value.
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2401);// low byte controlled by JTAG
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x2401);// low byte controlled by JTAG
 }
 
 //! Set the program counter.
@@ -59,12 +78,12 @@ void jtag430_setpc(unsigned int adr){
 void jtag430_haltcpu(){
   //jtag430_setinstrfetch();
   
-  jtag_ir_shift8(IR_DATA_16BIT);
-  jtag_dr_shift16(0x3FFF);//JMP $+0
+  jtag_ir_shift_8(IR_DATA_16BIT);
+  jtag_dr_shift_16(0x3FFF);//JMP $+0
   
   CLRTCLK;
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2409);//set JTAG_HALT bit
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x2409);//set JTAG_HALT bit
   SETTCLK;
 }
 
@@ -74,11 +93,11 @@ void jtag430_releasecpu(){
   //debugstr("Releasing target MSP430.");
   
   /*
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2C01); //Apply reset.
-  jtag_dr_shift16(0x2401); //Release reset.
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x2C01); //Apply reset.
+  jtag_dr_shift_16(0x2401); //Release reset.
   */
-  jtag_ir_shift8(IR_CNTRL_SIG_RELEASE);
+  jtag_ir_shift_8(IR_CNTRL_SIG_RELEASE);
   SETTCLK;
 }
 
@@ -88,19 +107,19 @@ unsigned int jtag430_readmem(unsigned int adr){
   jtag430_haltcpu();
   
   CLRTCLK;
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
   
   if(adr>0xFF)
-    jtag_dr_shift16(0x2409);//word read
+    jtag_dr_shift_16(0x2409);//word read
   else
-    jtag_dr_shift16(0x2419);//byte read
-  jtag_ir_shift8(IR_ADDR_16BIT);
-  jtag_dr_shiftadr(adr);//address
-  jtag_ir_shift8(IR_DATA_TO_ADDR);
+    jtag_dr_shift_16(0x2419);//byte read
+  jtag_ir_shift_8(IR_ADDR_16BIT);
+  jtag430_shift_addr(adr);//address
+  jtag_ir_shift_8(IR_DATA_TO_ADDR);
   SETTCLK;
 
   CLRTCLK;
-  toret=jtag_dr_shift16(0x0000);//16 bit return
+  toret=jtag_dr_shift_16(0x0000);//16 bit return
   
   return toret;
 }
@@ -108,15 +127,15 @@ unsigned int jtag430_readmem(unsigned int adr){
 //! Write data to address.
 void jtag430_writemem(unsigned int adr, unsigned int data){
   CLRTCLK;
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
   if(adr>0xFF)
-    jtag_dr_shift16(0x2408);//word write
+    jtag_dr_shift_16(0x2408);//word write
   else
-    jtag_dr_shift16(0x2418);//byte write
-  jtag_ir_shift8(IR_ADDR_16BIT);
-  jtag_dr_shiftadr(adr);
-  jtag_ir_shift8(IR_DATA_TO_ADDR);
-  jtag_dr_shift16(data);
+    jtag_dr_shift_16(0x2418);//byte write
+  jtag_ir_shift_8(IR_ADDR_16BIT);
+  jtag430_shift_addr(adr);
+  jtag_ir_shift_8(IR_DATA_TO_ADDR);
+  jtag_dr_shift_16(data);
   SETTCLK;
 }
 
@@ -124,24 +143,24 @@ void jtag430_writemem(unsigned int adr, unsigned int data){
 void jtag430_writeflashword(unsigned int adr, unsigned int data){
   
   CLRTCLK;
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2408);//word write
-  jtag_ir_shift8(IR_ADDR_16BIT);
-  jtag_dr_shiftadr(adr);
-  jtag_ir_shift8(IR_DATA_TO_ADDR);
-  jtag_dr_shift16(data);
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x2408);//word write
+  jtag_ir_shift_8(IR_ADDR_16BIT);
+  jtag430_shift_addr(adr);
+  jtag_ir_shift_8(IR_DATA_TO_ADDR);
+  jtag_dr_shift_16(data);
   SETTCLK;
   
   //Return to read mode.
   CLRTCLK;
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2409);
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x2409);
   
   /*
   jtag430_writemem(adr,data);
   CLRTCLK;
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2409);
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x2409);
   */
   
   //Pulse TCLK
@@ -174,15 +193,15 @@ void jtag430_writeflash(unsigned int adr, unsigned int data){
 //! Power-On Reset
 void jtag430_por(){
   // Perform Reset
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2C01); // apply
-  jtag_dr_shift16(0x2401); // remove
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x2C01); // apply
+  jtag_dr_shift_16(0x2401); // remove
   CLRTCLK;
   SETTCLK;
   CLRTCLK;
   SETTCLK;
   CLRTCLK;
-  jtagid = jtag_ir_shift8(IR_ADDR_CAPTURE); // get JTAG identifier
+  jtagid = jtag_ir_shift_8(IR_ADDR_CAPTURE); // get JTAG identifier
   SETTCLK;
   
   jtag430_writemem(0x0120, 0x5A80);   // Diabled Watchdog
@@ -215,8 +234,8 @@ void jtag430_eraseflash(unsigned int mode, unsigned int adr, unsigned int count,
   jtag430_writemem(adr, 0x55AA);
   //Return to read mode.
   CLRTCLK;
-  jtag_ir_shift8(IR_CNTRL_SIG_16BIT);
-  jtag_dr_shift16(0x2409);
+  jtag_ir_shift_8(IR_CNTRL_SIG_16BIT);
+  jtag_dr_shift_16(0x2409);
   
   //Send the pulses.
   jtag430_tclk_flashpulses(count);
@@ -235,17 +254,17 @@ void jtag430_resettap(){
   SETTDI; //430X2
   SETTMS;
   //SETTDI; //classic
-  TCKTOCK;
+  jtag_tcktock();
 
   // Navigate to reset state.
   // Should be at least six.
   for(i=0;i<4;i++){
-    TCKTOCK;
+    jtag_tcktock();
   }
 
   // test-logic-reset
   CLRTMS;
-  TCKTOCK;
+  jtag_tcktock();
   SETTMS;
   // idle
 
@@ -267,7 +286,7 @@ void jtag430_resettap(){
 //! Get the JTAG ID
 unsigned char jtag430x2_jtagid(){
   jtag430_resettap();
-  jtagid=jtag_ir_shift8(IR_BYPASS);
+  jtagid = jtag_ir_shift_8(IR_BYPASS);
   if(jtagid!=0x89 && jtagid!=0x91){
     debugstr("Unknown JTAG ID");
     debughex(jtagid);
@@ -276,7 +295,7 @@ unsigned char jtag430x2_jtagid(){
 }
 //! Start JTAG, take pins
 unsigned char jtag430x2_start(){
-  jtagsetup();
+  jtag_setup();
   
   //Known-good starting position.
   //Might be unnecessary.
@@ -305,7 +324,7 @@ unsigned char jtag430x2_start(){
 
 //! Start JTAG, take pins
 void jtag430_start(){
-  jtagsetup();
+  jtag_setup();
   
   //Known-good starting position.
   //Might be unnecessary.
@@ -337,7 +356,7 @@ void jtag430_start(){
 //! Stop JTAG.
 void jtag430_stop(){
   debugstr("Exiting JTAG.");
-  jtagsetup();
+  jtag_setup();
   
   //Known-good starting position.
   //Might be unnecessary.
@@ -358,11 +377,11 @@ void jtag430_stop(){
 //! Set CPU to Instruction Fetch
 void jtag430_setinstrfetch(){
   
-  jtag_ir_shift8(IR_CNTRL_SIG_CAPTURE);
+  jtag_ir_shift_8(IR_CNTRL_SIG_CAPTURE);
 
   // Wait until instruction fetch state.
   while(1){
-    if (jtag_dr_shift16(0x0000) & 0x0080)
+    if (jtag_dr_shift_16(0x0000) & 0x0080)
       return;
     CLRTCLK;
     SETTCLK;
@@ -424,6 +443,7 @@ void jtag430_handle_fn(uint8_t const app,
     jtag430_resettap();
     txdata(app,verb,1);
     
+
     break;
   case STOP:
     jtag430_stop();

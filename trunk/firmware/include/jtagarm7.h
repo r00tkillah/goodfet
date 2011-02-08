@@ -12,6 +12,24 @@
 #define JTAGSTATE_ARM 0         // bit 4 on dbg status reg is low
 #define JTAGSTATE_THUMB 1
 
+// JTAG TAP states
+#define Exit2_DR 0x0
+#define Exit_DR 0x1
+#define Shift_DR 0x2
+#define Pause_DR 0x3
+#define Select_IR 0x4
+#define Update_DR 0x5
+#define Capture_DR 0x6
+#define Select_DR 0x7
+#define Exit2_IR 0x8
+#define Exit_IR 0x9
+#define Shift_IR 0xa
+#define Pause_IR 0xb
+#define RunTest_Idle 0xc
+#define Update_IR 0xd
+#define Capture_IR 0xe
+#define Test_Reset 0xf
+
 // JTAGARM7 Commands
 
 //! Start JTAG

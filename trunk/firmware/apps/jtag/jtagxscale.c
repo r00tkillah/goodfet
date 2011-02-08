@@ -52,168 +52,55 @@ app_t const jtagxscale_app = {
 /* NOTE: I heavily cribbed from the ARM7TDMI jtag implementation. Credit where
  * credit is due. */
 
-/* this handles shifting arbitrary length bit strings into the instruction
- * register and clocking out bits while leaving the JTAG state machine in a
- * known state. it also handle bit swapping. */
-unsigned long jtag_xscale_shift_n(unsigned long word,
-                                  unsigned char nbits,
-                                  unsigned char flags)
+void jtag_xscale_reset_cpu(void)
 {
-    unsigned int bit;
-    unsigned long high = 1;
-    unsigned long mask;
-
-    for (bit = (nbits - 1) / 8; bit > 0; bit--)
-        high <<= 8;
-    
-    high <<= ((nbits - 1) % 8);
-
-    mask = high - 1;
-
-    if (flags & LSB) 
-    {
-        /* clock the bits into the IR from LSB to MSB order */
-        for (bit = nbits; bit > 0; bit--) 
-        {
-            /* write MOSI on trailing edge of previous clock */
-            if (word & 1)
-            {
-                SETMOSI;
-            }
-            else
-            {
-                CLRMOSI;
-            }
-            word >>= 1;
-
-            if (bit == 1 && !(flags & NOEND))
-                SETTMS; /* TMS high on last bit to exit. */
-
-            /* tick tock the clock line */
-            XTT;
-
-            /* read MISO on trailing edge */
-            if (READMISO)
-            {
-                word += (high);
-            }
-        }
-    } 
-    else 
-    {
-        /* clock the bits into the IR from MSB to LSB order */
-        for (bit = nbits; bit > 0; bit--) 
-        {
-            /* write MOSI on trailing edge of previous clock */
-            if (word & high)
-            {
-                SETMOSI;
-            }
-            else
-            {
-                CLRMOSI;
-            }
-            word = (word & mask) << 1;
-
-            if (bit == 1 && !(flags & NOEND))
-                SETTMS;//TMS high on last bit to exit.
-
-            /* tick tock the clock line */
-            XTT;
-
-            /* read MISO on trailing edge */
-            word |= (READMISO);
-        }
-    }
-
-    SETMOSI;
-
-    if (!(flags & NOEND))
-    {
-        /* exit state */
-        XTT;
-
-        /* update state */
-        if (!(flags & NORETIDLE))
-        {
-            CLRTMS;
-            XTT;
-        }
-    }
-
-    return word;
-}
-
-
-/* this handles shifting in the IDCODE instruction and shifting the result
- * out the TDO and return it. */
-unsigned long jtag_xscale_idcode()
-{
-    /* NOTE: this assumes that we're in the run-test-idle state */
-
-    /* get into the shift-ir state */
-    SHIFT_IR;
-
-    /* shift the ID code instruction into the IR and return to run-test-idle */
-    jtag_xscale_shift_n(XSCALE_IR_IDCODE, 5, LSB);
-
-    /* get into the shift-dr state */
-    SHIFT_DR;
-
-    /* now clock out the 32 bit ID code and return back to run-test-idle */
-    return jtag_xscale_shift_n(0, 32, LSB);
+	SETRST;
+	msdelay(100);
+	CLRRST;
+	msdelay(100);
+	SETRST;
+	msdelay(100);
 }
 
 /* Handles XScale JTAG commands.  Forwards others to JTAG. */
 void jtag_xscale_handle_fn( uint8_t const app,
 							uint8_t const verb,
 							uint32_t const len)
-{    
-    switch(verb) 
-    {
-        /*
-         * Standard Commands
-         */
-        case SETUP:
+{	 
+	switch(verb) 
+	{
+	case SETUP:
+		/* set up the pin I/O for JTAG */
+		jtag_setup();
+		/* reset to run-test-idle state */
+		jtag_reset_tap();
+		/* send back OK */
+		txdata(app, verb, 0);
+		break;
 
-            /* set up the pin I/O for JTAG */
-            jtagsetup();
+	case START:
+		txdata(app, verb, 0);
+		break;
 
-            /* reset to run-test-idle state */
-            RUN_TEST_IDLE;
+	case STOP:
+		txdata(app, verb, 0);
+		break;
 
-            /* send back OK */
-            txdata(app, OK, 0);
+	case PEEK:
+	case POKE:
+	case READ:
+	case WRITE:
+		/* send back OK */
+		txdata(app, verb, 0);
+		break;
 
-            break;
+	case JTAG_RESET_TARGET:
+		jtag_xscale_reset_cpu();
+		txdata(app, verb, 0);
+		break;
 
-        case START:
-        case STOP:
-        case PEEK:
-        case POKE:
-        case READ:
-        case WRITE:
-        default:
- 
-            /* send back OK */
-            txdata(app, OK, 0);
-
-            break;
-
-        /*
-         * XScale Commands
-         */
-        case XSCALE_GET_CHIP_ID:
-
-            /* reset to run-test-idle state */
-            RUN_TEST_IDLE;
-
-            /* put the ID code in the data buffer */
-            cmddatalong[0] = jtag_xscale_idcode();
-
-            /* send it back to the client */
-            txdata(app,verb,4);
-
-            break;
-    }
+	default:
+		(*(jtag_app.handle))(app,verb,len);
+		break;
+	}
 }

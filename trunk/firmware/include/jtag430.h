@@ -45,6 +45,8 @@ void jtag430_setinstrfetch();
 void jtag430_setpc(unsigned int adr);
 //! Write data to address.
 void jtag430_writeflash(unsigned int adr, unsigned int data);
+//! Shift an address width of data
+uint32_t jtag430_shift_addr( uint32_t addr );
 
 
 //16-bit MSP430 JTAG commands, bit-swapped

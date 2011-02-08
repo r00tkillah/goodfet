@@ -12,5 +12,8 @@
 
 extern app_t const jtag430x2_app;
 
+//! Shift 20 bits of the DR.
+uint32_t jtag430_dr_shift_20(uint32_t in);
+
 #endif
 

@@ -1,6 +1,6 @@
 
 #include `uname`.mak
-#GOODFET?=/dev/ttyUSB0
+GOODFET?=/dev/ttyUSB0
 
 #For tos-bsl, use --invert-reset --invert-test
 BSL?=goodfet.bsl --speed=38400
@@ -9,9 +9,9 @@ BSL?=goodfet.bsl --speed=38400
 #Default removed because of confusion.
 
 #mcu=msp430x2274
-#mcu=msp430x2618
+mcu=msp430x2618
 #mcu?=msp430x1612
-mcu?=RUNCONFIG
+#mcu?=RUNCONFIG
 
 #platform=goodfet
 #platform=telosb
@@ -90,11 +90,10 @@ CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(plat
 # config = monitor jtagxscale
 
 # Old Default Config
-#config = monitor sbw  chipcon nrf ccspi spi jtagarm7 jtag430 jtag430x2 avr
+# config = monitor sbw  chipcon nrf ccspi spi jtagarm7 jtag430 jtag430x2 avr
 
 # New default.
 config ?= monitor chipcon ccspi nrf spi jtagarm7 jtag430 jtag430x2 avr
-
 
 # Build the needed list of app and lib object files from the config
 apps= 
@@ -230,8 +229,6 @@ ifeq ($(filter avr, $(config)), avr)
 	hdrs+= avr.h
 endif
 
-
-
 # include pic app
 ifeq ($(filter pic, $(config)), pic)
 	apps+= apps/pic/pic.o
@@ -311,7 +308,7 @@ verify:
 dumpinfo:
 	$(BSL) --dumpinfo
 $(app).c: config builddate appsfiles err
-$(app):  $(libs) $(apps)
+$(app): $(libs) $(apps)
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex
 m4s: $(app).hex

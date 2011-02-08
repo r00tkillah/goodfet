@@ -38,7 +38,7 @@ void ejtag_handle_fn( uint8_t const app,
 	switch(verb)
 	{
 	case START:
-		cmddata[0] = jtag_ir_shift8(EJTAG_IR_BYPASS);
+		cmddata[0] = jtag_ir_shift_8(EJTAG_IR_BYPASS);
 		txdata(app, verb, 1);
 		break;
 	case STOP:
@@ -49,6 +49,6 @@ void ejtag_handle_fn( uint8_t const app,
 	case POKE:
 		//WRITEME
 	default:
-		(*(ejtag_app.handle))(app, verb, len);
+		(*(jtag_app.handle))(app, verb, len);
 	}
 }

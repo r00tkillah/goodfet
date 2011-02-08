@@ -10,38 +10,87 @@
 
 #define JTAG 0x10
 
-//! JTAG device ID.
+//! All states in the JTAG TAP
+enum eTAPState
+{
+	UNKNOWN				= 0x0000,
+	TEST_LOGIC_RESET	= 0x0001,
+	RUN_TEST_IDLE		= 0x0002,
+	SELECT_DR_SCAN		= 0x0004,
+	CAPTURE_DR			= 0x0008,
+	SHIFT_DR			= 0x0010,
+	EXIT1_DR			= 0x0020,
+	PAUSE_DR			= 0x0040,
+	EXIT2_DR			= 0x0080,
+	UPDATE_DR			= 0x0100,
+	SELECT_IR_SCAN		= 0x0200,
+	CAPTURE_IR			= 0x0400,
+	SHIFT_IR			= 0x0800,
+	EXIT1_IR			= 0x1000,
+	PAUSE_IR			= 0x2000,
+	EXIT2_IR			= 0x4000,
+	UPDATE_IR			= 0x8000
+};
+
 extern unsigned char jtagid;
 
+//! the global state of the JTAG TAP
+extern enum eTAPState jtag_state;
 
-// Generic Commands
+//! Returns true if we're in any of the data register states
+int in_dr();
+//! Returns true if we're in any of the instruction register states
+int in_ir();
+//! Returns true if we're in run-test-idle state
+int in_run_test_idle();
+//! Check the state
+int in_state(enum eTAPState state);
+
+//! jtag_trans_n flags
+enum eTransFlags
+{
+	MSB					= 0x0,
+	LSB					= 0x1,
+	NOEND				= 0x2,
+	NORETIDLE			= 0x4
+};
 
 //! Shift n bytes.
-unsigned long jtagtransn(unsigned long word,
-			 unsigned char bitcount,
-             unsigned char flags);
-//! Shift the address width.
-unsigned long jtag_dr_shiftadr(unsigned long in);
+uint32_t jtag_trans_n(uint32_t word, 
+					  uint8_t bitcount, 
+					  enum eTransFlags flags);
+//! Shift 8 bits in/out of selected register
+uint8_t jtag_trans_8(uint8_t in);
+//! Shift 16 bits in/out of selected register
+uint16_t jtag_trans_16(uint16_t in);
 //! Shift 8 bits of the IR.
-unsigned char jtag_ir_shift8(unsigned char);
+uint8_t jtag_ir_shift_8(uint8_t in);
 //! Shift 16 bits of the DR.
-unsigned int jtag_dr_shift16(unsigned int);
-//! Shift 20 bits of the DR, MSP430 specific.
-unsigned long jtag_dr_shift20(unsigned long in);
+uint16_t jtag_dr_shift_16(uint16_t in);
 //! Stop JTAG, release pins
 void jtag_stop();
-
 //! Setup the JTAG pin directions.
-void jtagsetup();
-
+void jtag_setup();
 //! Ratchet Clock Down and Up
 void jtag_tcktock();
-//! Go to SHIFT_IR
-void jtag_goto_shift_ir();
-//! Go to SHIFT_DR
-void jtag_goto_shift_dr();
+//! Reset the target device
+void jtag_reset_target();
 //! TAP RESET
-void jtag_resettap();
+void jtag_reset_tap();
+//! Get into the Shift-IR or Shift-DR
+void jtag_shift_register();
+//! Get into Capture-IR state
+void jtag_capture_ir();
+//! Get into Capture-DR state
+void jtag_capture_dr();
+//! Get to Run-Test-Idle without going through Test-Logic-Reset
+void jtag_run_test_idle();
+//! Detect instruction register width
+uint16_t jtag_detect_ir_width();
+//! Detects how many TAPs are in the JTAG chain
+uint16_t jtag_detect_chain_length();
+//! Gets device ID for specified chip in the chain
+uint32_t jtag_get_device_id(int chip);
 
 //Pins.  Both SPI and JTAG names are acceptable.
 //#define SS   BIT0
@@ -90,38 +139,15 @@ extern int savedtclk;
 #define SAVETCLK savedtclk=SPIOUT&TCLK;
 #define RESTORETCLK if(savedtclk) SPIOUT|=TCLK; else SPIOUT&=~TCLK
 
-//Replace every "CLRTCK SETTCK" with this.
-#define TCKTOCK CLRTCK,SETTCK
-
 //JTAG commands
 #define JTAG_IR_SHIFT 0x80
 #define JTAG_DR_SHIFT 0x81
-#define JTAG_RESETTAP 0x82
-#define JTAG_RESETTARGET 0x83
-#define JTAG_DR_SHIFT20 0x91
-
-#define MSB         0
-#define LSB         1
-#define NOEND       2
-#define NORETIDLE   4
-
-//JTAG430 commands
-#define Exit2_DR 0x0
-#define Exit_DR 0x1
-#define Shift_DR 0x2
-#define Pause_DR 0x3
-#define Select_IR 0x4
-#define Update_DR 0x5
-#define Capture_DR 0x6
-#define Select_DR 0x7
-#define Exit2_IR 0x8
-#define Exit_IR 0x9
-#define Shift_IR 0xa
-#define Pause_IR 0xb
-#define RunTest_Idle 0xc
-#define Update_IR 0xd
-#define Capture_IR 0xe
-#define Test_Reset 0xf
+#define JTAG_RESET_TAP 0x82
+#define JTAG_RESET_TARGET 0x83
+#define JTAG_DETECT_IR_WIDTH 0x84
+#define JTAG_DETECT_CHAIN_LENGTH 0x85
+#define JTAG_GET_DEVICE_ID 0x86
+//#define JTAG_DR_SHIFT20 0x91
 
 extern app_t const jtag_app;
 

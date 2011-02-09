@@ -310,14 +310,18 @@ class AutoTuner():
     rate=False;
     chan=False;
     sync=False;
+    macreject=False;
+    printing=False;
     startch=0; #Useful for forcing an early match.
     def init(self,goodfet,
-             rate=True,chan=True,sync=True):
+             rate=True,chan=True,sync=True, macreject=True, printing=False):
         """Initializes a link to the GoodFET for autotuning."""
         self.client=goodfet;
         self.rate=rate;
         self.chan=chan;
         self.sync=sync;
+        self.macreject=macreject;
+        self.printing=printing;
         
         client.poke(0x00,0x00); #Stop nRF
         client.poke(0x01,0x00); #Disable Shockburst
@@ -354,17 +358,21 @@ class AutoTuner():
     def validmac(self,packet):
         sync=self.client.RF_getsmac()&0xFF;
         mac=self.packetaddr(packet,justmac=True);
-        if (ord(packet[0])&0x80)^(sync&0x80):
+        
+        #BT preamble is A or 5.
+        #Fix this to work on the smallest bit, not the highest.
+        if ((ord(packet[0])&0x80)^(sync&0x80)) and self.macreject:
             #print "%02x%02x invalid entry." % (sync,ord(packet[0]));
             #This is a special kind of failure.  Freq is probably right, but MAC is wrong.
             return False;
-        if mac=='5555555555' or mac=='aaaaaaaaaa' or mac=='0000000000':
+        if mac=='5555555555' or mac=='aaaaaaaaaa' or mac=='0000000000' or mac=='ffffffffff':
             return False;
         return True;
         
     def handle(self,packet):
         """Handles a packet."""
-        #printpacket(packet);
+        if self.printing:
+            printpacket(packet);
         
         if not self.validmac(packet):
             #print "Dropped packet from %s" % self.packetaddr(packet,justmac=True);
@@ -462,6 +470,34 @@ if(sys.argv[1]=="autotune"):
     client.poke(0x07,0x78); #Reset status register
     
     #This is determined by the MAC, which we don't yet know.
+    
+    #Longest length.
+    client.RF_setpacketlen(32);
+    
+    #Power radio, prime for RX, no checksum
+    client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two.
+    
+    print "Autotuning on %i MHz" % (
+        client.RF_getfreq()/10**6);
+    print "sync,mac,r5,r6";
+    #Now we're ready to get packets.
+    guesser.selftune(threshold=2,
+                     forever=True);
+
+if(sys.argv[1]=="autotunebt"):
+    #Reversal of transmitter code from nRF_CMD.c of OpenBeacon
+    #TODO remove all poke() calls.
+    guesser=AutoTuner();
+    guesser.init(client,rate=True,sync=False,chan=True,
+                 macreject=False, printing=True);
+    
+    
+    #client.RF_setfreq(2481 * 10**6);
+    client.poke(0x06,0x00); #1MBps
+    client.poke(0x07,0x78); #Reset status register
+    
+    #Bluetooth preamble is 0xA; BTLE is 0xAA.
+    client.RF_setsmac(0x000A);
     
     #Longest length.
     client.RF_setpacketlen(32);

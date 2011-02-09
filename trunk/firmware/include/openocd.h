@@ -8,8 +8,15 @@
 
 #include "app.h"
 
+// OpenOCD app number
 #define OPENOCD 0x18
 
-extern app_t const jtag_app;
+// OpenOCD app verbs
+#define OPENOCD_RESET	0x80
+#define OPENOCD_READ	0x81
+#define OPENOCD_WRITE	0x82
+#define OPENOCD_LED		0x83
+
+extern app_t const openocd_app;
 
 #endif

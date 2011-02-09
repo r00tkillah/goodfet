@@ -50,6 +50,7 @@ CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(plat
 # jtagarm7 -- ARM7TDMI JTAG
 # ejtag -- MIPS JTAG
 # jtagxscale -- XScale JTAG
+# openocd -- OpenOCD bitbang device
 
 #  Microcontrollers:
 # chipcon -- Chipcon radio 8051 debugging
@@ -88,6 +89,9 @@ CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(plat
 
 # XScale PXA255 JTAG
 # config = monitor jtagxscale
+
+# OpenOCD bit-bang device
+config = monitor openocd
 
 # Old Default Config
 # config = monitor sbw  chipcon nrf ccspi spi jtagarm7 jtag430 jtag430x2 avr
@@ -215,6 +219,17 @@ ifeq ($(filter jtagxscale, $(config)), jtagxscale)
 	endif
 	apps+= apps/jtag/jtagxscale.o
 	hdrs+= jtagxscale.h
+endif
+
+# include openocd app
+ifeq ($(filter openocd, $(config)), openocd)
+	# add in base jtag code if not already
+	ifneq ($(filter apps/jtag/jtag.o, $(apps)), apps/jtag/jtag.o)
+		apps+= apps/jtag/jtag.o
+		hdrs+= jtag.h
+	endif
+	apps+= apps/jtag/openocd.o
+	hdrs+= openocd.h
 endif
 
 # include chipcon app

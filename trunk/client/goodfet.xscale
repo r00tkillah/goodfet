@@ -12,10 +12,11 @@ import binascii;
 from GoodFETXSCALE import GoodFETXSCALE
 from intelhex import IntelHex
 
-#if(len(sys.argv) == 1):
-#    print "Usage: %s verb [objects]\n" % sys.argv[0]
-#    print "%s chipid" % sys.argv[0]
-#    sys.exit();
+if len(sys.argv) == 1:
+    print "Usage: %s verb [objects]\n" % sys.argv[0]
+    print "%s reset" % sys.argv[0]
+    print "%s chipid <index>" % sys.argv[0]
+    sys.exit();
 
 #Initailize FET and set baud rate
 client = GoodFETXSCALE()
@@ -25,9 +26,15 @@ client.serInit()
 client.setup()
 client.start()
 
-print 'arg: %s' % sys.argv[1]
-if(sys.argv[1] == 'chipid'):
-    print 'Getting XScale Chip ID...'
-    client.get_id()
+if sys.argv[1] == "reset":
+    client.reset_target()
 
-client.stop();
+if sys.argv[1] == "chipid":
+    if len(sys.argv) < 3:
+        print "missing argument"
+        sys.exit()
+    idx = int(sys.argv[2])
+    id = client.get_device_id(idx)
+    print "\tDevice %d ID: 0x%s" % (idx, hex(id)[2:].zfill(8).upper())
+
+client.stop()

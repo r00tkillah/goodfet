@@ -1,5 +1,5 @@
 // CALDCO_16MHZ, CALBC1_16MHZ
-const char dco_calibrations[]={
+const char dco_calibrations[] __attribute__ ((aligned (2)))={
   0x60, 0x8f,  // 2274-003.txt
   0x68, 0x8f,  // 2618-001.txt
   0x6c, 0x8f,  // 2618-003.txt
@@ -8,7 +8,6 @@ const char dco_calibrations[]={
   0x7e, 0x8f,  // 2274-006.txt
   0x80, 0x8f,  // 2274-002.txt
   0x81, 0x8f,  // 2619-000.txt
-  0x84, 0x8f,  // 2274-001.txt
   0x84, 0x8f,  // 2274-010.txt
   0x85, 0x8f,  // 2274-004.txt
   0x87, 0x8f,  // 2618-006.txt

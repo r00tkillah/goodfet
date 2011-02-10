@@ -682,6 +682,40 @@ if(sys.argv[1]=="sniffsf"):
         printpacket(packet);
         sys.stdout.flush();
 
+if(sys.argv[1]=="sniffnike"):
+    #TODO remove all poke() calls.
+    
+    client.poke(0x00,0x00); #Stop nRF
+    client.poke(0x01,0x00); #Disable Shockburst
+    client.poke(0x02,0x01); #Set RX Pipe 0
+    
+    client.RF_setfreq(2425 * 10**6);
+    client.poke(0x06,0x20|0x06); #250 kbps
+    client.poke(0x07,0x78); #Reset status register
+    
+    #Nike Settings
+    client.RF_setmaclen(2); # Illegal by datasheet, but it works!
+    client.RF_setsmac(0xc2bd);
+    client.RF_settmac(0xc2bd); #Should we forge data?
+    
+    client.RF_setpacketlen(32); #No idea what the length is.
+    
+    #Power radio, prime for RX, two-byte checksum.
+    client.poke(0x00,0x70|0x03); #0x08 for checksum, 0x04 for two bytes.
+    
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                           client.RF_getfreq()/10**6);
+    print "Expect some false-positives.";
+    
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            #time.sleep(0.1);
+            packet=client.RF_rxpacket();
+        printpacket(packet);
+        sys.stdout.flush();
+
 if(sys.argv[1]=="snifftp"):
     client.poke(0x00,0x00); #Stop nRF
     client.poke(0x01,0x00); #Disable Shockburst

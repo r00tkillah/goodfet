@@ -25,7 +25,7 @@ platform?=goodfet
 GCCINC=-T ldscripts/$(mcu).x
 
 CCEXTRA?=
-CC=msp430-gcc -Wall -Os -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(platform) -DGCC $(GCCINC) -I include -I platforms $(CCEXTRA)
+CC=msp430-gcc -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu) -D$(mcu) -D$(platform) -Dplatform=$(platform) -DGCC $(GCCINC) -I include -I platforms $(CCEXTRA)
 
 # Available Applications
 # ======================

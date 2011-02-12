@@ -18,10 +18,6 @@
 //! Initialize registers and all that jazz.
 void init()
 {
-#ifdef DAC12IR
-	int i;
-#endif
-
 	WDTCTL = WDTPW + WDTHOLD;					// Stop watchdog timer
 
 	//LED out and on.

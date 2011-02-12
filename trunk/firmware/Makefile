@@ -8,10 +8,10 @@ BSL?=goodfet.bsl --speed=38400
 #One of these should be defined explicitly.
 #Default removed because of confusion.
 
-#mcu=msp430x2274
-mcu=msp430x2618
+#mcu?=msp430x2274
+#mcu?=msp430x2618
 #mcu?=msp430x1612
-#mcu?=RUNCONFIG
+mcu?=RUNCONFIG
 
 #platform=goodfet
 #platform=telosb

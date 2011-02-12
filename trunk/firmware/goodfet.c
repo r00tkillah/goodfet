@@ -80,6 +80,10 @@ void init()
 
 	//Enable Interrupts.
 	//eint();
+	
+#ifdef INITPLATFORM
+	INITPLATFORM
+#endif
 }
 
 

@@ -31,3 +31,14 @@
 #define SPIDIR P5DIR
 #define SPIIN  P5IN
 #define SPIREN P5REN
+
+// network byte order converters
+#define htons(x) ((((uint16_t)(x) & 0xFF00) >> 8) | \
+				 (((uint16_t)(x) & 0x00FF) << 8))
+#define htonl(x) ((((uint32_t)(x) & 0xFF000000) >> 24) | \
+				  (((uint32_t)(x) & 0x00FF0000) >> 8) | \
+				  (((uint32_t)(x) & 0x0000FF00) << 8) | \
+				  (((uint32_t)(x) & 0x000000FF) << 24))
+
+#define ntohs htons
+#define ntohl htonl

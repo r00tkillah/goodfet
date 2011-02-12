@@ -44,12 +44,10 @@
 #define CLRSS P5OUT&=~BIT0
 #define DIRSS P5DIR|=BIT0;
 
-//BIT5 is Chip Enable.  Need to document this
-//#define RADIOACTIVE  P5OUT|=BIT5
-//#define RADIOPASSIVE P5OUT&=~BIT5
-#define SETCE P5OUT|=BIT5
-#define CLRCE P5OUT&=~BIT5
-#define DIRCE P5DIR|=BIT5
+//Used for the Nordic port, !RST pin on regular GoodFET.
+#define SETCE P2OUT|=BIT6
+#define CLRCE P2OUT&=~BIT6
+#define DIRCE P2DIR|=BIT6
 
 // network byte order converters
 #define htons(x) ((((uint16_t)(x) & 0xFF00) >> 8) | \

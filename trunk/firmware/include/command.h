@@ -35,8 +35,8 @@ extern unsigned char silent;
 
 #define cmddataword ((unsigned int*) cmddata)
 #define cmddatalong ((unsigned long*) cmddata)
-#define memorybyte ((unsigned char*) 0)
-#define memoryword ((unsigned int*) 0)
+#define memorybyte ((char*)  0)
+//#define memoryword ((unsigned int*)  0))
 
 // Global Commands
 #define READ  0x00

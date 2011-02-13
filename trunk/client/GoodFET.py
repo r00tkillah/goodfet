@@ -115,7 +115,8 @@ class GoodFET:
         connected=0;
         while connected==0:
             while self.verb!=0x7F or self.data!="http://goodfet.sf.net/":
-                #print "Resyncing.";
+                if attempts>2:
+                    print "Resyncing.";
                 self.serialport.flushInput()
                 self.serialport.flushOutput()
                 #Explicitly set RTS and DTR to halt board.
@@ -126,6 +127,7 @@ class GoodFET:
                 
                 #TelosB reset, prefer software to I2C SPST Switch.
                 if(os.environ.get("platform")=='telosb'):
+                    #print "TelosB Reset";
                     self.telosBReset();
                 #self.serialport.write(chr(0x80));
                 #self.serialport.write(chr(0x80));

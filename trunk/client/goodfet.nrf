@@ -150,8 +150,9 @@ if(sys.argv[1]=="test"):
                 2*10**6]:
         client.RF_setrate(foo);
         if(client.RF_getrate()!=foo):
-            print "ERROR Rate %i not supported.  Got %i instead." % (foo,
-                                                                     client.RF_getrate());
+            print "ERROR Rate %i not supported.  Got %i instead." % (
+                foo,
+                client.RF_getrate());
     
     print "\n\n";
     client.poke(0x0A,0xDEADBEEF,5);

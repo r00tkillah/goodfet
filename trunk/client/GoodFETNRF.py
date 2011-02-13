@@ -86,7 +86,7 @@ class GoodFETNRF(GoodFET):
         return "GFSK";
     def RF_getrate(self):
         rate=self.peek(0x06)&0x28;
-        if rate==0x28:
+        if rate==0x20:
             rate=250*10**3; #256kbps
         elif rate==0x08:
             rate=2*10**6;  #2Mbps

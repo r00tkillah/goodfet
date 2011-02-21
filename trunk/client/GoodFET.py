@@ -90,6 +90,10 @@ class GoodFET:
             glob_list = glob.glob("/dev/ttyUSB*");
             if len(glob_list) > 0:
                 port = glob_list[0];
+        if port is None:
+            glob_list = glob.glob("/dev/ttyU0");
+            if len(glob_list) > 0:
+                port = glob_list[0];
         if os.name=='nt':
             from scanwin32 import winScan;
             scan=winScan();

@@ -141,7 +141,7 @@ class GoodFETCCSPI(GoodFET):
         """
         
         # TODO -- Flush only if there's an overflow.
-        self.strobe(0x08); #SFLUSHRX
+        #self.strobe(0x08); #SFLUSHRX
         
         data="\0";
         self.data=data;

@@ -140,23 +140,34 @@ void ccspi_handle_fn( uint8_t const app,
     break;
   case CCSPI_RX:
     #ifdef FIFOP
-    //Wait for any incoming packet to finish.
-    //while(!SFD);
-    while(SFD);
-    delay(1000);
     
+     //Has there been an overflow?
+    if((!FIFO)&&FIFOP){
+      debugstr("Clearing overflow");
+      CLRSS;
+      ccspitrans8(0x08); //SFLUSHRX
+      SETSS;
+    }
     
     //Is there a packet?
-    if((!SFD) && FIFOP){ // &&FIFOP to do address verification.
+    if(FIFOP&&FIFO){
+      //Wait for completion.
+      while(SFD);
+      
       //Get the packet.
       CLRSS;
-      //ccspitrans8(CCSPI_RXFIFO);
-      ccspitrans8(0x3F|0x40);
-      cmddata[1]=0xff; //to be replaced with length
-      for(i=0;i<cmddata[1];i++)
+      ccspitrans8(CCSPI_RXFIFO | 0x40);
+      //ccspitrans8(0x3F|0x40);
+      cmddata[0]=0xff; //to be replaced with length
+      for(i=0;i<cmddata[0];i++)
 	cmddata[i]=ccspitrans8(0xde);
       SETSS;
-      txdata(app,verb,cmddata[0]);
+      
+      //Flush buffer.
+      CLRSS;
+      ccspitrans8(0x08); //SFLUSHRX
+      SETSS;
+      txdata(app,verb,i);
     }else{
       //No packet.
       txdata(app,verb,0);

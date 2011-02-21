@@ -130,10 +130,31 @@ class GoodFETCCSPI(GoodFET):
         return 0xdeadbeef;
     def RF_getrssi(self):
         """Returns the received signal strenght, with a weird offset."""
-        rssival=self.peek(0x13)&0xFF; #raw RSSI register, should normalize this
+        rssival=self.peek(0x13)&0xFF; #raw RSSI register
         return rssival^0x80;
     lastpacket=range(0,0xff);
     def RF_rxpacket(self):
+        """Get a packet from the radio.  Returns None if none is waiting.  In
+        order to not require the SFD, FIFO, or FIFOP lines, this
+        implementation works by comparing the buffer to the older
+        contents.
+        """
+        
+        #Switch to RX Mode.
+        #Should happen earlier?
+        self.strobe(0x03); #SRXON
+        self.strobe(0x08); #SFLUSHRX
+        
+        data="\0";
+        self.data=data;
+        self.writecmd(self.CCSPIAPP,0x80,len(data),data);
+        buffer=self.data;
+        
+        self.lastpacket=buffer;
+        if(buffer==[]):
+            return None;
+        return buffer;
+    def RF_rxpacket_old(self):
         """Get a packet from the radio.  Returns None if none is waiting.  In
         order to not require the SFD, FIFO, or FIFOP lines, this
         implementation works by comparing the buffer to the older
@@ -147,7 +168,7 @@ class GoodFETCCSPI(GoodFET):
         buffer=self.trans(buffer);
         
         new=False;
-        for foo in range(2,20):
+        for foo in range(0,ord(buffer[0])):
             if buffer[foo]!=self.lastpacket[foo]:
                 new=True;
         if not new:

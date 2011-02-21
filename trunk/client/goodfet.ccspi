@@ -16,19 +16,21 @@ def printpacket(packet):
     s="";
     i=0;
     for foo in packet:
-        i=i+1;
-        if i>ord(packet[1])+2: break;
-        if i<2: continue;
         s="%s %02x" % (s,ord(foo));
-    print "%s" % s;
+    print "#%s" % s;
 
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
+    print "%s info" % sys.argv[0];
     print "%s regs" % sys.argv[0];
     print "%s test" % sys.argv[0];
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
     print "%s poke 0x$adr 0x$val" % sys.argv[0];
+    
+    print "\n%s rssi" % sys.argv[0];
+    print "%s sniff" % sys.argv[0];
+    
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -72,11 +74,12 @@ if(sys.argv[1]=="rssi"):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
 if(sys.argv[1]=="sniff"):
-    #if len(sys.argv)>2:
-        #print "Set MAC to %s" % sys.argv[2];
-        #client.tune(sys.argv[2]);
-        #client.RF_setmaclen(5);
-        
+    if len(sys.argv)>2:
+        freq=eval(sys.argv[2]);
+        if freq>100:
+            client.RF_setfreq(freq);
+        else:
+            print "Channels not yet supported."
     client.CC_RFST_RX();
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                             client.RF_getfreq()/10**6);

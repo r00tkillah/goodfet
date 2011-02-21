@@ -141,18 +141,22 @@ void ccspi_handle_fn( uint8_t const app,
   case CCSPI_RX:
     #ifdef FIFOP
     //Wait for any incoming packet to finish.
+    //while(!SFD);
     while(SFD);
+    delay(1000);
+    
     
     //Is there a packet?
-    if((!SFD)&FIFOP){
+    if((!SFD)){
       //Get the packet.
       CLRSS;
-      ccspitrans8(CCSPI_RXFIFO);
-      for(i=0;i<32;i++)
+      //ccspitrans8(CCSPI_RXFIFO);
+      ccspitrans8(0x3F|0x40);
+      cmddata[1]=0xff; //to be replaced with length
+      for(i=0;i<cmddata[1];i++)
 	cmddata[i]=ccspitrans8(0xde);
       SETSS;
-      //no break
-      txdata(app,verb,32);
+      txdata(app,verb,cmddata[0]);
     }else{
       //No packet.
       txdata(app,verb,0);
@@ -168,15 +172,21 @@ void ccspi_handle_fn( uint8_t const app,
     ccspitrans8(CCSPI_SFLUSHRX);
     SETSS;
     
-    //Return the packet.
-    txdata(app,verb,32);
+    txdata(app,verb,0);
     break;
   case CCSPI_REFLEX:
     debugstr("Coming soon.");
     txdata(app,verb,0);
     break;
-  case CCSPI_TX:
   case CCSPI_TX_FLUSH:
+     //Flush the buffer.
+    CLRSS;
+    ccspitrans8(CCSPI_SFLUSHTX);
+    SETSS;
+    
+    txdata(app,verb,0);
+    break;
+  case CCSPI_TX:
   default:
     debugstr("Not yet supported.");
     txdata(app,verb,0);

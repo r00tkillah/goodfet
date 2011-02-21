@@ -125,7 +125,7 @@ class GoodFETCC(GoodFET):
         return hz;
     
     def RF_getchannel(self):
-        """Get the frequency in Hz."""
+        """Get the hex channel."""
         #FIXME CC1110 specific
         freq=0;
         try:

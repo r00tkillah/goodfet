@@ -67,7 +67,8 @@
 
 //CC2420 signals
 #define SFD   (P4IN&BIT1)
-#define FIFOP (P4IN&BIT0) 
+#define FIFOP (P1IN&BIT0)
+#define FIFO  (P1IN&BIT3)
 
 // network byte order converters
 #define htons(x) ((((uint16_t)(x) & 0xFF00) >> 8) | \

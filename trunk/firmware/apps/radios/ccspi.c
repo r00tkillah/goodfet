@@ -139,14 +139,28 @@ void ccspi_handle_fn( uint8_t const app,
     txdata(app,verb,0);
     break;
   case CCSPI_RX:
-    //Get the packet.
-    CLRSS;
-    ccspitrans8(CCSPI_RXFIFO);
-    for(i=0;i<32;i++)
-      cmddata[i]=ccspitrans8(0xde);
-    SETSS;
-    //no break
-    txdata(app,verb,32);
+    #ifdef FIFOP
+    //Wait for any incoming packet to finish.
+    while(SFD);
+    
+    //Is there a packet?
+    if((!SFD)&FIFOP){
+      //Get the packet.
+      CLRSS;
+      ccspitrans8(CCSPI_RXFIFO);
+      for(i=0;i<32;i++)
+	cmddata[i]=ccspitrans8(0xde);
+      SETSS;
+      //no break
+      txdata(app,verb,32);
+    }else{
+      //No packet.
+      txdata(app,verb,0);
+    }
+    #else
+    debugstr("Can't RX a packet with SFD and FIFOP definitions.");
+    txdata(app,NOK,0);
+    #endif
     break;
   case CCSPI_RX_FLUSH:
     //Flush the buffer.
@@ -156,6 +170,10 @@ void ccspi_handle_fn( uint8_t const app,
     
     //Return the packet.
     txdata(app,verb,32);
+    break;
+  case CCSPI_REFLEX:
+    debugstr("Coming soon.");
+    txdata(app,verb,0);
     break;
   case CCSPI_TX:
   case CCSPI_TX_FLUSH:

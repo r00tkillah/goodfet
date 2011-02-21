@@ -20,6 +20,8 @@
 #define CCSPI_RX_FLUSH 0x82
 //Flush TX
 #define CCSPI_TX_FLUSH 0x83
+//Reflexive jam.
+#define CCSPI_REFLEX 0xA0
 
 
 //Bit fields for command word.

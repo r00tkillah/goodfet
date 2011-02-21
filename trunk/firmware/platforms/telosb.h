@@ -65,6 +65,9 @@
 #define CLRCE P4OUT&=~BIT6
 #define DIRCE P4DIR|=BIT6
 
+//CC2420 signals
+#define SFD   (P4IN&BIT1)
+#define FIFOP (P4IN&BIT0) 
 
 // network byte order converters
 #define htons(x) ((((uint16_t)(x) & 0xFF00) >> 8) | \

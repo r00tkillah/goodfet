@@ -83,7 +83,7 @@ if(sys.argv[1]=="dump"):
     h = IntelHex16bit(None);
     i=start;
     while i<stop:
-        h[i>>1]=client.peekword(i);
+        h[i>>1]=client.peek16(i);
         if(i%0x100==0):
             print "Dumped %04x."%i;
         i+=2;

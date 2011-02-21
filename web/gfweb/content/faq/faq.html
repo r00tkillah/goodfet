@@ -25,14 +25,16 @@ under Windows with Cygwin and Python.</p>
 <p><i>Which python packages are required?</i><br/>
 <a href="http://pyserial.sourceforge.net/">python-serial</a>, <a href="http://code.google.com/p/pysqlite/">python-sqlite</a></p>
 
-<p><i>Where do I get MSPGCC?</i><br/>
-For OpenBSD, Linux, and Darwin, precompiled versions of mspgcc can be found
-<a href="http://goodserv.cis.upenn.edu/mspgcc/">here</a>.  The TinyOS builds
-are too dated, and they cannot compile the GoodFET firmware reliably.</p>
+<p><i>Where do I get MSPGCC?</i><br/>  A good build script is
+available at <a href="http://mspgcc4.sourceforge.net/">MSPGCC4</a>.
+Compatibility is maintained with MSPGCC3, but all present development
+is performed in version 4.  Be sure to build without Insight, and feel
+free to omit GDB if you don't need it.</p>
 
 <p><i>Can I install the firmware without MSPGCC?</i><br/>
 Sure.  'goodfet.bsl --fromweb' will download the most recent firmware from
-the website.</p>
+the website.  This does not work for special platforms like the Next Hope Badge
+or the Telos B.</p>
 
 
 <h3>BSL</h3>
@@ -44,10 +46,10 @@ This is an older error that should no longer be seen.  Update to the latest clie
 <h3>Hardware</h3>
 
 <p><i>Which model do I want?</i><br/>
-The GoodFET2x boards provide support for analog voltage glitching, a rather difficult
-technique which can expose the firmware of some microcontrollers by bypassing the
-fuse check.  If you do not need this feature, the GoodFET3x series is a lot easier to
-solder and runs the same firmware.</p>
+The <a href="/hardware/goodfet41">GoodFET41</a> is by far the best model,
+but the <a href="/hardware/goodfet31">GoodFET31</a> is kept is stock
+as it is easier to solder.  Boards can be obtained at little to no cost
+as explained in the <a href="/orders/">Ording Information</a> page.</p>
 
 <p><i>Do I use a 47K pull-up resistor or a 74K resistor for the !RST line?</i><br/>
 74K is a typo, but anything from 1K to 100K ought to work.  The !RST pull-up

@@ -147,7 +147,7 @@ void ccspi_handle_fn( uint8_t const app,
     
     
     //Is there a packet?
-    if((!SFD)){
+    if((!SFD) && FIFOP){ // &&FIFOP to do address verification.
       //Get the packet.
       CLRSS;
       //ccspitrans8(CCSPI_RXFIFO);

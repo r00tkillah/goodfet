@@ -140,9 +140,7 @@ class GoodFETCCSPI(GoodFET):
         contents.
         """
         
-        #Switch to RX Mode.
-        #Should happen earlier?
-        self.strobe(0x03); #SRXON
+        # TODO -- Flush only if there's an overflow.
         self.strobe(0x08); #SFLUSHRX
         
         data="\0";
@@ -151,7 +149,7 @@ class GoodFETCCSPI(GoodFET):
         buffer=self.data;
         
         self.lastpacket=buffer;
-        if(buffer==[]):
+        if(len(buffer)==0):
             return None;
         return buffer;
     def RF_rxpacket_old(self):
@@ -180,6 +178,14 @@ class GoodFETCCSPI(GoodFET):
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
         print "Don't know how to hold a carrier.";
+    def RF_promiscuity(self,promiscuous=1):
+        mdmctrl0=self.peek(0x11);
+        print "mdmctrl0 was %04x" % mdmctrl0;
+        mdmctrl0=mdmctrl0&(~0x800);
+        print "mdmctrl0 is now %04x" % mdmctrl0;
+        self.poke(0x11,mdmctrl0);
+        return;
+        
     packetlen=16;
     def RF_setpacketlen(self,len=16):
         """Set the number of bytes in the expected payload."""

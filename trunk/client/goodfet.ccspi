@@ -74,6 +74,9 @@ if(sys.argv[1]=="rssi"):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
 if(sys.argv[1]=="sniff"):
+    #Promiscuous mode.
+    client.RF_promiscuity(1);
+    
     if len(sys.argv)>2:
         freq=eval(sys.argv[2]);
         if freq>100:
@@ -88,7 +91,6 @@ if(sys.argv[1]=="sniff"):
     while 1:
         packet=None;
         while packet==None:
-            #time.sleep(0.1);
             packet=client.RF_rxpacket();
         printpacket(packet);
         sys.stdout.flush();

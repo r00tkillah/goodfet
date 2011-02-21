@@ -99,7 +99,7 @@ class GoodFETConsole():
         adr= self.client.name2adr(adr);
         #print "%i" % adr;
         print "0x%08x:= 0x%04x" % (
-            adr, self.client.peekword(adr,
+            adr, self.client.peek16(adr,
                                   memory));
     def CMDflash(self,args):
         file=args[1];

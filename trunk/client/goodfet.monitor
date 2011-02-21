@@ -121,7 +121,4 @@ if(sys.argv[1]=="verify"):
             if(i%0x100==0):
                 print "%04x" % i;
 
-if(sys.argv[1]=="whatever"):
-    for i in [0x24FF, 0x2500, 0x2502, 0x2504]:
-        print "%04x" % client.peekword(i);
 

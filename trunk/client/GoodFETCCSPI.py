@@ -168,8 +168,8 @@ class GoodFETCCSPI(GoodFET):
     def RF_txpacket(self,packet):
         """Send a packet through the radio."""
         self.writecmd(self.CCSPIAPP,0x81,len(packet),packet);
-        time.sleep(1);
-        self.strobe(0x09);
+        #time.sleep(1);
+        #self.strobe(0x09);
         return;
     
     def RF_carrier(self):

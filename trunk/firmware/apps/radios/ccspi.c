@@ -199,16 +199,6 @@ void ccspi_handle_fn( uint8_t const app,
   case CCSPI_TX:
 #ifdef FIFOP
     
-    /* //Has there been an overflow?
-    if(ccspi_status()&BIT5){
-      debugstr("Clearing underflow");
-      CLRSS;
-      ccspitrans8(0x09); //SFLUSHTX
-      SETSS;
-    } 
-    */
-    
-        
     //Wait for last packet to TX.
     //while(ccspi_status()&BIT3);
     
@@ -224,6 +214,14 @@ void ccspi_handle_fn( uint8_t const app,
     ccspitrans8(0x04); //STXON
     SETSS;
     
+    //Wait for the pulse on SFD, after which the packet has been sent.
+    while(!SFD);
+    while(SFD);
+    
+    //Flush TX buffer.
+    CLRSS;
+    ccspitrans8(0x09); //SFLUSHTX
+    SETSS;
     
     txdata(app,verb,0);
 #else

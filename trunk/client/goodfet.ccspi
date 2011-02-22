@@ -106,13 +106,12 @@ if(sys.argv[1]=="txtest"):
         client.RF_getsmac(),
         client.RF_getfreq()/10**6);
     
+    
     while 1:
         client.RF_txpacket([0x0f, 0x01, 0x08, 0x82,
                             0xff, 0xff, 0xff, 0xff,
-                            0x4d, 0x7d, 0x09, 0x00,
-                            0x1f, 0x00, 0xc0]);
-        print client.status();
-        print;
+                            0xde, 0xad, 0xbe, 0xef,
+                            0xba, 0xbe, 0xc0]);
 
 if(sys.argv[1]=="peek"):
     start=0x0000;

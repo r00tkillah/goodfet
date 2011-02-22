@@ -91,8 +91,22 @@ class GoodFETCCSPI(GoodFET):
     
     def status(self):
         """Read the status byte."""
+        statusbits={0x80: "?",
+                    0x40: "XOSC16M_STABLE",
+                    0x20: "TX_UNDERFLOW",
+                    0x10: "ENC_BUSY",
+                    0x08: "TX_ACTIVE",
+                    0x04: "LOCK",
+                    0x02: "RSSI_VALID",
+                    0x01: "?"};
         status=self.strobe(0x00);
-        print "Status=%02x" % status;
+        i=1;
+        str="";
+        while i<0x100:
+            if status&i:
+               str="%s %s" % (statusbits[i],str);
+            i*=2;
+        return str;
     
     #Radio stuff begins here.
     def RF_setenc(self,code="802.15.4"):

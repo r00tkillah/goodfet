@@ -44,8 +44,9 @@ client.setup();
 #Might read as all ones if chip has a startup delay.
 
 if(sys.argv[1]=="info"):
-    print "Found %s" % client.identstr();
-    print "Freq: %05.05f MHz" % (client.RF_getfreq()/(10**6));
+    print "Found   %s" % client.identstr();
+    print "Freq:   %05f MHz" % (client.RF_getfreq()/(10**6));
+    print "Status: %s" % client.status();
 if(sys.argv[1]=="regs"):
     for adr in range(0x10,0x40): #*1024):
         val=client.peek(adr);

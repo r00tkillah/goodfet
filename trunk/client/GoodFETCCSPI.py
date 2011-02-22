@@ -19,6 +19,7 @@ class GoodFETCCSPI(GoodFET):
         
         #Set up the radio for ZigBee
         self.strobe(0x01);       #SXOSCON
+        self.strobe(0x02);       #SCAL
         self.poke(0x11, 0x0AC2); #MDMCTRL0
         self.poke(0x12, 0x0500); #MDMCTRL1
         self.poke(0x1C, 0x007F); #IOCFG0
@@ -125,6 +126,7 @@ class GoodFETCCSPI(GoodFET):
         fsctrl=self.peek(0x18)&~0x3FF;
         fsctrl=fsctrl+int(mhz-2048)
         self.poke(0x18,fsctrl);
+        self.strobe(0x02);
     def RF_getfreq(self):
         """Get the frequency in Hz."""
         fsctrl=self.peek(0x18);
@@ -154,9 +156,6 @@ class GoodFETCCSPI(GoodFET):
         contents.
         """
         
-        # TODO -- Flush only if there's an overflow.
-        #self.strobe(0x08); #SFLUSHRX
-        
         data="\0";
         self.data=data;
         self.writecmd(self.CCSPIAPP,0x80,len(data),data);
@@ -166,29 +165,13 @@ class GoodFETCCSPI(GoodFET):
         if(len(buffer)==0):
             return None;
         return buffer;
-    def RF_rxpacket_old(self):
-        """Get a packet from the radio.  Returns None if none is waiting.  In
-        order to not require the SFD, FIFO, or FIFOP lines, this
-        implementation works by comparing the buffer to the older
-        contents.
-        """
-        self.strobe(0x03); #SRXON
-        self.strobe(0x08); #SFLUSHRX
-        
-        buffer=range(0,0xff);
-        buffer[0]=0x3F | 0x40; #RXFIFO
-        buffer=self.trans(buffer);
-        
-        new=False;
-        for foo in range(0,ord(buffer[0])):
-            if buffer[foo]!=self.lastpacket[foo]:
-                new=True;
-        if not new:
-            return None;
-        
-        
-        self.lastpacket=buffer;
-        return buffer;
+    def RF_txpacket(self,packet):
+        """Send a packet through the radio."""
+        self.writecmd(self.CCSPIAPP,0x81,len(packet),packet);
+        time.sleep(1);
+        self.strobe(0x09);
+        return;
+    
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
         print "Don't know how to hold a carrier.";

@@ -139,8 +139,7 @@ void ccspi_handle_fn( uint8_t const app,
     txdata(app,verb,0);
     break;
   case CCSPI_RX:
-    #ifdef FIFOP
-    
+#ifdef FIFOP
      //Has there been an overflow?
     if((!FIFO)&&FIFOP){
       debugstr("Clearing overflow");
@@ -159,7 +158,7 @@ void ccspi_handle_fn( uint8_t const app,
       ccspitrans8(CCSPI_RXFIFO | 0x40);
       //ccspitrans8(0x3F|0x40);
       cmddata[0]=0xff; //to be replaced with length
-      for(i=0;i<cmddata[0];i++)
+      for(i=0;i<cmddata[0]+2;i++)
 	cmddata[i]=ccspitrans8(0xde);
       SETSS;
       
@@ -167,15 +166,15 @@ void ccspi_handle_fn( uint8_t const app,
       CLRSS;
       ccspitrans8(0x08); //SFLUSHRX
       SETSS;
-      txdata(app,verb,i);
+      txdata(app,verb,cmddata[0]+2);
     }else{
       //No packet.
       txdata(app,verb,0);
     }
-    #else
+#else
     debugstr("Can't RX a packet with SFD and FIFOP definitions.");
     txdata(app,NOK,0);
-    #endif
+#endif
     break;
   case CCSPI_RX_FLUSH:
     //Flush the buffer.
@@ -198,8 +197,42 @@ void ccspi_handle_fn( uint8_t const app,
     txdata(app,verb,0);
     break;
   case CCSPI_TX:
+#ifdef FIFOP
+    
+    /* //Has there been an overflow?
+    if(ccspi_status()&BIT5){
+      debugstr("Clearing underflow");
+      CLRSS;
+      ccspitrans8(0x09); //SFLUSHTX
+      SETSS;
+    } 
+    */
+    
+        
+    //Wait for last packet to TX.
+    //while(ccspi_status()&BIT3);
+    
+    //Load the packet.
+    CLRSS;
+    ccspitrans8(CCSPI_TXFIFO);
+    for(i=0;i<cmddata[0];i++)
+      ccspitrans8(cmddata[i]);
+    SETSS;
+    
+    //Transmit the packet.
+    CLRSS;
+    ccspitrans8(0x04); //STXON
+    SETSS;
+    
+    
+    txdata(app,verb,0);
+#else
+    debugstr("Can't TX a packet with SFD and FIFOP definitions.");
+    txdata(app,NOK,0);
+#endif
+    break;
   default:
-    debugstr("Not yet supported.");
+    debugstr("Not yet supported in CCSPI");
     txdata(app,verb,0);
     break;
   }

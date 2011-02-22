@@ -95,6 +95,25 @@ if(sys.argv[1]=="sniff"):
             packet=client.RF_rxpacket();
         printpacket(packet);
         sys.stdout.flush();
+if(sys.argv[1]=="txtest"):
+    if len(sys.argv)>2:
+        freq=eval(sys.argv[2]);
+        if freq>100:
+            client.RF_setfreq(freq);
+        else:
+            print "Channels not yet supported."
+    print "Transmitting as %010x on %i MHz" % (
+        client.RF_getsmac(),
+        client.RF_getfreq()/10**6);
+    
+    while 1:
+        client.RF_txpacket([0x0f, 0x01, 0x08, 0x82,
+                            0xff, 0xff, 0xff, 0xff,
+                            0x4d, 0x7d, 0x09, 0x00,
+                            0x1f, 0x00, 0xc0]);
+        print client.status();
+        print;
+
 if(sys.argv[1]=="peek"):
     start=0x0000;
     if(len(sys.argv)>2):

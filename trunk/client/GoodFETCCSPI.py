@@ -241,9 +241,10 @@ class GoodFETCCSPI(GoodFET):
 
     def RF_promiscuity(self,promiscuous=1):
         mdmctrl0=self.peek(0x11);
-        #print "mdmctrl0 was %04x" % mdmctrl0;
-        mdmctrl0=mdmctrl0&(~0x800);
-        #print "mdmctrl0 is now %04x" % mdmctrl0;
+        if promiscuous>0:
+            mdmctrl0=mdmctrl0&(~0x800);
+        else:
+            mdmctrl0=mdmctrl0|0x800;
         self.poke(0x11,mdmctrl0);
         return;
         

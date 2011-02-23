@@ -23,6 +23,7 @@ if(len(sys.argv)==1):
     
     print "\n%s rssi" % sys.argv[0];
     print "%s sniff [chan]" % sys.argv[0];
+    print "%s bsniff [chan]" % sys.argv[0];
     print "%s sniffdissect" % sys.argv[0];
     
     sys.exit();
@@ -111,6 +112,28 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
         else:
             client.printpacket(packet);
         sys.stdout.flush();
+if(sys.argv[1]=="bsniff"):
+    #Just broadcast.
+    client.RF_promiscuity(0);
+    client.RF_setsmac(0xFFFFFFFF);
+    
+    if len(sys.argv)>2:
+        freq=eval(sys.argv[2]);
+        if freq>100:
+            client.RF_setfreq(freq);
+        else:
+            client.RF_setchan(freq);
+    client.CC_RFST_RX();
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                            client.RF_getfreq()/10**6);
+    #Now we're ready to get packets.
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+        client.printpacket(packet);
+        sys.stdout.flush();
+
 if(sys.argv[1]=="txtest"):
     if len(sys.argv)>2:
         freq=eval(sys.argv[2]);
@@ -127,6 +150,39 @@ if(sys.argv[1]=="txtest"):
                             0xff, 0xff, 0xff, 0xff,
                             0xde, 0xad, 0xbe, 0xef,
                             0xba, 0xbe, 0xc0]);
+
+if(sys.argv[1]=="txpiptest"):
+    if len(sys.argv)>2:
+        freq=eval(sys.argv[2]);
+        if freq>100:
+            client.RF_setfreq(freq);
+        else:
+            print "Channels not yet supported."
+    print "Transmitting on as %010x on %i MHz" % (
+        client.RF_getsmac(),
+        client.RF_getfreq()/10**6);
+    
+    while 1:
+        client.RF_txpacket([0x2f, 0x01, 0x08, 0x82,
+                            0xff, 0xff, 0xff, 0xff,
+                            0xde, 0xad, 0xbe, 0xef,
+                            0xba, 0xbe, 0xc0,
+                            
+                            0x00, 0x00, 0x00, 0x00,
+                            0x7a,
+                            0x0f, 0x01, 0x08, 0x82,
+                            0xff, 0xff, 0xff, 0xff,
+                            0xde, 0xad, 0xbe, 0xef,
+                            0xba, 0xbe, 0xc0,
+                            
+                            0xff, 0xff, 0xff, 0xff,
+                            0xff, 0xff, 0xff, 0xff,
+                            0xff, 0xff, 0xff, 0xff,
+                            0xff, 0xff, 0xff, 0xff,
+                            0xff, 0xff, 0xff, 0xff,
+                            0xff, 0xff, 0xff, 0xff,
+                            0xff, 0xff, 0xff, 0xff,
+                            ]);
 
 if(sys.argv[1]=="peek"):
     start=0x0000;

@@ -12,14 +12,6 @@ import array, time;
 
 from GoodFETCCSPI import GoodFETCCSPI;
 
-def printpacket(packet):
-    s="";
-    i=0;
-    for foo in packet:
-        s="%s %02x" % (s,ord(foo));
-    print "#%s" % s;
-
-
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s info" % sys.argv[0];
@@ -31,6 +23,7 @@ if(len(sys.argv)==1):
     
     print "\n%s rssi" % sys.argv[0];
     print "%s sniff" % sys.argv[0];
+    print "%s sniffdisect" % sys.argv[0];
     
     sys.exit();
 
@@ -91,7 +84,7 @@ if(sys.argv[1]=="rssi"):
         for foo in range(0,rssi>>2):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
-if(sys.argv[1]=="sniff"):
+if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdisect"):
     #Promiscuous mode.
     client.RF_promiscuity(1);
     
@@ -105,12 +98,14 @@ if(sys.argv[1]=="sniff"):
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                             client.RF_getfreq()/10**6);
     #Now we're ready to get packets.
-    
     while 1:
         packet=None;
         while packet==None:
             packet=client.RF_rxpacket();
-        printpacket(packet);
+        if sys.argv[1]=="sniffdisect":
+            client.printdisect(packet);
+        else:
+            client.printpacket(packet);
         sys.stdout.flush();
 if(sys.argv[1]=="txtest"):
     if len(sys.argv)>2:
@@ -122,7 +117,6 @@ if(sys.argv[1]=="txtest"):
     print "Transmitting DEADBEEF as %010x on %i MHz" % (
         client.RF_getsmac(),
         client.RF_getfreq()/10**6);
-    
     
     while 1:
         client.RF_txpacket([0x0f, 0x01, 0x08, 0x82,

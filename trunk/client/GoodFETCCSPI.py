@@ -277,9 +277,9 @@ class GoodFETCCSPI(GoodFET):
             from scapy.all import Dot15d4
         except ImportError:
             print "To use packet disection, Scapy must be installed and have the Dot15d4 extension present."
-        self.printpacket(packet)
+        self.printpacket(packet);
         try:
-            scapyd = Dot15d4(packet)
-            print scapyd.show()
+            scapyd = Dot15d4(packet[1:]);
+            print scapyd.show();
         except:
             pass;

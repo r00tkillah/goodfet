@@ -272,11 +272,14 @@ class GoodFETCCSPI(GoodFET):
         for foo in packet:
             s="%s %02x" % (s,ord(foo));
         print "#%s" % s;
-    def printdisect(self,packet):
+    def printdissect(self,packet):
         try:
             from scapy.all import Dot15d4
         except ImportError:
             print "To use packet disection, Scapy must be installed and have the Dot15d4 extension present."
         self.printpacket(packet)
-        scapyd = Dot15d4(packet)
-        print scapyd.show()
+        try:
+            scapyd = Dot15d4(packet)
+            print scapyd.show()
+        except:
+            pass;

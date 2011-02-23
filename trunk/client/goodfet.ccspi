@@ -23,7 +23,7 @@ if(len(sys.argv)==1):
     
     print "\n%s rssi" % sys.argv[0];
     print "%s sniff" % sys.argv[0];
-    print "%s sniffdisect" % sys.argv[0];
+    print "%s sniffdissect" % sys.argv[0];
     
     sys.exit();
 
@@ -84,7 +84,7 @@ if(sys.argv[1]=="rssi"):
         for foo in range(0,rssi>>2):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
-if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdisect"):
+if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
     #Promiscuous mode.
     client.RF_promiscuity(1);
     
@@ -102,8 +102,8 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdisect"):
         packet=None;
         while packet==None:
             packet=client.RF_rxpacket();
-        if sys.argv[1]=="sniffdisect":
-            client.printdisect(packet);
+        if sys.argv[1]=="sniffdissect":
+            client.printdissect(packet);
         else:
             client.printpacket(packet);
         sys.stdout.flush();

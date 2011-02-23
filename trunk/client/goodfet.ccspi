@@ -22,7 +22,7 @@ if(len(sys.argv)==1):
     print "%s txtest" % sys.argv[0];
     
     print "\n%s rssi" % sys.argv[0];
-    print "%s sniff" % sys.argv[0];
+    print "%s sniff [chan]" % sys.argv[0];
     print "%s sniffdissect" % sys.argv[0];
     
     sys.exit();
@@ -68,7 +68,11 @@ if(sys.argv[1]=="test"):
     print "%02x %02x" % (ord(data[1]), ord(data[2]));
 if(sys.argv[1]=="rssi"):
     if len(sys.argv)>2:
-        client.RF_setfreq(eval(sys.argv[2]));
+        freq=eval(sys.argv[2]);
+        if freq>100:
+            client.RF_setfreq(freq);
+        else:
+            client.RF_setchan(freq);
     print "Listening on %f MHz." % (client.RF_getfreq()/10.0**6);
         
     client.strobe(0x02); #Calibrate
@@ -93,7 +97,7 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
         if freq>100:
             client.RF_setfreq(freq);
         else:
-            print "Channels not yet supported."
+            client.RF_setchan(freq);
     client.CC_RFST_RX();
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                             client.RF_getfreq()/10**6);
@@ -113,7 +117,7 @@ if(sys.argv[1]=="txtest"):
         if freq>100:
             client.RF_setfreq(freq);
         else:
-            print "Channels not yet supported."
+            client.RF_setchan(freq);
     print "Transmitting DEADBEEF as %010x on %i MHz" % (
         client.RF_getsmac(),
         client.RF_getfreq()/10**6);

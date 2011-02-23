@@ -132,6 +132,11 @@ class GoodFETCCSPI(GoodFET):
         fsctrl=self.peek(0x18);
         mhz=2048+(fsctrl&0x3ff)
         return mhz*1000000;
+    def RF_setchan(self,channel):
+        if channel < 11 and channel > 26:
+            print "Only 802.15.4 channels 11 to 26 are currently supported.";
+        else:
+            self.RF_setfreq( ( (channel-11)*5 + 2405 ) * 1000000 );
     def RF_getsmac(self):
         """Return the source MAC address."""
         return 0xdeadbeef;

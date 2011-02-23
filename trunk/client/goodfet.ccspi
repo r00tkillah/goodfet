@@ -43,6 +43,22 @@ client.setup();
 #Dummy read.
 #Might read as all ones if chip has a startup delay.
 
+if(sys.argv[1]=="carrier"):
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[2]));
+    while 1:    
+        client.RF_carrier();
+    while(1):
+        time.sleep(1);
+
+if(sys.argv[1]=="modulated_spectrum"):
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[2]));
+    while 1:
+        client.RF_modulated_spectrum();
+    while(1):
+        time.sleep(1);
+
 if(sys.argv[1]=="info"):
     print "Found   %s" % client.identstr();
     print "Freq:   %05f MHz" % (client.RF_getfreq()/(10**6));

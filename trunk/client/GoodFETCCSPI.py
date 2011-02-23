@@ -172,9 +172,68 @@ class GoodFETCCSPI(GoodFET):
         #self.strobe(0x09);
         return;
     
+
+    def RF_modulated_spectrum(self):
+        """Hold a carrier wave on the present frequency."""
+        # print "Don't know how to hold a carrier.";
+        # 33.1 p.55:
+        #  reset chip
+        #  SXOSCON
+        #  set MDMCTRL1.TX_MODE to 3   0x12  3:2 
+        #  STXON                            0x04
+
+        mdmctrl1=self.peek(0x12);
+        #print "mdmctrl1 was %04x" % mdmctrl1;
+        mdmctrl1=mdmctrl1|0x00c0;  #MDMCTRL1.TX_MODE = 3
+        self.poke(0x12, mdmctrl1); #MDMCTRL1
+
+        mdmctrl1=self.peek(0x12);
+        #print "mdmctrl1 is %04x" % mdmctrl1;
+
+        # http://e2e.ti.com/support/low_power_rf/f/155/t/15914.aspx?PageIndex=2
+        #   suggests this
+        self.strobe(0x02);         #STXCAL
+        #print "STXCAL status: %s" % self.status()
+
+        # is this necessary?
+        self.strobe(0x09);         #SFLUSHTX
+        #print "SFLUSHTX status: %s" % self.status()
+
+        self.strobe(0x04);         #STXON
+        #print "STXON status: %s" % self.status()
+
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""
-        print "Don't know how to hold a carrier.";
+        # print "Don't know how to hold a carrier.";
+        # 33.1 p.54:
+        #  reset chip
+        #  SXOSCON
+        #  set MDMCTRL1.TX_MODE to 2 or 3   0x12  3:2 
+        #  set DACTST to 0x1800             0x2E
+        #  STXON                            0x04
+
+        mdmctrl1=self.peek(0x12);
+        #print "mdmctrl1 was %04x" % mdmctrl1;
+        mdmctrl1=mdmctrl1|0x0080; 
+        mdmctrl1=mdmctrl1&0x0080;  #MDMCTRL1.TX_MODE = 2
+        self.poke(0x12, mdmctrl1); #MDMCTRL1
+
+        mdmctrl1=self.peek(0x12);
+        #print "mdmctrl1 is %04x" % mdmctrl1;
+
+        self.poke(0x2E, 0x1800);   #DACTST
+        dactst=self.peek(0x2E);
+        #print "dactst is %04x" % dactst;
+
+        # see above for why this is here
+        self.strobe(0x02);         #STXCAL
+        #print "STXCAL status: %s" % self.status()
+        self.strobe(0x09);         #SFLUSHTX
+        #print "SFLUSHTX status: %s" % self.status()
+
+        self.strobe(0x04);         #STXON
+        #print "STXON status: %s" % self.status()
+
     def RF_promiscuity(self,promiscuous=1):
         mdmctrl0=self.peek(0x11);
         #print "mdmctrl0 was %04x" % mdmctrl0;

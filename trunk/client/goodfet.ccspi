@@ -27,6 +27,7 @@ if(len(sys.argv)==1):
     print "%s test" % sys.argv[0];
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
     print "%s poke 0x$adr 0x$val" % sys.argv[0];
+    print "%s txtest" % sys.argv[0];
     
     print "\n%s rssi" % sys.argv[0];
     print "%s sniff" % sys.argv[0];
@@ -118,7 +119,7 @@ if(sys.argv[1]=="txtest"):
             client.RF_setfreq(freq);
         else:
             print "Channels not yet supported."
-    print "Transmitting as %010x on %i MHz" % (
+    print "Transmitting DEADBEEF as %010x on %i MHz" % (
         client.RF_getsmac(),
         client.RF_getfreq()/10**6);
     

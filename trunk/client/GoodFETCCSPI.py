@@ -280,6 +280,6 @@ class GoodFETCCSPI(GoodFET):
         self.printpacket(packet);
         try:
             scapyd = Dot15d4(packet[1:]);
-            print scapyd.show();
+            scapyd.show();
         except:
             pass;

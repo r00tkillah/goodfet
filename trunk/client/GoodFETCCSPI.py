@@ -256,7 +256,15 @@ class GoodFETCCSPI(GoodFET):
             mdmctrl0=mdmctrl0|0x800;
         self.poke(0x11,mdmctrl0);
         return;
-        
+    def RF_autocrc(self,autocrc=1):
+        mdmctrl0=self.peek(0x11);
+        return;
+        if autocrc==1:
+            mdmctrl0=mdmctrl0&(~0x0020);
+        else:
+            mdmctrl0=mdmctrl0|0x0020;
+        self.poke(0x11,mdmctrl0);
+        return;
     packetlen=16;
     def RF_setpacketlen(self,len=16):
         """Set the number of bytes in the expected payload."""

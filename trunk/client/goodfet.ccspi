@@ -92,6 +92,7 @@ if(sys.argv[1]=="rssi"):
 if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
     #Promiscuous mode.
     client.RF_promiscuity(1);
+    client.RF_autocrc(0);
     
     if len(sys.argv)>2:
         freq=eval(sys.argv[2]);
@@ -116,6 +117,7 @@ if(sys.argv[1]=="bsniff"):
     #Just broadcast.
     client.RF_promiscuity(0);
     client.RF_setsmac(0xFFFFFFFF);
+    client.RF_autocrc(1);
     
     if len(sys.argv)>2:
         freq=eval(sys.argv[2]);

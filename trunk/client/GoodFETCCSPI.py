@@ -258,8 +258,7 @@ class GoodFETCCSPI(GoodFET):
         return;
     def RF_autocrc(self,autocrc=1):
         mdmctrl0=self.peek(0x11);
-        return;
-        if autocrc==1:
+        if autocrc==0:
             mdmctrl0=mdmctrl0&(~0x0020);
         else:
             mdmctrl0=mdmctrl0|0x0020;

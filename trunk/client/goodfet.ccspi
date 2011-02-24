@@ -157,7 +157,11 @@ if(sys.argv[1]=="txtoscount"):
     Clone of what TinyOS's BlinkToLED demo code does.
     Specify a channel a TinyOS mote programmed with BlinkToLED is on, and this will act as the second device.
     '''
-    client.RF_promiscuity(1);
+    if (len(sys.argv)<=3):
+        print "Provide -r to work via replays or -i to work via incrementing itself.";
+        sys.exit(1);
+    if (sys.argv[3]=="-r"):
+        client.RF_promiscuity(1);
     client.RF_autocrc(1);
     if len(sys.argv)>2:
         freq=eval(sys.argv[2]);
@@ -165,31 +169,36 @@ if(sys.argv[1]=="txtoscount"):
             client.RF_setfreq(freq);
         else:
             client.RF_setchan(freq);
-    client.CC_RFST_RX();
-    print "Listening as %010x on %i MHz" % (client.RF_getsmac(), client.RF_getfreq()/10**6);
+    if (sys.argv[3]=="-r"):
+        client.CC_RFST_RX();
+        print "Listening as %010x on %i MHz" % (client.RF_getsmac(), client.RF_getfreq()/10**6);
     print "Transmitting like the TinyOS CountToRadio program on %i MHz" % (client.RF_getfreq()/10**6);
-    #i = 0;
-    #countpkt = [0x0f, 0x41, 0x88, 0xFF, 0x22, 0x00, 0xff, 0xff, 0x01, 0x00, 0x3f, 0x06, 0xFF, 0x00, 0x00];
+    if (sys.argv[3]=="-i"):
+        i = 0;
+        countpkt = [0x0f, 0x41, 0x88, 0xFF, 0x22, 0x00, 0xff, 0xff, 0x01, 0x00, 0x3f, 0x06, 0x00, 0xFF];
     while 1:
-        packet=None;
-        while packet==None:
-            packet=client.RF_rxpacket();
-        print "Recd:",
-        client.printpacket(packet);
-        pkt = packet[:14]# + "\x00\x00";
-        print "Sent:",
-        client.printpacket(pkt)
-        client.RF_txpacket(pkt);
-        #TODO expand to actually do increments itself, if desired:
-        #pkt = countpkt[:];
-        #pkt[3] = i;
-        #for j in pkt:
-        #    print hex(j)[2:],;
-        #print;
-        #client.RF_txpacket(pkt);
-        #if i >= 31: i = 0;
-        #else:       i += 1;
-        #time.sleep(1);
+        if (sys.argv[3]=="-r"): #give -r to do via replays from the other device
+            packet=None;
+            while packet==None:
+                packet=client.RF_rxpacket();
+            #print "Recd:",
+            #client.printpacket(packet);
+            pkt = packet[:14];
+            #print "Sent:",
+            #client.printpacket(pkt)
+            client.RF_txpacket(pkt);
+        elif (sys.argv[3]=="-i"): #give -i to have it increment and send
+            #Use this code for it to actually do increments itself:
+            pkt = countpkt[:];
+            pkt[3] = i;
+            pkt[13] = i+1;
+            #for j in pkt:
+            #    print hex(j)[2:],;
+            #print;
+            client.RF_txpacket(pkt);
+            if i >= 31: i = 0;
+            else:       i += 1;
+            time.sleep(0.5);
 
 if(sys.argv[1]=="txpiptest"):# or sys.argv[1]=="txpipscapy"):
     if len(sys.argv)>2:

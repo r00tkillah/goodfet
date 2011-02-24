@@ -24,6 +24,7 @@ class GoodFETCCSPI(GoodFET):
         self.poke(0x12, 0x0500); #MDMCTRL1
         self.poke(0x1C, 0x007F); #IOCFG0
         self.poke(0x19, 0x01C4); #SECCTRL0, disabling crypto
+        self.RF_setsync();
         
     def ident(self):
         return self.peek(0x1E); #MANFIDL
@@ -120,10 +121,18 @@ class GoodFETCCSPI(GoodFET):
         return 0;
     def RF_setrate(self,rate=0):
         return 0;
+    def RF_getsync(self):
+        return self.peek(0x14);
+    def RF_setsync(self,sync=0xa70F):
+        """Set the SYNC preamble.
+        Use 0xA70F for 0xA7."""
+        self.poke(0x14,sync);
+        return;
+    
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         mhz=frequency/1000000;
-        fsctrl=self.peek(0x18)&~0x3FF;
+        fsctrl=0x8000; #self.peek(0x18)&(~0x3FF);
         fsctrl=fsctrl+int(mhz-2048)
         self.poke(0x18,fsctrl);
         self.strobe(0x02);

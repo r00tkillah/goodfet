@@ -26,6 +26,10 @@ if(len(sys.argv)==1):
     print "%s bsniff [chan]" % sys.argv[0];
     print "%s sniffdissect" % sys.argv[0];
     
+    
+    print;
+    print "%s txtoscount [-i|-r]   TinyOS BlinkToLED" % sys.argv[0];    
+    
     sys.exit();
 
 #Initialize FET and set baud rate

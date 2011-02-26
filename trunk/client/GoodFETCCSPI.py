@@ -84,7 +84,7 @@ class GoodFETCCSPI(GoodFET):
         """Write a CCSPI Register."""
         data=[reg,(val>>8)&0xFF,val&0xFF];
         self.writecmd(self.CCSPIAPP,0x03,len(data),data);
-        if self.peek(reg,bytes)!=val:
+        if self.peek(reg,bytes)!=val and reg!=0x18:
             print "Warning, failed to set r%02x=0x%04x, got %02x." %(
                 reg,
                 val,

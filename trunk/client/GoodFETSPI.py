@@ -77,17 +77,24 @@ class GoodFETSPIFlash(GoodFETSPI):
     JEDECsize=0;
 
     def SPIjedec(self):
-        """Grab an SPI Flash ROM's JEDEC bytes."""
+        """Grab an SPI Flash ROM's JEDEC bytes.  Some chips don't implement
+        this, such as Numonyx M25P* except in the 110nm processed."""
         data=[0x9f, 0, 0, 0];
         data=self.SPItrans(data);
-        
+        jedec=0;
         self.JEDECmanufacturer=ord(data[1]);
-        self.JEDECtype=ord(data[2]);
-        self.JEDECcapacity=ord(data[3]);
+        if self.JEDECmanufacturer==0xFF:
+            self.JEDECtype=0x20;
+            self.JEDECcapacity=0x14;
+            jedec=0x202014;
+        else:
+            self.JEDECtype=ord(data[2]);
+            self.JEDECcapacity=ord(data[3]);
+            jedec=(ord(data[1])<<16)+(ord(data[2])<<8)+ord(data[3]);
         self.JEDECsize=self.JEDECsizes.get(self.JEDECcapacity);
         if self.JEDECsize==None:
             self.JEDECsize=0;
-        jedec=(ord(data[1])<<16)+(ord(data[2])<<8)+ord(data[3]);
+        
         if jedec==0x1F4501:
             self.JEDECsize=1024**2;
         self.JEDECdevice=jedec;

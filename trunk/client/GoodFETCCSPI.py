@@ -294,6 +294,7 @@ class GoodFETCCSPI(GoodFET):
         for foo in packet:
             s="%s %02x" % (s,ord(foo));
         print "#%s" % s;
+        
     def printdissect(self,packet):
         try:
             from scapy.all import Dot15d4

@@ -36,7 +36,6 @@ if(len(sys.argv)==1):
 client=GoodFETCCSPI();
 client.serInit()
 
-
 client.setup();
 
 #Dummy read.
@@ -185,26 +184,19 @@ if(sys.argv[1]=="txtoscount"):
             packet=None;
             while packet==None:
                 packet=client.RF_rxpacket();
-            #print "Recd:",
-            #client.printpacket(packet);
             pkt = packet[:14];
-            #print "Sent:",
-            #client.printpacket(pkt)
             client.RF_txpacket(pkt);
         elif (sys.argv[3]=="-i"): #give -i to have it increment and send
             #Use this code for it to actually do increments itself:
             pkt = countpkt[:];
             pkt[3] = i;
             pkt[13] = i+1;
-            #for j in pkt:
-            #    print hex(j)[2:],;
-            #print;
             client.RF_txpacket(pkt);
             if i >= 31: i = 0;
             else:       i += 1;
             time.sleep(0.5);
 
-if(sys.argv[1]=="txpiptest"):# or sys.argv[1]=="txpipscapy"):
+if(sys.argv[1]=="txpiptest" or sys.argv[1]=="txpipscapy"):
     if len(sys.argv)>2:
         freq=eval(sys.argv[2]);
         if freq>100:
@@ -218,36 +210,63 @@ if(sys.argv[1]=="txpiptest"):# or sys.argv[1]=="txpipscapy"):
     client.RF_setsync(0xFFFF);
     
     while 1:
-        client.RF_txpacket([
-                0x7f, 
-                #Real header, must begin with SFD.
-                0x00, 0x00, 0x00,
-                0x00, 0xA7,
-                
-                #Length
-                0x1f, 0x01, 0x08, 0x82,
-                0xDF, 0xff, 0xff, 0xff,
-                0xde, 0xad, 0xbe, 0xef,
-                0xba, 0xbe, 0xc0,
-                
-                #Preamble
-                0x00, 0x00, 0x00,
-                #SFD
-                0x00, 0xA7,  #CC2420 SFD
-                #Packet In Packet
-                0x0f, 0x01, 0x08, 0x82,
-                0xff, 0xff, 0xff, 0xff,
-                0xde, 0xad, 0xbe, 0xef,
-                0xba, 0xbe, 0xc0,
-                
-                0xff, 0xff, 0xff, 0xff,
-                0xff, 0xff, 0xff, 0xff,
-                0xff, 0xff, 0xff, 0xff,
-                0xff, 0xff, 0xff, 0xff,
-                0xff, 0xff, 0xff, 0xff,
-                0xff, 0xff, 0xff, 0xff,
-                0xff, 0xff, 0xff, 0xff,
-                ]);
+        if(sys.argv[1]=="txpiptest"):
+            client.RF_txpacket([
+                    0x7f, 
+                    #Real header, must begin with SFD.
+                    0x00, 0x00, 0x00,
+                    0x00, 0xA7,
+                    
+                    #Length
+                    0x1f, 0x01, 0x08, 0x82,
+                    0xDF, 0xff, 0xff, 0xff,
+                    0xde, 0xad, 0xbe, 0xef,
+                    0xba, 0xbe, 0xc0,
+                    
+                    #Preamble
+                    0x00, 0x00, 0x00,
+                    #SFD
+                    0x00, 0xA7,  #CC2420 SFD
+                    #Packet In Packet
+                    0x0f, 0x01, 0x08, 0x82,
+                    0xff, 0xff, 0xff, 0xff,
+                    0xde, 0xad, 0xbe, 0xef,
+                    0xba, 0xbe, 0xc0,
+                    
+                    0xff, 0xff, 0xff, 0xff,
+                    0xff, 0xff, 0xff, 0xff,
+                    0xff, 0xff, 0xff, 0xff,
+                    0xff, 0xff, 0xff, 0xff,
+                    0xff, 0xff, 0xff, 0xff,
+                    0xff, 0xff, 0xff, 0xff,
+                    0xff, 0xff, 0xff, 0xff,
+                    ]);
+        elif(sys.argv[1]=="txpipscapy"):
+            try:
+                from scapy.all import Dot15d4, Dot15d4FCS, Dot15d4Data, Raw
+                import struct
+            except ImportError:
+                print "To use packet building, Scapy must be installed and have the dot15d4 extension present."
+                print "try: hg clone http://hg.secdev.org/scapy-com";
+                print "     sudo ./setup.py install";
+            #Overall method is to build from the inner packet outwards in the pkt string
+            # Make inner packet
+            scapyinner = Dot15d4FCS(seqnum=130)/Dot15d4Data()/Raw('\xde\xad\xbe\xef');
+            #pkt = str(scapyinner)[:-2] + '\xba\xbe\xc0';
+            pkt = str(scapyinner);                  #build inner pkt to bytes, adding FCS automatically
+            #pkt = '\x0f'+pkt
+            pkt = struct.pack('b', len(pkt)) + pkt  #prepend with its length
+            pkt = "\x00\x00\x00\x00\xA7" + pkt      #add preamble and SFD to inner packet
+            # Make outer (wrapping) packet
+            scapyouter = Dot15d4(seqnum=130)/Dot15d4Data(dest_panid=0xffdf)/Raw('\xde\xad\xbe\xef\xba\xbe\xc0') #TODO why need these last 3 bytes?
+            pkt = str(scapyouter) + pkt
+            pkt = struct.pack('b', len(pkt)) + pkt  #prepend with its length
+            pkt = '\x00\x00\x00\x00\xA7' + pkt + ('\xff'*28) #start with preamble/SFD and add 0xff fill at end
+            pkt = struct.pack('b', len(pkt)) + pkt  #prepend with its length (originally used \x7f)
+            client.printpacket(pkt)
+            client.RF_autocrc(1);
+            client.RF_txpacket(pkt)
+
 
 if(sys.argv[1]=="peek"):
     start=0x0000;

@@ -64,14 +64,27 @@ your hardware dictates.</p>
 
 <h2>Errata</h2>
 
-<p>Email travis at radiantmachines.com if you should
-find any.</p>
+<p>Email travis at radiantmachines.com if you should find any.</p>
 
 <h2>Hacks</h2>
 
-<p>Coming soon.</p>
-<!--TODO fill in the badge hacks-->
+<p>Makers Local 256 wired one of their badges to build
+a <a href="https://256.makerslocal.org/2010/07/24/the-next-hope-geiger-counter/">Geiger
+Counter</a> that detects other badges.</p>
 
+<p>Adam Mayer hacked up a replacement OpenBeacon firmware image which
+would clone a nearby device's ID, in order to confuse the aggregation
+servers.  You can find a copy of his firmware in
+the <a href="http://sourceforge.net/projects/nhbadge/develop">nhbadge
+subversion repository</a>.</p>
+
+<p>Travis managed to build a promiscuous sniffer for Microsoft's
+2.4GHz wireless keyboards, documented
+in <a href="http://travisgoodspeed.blogspot.com/2011/02/promiscuity-is-nrf24l01s-duty.html">Promiscuity
+is the nRF24L01+'s Duty</a>.  Keystrokes are USB HID events encrypted
+only by XOR, where the key is the 5 byte MAC address.  Because a
+key-up event includes a longer string of zero bytes, some packets
+actually include the key twice!</p>
 
 <h1>Next Hope Badge USB Modification</h1>
 

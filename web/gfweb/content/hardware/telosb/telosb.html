@@ -24,6 +24,12 @@ make clean install
 goodfet.ccspi info
 goodfet.spiflash info</pre>
 
+<h2>Schematics</h2>
+
+<p>Schematics for the devices are identical, and they can be found in
+the contrib/ directory of the subversion repository.
+</p>
+
 <!-- CAD Files would go here, but we didn't make the board. -->
 
 <!-- Bill of Materials, Construction -->
@@ -36,4 +42,13 @@ client cannot determine the size or model of the SPI Flash chip in the
 TMote Sky, whose chip differs somehow from the otherwise identical
 Telos B.  Reads, writes, and erases perform as expected.</p>
 
+<h2>Examples</h2>
+
+<p>A few nifty examples are covered in the
+article <a href="http://travisgoodspeed.blogspot.com/2011/03/goodfet-on-telosb-tmote-sky.html">GoodFET
+on the TelosB, TMote Sky</a>.  Specifically, the device is good for
+802.15.4 packet sniffing and injection, as well as for the quick
+prototyping of new
+applications.  <a href="http://www.secdev.org/projects/scapy/">Scapy</a>
+integration also allows for packet dissection.</p>
 

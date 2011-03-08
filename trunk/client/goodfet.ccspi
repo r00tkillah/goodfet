@@ -157,8 +157,9 @@ if(sys.argv[1]=="txtest"):
                             0xba, 0xbe, 0xc0]);
 if(sys.argv[1]=="txtoscount"):
     '''
-    Clone of what TinyOS's BlinkToLED demo code does.
-    Specify a channel a TinyOS mote programmed with BlinkToLED is on, and this will act as the second device.
+    Clone of what TinyOS's RadioCountToLeds demo code does.  Specify a
+    channel a TinyOS mote programmed with RadioCountToLeds is on, and
+    this will act as the second device.
     '''
     if (len(sys.argv)<=3):
         print "Provide -r to work via replays or -i to work via incrementing itself.";

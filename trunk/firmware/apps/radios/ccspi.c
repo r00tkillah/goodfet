@@ -166,7 +166,9 @@ void ccspi_handle_fn( uint8_t const app,
       CLRSS;
       ccspitrans8(0x08); //SFLUSHRX
       SETSS;
-      txdata(app,verb,cmddata[0]+2);
+      //Only should transmit length of one more than the reported
+      // length of the frame, which holds the length byte:
+      txdata(app,verb,cmddata[0]+1);
     }else{
       //No packet.
       txdata(app,verb,0);

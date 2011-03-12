@@ -72,7 +72,7 @@ class GoodFET:
         return self.symbols.get(name);
     def timeout(self):
         print "timeout\n";
-    def serInit(self, port=None, timeout=2):
+    def serInit(self, port=None, timeout=2, attemptlimit=None):
         """Open the serial port"""
         # Make timeout None to wait forever, 0 for non-blocking mode.
         
@@ -119,7 +119,9 @@ class GoodFET:
         connected=0;
         while connected==0:
             while self.verb!=0x7F or self.data!="http://goodfet.sf.net/":
-                if attempts>2:
+                if attemptlimit is not None and attempts >= attemptlimit:
+                    return
+                elif attempts>2:
                     print "Resyncing.";
                 self.serialport.flushInput()
                 self.serialport.flushOutput()

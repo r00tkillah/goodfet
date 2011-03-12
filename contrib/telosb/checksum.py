@@ -14,13 +14,14 @@ def parse(data):
     bytes = re.findall(r'[0-9a-fA-F]{2}', data) #keep only hex bytes
     length = int(bytes[0], 16) #first byte is length of pkt
     framelen = len(bytes[1:])
-    print "Provided packet indicates length %d and is of length %d." % (length, framelen)
+    print "Provided packet indicates length %d and body is of length %d." % (length, framelen)
     if length > framelen:
-        bytes = bytes[1:] + (["00"] * (length-framelen))
+        bytes = bytes + (["00"] * (length-framelen))
         print "Warning: Input was shorter than length byte specified, it has been padded with null bytes."
     bytes = bytes[1:length+1]
     origCRC = ''.join(bytes[-2:])
-    newCRC = toHex(makeFCS(''.join(bytes[:-2])))
+    body = [chr(int(x, 16)) for x in bytes[:-2]]
+    newCRC = toHex(makeFCS(body))
     print "On packet %s, found original CRC as %s and calculated CRC as %s." % (''.join(bytes), origCRC, newCRC)
     print ''.join(bytes[:-2]) + newCRC
 

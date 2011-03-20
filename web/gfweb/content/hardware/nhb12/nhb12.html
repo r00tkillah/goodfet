@@ -191,10 +191,16 @@ file used on the production line to program these things.</p>
 <h2>GoodFET Firmware</h2>
 
 <p>To download the GoodFET firmware for either Unix or Windows,
-visit <a href="http://goodfet.sourceforge.net/">http://goodfet.sf.net/</a> and follow
-the SVN instructions.  Once installed, you can flash the GoodFET firmware to the badge with
-either 'goodfet.bsl -e -p goodfet2618.hex' or 'GFBSL.EXE -e -p goodfet2618.hex'.
+visit <a href="http://goodfet.sourceforge.net/">http://goodfet.sf.net/</a>
+and follow the SVN instructions.  Once installed, you can flash the
+GoodFET firmware to the badge with either 'goodfet.bsl -e -p
+goodfet2618.hex' or 'GFBSL.EXE -e -p goodfet2618.hex'.
 <p>
+
+<p>To build the GoodFET firmware for these boards, compile
+trunk/firmware with 'platform=nhb12 mcu=msp430x2618 make clean
+install' or 'platform=nhb12b mcu=msp430x2618 make clean install' as
+your hardware dictates.</p>
 
 <p>Once flashed with firmware, the badge will respond to
 'goodfet.monitor info' ('GFMON.EXE info' on Windows) with its model

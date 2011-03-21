@@ -51,6 +51,11 @@ class GoodFETConsole():
             self.prompt();
     def handle(self, str):
         """Handle a command string.  First word is command."""
+        #Lines beginning with ? are cries for help.
+        if(str[0]=="?"):  
+            print "Term Commands:"
+            print commands
+            return;
         #Lines beginning with # are comments.
         if(str[0]=="#"):  return;
         #Lines beginning with ! are Python.

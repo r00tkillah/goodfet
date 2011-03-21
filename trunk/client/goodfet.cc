@@ -117,8 +117,11 @@ if(len(sys.argv)==1):
     print "%s flash $foo.hex" % sys.argv[0];
     print "%s test" % sys.argv[0];
     print "%s term" % sys.argv[0];
+    print "    use \'?\' for list of commands";
     print "%s info" % sys.argv[0];
     print "%s infotest" % sys.argv[0];
+    print "%s radioinfo [help] [REGISTER_NAME]" % sys.argv[0];
+    print "%s specfuncreg [SPECIAL_REGISTER_NAME]" % sys.argv[0];
     print "%s halt"  % sys.argv[0];
     print "%s regs" % sys.argv[0];
     print "%s dumpcode $foo.hex [0x$start 0x$stop]" % sys.argv[0];
@@ -414,6 +417,12 @@ if(sys.argv[1]=="info"):
     #print "SMAC  0x%010x" % client.RF_getsmac();
     #print "TMAC  0x%010x" % client.RF_gettmac();
 
+if(sys.argv[1]=="radioinfo"):
+    if (len(sys.argv) - 2) > 0:
+        client.CMDrs(sys.argv[2:]);
+    else:
+        client.CMDrs();
+
 if(sys.argv[1]=="regs"):
     client.CMDrs();
 
@@ -461,6 +470,12 @@ if(sys.argv[1]=="adctest"):
         client.CCpeekdatabyte(0xDF3B));
 if(sys.argv[1]=="config"):
     print "Config is %02x" % client.CCrd_config();
+
+if(sys.argv[1]=="specfuncreg"):
+    if len(sys.argv) > 2:
+        client.getSPR(sys.argv[2:]);
+    else:
+        client.getSPR();
 
 if(sys.argv[1]=="flash"):
      f=sys.argv[2];

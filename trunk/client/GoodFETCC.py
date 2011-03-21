@@ -47,6 +47,7 @@ class GoodFETCC(GoodFET):
             elif e.localName=="Start": start=e.childNodes[0].nodeValue;
             elif e.localName=="Stop": stop=e.childNodes[0].nodeValue;
         return "   [%s:%s] %30s " % (start,stop,name);
+
     def SRF_radiostate(self):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);
@@ -74,6 +75,44 @@ class GoodFETCC(GoodFET):
                     print "%-10s=0x%02x; /* %-50s */" % (
                         name,self.CCpeekdatabyte(eval(address)), description);
                     if bitfields!="": print bitfields.rstrip();
+
+    def SRF_radiostate_select(self,args=[]):
+        lreg = []
+        ident=self.CCident();
+        chip=self.CCversions.get(ident&0xFF00);
+        dom=self.SRF_chipdom(chip,"register_definition.xml");
+        for reg in args:
+            if reg.lower() == "help":
+                lreg = "help"
+                break
+            lreg.append(reg.lower())
+        for e in dom.getElementsByTagName("registerdefinition"):
+            for f in e.childNodes:
+                if f.localName=="DeviceName":
+                    print "// %s RadioState" % (f.childNodes[0].nodeValue);
+                elif f.localName=="Register":
+                    name="unknownreg";
+                    address="0xdead";
+                    description="";
+                    bitfields="";
+                    for g in f.childNodes:
+                        if g.localName=="Name":
+                            name=g.childNodes[0].nodeValue;
+                        elif g.localName=="Address":
+                            address=g.childNodes[0].nodeValue;
+                        elif g.localName=="Description":
+                            if g.childNodes:
+                                description=g.childNodes[0].nodeValue;
+                        elif g.localName=="Bitfield":
+                            bitfields+="%17s/* %-50s */\n" % ("",self.SRF_bitfieldstr(g));
+                    #print "SFRX(%10s, %s); /* %50s */" % (name,address, description);
+                    if lreg == "help":
+                        print "%-10s /* %-50s */" % (name, description);
+                    elif name.lower() in lreg:
+                        print "%-10s=0x%02x; /* %-50s */" % (
+                            name,self.CCpeekdatabyte(eval(address)), description);
+                        if bitfields!="": print bitfields.rstrip();
+
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         #FIXME CC1110 specific
@@ -532,11 +571,8 @@ class GoodFETCC(GoodFET):
         self.pokebysym("MDMCFG1"  , 0x22)   # Modem configuration.
         self.pokebysym("MDMCFG0"  , 0xF8)   # Modem configuration.
         
-        
         self.pokebysym("SYNC1",0xAA);
         self.pokebysym("SYNC0",0xAA);
-        
-        
         
         #while ((MARCSTATE & MARCSTATE_MARC_STATE) != MARC_STATE_TX); 
         state=0;
@@ -603,8 +639,6 @@ class GoodFETCC(GoodFET):
             if self.verbose>0: print "RSSIL/RSSIH regs don't exist.";
         
         return 0;
-    
-    
     
     def SRF_loadsymbols(self):
         ident=self.CCident();
@@ -905,6 +939,133 @@ class GoodFETCC(GoodFET):
         secret=self.CCpeekcodebyte(0);
         #print "Got secret %02x" % secret;
         return secret;
+
+    CCspecfuncregs={
+        'P0':0x80,
+        'SP':0x81,
+        'DPL0':0x82,
+        'DPH0':0x83,
+        'DPL1':0x84,
+        'DPH1':0x85,
+        'U0CSR':0x86,
+        'PCON':0x87,
+        'TCON':0x88,
+        'P0IFG':0x89,
+        'P1IFG':0x8A,
+        'P2IFG':0x8B,
+        'PICTL':0x8C,
+        'P1IEN':0x8D,
+        'P0INP':0x8F,
+        'P1':0x90,
+        'RFIM':0x91,
+        'DPS':0x92,
+        'MPAGE':0x93,
+        'ENDIAN':0x95,
+        'S0CON':0x98,
+        'IEN2':0x9A,
+        'S1CON':0x9B,
+        'T2CT':0x9C,
+        'T2PR':0x9D,
+        'T2CTL':0x9E,
+        'P2':0xA0,
+        'WORIRQ':0xA1,
+        'WORCTRL':0xA2,
+        'WOREVT0':0xA3,
+        'WOREVT1':0xA4,
+        'WORTIME0':0xA5,
+        'WORTIME1':0xA6,
+        'IEN0':0xA8,
+        'IP0':0xA9,
+        'FWT':0xAB,
+        'FADDRL':0xAC,
+        'FADDRH':0xAD,
+        'FCTL':0xAE,
+        'FWDATA':0xAF,
+        'ENCDI':0xB1,
+        'ENCDO':0xB2,
+        'ENCCS':0xB3,
+        'ADCCON1':0xB4,
+        'ADCCON2':0xB5,
+        'ADCCON3':0xB6,
+        'IEN1':0xB8,
+        'IP1':0xB9,
+        'ADCL':0xBA,
+        'ADCH':0xBB,
+        'RNDL':0xBC,
+        'RNDH':0xBD,
+        'SLEEP':0xBE,
+        'IRCON':0xC0,
+        'U0DBUF':0xC1,
+        'U0BAUD':0xC2,
+        'U0UCR':0xC4,
+        'U0GCR':0xC5,
+        'CLKCON':0xC6,
+        'MEMCTR':0xC7,
+        'WDCTL':0xC9,
+        'T3CNT':0xCA,
+        'T3CTL':0xCB,
+        'T3CCTL0':0xCC,
+        'T3CC0':0xCD,
+        'T3CCTL1':0xCE,
+        'T3CC1':0xCF,
+        'PSW':0xD0,
+        'DMAIRQ':0xD1,
+        'DMA1CFGL':0xD2,
+        'DMA1CFGH':0xD3,
+        'DMA0CFGL':0xD4,
+        'DMA0CFGH':0xD5,
+        'DMAARM':0xD6,
+        'DMAREQ':0xD7,
+        'TIMIF':0xD8,
+        'RFD':0xD9,
+        'T1CC0L':0xDA,
+        'T1CC0H':0xDB,
+        'T1CC1L':0xDC,
+        'T1CC1H':0xDD,
+        'T1CC2L':0xDE,
+        'T1CC2H':0xDF,
+        'ACC':0xE0,
+        'RFST':0xE1,
+        'T1CNTL':0xE2,
+        'T1CNTH':0xE3,
+        'T1CTL':0xE4,
+        'T1CCTL0':0xE5,
+        'T1CCTL1':0xE6,
+        'T1CCTL2':0xE7,
+        'IRCON2':0xE8,
+        'RFIF':0xE9,
+        'T4CNT':0xEA,
+        'T4CTL':0xEB,
+        'T4CCTL0':0xEC,
+        'T4CC0':0xED,
+        'T4CCTL1':0xEE,
+        'T4CC1':0xEF,
+        'B':0xF0,
+        'PERCFG':0xF1,
+        'ADCCFG':0xF2,
+        'P0SEL':0xF3,
+        'P1SEL':0xF4,
+        'P2SEL':0xF5,
+        'P1INP':0xF6,
+        'P2INP':0xF7,
+        'U1CSR':0xF8,
+        'U1DBUF':0xF9,
+        'U1BAUD':0xFA,
+        'U1UCR':0xFB,
+        'U1GCR':0xFC,
+        'P0DIR':0xFD,
+        'P1DIR':0xFE,
+        'P2DIR':0xFF
+    }
+    def getSPR(self,args=[]):
+        """Get special function registers."""
+        print "Special Function Registers:"
+        if len(args):
+            for e in args:
+                print "    %-8s : 0x%0.2x"%(e,self.CCpeekcodebyte(self.CCspecfuncregs[e]))
+        else:
+            for e in self.CCspecfuncregs.keys():
+                print "    %-8s : 0x%0.2x"%(e,self.CCpeekcodebyte(self.CCspecfuncregs[e]))
     
     def dump(self,file,start=0,stop=0xffff):
         """Dump an intel hex file from code memory."""

@@ -208,10 +208,10 @@ class GoodFETGlitch(GoodFET):
         tstop=self.client.glitchstarttime();
         tstep=0x1; #Must be 1
         self.scan(lock,trials,range(vstart,vstop),range(tstart,tstop));
-        print "Learning phase complete, beginning to crunch.";
+        print "Learning phase complete, begin to crunch.";
         self.crunch();
-        print "Crunch phase complete, beginning to explore.";
-        self.explore();
+        #print "Crunch phase complete, beginning to explore.";
+        #self.explore();
         
     def scansetup(self,lock):
         client=self.client;

@@ -382,7 +382,8 @@ class GoodFET:
         return self.MONpeek8(address)+(self.MONpeek8(address+1)<<8);
     def eeprompeek(self,address):
         """Read a word of memory from the monitor."""
-        return self.MONpeek8(address)+(self.MONpeek8(address+1)<<8);
+        print "EEPROM peeking not supported for the monitor.";
+        #return self.MONpeek8(address)+(self.MONpeek8(address+1)<<8);
     def peekbysym(self,name):
         """Read a value by its symbol name."""
         #TODO include memory in symbol.
@@ -405,11 +406,17 @@ class GoodFET:
         return value;
     def setsecret(self,value):
         """Set a secret word for later retreival.  Used by glitcher."""
-        self.eeprompoke(0,value);
-        self.eeprompoke(1,value);
+        #self.eeprompoke(0,value);
+        #self.eeprompoke(1,value);
+        print "Secret setting is not yet suppored for this target.";
+        print "Aborting.";
+        
     def getsecret(self):
         """Get a secret word.  Used by glitcher."""
-        self.eeprompeek(0);
+        #self.eeprompeek(0);
+        print "Secret setting is not yet suppored for this target.";
+        print "Aborting.";
+        sys.exit();
     
     def dumpmem(self,begin,end):
         i=begin;

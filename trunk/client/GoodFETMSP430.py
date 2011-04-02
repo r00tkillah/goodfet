@@ -201,7 +201,8 @@ class GoodFETMSP430(GoodFET):
         
         print "Tests complete, erasing."
         self.MSP430masserase();
-        
+    def erase(self):
+        self.MSP430masserase();
     def MSP430masserase(self):
         """Erase MSP430 flash memory."""
         self.writecmd(self.MSP430APP,0xE3,0,None);

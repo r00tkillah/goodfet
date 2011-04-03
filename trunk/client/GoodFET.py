@@ -414,7 +414,7 @@ class GoodFET:
     def getsecret(self):
         """Get a secret word.  Used by glitcher."""
         #self.eeprompeek(0);
-        print "Secret setting is not yet suppored for this target.";
+        print "Secret getting is not yet suppored for this target.";
         print "Aborting.";
         sys.exit();
     

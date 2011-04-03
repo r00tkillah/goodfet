@@ -220,18 +220,24 @@ class GoodFETGlitch(GoodFET):
         client.erase();
         print "Scanning %s" % client.infostring();
         
-        self.secret=0x49;
+        #Kind of arbitrary.
+        #16 bit minimum.
+        self.secret=0xdead;
         
-        while(client.getsecret()!=self.secret):
-            print "-- Setting secret";
-            client.start();
-            
-            #Flash the secret to the first two bytes of CODE memory.
-            client.erase();
-            print "-- Secret was %02x" % client.getsecret();
-            client.setsecret(self.secret);
-            sys.stdout.flush()
-            
+        
+        print "-- Setting secret";
+        client.start();
+        
+        #Flash the secret, to try and recover it later.
+        client.erase();
+        print "-- Secret was %02x" % client.getsecret();
+        client.setsecret(self.secret);
+        print "-- Secret set to %02x" % client.getsecret();
+        sys.stdout.flush()
+        if(client.getsecret()!=self.secret):
+            print "Secret failed to set.  Exiting for safety.";
+            sys.exit();
+        
         #Lock chip to unlock it later.
         if lock>0:
             client.lock();

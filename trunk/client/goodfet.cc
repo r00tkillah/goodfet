@@ -471,7 +471,7 @@ if(sys.argv[1]=="adctest"):
 if(sys.argv[1]=="config"):
     print "Config is %02x" % client.CCrd_config();
 
-if(sys.argv[1]=="specfuncreg"):
+if(sys.argv[1]=="specfuncreg" or sys.argv[1]=="sfr"):
     if len(sys.argv) > 2:
         client.getSPR(sys.argv[2:]);
     else:

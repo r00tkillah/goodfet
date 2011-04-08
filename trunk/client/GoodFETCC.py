@@ -21,7 +21,7 @@ class GoodFETCC(GoodFET):
     def loadsymbols(self):
         try: self.SRF_loadsymbols();
         except:
-            if self.verbose>0: print "SmartRF not found at %s." % self.smartrfpath;
+            print "SmartRF not found at %s." % self.smartrfpath;
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
         """Loads the chip XML definitions from SmartRF7."""
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
@@ -939,7 +939,9 @@ class GoodFETCC(GoodFET):
         secret=self.CCpeekcodebyte(0);
         #print "Got secret %02x" % secret;
         return secret;
-
+    
+    #FIXME: This is CC1110-specific and duplicates functionality of 
+    #       SmartRF7 integration.
     CCspecfuncregs={
         'P0':0x80,
         'SP':0x81,

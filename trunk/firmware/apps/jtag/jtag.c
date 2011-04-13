@@ -519,6 +519,10 @@ uint16_t jtag_trans_16(uint16_t in)
 //! Shift 8 bits of the IR.
 uint8_t jtag_ir_shift_8(uint8_t in)
 {
+  /* Huseby's code, which breaks MSP430 support.
+     The code is broken because either the invalid jtag state error
+     causes the client to give up, or because it adds an extra clock edge.
+     
 	if (!in_run_test_idle())
 	{
 		debugstr("Not in run-test-idle state");
@@ -528,9 +532,24 @@ uint8_t jtag_ir_shift_8(uint8_t in)
 	// get intot the right state
 	jtag_capture_ir();
 	jtag_shift_register();
-
-	// shift IR bits
-	return jtag_trans_8(in);
+  */
+  
+  
+  
+  // idle
+  SETTMS;
+  jtag_tcktock();
+  // select DR
+  jtag_tcktock();
+  // select IR
+  CLRTMS;
+  jtag_tcktock();
+  // capture IR
+  jtag_tcktock();
+  //jtag_state = CAPTURE_IR;
+  jtag_state = SHIFT_IR;
+  // shift IR bits
+  return jtag_trans_8(in);
 }
 
 //! Shift 16 bits of the DR.

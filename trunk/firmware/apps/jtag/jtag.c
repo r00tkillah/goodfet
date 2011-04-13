@@ -253,8 +253,8 @@ int savedtclk;
 //		subsystem does not want to return to the RUN-TEST/IDLE state between 
 //		setting IR and DR
 uint32_t jtag_trans_n(uint32_t word, 
-					  uint8_t bitcount, 
-					  enum eTransFlags flags) 
+		      uint8_t bitcount, 
+		      enum eTransFlags flags) 
 {
 	uint8_t bit;
 	uint32_t high = (1L << (bitcount - 1));
@@ -325,7 +325,13 @@ uint32_t jtag_trans_n(uint32_t word,
 			word |= (READMISO);
 		}
 	}
-
+	
+	//This is needed for 20-bit MSP430 chips.
+	//Might break another 20-bit chip, if one exists.
+	if(bitcount==20){
+	  word = ((word << 16) | (word >> 4)) & 0x000FFFFF;
+	}
+	
 	RESTORETCLK;
 
 	if (!(flags & NOEND))

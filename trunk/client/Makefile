@@ -14,7 +14,8 @@ py2exepub:
 py2exeinstall: py2exe
 	rm -rf "c:\goodfet\bin"
 	md "c:\goodfet\bin"
-	copy "tmp\goodfet\*" "c:\goodfet\bin\"
+	copy tmp\\goodfet\\* c:\\goodfet\\bin\\
+	rem Be sure to add C:\goodfet\bin to %Path%.
 py2exe:
 #Run this from Win32 with Python, py2exe, py-serial, and GNU utils.
 #MSP430 Client

@@ -1,0 +1,23 @@
+MacPorts and Dev Tools
+XCode 3, not 4.
+FTDI VCP Driver
+
+sudo port install python27 python_select subversion wget git-core py27-serial
+sudo python_select python27
+
+mkdir ~/svn
+cd ~/svn
+svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet
+cd goodfet/svn/client
+sudo make link
+
+cd ~/svn
+git clone git://mspgcc4.git.sourceforge.net/gitroot/mspgcc4/mspgcc4
+cd mspgcc4
+#When asked, choose default GCC, GDB, and LibC. Omit insight.
+perl buildgcc.pl 
+
+
+#path stuff for bash goes here.
+
+

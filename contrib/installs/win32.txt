@@ -1,0 +1,22 @@
+Use TortoiseSVN to extract the following URL to C:\GOODFET\
+svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet
+
+
+
+Install GNUWin32
+http://sourceforge.net/projects/getgnuwin32/files/
+
+cd getgnuwin32
+download
+install c:\gnuwin32
+Append "C:\gnuwin32\bin" to %PATH% in "My Computer/Properties/Advanced/Environment Variables"
+
+Install Python 2.x
+http://www.python.org/getit/
+Append "C:\Python27" to %PATH%
+
+Install pyserial for Python 2.x,
+http://pypi.python.org/pypi/pyserial
+
+Install Py2Exe for distributions,
+http://sourceforge.net/projects/py2exe/files/

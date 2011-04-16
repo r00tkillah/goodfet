@@ -11,6 +11,7 @@ install:
 py2exepub:
 #publish the windows build.
 	rsync --exclude .svn -ave ssh --progress --chmod=a+rx tmp/goodfet.zip travisutk,goodfet@web.sourceforge.net:htdocs/dist/gfwin.zip
+
 py2exe:
 #Run this from Win32 with Python, py2exe, py-serial, and GNU utils.
 #MSP430 Client
@@ -21,10 +22,11 @@ py2exe:
 	sed s/PYTHONCONSOLE/goodfet.monitor/ <p2e.txt >setup.py
 	python setup.py py2exe
 	mv dist/goodfet.exe dist/gfmon.exe
-#BSL
-	sed s/PYTHONCONSOLE/goodfet.bsl/ <p2e.txt >setup.py
+#JTAG
+	sed s/PYTHONCONSOLE/goodfet.jtag/ <p2e.txt >setup.py
 	python setup.py py2exe
-	mv dist/goodfet.exe dist/gfbsl.exe
+	mv dist/goodfet.exe dist/gfjtag.exe
+
 #BSL
 	sed s/PYTHONCONSOLE/goodfet.bsl/ <p2e.txt >setup.py
 	python setup.py py2exe
@@ -33,6 +35,14 @@ py2exe:
 	sed s/PYTHONCONSOLE/goodfet.avr/ <p2e.txt >setup.py
 	python setup.py py2exe
 	mv dist/goodfet.exe dist/gfavr.exe
+#PIC
+	sed s/PYTHONCONSOLE/goodfet.pic/ <p2e.txt >setup.py
+	python setup.py py2exe
+	mv dist/goodfet.exe dist/gfpic.exe
+#Chipcon SPI
+	sed s/PYTHONCONSOLE/goodfet.ccspi/ <p2e.txt >setup.py
+	python setup.py py2exe
+	mv dist/goodfet.exe dist/gfccspi.exe
 #Chipcon
 	sed s/PYTHONCONSOLE/goodfet.cc/ <p2e.txt >setup.py
 	python setup.py py2exe
@@ -45,6 +55,15 @@ py2exe:
 	sed s/PYTHONCONSOLE/goodfet.nrf/ <p2e.txt >setup.py
 	python setup.py py2exe
 	mv dist/goodfet.exe dist/gfnrf.exe
+#RF
+	sed s/PYTHONCONSOLE/goodfet.rf/ <p2e.txt >setup.py
+	python setup.py py2exe
+	mv dist/goodfet.exe dist/gfrf.exe
+#25C SPI EEPROM
+	sed s/PYTHONCONSOLE/goodfet.spi25c/ <p2e.txt >setup.py
+	python setup.py py2exe
+	mv dist/goodfet.exe dist/gfspi25.exe
+
 #Goodfet.  This must be last.
 	sed s/PYTHONCONSOLE/goodfet/ <p2e.txt >setup.py
 	python setup.py py2exe

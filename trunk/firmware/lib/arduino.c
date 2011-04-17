@@ -4,10 +4,9 @@
 */
 
 #include "platform.h"
+#ifdef ARDUINO
 
 #include <util/delay.h>
-
-#ifdef ARDUINO
 
 //! Arduino setup code.
 void arduino_init(){

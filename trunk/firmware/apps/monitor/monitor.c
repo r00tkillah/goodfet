@@ -146,9 +146,11 @@ void monitor_handle_fn(uint8_t const app,
 		break;
 
 	case MONITOR_CONNECTED:
-		msp430_init_dco_done();
-		txdata(app,verb,0);
-		break;
+	  #ifdef MSP430
+	  msp430_init_dco_done();
+	  #endif
+	  txdata(app,verb,0);
+	  break;
 	}
 }
 

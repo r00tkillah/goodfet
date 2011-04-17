@@ -51,15 +51,14 @@ void setbaud0(unsigned char rate){
     break;
   }
   
-  uint16_t bittimer=( F_CPU / SPEED / 16 ) - 1;
-  UBRR0H = (unsigned char) (bittimer >> 8);
-  UBRR0L = (unsigned char) bittimer;
+#define F_CPU 16000000L
+#define BAUD 230400L
+#include <util/setbaud.h>
+  UBRR0H = UBRRH_VALUE;
+  UBRR0L = UBRRL_VALUE;
   
-  
-  /* set the framing to 8N1 */
-  UCSR0C = (3 << UCSZ00);
-  /* Engage! */
-  UCSR0B = (1 << RXEN0) | (1 << TXEN0);
+  UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
+  UCSR0B = _BV(RXEN0) | _BV(TXEN0);
   return;
   
 }
@@ -88,22 +87,13 @@ void setbaud1(unsigned char rate){
 }
 
 
-void msp430_init_uart0(){
+void avr_init_uart0(){
+  setbaud0(0);
 }
 
 
-void msp430_init_uart1(){
+void avr_init_uart1(){
 }
 
 
-
-//! Initialization is correct.
-void msp430_init_dco_done(){
-  //Nothing to do for the AVR w/ xtal.
-}
-
-
-void msp430_init_dco() {
-  //
-}
 

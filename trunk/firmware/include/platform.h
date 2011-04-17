@@ -9,10 +9,14 @@
 
 #include "gfports.h"
 
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
 #include <stdint.h>
+
+#ifdef MSP430
+#include <io.h>
+#include <signal.h>
+#include <iomacros.h>
+
+#endif
 
 #include "config.h"
 

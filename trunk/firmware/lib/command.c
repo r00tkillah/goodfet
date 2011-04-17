@@ -140,17 +140,22 @@ void msdelay(unsigned int ms){
    delaying slightly longer than requested. */
 void prep_timer()
 {
+  #ifdef MSP430
   BCSCTL2 = 0x00; /* In particular, use DCOCLK as SMCLK source with
 		     divider 1. Hence, Timer B ticks with system
 		     clock at 16 MHz. */
 
   TBCTL = 0x0204; /* Driven by SMCLK; disable Timer B interrupts;
 		     reset timer in case it was previously in use */
+  #else
+  #warning "Function unimplemented for this platform."
+  #endif
 }
 
 //! Delay for specified number of milliseconds (given 16 MHz clock)
 void delay_ms( unsigned int ms )
 {
+  #ifdef MSP430
   // 16000 ticks = 1 ms
   TBCTL |= 0x20; // Start timer!
   while (ms--) {
@@ -159,11 +164,15 @@ void delay_ms( unsigned int ms )
     TBCTL = 0x0224;
   }
   TBCTL = 0x0204; // Reset Timer B, till next time
+  #else
+  #warning "Function unimplemented for this platform."
+  #endif
 }
 
 //! Delay for specified number of microseconds (given 16 MHz clock)
 void delay_us( unsigned int us )
 {
+  #ifdef MSP430
   // 16 ticks = 1 us
   TBCTL |= 0x20; // Start timer!
   while (us--) {
@@ -172,13 +181,20 @@ void delay_us( unsigned int us )
     TBCTL = 0x0224;
   }
   TBCTL = 0x0204; // Reset Timer B, till next time
+  #else
+  #warning "Function unimplemented for this platform."
+  #endif
 }
 
 //! Delay for specified number of clock ticks (16 MHz clock implies 62.5 ns per tick).
 void delay_ticks( unsigned int num_ticks )
 {
+  #ifdef MSP430
   TBCTL |= 0x20; // Start timer
   while (TBR < num_ticks)
     asm( "nop" );
   TBCTL = 0x0204; // Reset Timer B, till next time
+  #else
+  #warning "Function unimplemented for this platform."
+  #endif
 }

@@ -9,10 +9,6 @@
 #include "command.h"
 #include "app.h"
 
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
-
 #define GLITCH 0x71
 
 //Command codes

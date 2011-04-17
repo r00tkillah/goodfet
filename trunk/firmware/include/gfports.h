@@ -6,7 +6,8 @@
 #ifndef GFPORTS
 #define GFPORTS
 
-#include <io.h>
+//#include <io.h>
+
 
 // N.B., only asm-clean CPP definitions allowed.
 

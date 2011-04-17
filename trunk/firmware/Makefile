@@ -25,10 +25,10 @@ mcu?=RUNCONFIG
 platform?=goodfet
 
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.
-GCCINC?=-T ldscripts/$(mcu).x
+GCCINC?=
 
 #GCC?=avr-gcc
-GCC?=msp430-gcc
+GCC?=msp430-gcc -T ldscripts/$(mcu).x
 
 CCEXTRA?=  -D$(mcu) -D$(platform) -Dplatform=$(platform) -DGCC $(GCCINC) -I include -I platforms
 CC=$(GCC) -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)

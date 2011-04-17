@@ -78,14 +78,22 @@ void monitor_handle_fn(uint8_t const app,
 		break;
 
 	case PEEK:
+	  #ifdef MSP430
 		cmddata[0]=memorybyte[cmddataword[0]];
+          #else
+		debugstr("Monitor peeks are unsupported on this platform.");
+	  #endif
 		txdata(app,verb,1);
 		break;
 
 	case POKE:
+	  #ifdef MSP430
 		//Todo, make word or byte.
 		memorybyte[cmddataword[0]] = cmddata[2];
 		cmddata[0] = memorybyte[cmddataword[0]];
+          #else
+		debugstr("Monitor pokes are unsupported on this platform.");
+	  #endif
 		txdata(app,verb,1);
 		break;
 

@@ -52,7 +52,8 @@ void setbaud0(unsigned char rate){
   }
   
 #define F_CPU 8000000L
-#define BAUD 115200L
+  //#define BAUD 115200L
+#define BAUD 9600L
 #include <util/setbaud.h>
   UBRR0H = UBRRH_VALUE;
   UBRR0L = UBRRL_VALUE;
@@ -88,7 +89,9 @@ void setbaud1(unsigned char rate){
 
 
 void avr_init_uart0(){
+  PORTD = _BV(PD2);
   setbaud0(0);
+  _delay_ms(500); //takes a bit to stabilize
 }
 
 

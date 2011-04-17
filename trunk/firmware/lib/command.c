@@ -165,7 +165,7 @@ void delay_ms( unsigned int ms )
   }
   TBCTL = 0x0204; // Reset Timer B, till next time
   #else
-  #warning "Function unimplemented for this platform."
+  debugstr("delay_ms unimplemented");
   #endif
 }
 
@@ -182,7 +182,7 @@ void delay_us( unsigned int us )
   }
   TBCTL = 0x0204; // Reset Timer B, till next time
   #else
-  #warning "Function unimplemented for this platform."
+  debugstr("delay_us unimplemented");
   #endif
 }
 
@@ -195,6 +195,6 @@ void delay_ticks( unsigned int num_ticks )
     asm( "nop" );
   TBCTL = 0x0204; // Reset Timer B, till next time
   #else
-  #warning "Function unimplemented for this platform."
+  debugstr("delay_ticks unimplemented");
   #endif
 }

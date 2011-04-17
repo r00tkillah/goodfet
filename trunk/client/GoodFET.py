@@ -106,10 +106,13 @@ class GoodFET:
                     #Do nothing.
                     a=1;
         
+        baud=115200;
+        if(os.environ.get("platform")=='arduino'):
+            baud=19200; #Slower, for now.
         self.serialport = serial.Serial(
             port,
             #9600,
-            115200,
+            baud,
             parity = serial.PARITY_NONE,
             timeout=timeout
             )
@@ -118,6 +121,7 @@ class GoodFET:
         attempts=0;
         connected=0;
         while connected==0:
+            #print "Got %s" % self.data;
             while self.verb!=0x7F or self.data!="http://goodfet.sf.net/":
                 if attemptlimit is not None and attempts >= attemptlimit:
                     return
@@ -135,6 +139,8 @@ class GoodFET:
                 if(os.environ.get("platform")=='telosb'):
                     #print "TelosB Reset";
                     self.telosBReset();
+                
+                    
                 #self.serialport.write(chr(0x80));
                 #self.serialport.write(chr(0x80));
                 #self.serialport.write(chr(0x80));
@@ -147,15 +153,18 @@ class GoodFET:
                 attempts=attempts+1;
                 self.readcmd(); #Read the first command.
             #Here we have a connection, but maybe not a good one.
+            #print "We have a connection."
             connected=1;
             olds=self.infostring();
             clocking=self.monitorclocking();
+            #if(os.environ.get("platform")!='arduino'):
             for foo in range(1,30):
                 if not self.monitorecho():
-                    if self.verbose: print "Comm error on %i try, resyncing out of %s." % (foo,
-                                                  clocking);
-                    connected=0;
-                    break;
+                    if self.verbose:
+                        print "Comm error on %i try, resyncing out of %s." % (foo,
+                                                                              clocking);
+                        connected=0;
+                        break;
         if self.verbose: print "Connected after %02i attempts." % attempts;
         self.mon_connected();
         self.serialport.setTimeout(12);
@@ -493,7 +502,7 @@ class GoodFET:
         data="The quick brown fox jumped over the lazy dog.";
         self.writecmd(self.MONITORAPP,0x81,len(data),data);
         if self.data!=data:
-            if self.verbose: print "Comm error recognized by monitorecho().";
+            print "Comm error recognized by monitorecho(), got:\n%s" % self.data;
             return 0;
         return 1;
 
@@ -529,14 +538,20 @@ class GoodFET:
         self.MONpoke16(0x56, clock);
     def monitorgetclock(self):
         """Get the clocking value."""
+        if(os.environ.get("platform")=='arduino'):
+            return 0xDEAD;
+        #Check for MSP430 before peeking this.
         return self.MONpeek16(0x56);
     # The following functions ought to be implemented in
     # every client.
     
     def infostring(self):
-        a=self.MONpeek8(0xff0);
-        b=self.MONpeek8(0xff1);
-        return "%02x%02x" % (a,b);
+        if(os.environ.get("platform")=='arduino'):
+            return "Arduino";
+        else:
+            a=self.MONpeek8(0xff0);
+            b=self.MONpeek8(0xff1);
+            return "%02x%02x" % (a,b);
     def lock(self):
         print "Locking Unsupported.";
     def erase(self):

@@ -40,32 +40,29 @@ INITCHIP
 
 //! Handle a command.
 void handle(uint8_t const app,
-			uint8_t const verb,
-			uint32_t const len)
-{
-	int i;
+	    uint8_t const verb,
+	    uint32_t const len){
+  int i;
+  
+  //debugstr("GoodFET");
+  PLEDOUT&=~PLEDPIN;
+  
+  // find the app and call the handle fn
+  for(i = 0; i < num_apps; i++){
+    if(apps[i]->app == app){
+      // call the app's handle fn
+      (*(apps[i]->handle))(app, verb, len);
 
-	//debugstr("GoodFET");
-	PLEDOUT&=~PLEDPIN;
+      // exit early
+      return;
+    }
+  }
 
-	// find the app and call the handle fn
-	for(i = 0; i < num_apps; i++)
-	{
-		if(apps[i]->app == app)
-		{
-			// call the app's handle fn
-			(*(apps[i]->handle))(app, verb, len);
-
-			// exit early
-			return;
-		}
-	}
-
-	// if we get here, then the desired app is not copiled in 
-	// this firmware
-	debugstr("App missing.");
-	debughex(app);
-	txdata(app, NOK, 0);
+  // if we get here, then the desired app is not copiled in 
+  // this firmware
+  debugstr("App missing.");
+  debughex(app);
+  txdata(app, NOK, 0);
 }
 
 
@@ -80,9 +77,12 @@ int main(void)
 	void (*reboot_function)(void) = (void *) 0xFFFE;
 
 	init();
-  
+	
 	txstring(MONITOR,OK,"http://goodfet.sf.net/");
-  
+	#ifdef ECHOTEST
+	while(1) serial0_tx(serial0_rx());
+	#endif
+	
 	//Command loop.  There's no end!
 	while(1)
 	{
@@ -101,7 +101,11 @@ int main(void)
 				// or
 				// WDTCTL = WDTPW + WDTCNTCL + WDTSSEL + 0x00;
 				// but instead we'll jump to our reboot function pointer
+			  #ifdef MSP430
 				(*reboot_function)();
+			  #else
+				debugstr("Rebooting not supported on this platform.");
+			  #endif
 			}
 
 			continue;
@@ -112,7 +116,6 @@ int main(void)
 		}
 
 		verb = serial_rx();
-		//len=serial_rx();
 		len = rxword();
 
 		//Read data, looking for buffer overflow.y

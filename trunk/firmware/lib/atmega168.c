@@ -51,8 +51,8 @@ void setbaud0(unsigned char rate){
     break;
   }
   
-#define F_CPU 16000000L
-#define BAUD 230400L
+#define F_CPU 8000000L
+#define BAUD 115200L
 #include <util/setbaud.h>
   UBRR0H = UBRRH_VALUE;
   UBRR0L = UBRRL_VALUE;

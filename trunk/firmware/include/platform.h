@@ -15,7 +15,7 @@
 #include <io.h>
 #include <signal.h>
 #include <iomacros.h>
-
+#include "msp430.h"
 #endif
 
 #include "config.h"

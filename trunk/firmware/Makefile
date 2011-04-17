@@ -1,9 +1,11 @@
 
 #include `uname`.mak
-GOODFET?=/dev/ttyUSB0
+GOODFET?=/dev/tty.usbser*
 
+#For Arduino,
+#BSL?=avrdude -V -F -c stk500v1 -p m328p -b 57600 -P /dev/tty.usbserial-* -U flash:w:blink.hex
 #For tos-bsl, use --invert-reset --invert-test
-BSL?=goodfet.bsl --speed=38400
+MSP430BSL?=goodfet.bsl --speed=38400
 
 #One of these should be defined explicitly.
 #Default removed because of confusion.
@@ -11,21 +13,24 @@ BSL?=goodfet.bsl --speed=38400
 #mcu?=msp430x2274
 #mcu?=msp430x2618
 #mcu?=msp430x1612
+#mcu?=atmega168
 mcu?=RUNCONFIG
 
-#platform=goodfet
-#platform=telosb
-#platform=z1
-#platform=nhbadge
-#platform=nhbadgeb
+#platform?=goodfet
+#platform?=telosb
+#platform?=z1
+#platform?=nhbadge
+#platform?=nhbadgeb
+#platofrm?=arduino
 platform?=goodfet
 
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.
-#GCCINC=-T ldscripts/161x.x
-GCCINC=-T ldscripts/$(mcu).x
+GCCINC?=-T ldscripts/$(mcu).x
+
+#GCC?=avr-gcc
+GCC?=msp430-gcc
 
 CCEXTRA?=  -D$(mcu) -D$(platform) -Dplatform=$(platform) -DGCC $(GCCINC) -I include -I platforms
-GCC?=msp430-gcc
 CC=$(GCC) -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
 
 # Available Applications
@@ -102,7 +107,7 @@ config ?= monitor chipcon spi jtag430 jtag430x2 avr openocd ccspi
 
 # Build the needed list of app and lib object files from the config
 apps= 
-libs= lib/$(mcu).o lib/command.o lib/dco_calib.o lib/apps.o
+libs= lib/$(mcu).o lib/command.o lib/dco_calib.o lib/apps.o lib/msp430.o
 hdrs=
 ERR=
 
@@ -315,14 +320,17 @@ goodfet.hex: goodfet
 run:
 	../client/goodfet.msp430 test
 
+avrinstall: $(app).hex
+	#to be merged
+	avrdude -V -F -c stk500v1 -p m328p -b 57600 -P $(GOODFET) -U flash:w:$(app).hex
 install: $(app).hex
-	$(BSL) -e -p $(app).hex 
+	$(MSP430BSL) -e -p $(app).hex 
 installinfo:
-	$(BSL) -P $(app).hex -p info.txt || true  #MSP430F2xx targets only, inelegant.
+	$(MSP430BSL) -P $(app).hex -p info.txt || true  #MSP430F2xx targets only, inelegant.
 verify:
-	$(BSL) -P $(app).hex -v $(app).hex
+	$(MSP430BSL) -P $(app).hex -v $(app).hex
 dumpinfo:
-	$(BSL) --dumpinfo
+	$(MSP430BSL) --dumpinfo
 $(app).c: config builddate appsfiles err
 $(app): $(libs) $(apps)
 $(app).hex: $(app)
@@ -330,7 +338,7 @@ $(app).hex: $(app)
 m4s: $(app).hex
 	msp430-objdump -D -m msp430 $(app).hex | m4s init
 erase:
-	$(BSL) -e 
+	$(MSP430BSL) -e 
 clean:
 	rm -f $(app) $(app).hex $(libs) $(apps) lib/apps.c include/config.h include/builddate.h include/apps.h
 docs:

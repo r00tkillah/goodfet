@@ -107,7 +107,7 @@ config ?= monitor chipcon spi jtag430 jtag430x2 avr openocd ccspi
 
 # Build the needed list of app and lib object files from the config
 apps= 
-libs= lib/$(mcu).o lib/command.o lib/dco_calib.o lib/apps.o lib/msp430.o
+libs= lib/$(mcu).o lib/command.o lib/dco_calib.o lib/apps.o lib/msp430.o lib/arduino.o
 hdrs=
 ERR=
 

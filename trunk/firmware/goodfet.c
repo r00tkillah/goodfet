@@ -18,7 +18,15 @@
 //! General init function, calls platform-specific one.
 void init(){
 #ifdef MSP430
-  msp430_init();
+  #define INITCHIP msp430_init();
+#endif
+
+#ifdef ARDUINO
+  #define INITCHIP arduino_init();
+#endif
+
+#ifdef INITCHIP
+INITCHIP
 #else
 #warning "No init() routine for this platform!"
 #endif

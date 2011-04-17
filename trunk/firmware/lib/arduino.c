@@ -12,19 +12,21 @@
 void arduino_init(){
   /* set PORTB for output*/
   DDRB = 0xFF;
-
+  
+  /*
   while (1)
     {
-      /* set PORTB.6 high */
+    //LED on
       PORTB = 0x20;
 
       _delay_ms(1000);
 
-      /* set PORTB.6 low */
+      //LED off
       PORTB = 0x00;
 
       _delay_ms(1000);
     }
+*/
 }
 
 #endif

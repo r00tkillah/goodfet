@@ -26,10 +26,9 @@ if(len(sys.argv)==1):
     print "%s bsniff [chan]" % sys.argv[0];
     print "%s sniffdissect" % sys.argv[0];
     
-    
-    print;
-    print "%s txtoscount [-i|-r]   TinyOS BlinkToLED" % sys.argv[0];    
-    
+    print "\n%s txtoscount [-i|-r]   TinyOS BlinkToLED" % sys.argv[0];
+    print "%s reflexjam" % sys.argv[0];
+
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -56,6 +55,20 @@ if(sys.argv[1]=="modulated_spectrum"):
         client.RF_modulated_spectrum();
     while(1):
         time.sleep(1);
+
+if(sys.argv[1]=="reflexjam"):
+    client.RF_promiscuity(1);
+    client.RF_autocrc(0);
+    if len(sys.argv)>2:
+        freq=eval(sys.argv[2]);
+        if freq>100:
+            client.RF_setfreq(freq);
+        else:
+            client.RF_setchan(freq);
+    client.CC_RFST_RX();
+    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
+                                            client.RF_getfreq()/10**6);
+    client.RF_reflexjam();
 
 if(sys.argv[1]=="info"):
     print "Found   %s" % client.identstr();

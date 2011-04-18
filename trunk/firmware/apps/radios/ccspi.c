@@ -140,7 +140,7 @@ void ccspi_handle_fn( uint8_t const app,
     break;
   case CCSPI_RX:
 #ifdef FIFOP
-     //Has there been an overflow?
+    //Has there been an overflow?
     if((!FIFO)&&FIFOP){
       debugstr("Clearing overflow");
       CLRSS;
@@ -159,7 +159,7 @@ void ccspi_handle_fn( uint8_t const app,
       //ccspitrans8(0x3F|0x40);
       cmddata[0]=0xff; //to be replaced with length
       for(i=0;i<cmddata[0]+2;i++)
-	cmddata[i]=ccspitrans8(0xde);
+        cmddata[i]=ccspitrans8(0xde);
       SETSS;
       
       //Flush buffer.
@@ -186,12 +186,57 @@ void ccspi_handle_fn( uint8_t const app,
     
     txdata(app,verb,0);
     break;
+
   case CCSPI_REFLEX:
-    debugstr("Coming soon.");
-    txdata(app,verb,0);
+    debugstr("Beta implementation.");
+    cmddata[0] = 1;
+    txdata(app,verb,cmddata[0]+1);
+
+    while(1) {
+        //Wait until a packet is received
+        while(!SFD);
+        //Turn on LED 2 (green) as signal
+	    PLED2DIR |= PLED2PIN;
+	    PLED2OUT &= ~PLED2PIN;
+
+        //Switch the radio to TX mode
+        CLRSS;  //Drop !SS to begin transaction.
+        ccspitrans8(0x04);
+        SETSS;  //Raise !SS to end transaction.
+        //txdata(app,verb,len);
+
+        //Load the packet.
+        CLRSS;
+        ccspitrans8(CCSPI_TXFIFO);
+        char pkt[15] = {0x0f, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef, 0xba, 0xbe, 0xc0};
+        for(i=0;i<pkt[0];i++)
+          ccspitrans8(pkt[i]);
+        SETSS;
+        debugstr("Packet loaded for tx.");
+        //Transmit the packet.
+        CLRSS;
+        ccspitrans8(0x04); //STXON
+        SETSS;
+        //Wait for the pulse on SFD, after which the packet has been sent.
+        //while(!SFD);
+        //while(SFD);
+        msdelay(300);
+        //Flush TX buffer.
+        CLRSS;
+        ccspitrans8(0x09); //SFLUSHTX
+        SETSS;
+
+        //while(SFD);
+        //msdelay(200);
+        //Turn off LED 2 (green) as signal
+	    PLED2DIR |= PLED2PIN;
+	    PLED2OUT |= PLED2PIN;
+    }
+    //TODO the firmware stops staying in this mode after a while, and stops jamming... need to find a fix!
     break;
+
   case CCSPI_TX_FLUSH:
-     //Flush the buffer.
+    //Flush the buffer.
     CLRSS;
     ccspitrans8(CCSPI_SFLUSHTX);
     SETSS;

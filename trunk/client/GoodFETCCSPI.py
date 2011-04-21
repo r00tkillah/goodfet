@@ -188,9 +188,22 @@ class GoodFETCCSPI(GoodFET):
     
     def RF_reflexjam(self):
         """Place the device into reflexive jamming mode."""
-        data = ""
+        data = "";
         self.writecmd(self.CCSPIAPP,0xA0,len(data),data);
         return;
+
+    def RF_reflexjam_seq(self):
+        """Place the device into reflexive jamming mode
+           and return the sequence number of the jammed packet."""
+        #TODO make so that this function someone keeps receiving
+        #     the sequence numbers from each jammed frame, or probably
+        #     just make the firmware auto-ack if the frame requests
+        #     an ACK instead of sending data back to client.
+        data = "\0";
+        self.data = data;
+        self.writecmd(self.CCSPIAPP,0xA1,len(data),data);
+        buffer = self.data;
+        return ord(buffer[3]);
 
     def RF_modulated_spectrum(self):
         """Hold a carrier wave on the present frequency."""

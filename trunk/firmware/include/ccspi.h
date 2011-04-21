@@ -22,6 +22,8 @@
 #define CCSPI_TX_FLUSH 0x83
 //Reflexive jam.
 #define CCSPI_REFLEX 0xA0
+//Reflexive jam that returns jammed frame's seqnum.
+#define CCSPI_REFLEX_SEQNUM 0xA1
 
 
 //Bit fields for command word.

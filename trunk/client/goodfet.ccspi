@@ -57,6 +57,7 @@ if(sys.argv[1]=="modulated_spectrum"):
         time.sleep(1);
 
 if(sys.argv[1]=="reflexjam"):
+    #Setup the radio to listen promiscously on a frequency
     client.RF_promiscuity(1);
     client.RF_autocrc(0);
     if len(sys.argv)>2:
@@ -66,8 +67,8 @@ if(sys.argv[1]=="reflexjam"):
         else:
             client.RF_setchan(freq);
     client.CC_RFST_RX();
-    print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
-                                            client.RF_getfreq()/10**6);
+    print "Reflexively jamming on %i MHz" % (client.RF_getfreq()/10**6);
+    #Now we let the firmware take over, watching for packets and jamming them.
     client.RF_reflexjam();
 
 if(sys.argv[1]=="info"):

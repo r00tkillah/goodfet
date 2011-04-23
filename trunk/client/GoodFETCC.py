@@ -11,13 +11,24 @@ import binascii;
 from GoodFET import GoodFET;
 from intelhex import IntelHex;
 
-import xml.dom.minidom, time;
+import xml.dom.minidom, time, os;
 
 class GoodFETCC(GoodFET):
     """A GoodFET variant for use with Chipcon 8051 Zigbee SoC."""
     APP=0x30;
     
-    smartrfpath="/opt/smartrf7";
+    smartrfpath=None;
+    def __init__(self,filename=None):
+        """GoodFETCC constructor.
+        Mostly concerned with finding SmartRF7."""
+        if self.smartrfpath==None:
+            self.smartrfpath=os.environ.get("SMARTRF");
+        if self.smartrfpath==None and os.name=='nt':
+            self.smartrfpath="c:/Program Files/Texas Instruments/SmartRF Tools/SmartRF Studio 7";
+        if self.smartrfpath==None:
+            self.smartrfpath="/opt/smartrf7";
+        
+        
     def loadsymbols(self):
         try: self.SRF_loadsymbols();
         except:

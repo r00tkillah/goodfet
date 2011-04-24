@@ -76,6 +76,9 @@ class GoodFET:
         """Open the serial port"""
         # Make timeout None to wait forever, 0 for non-blocking mode.
         
+        if os.name=='nt' and sys.version.find('64 bit')!=-1:
+            print "WARNING: PySerial requires a 32-bit Python build in Windows.";
+        
         if port is None and os.environ.get("GOODFET")!=None:
             glob_list = glob.glob(os.environ.get("GOODFET"));
             if len(glob_list) > 0:

@@ -94,7 +94,7 @@ class GoodFET:
             glob_list = glob.glob("/dev/ttyU0");
             if len(glob_list) > 0:
                 port = glob_list[0];
-        if os.name=='nt':
+        if port is None and os.name=='nt':
             from scanwin32 import winScan;
             scan=winScan();
             for order,comport,desc,hwid in sorted(scan.comports()):

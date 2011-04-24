@@ -155,7 +155,9 @@ client.serInit()
 client.setup();
 client.start();
 
-
+#REMOVEME
+client.halt();
+client.pokebyte(0xc7,0x08);
 
 if(sys.argv[1]=="carrier"):
     if len(sys.argv)>2:
@@ -184,7 +186,6 @@ if(sys.argv[1]=="reflex"):
             rssi=0;
         rssi=client.peek8(0xFE00,"xdata");
         print "Activated jamming with RSSI of %i, going again for another packet." % rssi;
-        #client.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
         client.resume();
     
 

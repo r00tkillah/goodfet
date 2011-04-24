@@ -727,7 +727,7 @@ class GoodFETCC(GoodFET):
         print "Done.";
 
     def setup(self):
-        """Move the FET into the CC2430/CC2530 application."""
+        """Move the FET into the Chipcon 8051 application."""
         #print "Initializing Chipcon.";
         self.writecmd(self.APP,0x10,0,self.data);
     def CCrd_config(self):
@@ -745,17 +745,28 @@ class GoodFETCC(GoodFET):
         self.CClockchip();
     
 
-    CCversions={0x0100:"cc1110",
-                0x1100:"cc1111",
-                0x8500:"cc2430",
-                0x8900:"cc2431",
-                0x8100:"cc2510",
-                0x9100:"cc2511",
-                0xA500:"cc2530", #page 57 of SWRU191B
-                0xB500:"cc2531",
+    CCversions={0x0100:"CC1110",
+                0x1100:"CC1111",
+                0x8500:"CC2430",
+                0x8900:"CC2431",
+                0x8100:"CC2510",
+                0x9100:"CC2511",
+                0xA500:"CC2530", #page 57 of SWRU191B
+                0xB500:"CC2531",
                 0x9500:"CC2533",
                 0x8D00:"CC2540",
                 0xFF00:"CCmissing"};
+    CCexecbuf= {0x0100:0xF000,
+                0x1100:0xF000,
+                0x8500:0xF000,
+                0x8900:0xF000,
+                0x8100:0xF000,
+                0x9100:0xF000,
+                0xA500:0x8000,
+                0xB500:0x8000,
+                0x9500:0x8000,
+                0x8D00:0x8000,
+                0xFF00:0xF000} #missing
     CCpagesizes={0x01: 1024, #"CC1110",
                  0x11: 1024, #"CC1111",
                  0x85: 2048, #"CC2430",

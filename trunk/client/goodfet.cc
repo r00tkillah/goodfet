@@ -155,9 +155,8 @@ client.serInit()
 client.setup();
 client.start();
 
-#REMOVEME
-client.halt();
-client.pokebyte(0xc7,0x08);
+#client.halt();
+#client.pokebyte(0xc7,0x08);
 
 if(sys.argv[1]=="carrier"):
     if len(sys.argv)>2:

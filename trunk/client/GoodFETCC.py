@@ -30,11 +30,15 @@ class GoodFETCC(GoodFET):
         if self.smartrfpath==None:
             self.smartrfpath="/opt/smartrf7";
         
-        
+    haveloadedsymbols=False;
     def loadsymbols(self):
-        try: self.SRF_loadsymbols();
+        if self.haveloadedsymbols:
+            return;
+        try:
+            self.SRF_loadsymbols();
+            self.haveloadedsymbols=True;
         except:
-            print "SmartRF not found at %s." % self.smartrfpath;
+            print "SmartRF not found for this chip.";
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
         """Loads the chip XML definitions from SmartRF7."""
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
@@ -716,7 +720,7 @@ class GoodFETCC(GoodFET):
                 print "ERROR: PC changed during CCdebuginstr([NOP])!";
         
         print "Checking pokes to XRAM."
-        for i in range(0xf000,0xf020):
+        for i in range(self.execbuf,self.execbuf+0x20):
             self.CCpokedatabyte(i,0xde);
             if(self.CCpeekdatabyte(i)!=0xde):
                 print "Error in XDATA at 0x%04x" % i;
@@ -756,17 +760,18 @@ class GoodFETCC(GoodFET):
                 0x9500:"CC2533",
                 0x8D00:"CC2540",
                 0xFF00:"CCmissing"};
+    execbuf=None;
     CCexecbuf= {0x0100:0xF000,
                 0x1100:0xF000,
                 0x8500:0xF000,
                 0x8900:0xF000,
                 0x8100:0xF000,
                 0x9100:0xF000,
-                0xA500:0x8000,
+                0xA500:0x0000, #CC2530
                 0xB500:0x8000,
                 0x9500:0x8000,
                 0x8D00:0x8000,
-                0xFF00:0xF000} #missing
+                0xFF00:None} #missing
     CCpagesizes={0x01: 1024, #"CC1110",
                  0x11: 1024, #"CC1111",
                  0x85: 2048, #"CC2430",
@@ -777,13 +782,16 @@ class GoodFETCC(GoodFET):
                  0xB5: 2048, #"CC2531",
                  0x95: 2048, #"CC2533",
                  0x8D: 2048, #"CC2540",
-                 0xFF: 0    } #"CCmissing"};
+                 0xFF: None}
     def infostring(self):
         return self.CCidentstr();
     def CCidentstr(self):
         ident=self.CCident();
         chip=self.CCversions.get(ident&0xFF00);
+        execbuf=self.CCexecbuf.get(ident&0xFF00);
         pagesize=self.CCpagesizes.get(ident>0xFF);
+        self.execbuf=execbuf;
+        
         try:
             return "%s/r%0.4x/ps0x%0.4x" % (chip, ident, pagesize); 
         except:
@@ -911,21 +919,17 @@ class GoodFETCC(GoodFET):
         return str;
     def start(self):
         """Start debugging."""
+        ident=0x0000;
+        #while ident==0xFFFF or ident==0x0000:
         self.setup();
         self.writecmd(self.APP,0x20,0,self.data);
+        identa=self.CCident();
+        self.CCidentstr();
+        
         ident=self.CCident();
-        if ident==0xFFFF or ident==0x0000:
-            self.writecmd(self.APP,0x20,0,self.data);
-            ident=self.CCident();
-        
-        
-        #print "Target identifies as %s." % ident;
-        #print "Status: %s." % self.status();
-        self.CCreleasecpu();
-        self.CChaltcpu();
         #Get SmartRF Studio regs if they exist.
         self.loadsymbols(); 
-        
+        print "Status: %s" % self.status();
     def stop(self):
         """Stop debugging."""
         self.writecmd(self.APP,0x21,0,self.data);

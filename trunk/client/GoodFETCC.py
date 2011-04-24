@@ -24,7 +24,10 @@ class GoodFETCC(GoodFET):
         if self.smartrfpath==None:
             self.smartrfpath=os.environ.get("SMARTRF");
         if self.smartrfpath==None and os.name=='nt':
-            self.smartrfpath="c:/Program Files/Texas Instruments/SmartRF Tools/SmartRF Studio 7";
+            self.smartrfpath="c:/Program Files (x86)/Texas Instruments/SmartRF Tools/SmartRF Studio 7";
+            if not os.path.exists(self.smartrfpath):
+                self.smartrfpath="c:/Program Files/Texas Instruments/SmartRF Tools/SmartRF Studio 7";
+            
         if self.smartrfpath==None:
             self.smartrfpath="/opt/smartrf7";
         

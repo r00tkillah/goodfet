@@ -212,13 +212,11 @@ class GoodFETCC(GoodFET):
             h=IntelHex(filename);
             for i in h._buf.keys():
                 self.CCpokedatabyte(i,h[i]);
-        
         #Execute it.
         self.CCdebuginstr([0x02, 0xf0, 0x00]); #ljmp 0xF000
         self.resume();
         while wait>0 and (0==self.CCstatus()&0x20):
             a=1;
-            #time.sleep(0.1);
             #print "Waiting for shell code to return.";
         return;
     def ishalted(self):
@@ -929,7 +927,7 @@ class GoodFETCC(GoodFET):
         ident=self.CCident();
         #Get SmartRF Studio regs if they exist.
         self.loadsymbols(); 
-        print "Status: %s" % self.status();
+        #print "Status: %s" % self.status();
     def stop(self):
         """Stop debugging."""
         self.writecmd(self.APP,0x21,0,self.data);

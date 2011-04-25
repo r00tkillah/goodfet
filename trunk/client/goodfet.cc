@@ -98,9 +98,9 @@ def handlesimplicitipacket(packet):
         #printpacket(reply);
         print "#FIXME FAST: repeatedly broadcasting ACK to catch JOIN on the next attempt.";
         #printpacket(reply);
-        for foo in range(1,50):
+        for foo in range(1,20):
             client.RF_txpacket(reply);
-        
+        print "#Should be connected now.";
         
     elif port==0x04:
         print "Security request.";
@@ -134,6 +134,7 @@ if(len(sys.argv)==1):
     print "%s poke 0x$iram 0x$val" % sys.argv[0];
     print "%s peekcode 0x$start [0x$stop]" % sys.argv[0];
     print "\n"
+    print "%s specan [freq]\n\tSpectrum Analyzer" % sys.argv[0];
     print "%s rssi [freq]\n\tGraphs signal strength on [freq] Hz." % sys.argv[0];
     print "%s carrier [freq]\n\tHolds a carrier on [freq] Hz." % sys.argv[0];
     print "%s reflex [freq]\n\tJams on [freq] Hz." % sys.argv[0];
@@ -212,6 +213,48 @@ if(sys.argv[1]=="rssi"):
         for foo in range(0,rssi>>2):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
+if(sys.argv[1]=="specan"):
+    print "This doesn't work yet."
+    
+    client.CC1110_crystal();
+    client.RF_idle();
+    
+    client.config_simpliciti();
+    
+    if len(sys.argv)>2:
+        client.RF_setfreq(eval(sys.argv[2]));
+    #print "Listening on %f MHz." % (client.RF_getfreq()/10.0**6);
+    
+    client.CChaltcpu();
+    client.shellcodefile("specan.ihx",wait=0);
+    #client.shellcodefile("crystal.ihx",wait=1);
+    
+    bytestart=0xf800;
+    maxchan=10;
+    round=0;
+    
+    print "time freq rssi";
+    
+    while 1:
+        time.sleep(1);
+        #client.CChaltcpu();
+        
+        round=round+1;
+        
+        dump="";
+        for entry in range(0,maxchan):
+            adr=bytestart+entry*8;
+            freq=((client.CCpeekdatabyte(adr+0)<<16)+
+                  (client.CCpeekdatabyte(adr+1)<<8)+
+                  (client.CCpeekdatabyte(adr+2)<<0));
+            hz=freq*396.728515625;
+            mhz=hz/1000000.0
+            rssi=client.CCpeekdatabyte(adr+6);
+            print "%03i %3.3f %03i" % (round,mhz,rssi);
+        print dump;
+        sys.stdout.flush();
+        client.CCreleasecpu();
+
 
 if(sys.argv[1]=="sniff"):
     client.CC1110_crystal();

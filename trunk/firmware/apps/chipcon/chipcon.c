@@ -59,6 +59,7 @@ app_t const chipcon_app = {
 //This could be more accurate.
 //Does it ever need to be?
 #define CCSPEED 3
+//#define CCSPEED 3
 //#define CCDELAY(x) delay(x)
 #define CCDELAY(x) 
 
@@ -99,7 +100,7 @@ void ccdebuginit(){
   //Port output BUT NOT DIRECTION is set at start.
   SPIOUT|=MOSI+SCK+RST;
   
-  //delay(30); //So the beginning is ready for glitching.
+  delay(30); //So the beginning is ready for glitching.
   
   //Two positive debug clock pulses while !RST is low.
   //Take RST low, pulse twice, then high.
@@ -139,11 +140,11 @@ unsigned char cctrans8(unsigned char byte){
     byte <<= 1;
  
     /* half a clock cycle before leading/rising edge */
-    CCDELAY(CCSPEED/2);
+    CCDELAY(CCSPEED>>2);
     SETCLK;
  
     /* half a clock cycle before trailing/falling edge */
-    CCDELAY(CCSPEED/2);
+    CCDELAY(CCSPEED>>2);
  
     /* read MISO on trailing edge */
     byte |= READMISO;
@@ -262,7 +263,7 @@ void cc_handle_fn( uint8_t const app,
     txdata(app,verb,1);
     break;
   case CC_STEP_REPLACE:
-    txdata(app,NOK,0);//TODO add me
+    txdata(app,NOK,0);//Don't add this; it's non-standard.
     break;
   case CC_GET_CHIP_ID:
     cmddataword[0]=cc_get_chip_id();

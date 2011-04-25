@@ -25,7 +25,8 @@
  * There is one channel per column of the display.  The radio is tuned to one
  * channel at a time and RSSI is displayed for that channel.
  */
-#define NUM_CHANNELS 132
+//#define NUM_CHANNELS 132
+#define NUM_CHANNELS 10
 
 /*
  * wide mode (default): 44 MHz on screen, 333 kHz per channel

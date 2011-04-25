@@ -24,7 +24,7 @@ client.CCreleasecpu();
 
 time.sleep(1);
 
-bytestart=0xf000;
+bytestart=0xf800;
 maxchan=132;
 round=0;
 

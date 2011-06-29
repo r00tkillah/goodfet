@@ -1,5 +1,5 @@
 # release: pcb 20100929
-# date:    Wed Jun 29 02:10:21 2011
+# date:    Wed Jun 29 16:02:01 2011
 # user:    thequux ()
 # host:    vulcan.home.thequux.com
 
@@ -1170,7 +1170,6 @@ Layer(1 "component")
 	Line[163836 134500 163836 134664 700 1200 "clearline"]
 	Line[150382 133508 150382 144000 700 1200 "clearline"]
 	Line[150382 144000 149941 143559 700 1200 "clearline"]
-	Line[49570 115913 49992 116335 700 1400 "clearline"]
 )
 Layer(2 "solder")
 (

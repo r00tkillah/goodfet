@@ -1,5 +1,5 @@
 # release: pcb 20100929
-# date:    Wed Jun 29 01:52:31 2011
+# date:    Wed Jun 29 02:10:21 2011
 # user:    thequux ()
 # host:    vulcan.home.thequux.com
 
@@ -1216,11 +1216,10 @@ Layer(2 "solder")
 )
 Layer(3 "outline")
 (
-	Line[164000 98361 164110 98471 1000 2000 "clearline"]
+	Line[237000 147000 237000 73000 1000 2000 "clearline"]
 	Line[114500 147000 237000 147000 1000 2000 "clearline"]
 	Line[114500 73000 114500 147000 1000 2000 "clearline"]
 	Line[237000 73000 114500 73000 1000 2000 "clearline"]
-	Line[237000 147000 237000 73000 1000 2000 "clearline"]
 )
 Layer(4 "GND")
 (

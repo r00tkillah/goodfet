@@ -87,6 +87,9 @@ def printmspacket(packet,offset=1):
             letter=ord('\'');
         elif ct[9]==0x36:
             letter=ord(',');
+        elif ct[9]==0x37:
+            letter=ord('.');
+        
         else:
             print "Unknown character 0x%02x." % ct[9];
             letter=ord('?');
@@ -314,8 +317,11 @@ class AutoTuner():
     macreject=False;
     printing=False;
     startch=0; #Useful for forcing an early match.
+    maclen=5; #Some are shorter.
     def init(self,goodfet,
-             rate=True,chan=True,sync=True, macreject=True, printing=False):
+             rate=True,chan=True,sync=True,
+             macreject=True, printing=False,
+             maclen=5):
         """Initializes a link to the GoodFET for autotuning."""
         self.client=goodfet;
         self.rate=rate;
@@ -323,6 +329,7 @@ class AutoTuner():
         self.sync=sync;
         self.macreject=macreject;
         self.printing=printing;
+        self.maclen=maclen;
         
         client.poke(0x00,0x00); #Stop nRF
         client.poke(0x01,0x00); #Disable Shockburst
@@ -341,6 +348,7 @@ class AutoTuner():
         client.poke(0x00,0x70|0x03); #prime radio.
         
         return;
+    
     def packetaddr(self,packet,justmac=False):
         """Returns a loaded packet address, including channel and rate."""
         
@@ -348,7 +356,7 @@ class AutoTuner():
         
         mac="";
         #MAC,RF_CH,RATE
-        for i in range(0,5):
+        for i in range(0,self.maclen):
             mac="%s%02x" % (mac,ord(packet[i]));
         if justmac:
             return mac;
@@ -366,8 +374,17 @@ class AutoTuner():
             #print "%02x%02x invalid entry." % (sync,ord(packet[0]));
             #This is a special kind of failure.  Freq is probably right, but MAC is wrong.
             return False;
-        if mac=='5555555555' or mac=='aaaaaaaaaa' or mac=='0000000000' or mac=='ffffffffff':
-            return False;
+        blacklist=['5555555555', 'aaaaaaaaaa',
+                   '0000000000', 'ffffffffff',
+                   '55555555',   'aaaaaaaa',
+                   '00000000',   'ffffffff',
+                   '555555',     'aaaaaa',
+                   '000000',     'ffffff',
+                   '7fffff', 'aaffff', 'aaaaff',
+                   'afffff', 'abffff', '5fffff'];
+        for foo in blacklist:
+            if mac==foo:
+                return False;
         return True;
         
     def handle(self,packet):
@@ -440,9 +457,10 @@ class AutoTuner():
             #TODO add support for 256kbps, if anyone uses it.
             if count&1:
                 rate=rate|0x08;
-            #print "Setting rate to 0x%02x" % rate;
+            
             if(rate==0x20):
                 rate=0x08;
+            print "Setting rate to 0x%02x" % rate;
             self.client.poke(0x06,rate);
             count=(count>>1);
         
@@ -482,7 +500,9 @@ if(sys.argv[1]=="autotune"):
         client.RF_getfreq()/10**6);
     print "sync,mac,r5,r6";
     #Now we're ready to get packets.
+    guesser.startch=16;
     guesser.selftune(threshold=2,
+                     delay=10,
                      forever=True);
 
 if(sys.argv[1]=="autotunebt"):
@@ -735,7 +755,11 @@ if(sys.argv[1]=="snifftp"):
     client.RF_setpacketlen(4);
     
     #Power radio, prime for RX, two-byte checksum.
-    client.poke(0x00,0x70|0x03|0x04|0x08);
+    #client.poke(0x00,0x70|0x03|0x04|0x08);
+    
+    #Power radio, prime for RX, no checksum.
+    client.poke(0x00,0x70|0x03);
+    
     
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                            client.RF_getfreq()/10**6);

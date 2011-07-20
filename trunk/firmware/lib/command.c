@@ -151,7 +151,7 @@ void prep_timer()
   #warning "Function unimplemented for this platform."
   #endif
 }
-
+#if (platform != tilaunchpad)
 //! Delay for specified number of milliseconds (given 16 MHz clock)
 void delay_ms( unsigned int ms )
 {
@@ -198,3 +198,4 @@ void delay_ticks( unsigned int num_ticks )
   debugstr("delay_ticks unimplemented");
   #endif
 }
+#endif

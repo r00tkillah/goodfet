@@ -30,7 +30,7 @@ void i2c_handle_fn( uint8_t const app,
 app_t const i2c_app = {
 
 	/* app number */
-	I2C,
+	I2C_APP,
 
 	/* handle fn */
 	i2c_handle_fn,
@@ -43,13 +43,33 @@ app_t const i2c_app = {
 	"\tturning your GoodFET into a USB-to-i2c adapter.\n"
 };
 
-#define SDA TDI
-#define SCL TDO
-
 #define I2CDELAY(x) delay(x<<4)
 
 
 //2xx only, need 1xx compat code
+#if (platform == tilaunchpad)
+// P3.1 SDA
+// P3.3 SCL
+#define SDA (1<<1)
+#define SCL (1<<3)
+
+#define CLRSDA P3OUT&=~SDA
+#define SETSDA P3OUT|=SDA
+#define CLRSCL P3OUT&=~SCL
+#define SETSCL P3OUT|=SCL
+
+#define READSDA (P3IN&SDA?1:0)
+#define SDAINPUT P3DIR&=~SDA
+#define SDAOUTPUT P3DIR|=SDA
+#define SCLINPUT P3DIR&=~SCL
+#define SCLOUTPUT P3DIR|=SCL
+#define SETBOTH P3OUT|=(SDA|SCL)
+
+#else
+
+#define SDA TDI
+#define SCL TDO
+
 #define CLRSDA P5OUT&=~SDA
 #define SETSDA P5OUT|=SDA
 #define CLRSCL P5OUT&=~SCL
@@ -57,6 +77,7 @@ app_t const i2c_app = {
 
 #define READSDA (P5IN&SDA?1:0)
 #define SETBOTH P5OUT|=(SDA|SCL)
+#endif
 
 #define I2C_DATA_HI() SETSDA
 #define I2C_DATA_LO() CLRSDA
@@ -74,7 +95,12 @@ void I2C_Init()
   //Direction, not value, is used to set the value.
   //(Pull-up or 0.)
   
+#if (platform == tilaunchpad)
+  SDAOUTPUT;
+  SCLOUTPUT;
+#else
   P5DIR|=(SDA|SCL);
+#endif
   //P5REN|=SDA|SCL;
   
   
@@ -83,6 +109,14 @@ void I2C_Init()
 
   I2CDELAY(1);
 }
+
+#if (platform == tilaunchpad)
+void I2C_Exit()
+{
+  SDAINPUT;
+  SCLINPUT;
+}
+#endif
 
 //! Write an I2C bit.
 void I2C_WriteBit( unsigned char c )
@@ -110,12 +144,14 @@ unsigned char I2C_ReadBit()
   I2C_DATA_HI();
 
   I2C_CLOCK_HI();
+  SDAINPUT;
   I2CDELAY(1);
   
   unsigned char c = READSDA;
 
   I2C_CLOCK_LO();
   I2CDELAY(1);
+  SDAOUTPUT;
 
   return c;
 }

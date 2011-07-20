@@ -411,9 +411,9 @@ void jtag430_handle_fn(uint8_t const app,
     while((i=jtag430_readmem(0xff0))==0xFFFF){
       debugstr("Reconnecting to target MSP430.");
       jtag430x2_start();
-      PLEDOUT^=PLEDPIN;
+      led_toggle();
     }
-  PLEDOUT&=~PLEDPIN;
+  led_off();
   
   
   switch(verb){

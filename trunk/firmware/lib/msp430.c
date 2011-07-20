@@ -13,14 +13,30 @@
 #include "apps.h"
 #include "glitch.h"
 
+void led_init()
+{
+	PLEDDIR |= PLEDPIN;
+}
+void led_on()
+{
+	PLEDOUT |= PLEDPIN;
+}
+void led_off()
+{
+  PLEDOUT&=~PLEDPIN;
+
+}
+void led_toggle()
+{
+}
 
 //! Initialize MSP430 registers and all that jazz.
 void msp430_init(){
 	WDTCTL = WDTPW + WDTHOLD;					// Stop watchdog timer
 
 	//LED out and on.
-	PLEDDIR |= PLEDPIN;
-	PLEDOUT &= ~PLEDPIN;
+	led_init();
+	led_off();
 
 
 	/* P5.0 out and low; this is chosen for the PIC app (in which P5.0

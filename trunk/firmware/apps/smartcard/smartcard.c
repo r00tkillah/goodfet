@@ -86,7 +86,7 @@ void smartcard_handle_fn( uint8_t const app,
       delay(5);
       SCTOCK;
       
-      PLEDOUT^=PLEDPIN;
+      led_toggle();
       if(SCIN!=foo){
 	foo=SCIN;
       }

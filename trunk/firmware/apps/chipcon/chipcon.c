@@ -50,7 +50,26 @@ app_t const chipcon_app = {
 
 //Pins and I/O
 //MISO and MOSI are the same pin, direction changes.
+
+#if (platform == tilaunchpad)
+/*
+ * The Launchpad has only pins easily available	
+ * P5.3 TCK	SCK		(labeled TEST J3-10 J2-17)	DC closest to antenna		(blue)
+ * P5.2 IO	MISO MOSI	(labeled RST  J3-8  J2-16)	DD next to closer to USB		(yellow)
+ * P3.6 txd1	RST		(labeled RXD  J3-6  J1-4)	next to GND, which is closest to USB	(orange)
+ * P3.7 rxd1	RST		(labeled TXD  J3-4  J1-3) 	connect to led1 J1-2
+ * 
+ * for a permanent marriage between a TI-Launchpad, move RST to pin48 P5.4
+ * (requeries soldering) and use rxd/txd for direct communication with IM-ME dongle.
+ */
+
+#define RST  BIT6	// P3.7
+#include <msp430_serial.h>
+#else	// tilaunchpad
 #define RST  BIT0
+#define dputs(s)
+#endif	// ! tilaunchad
+
 #define MOSI BIT2
 #define MISO BIT2
 #define SCK  BIT3
@@ -69,13 +88,36 @@ app_t const chipcon_app = {
 #define CLRCLK SPIOUT&=~SCK
 #define READMISO (SPIIN&MISO?1:0)
 
+#if (platform == tilaunchpad)
+#  if (SPIDIR != P5DIR)
+#    error "SPIDIR != P5DIR"
+#  endif
+#  if (SPIOUT != P5OUT)
+#    error "SPIOUT != P5OUT"
+#  endif
+#  define SETRST  P3OUT|=RST
+#  define CLRRST  P3OUT&=~RST
+#else
+#  define SETRST  P3OUT|=RST
+#  define CLRRST  P3OUT&=~RST
+#endif
+
 #define CCWRITE SPIDIR|=MOSI
 #define CCREAD SPIDIR&=~MISO
 
 //! Set up the pins for CC mode.  Does not init debugger.
 void ccsetup(){
+#if (platform == tilaunchpad)
+	dputs("ccsetup");
+  SPIOUT|=MOSI+SCK;
+  SPIDIR|=MOSI+SCK;
+  P3OUT|=RST;
+  P3DIR|=RST;
+	dputs("done ccsetup");
+#else
   SPIOUT|=MOSI+SCK+RST;
   SPIDIR|=MOSI+SCK+RST;
+#endif
   //P5REN=0xFF;
 }
 
@@ -98,7 +140,13 @@ void ccsetup(){
 //! Initialize the debugger
 void ccdebuginit(){
   //Port output BUT NOT DIRECTION is set at start.
+#if (platform == tilaunchpad)
+  dputs("ccdebuginit");
+  SPIOUT|=MOSI+SCK;
+  P3OUT|=RST;
+#else
   SPIOUT|=MOSI+SCK+RST;
+#endif
   
   delay(30); //So the beginning is ready for glitching.
   
@@ -106,7 +154,7 @@ void ccdebuginit(){
   //Take RST low, pulse twice, then high.
   SPIOUT&=~SCK;
   delay(10);
-  SPIOUT&=~RST;
+  CLRRST;
   
   delay(10);
   
@@ -122,7 +170,7 @@ void ccdebuginit(){
   //delay(0);
   
   //Raise !RST.
-  SPIOUT|=RST;
+  SETRST;
 }
 
 //! Read and write a CC bit.
@@ -207,9 +255,9 @@ void cc_handle_fn( uint8_t const app,
     break;
   case STOP://exit debugger
     //Take RST low, then high.
-    SPIOUT&=~RST;
+    CLRRST;
     CCDELAY(CCSPEED);
-    SPIOUT|=RST;
+    SETRST;
     txdata(app,verb,0);
     break;
   case SETUP:
@@ -537,13 +585,13 @@ void cc_write_flash_page(u32 adr){
   
   
   while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
-    PLEDOUT^=PLEDPIN;//blink LED while flashing    
+    led_toggle();//blink LED while flashing    
   }
   
   
   //debugstr("Done flashing.");
   
-  PLEDOUT&=~PLEDPIN;//clear LED
+  led_off();
 }
 
 //! Read the PC

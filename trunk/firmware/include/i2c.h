@@ -8,7 +8,7 @@
 
 #include "app.h"
 
-#define I2C 0x02
+#define I2C_APP 0x02
 
 extern app_t const i2c_app;
 

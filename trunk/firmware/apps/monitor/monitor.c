@@ -7,6 +7,11 @@
 #include "platform.h"
 #include "monitor.h"
 #include "builddate.h"
+#if (platform == tilaunchpad)
+#include <setjmp.h>
+extern jmp_buf warmstart;
+
+#endif
 
 #define MONITOR_APP
 
@@ -174,9 +179,13 @@ void monitor_ram_pattern()
 	}
 	txdata(0x00,0x90,0);
 
+#if (platform == tilaunchpad)
+	longjmp(warmstart,1);
+#else
 	//Reboot
 #ifdef MSP430
 	asm("br &0xfffe");
+#endif
 #endif
 }
 

@@ -1,20 +1,4 @@
 
-#include `uname`.mak
-GOODFET?=/dev/tty.usbser*
-
-#For Arduino,
-#BSL?=avrdude -V -F -c stk500v1 -p m328p -b 57600 -P /dev/tty.usbserial-* -U flash:w:blink.hex
-#For tos-bsl, use --invert-reset --invert-test
-MSP430BSL?=goodfet.bsl --speed=38400
-
-#One of these should be defined explicitly.
-#Default removed because of confusion.
-
-#mcu?=msp430x2274
-#mcu?=msp430x2618
-#mcu?=msp430x1612
-#mcu?=atmega168
-mcu?=RUNCONFIG
 
 #platform?=goodfet
 #platform?=telosb
@@ -22,7 +6,33 @@ mcu?=RUNCONFIG
 #platform?=nhbadge
 #platform?=nhbadgeb
 #platofrm?=arduino
+#platform?=tilaunchpad
 platform?=goodfet
+
+
+ifeq ($(platform),tilaunchpad)
+mcu?=msp430x1612
+CFLAGS+=-DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
+#CFLAGS+= -Werror
+endif
+
+#include `uname`.mak
+GOODFET?=/dev/tty.usbser*
+
+#For Arduino,
+#BSL?=avrdude -V -F -c stk500v1 -p m328p -b 57600 -P /dev/tty.usbserial-* -U flash:w:blink.hex
+#For tos-bsl, use --invert-reset --invert-test
+MSP430BSL?=goodfet.bsl --speed=38400
+JTAG=msp430-jtag
+
+#One of these should be defined explicitly.
+#Default removed because of confusion.
+
+#mcu?=msp430x2618
+#mcu?=msp430x1612
+#mcu?=atmega168
+mcu?=RUNCONFIG
+
 
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.
 GCCINC?=
@@ -30,7 +40,7 @@ GCCINC?=
 #GCC?=avr-gcc
 GCC?=msp430-gcc -T ldscripts/$(mcu).x
 
-CCEXTRA?=  -D$(mcu) -D$(platform) -Dplatform=$(platform) -DGCC $(GCCINC) -I include -I platforms
+CCEXTRA?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) -DGCC $(GCCINC) -I include -I platforms
 CC=$(GCC) -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
 
 # Available Applications
@@ -103,11 +113,22 @@ CC=$(GCC) -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
 # config = monitor sbw  chipcon nrf ccspi spi jtagarm7 jtag430 jtag430x2 avr
 
 # New default.
+ifeq ($(platform),tilaunchpad)
+config ?= monitor chipcon i2c
+else
 config ?= monitor chipcon spi jtag430 jtag430x2 avr openocd ccspi
+endif
 
 # Build the needed list of app and lib object files from the config
 apps= 
+
+ifeq ($(platform),tilaunchpad)
+libs= lib/$(platform).o lib/command.o lib/apps.o lib/msp430_serial.o
+#libs+=lib/setjmp.o 
+else
 libs= lib/$(mcu).o lib/command.o lib/dco_calib.o lib/apps.o lib/msp430.o lib/arduino.o
+endif
+
 hdrs=
 ERR=
 
@@ -323,22 +344,32 @@ run:
 avrinstall: $(app).hex
 	#to be merged
 	avrdude -V -F -c stk500v1 -p m328p -b 57600 -P $(GOODFET) -U flash:w:$(app).hex
+
+ifeq ($(platform),tilaunchpad)
+install: $(app).hex
+	$(JTAG) -e -p $(app).hex
+verify:
+	$(JTAG) -v $(app).hex
+erase:
+	$(JTAG) -e $(app).hex
+else
 install: $(app).hex
 	$(MSP430BSL) -e -p $(app).hex 
 installinfo:
 	$(MSP430BSL) -P $(app).hex -p info.txt || true  #MSP430F2xx targets only, inelegant.
 verify:
 	$(MSP430BSL) -P $(app).hex -v $(app).hex
+endif
 dumpinfo:
 	$(MSP430BSL) --dumpinfo
+erase:
+	$(MSP430BSL) -e 
 $(app).c: config builddate appsfiles err
 $(app): $(libs) $(apps)
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex
 m4s: $(app).hex
 	msp430-objdump -D -m msp430 $(app).hex | m4s init
-erase:
-	$(MSP430BSL) -e 
 clean:
 	rm -f $(app) $(app).hex $(libs) $(apps) lib/apps.c include/config.h include/builddate.h include/apps.h
 docs:

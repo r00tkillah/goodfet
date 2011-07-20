@@ -12,6 +12,13 @@
 #include "apps.h"
 #include "glitch.h"
 
+#if (platform == tilaunchpad)
+#include <setjmp.h>
+jmp_buf warmstart;
+void coldstart();
+#include "msp430_serial.h"
+#endif
+
 #define RESET 0x80      // not a real app -- causes firmware to reset
 #define DEBUGAPP 0xFF
 
@@ -45,7 +52,7 @@ void handle(uint8_t const app,
   int i;
   
   //debugstr("GoodFET");
-  PLEDOUT&=~PLEDPIN;
+  led_off();
   
   // find the app and call the handle fn
   for(i = 0; i < num_apps; i++){
@@ -74,8 +81,25 @@ int main(void)
 	unsigned long len;
 	// MSP reboot count for reset input & reboot function located at 0xFFFE
 	volatile unsigned int reset_count = 0;
-	void (*reboot_function)(void) = (void *) 0xFFFE;
+#if (platform == tilaunchpad)
+	int ret=0;
 
+	//ret = setjmp(warmstart);// needs to be here since context from init() would be gone
+ warmstart:
+	if (ret == 0) {	
+		coldstart();	// basic hardware setup, clock to TUSB3410, and enable
+	} else if (ret == 2) {
+		dputs("\nalmost BSL only one RTS change\n");
+	} else if (ret > 2) {	// reset released after more than two tst transisitions
+		// We could write a BSL, a nice exercise for a Sunday afternoon.
+		dputs("\nBSL\n");
+		//call_BSL();	// once you are done uncomment ;-)
+	} else {		// we come here after DTR high (release reset)
+		dputs("\nWarmstart\n");
+	}
+#else
+	void (*reboot_function)(void) = (void *) 0xFFFE;
+#endif
 	init();
 	
 	txstring(MONITOR,OK,"http://goodfet.sf.net/");
@@ -102,7 +126,16 @@ int main(void)
 				// WDTCTL = WDTPW + WDTCNTCL + WDTSSEL + 0x00;
 				// but instead we'll jump to our reboot function pointer
 			  #ifdef MSP430
+#if (platform == tilaunchpad)
+				// do we really need this, we do not want to reset the TUSB3410 
+				dputs("reset_count>4\n");
+				
+				//longjmp(warmstart,111);
+				goto warmstart;
+				
+#else
 				(*reboot_function)();
+#endif
 			  #else
 				debugstr("Rebooting not supported on this platform.");
 			  #endif

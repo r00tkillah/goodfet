@@ -69,10 +69,10 @@ void openocd_led(int led)
 {
 	if (led)
 		/* turn the LED on */
-		PLEDDIR |= PLEDPIN;
+		led_on();
 	else
 		/* turn the LED off */
-		PLEDOUT &= ~PLEDPIN;
+		led_off();
 }
 
 //! resets the device/JTAG logic

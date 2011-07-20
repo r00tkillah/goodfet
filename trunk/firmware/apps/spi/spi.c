@@ -377,8 +377,8 @@ void spi_handle_fn( uint8_t const app,
 		SETSS;  //Raise !SS to end transaction.
 
 		while(spiflash_status()&0x01)//while busy
-		PLEDOUT^=PLEDPIN;
-		PLEDOUT&=~PLEDPIN;
+			led_toggle();
+		led_off();
 
 		txdata(app,verb,0);
 		break;

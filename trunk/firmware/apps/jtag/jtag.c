@@ -74,18 +74,18 @@ int in_state(enum eTAPState state)
 void jtag_reset_target()
 {
 	SETRST;
-	PLEDOUT^=PLEDPIN; 
+	led_toggle();
 	CLRRST;
-	PLEDOUT^=PLEDPIN; 
+	led_toggle();
 }
 
 //! Clock the JTAG clock line
 void jtag_tcktock() 
 {
 	CLRTCK; 
-	PLEDOUT^=PLEDPIN; 
+	led_toggle();
 	SETTCK; 
-	PLEDOUT^=PLEDPIN;
+	led_toggle();
 }
 
 //! Goes through test-logic-reset and ends in run-test-idle

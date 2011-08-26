@@ -103,9 +103,8 @@ int main(void)
 	init();
 	
 	txstring(MONITOR,OK,"http://goodfet.sf.net/");
-	#ifdef ECHOTEST
-	while(1) serial0_tx(serial0_rx());
-	#endif
+	//txstring(0xab,0xcd,"http://goodfet.sf.net/");
+	
 	
 	//Command loop.  There's no end!
 	while(1)
@@ -151,7 +150,7 @@ int main(void)
 		verb = serial_rx();
 		len = rxword();
 
-		//Read data, looking for buffer overflow.y
+		//Read data, looking for buffer overflow.
 		if(len <= CMDDATALEN)
 		{
 			for(i = 0; i < len; i++)

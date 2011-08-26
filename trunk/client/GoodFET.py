@@ -124,37 +124,39 @@ class GoodFET:
         attempts=0;
         connected=0;
         while connected==0:
-            #print "Got %s" % self.data;
             while self.verb!=0x7F or self.data!="http://goodfet.sf.net/":
+            #while self.data!="http://goodfet.sf.net/":
+                #print "'%s'!=\n'%s'" % (self.data,"http://goodfet.sf.net/");
                 if attemptlimit is not None and attempts >= attemptlimit:
                     return
                 elif attempts>2:
                     print "Resyncing.";
                 self.serialport.flushInput()
                 self.serialport.flushOutput()
-                #Explicitly set RTS and DTR to halt board.
-                self.serialport.setRTS(1);
-                self.serialport.setDTR(1);
-                #Drop DTR, which is !RST, low to begin the app.
-                self.serialport.setDTR(0);
                 
                 #TelosB reset, prefer software to I2C SPST Switch.
                 if(os.environ.get("platform")=='telosb'):
                     #print "TelosB Reset";
                     self.telosBReset();
+                else:
+                    #Explicitly set RTS and DTR to halt board.
+                    self.serialport.setRTS(1);
+                    self.serialport.setDTR(1);
+                    #Drop DTR, which is !RST, low to begin the app.
+                    self.serialport.setDTR(0);
                 
-                    
                 #self.serialport.write(chr(0x80));
                 #self.serialport.write(chr(0x80));
                 #self.serialport.write(chr(0x80));
                 #self.serialport.write(chr(0x80));
                 
                 
-                self.serialport.flushInput()
-                self.serialport.flushOutput()
+                #self.serialport.flushInput()
+                #self.serialport.flushOutput()
                 #time.sleep(60);
                 attempts=attempts+1;
                 self.readcmd(); #Read the first command.
+                #print "Got %02x,%02x:'%s'" % (self.app,self.verb,self.data);
             #Here we have a connection, but maybe not a good one.
             #print "We have a connection."
             connected=1;
@@ -283,16 +285,22 @@ class GoodFET:
             try:
                 #print "Reading...";
                 self.app=ord(self.serialport.read(1));
-                #print "APP=%2x" % self.app;
+                #print "APP=%02x" % self.app;
                 self.verb=ord(self.serialport.read(1));
+                
+                #Fixes an obscure bug in the TelosB.
+                if self.app==0x00:
+                    while self.verb==0x00:
+                        self.verb=ord(self.serialport.read(1));
+                
                 #print "VERB=%02x" % self.verb;
                 self.count=(
                     ord(self.serialport.read(1))
                     +(ord(self.serialport.read(1))<<8)
                     );
 
-                if self.verbose:
-                    print "Rx: ( 0x%02x, 0x%02x, 0x%04x )" % ( self.app, self.verb, self.count )
+                #if self.verbose:
+                #print "Rx: ( 0x%02x, 0x%02x, 0x%04x )" % ( self.app, self.verb, self.count )
             
                 #Debugging string; print, but wait.
                 if self.app==0xFF:

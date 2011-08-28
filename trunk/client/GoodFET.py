@@ -48,7 +48,35 @@ class SymbolTable:
                         "values(?,?,?,?,?);", (
                 adr,name,memory,size,comment));
         #print "Set %s=%s." % (name,adr);
+class GoodFETbtser:
+    """py-bluez class for emulating py-serial."""
+    def __init__(self,watchaddr):
+        import bluetooth;
+        while watchaddr==None or watchaddr=="none":
+            print "performing inquiry..."
+            nearby_devices = bluetooth.discover_devices(lookup_names = True)
+            print "found %d devices" % len(nearby_devices)
+            for addr, name in nearby_devices:
+                print "  %s - '%s'" % (addr, name)
+                if name=='FireFly-A6BD':
+                    watchaddr=addr;
+        print "Identified GoodFET at %s" % watchaddr;
 
+        # BlueFET doesn't run the Service Discovery Protocol.
+        # Instead we manually use the portnumber.
+        port=1;
+        
+        print "Connecting to %s on port %i." % (watchaddr, port);
+        sock=bluetooth.BluetoothSocket(bluetooth.RFCOMM);
+        self.sock=sock;
+        sock.connect((watchaddr,port));
+        sock.settimeout(10);  #IMPORTANT Must be patient.
+    def write(self,msg):
+        """Send traffic."""
+        return self.sock.send(msg);
+    def read(self,len):
+        """Read traffic."""
+        return self.sock.recv(len);
 class GoodFET:
     """GoodFET Client Library"""
 
@@ -73,6 +101,14 @@ class GoodFET:
     def timeout(self):
         print "timeout\n";
     def serInit(self, port=None, timeout=2, attemptlimit=None):
+        """Open a serial port of some kind."""
+        self.pyserInit(port,timeout,attemptlimit);
+        #self.btInit(port,timeout,attemptlimit);
+    def btInit(self, port, timeout, attemptlimit):
+        """Open a bluetooth port.""";
+        self.verbose=True;
+        self.serialport=GoodFETbtser(port);
+    def pyserInit(self, port, timeout, attemptlimit):
         """Open the serial port"""
         # Make timeout None to wait forever, 0 for non-blocking mode.
         import serial;

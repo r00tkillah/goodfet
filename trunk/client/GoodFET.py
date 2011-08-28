@@ -5,7 +5,7 @@
 #
 # This code is being rewritten and refactored.  You've been warned!
 
-import sys, time, string, cStringIO, struct, glob, serial, os;
+import sys, time, string, cStringIO, struct, glob, os;
 import sqlite3;
 
 fmt = ("B", "<H", None, "<L")
@@ -75,6 +75,7 @@ class GoodFET:
     def serInit(self, port=None, timeout=2, attemptlimit=None):
         """Open the serial port"""
         # Make timeout None to wait forever, 0 for non-blocking mode.
+        import serial;
         
         if os.name=='nt' and sys.version.find('64 bit')!=-1:
             print "WARNING: PySerial requires a 32-bit Python build in Windows.";

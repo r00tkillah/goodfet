@@ -50,27 +50,34 @@ class SymbolTable:
         #print "Set %s=%s." % (name,adr);
 class GoodFETbtser:
     """py-bluez class for emulating py-serial."""
-    def __init__(self,watchaddr):
+    def __init__(self,btaddr):
         import bluetooth;
-        while watchaddr==None or watchaddr=="none":
+        while btaddr==None or btaddr=="none" or btaddr=="bluetooth":
             print "performing inquiry..."
             nearby_devices = bluetooth.discover_devices(lookup_names = True)
             print "found %d devices" % len(nearby_devices)
             for addr, name in nearby_devices:
                 print "  %s - '%s'" % (addr, name)
                 if name=='FireFly-A6BD':
-                    watchaddr=addr;
-        print "Identified GoodFET at %s" % watchaddr;
+                    btaddr=addr;
+        print "Identified GoodFET at %s" % btaddr;
 
         # BlueFET doesn't run the Service Discovery Protocol.
         # Instead we manually use the portnumber.
         port=1;
         
-        print "Connecting to %s on port %i." % (watchaddr, port);
+        print "Connecting to %s on port %i." % (btaddr, port);
         sock=bluetooth.BluetoothSocket(bluetooth.RFCOMM);
         self.sock=sock;
-        sock.connect((watchaddr,port));
+        sock.connect((btaddr,port));
         sock.settimeout(10);  #IMPORTANT Must be patient.
+        
+        #Once connected, we need to get synced.
+        #This might require a firmware patch.
+        str=None;
+        while str!="http://goodfet.sf.net/":
+            str=self.read(64);
+            print str;
     def write(self,msg):
         """Send traffic."""
         return self.sock.send(msg);
@@ -102,12 +109,16 @@ class GoodFET:
         print "timeout\n";
     def serInit(self, port=None, timeout=2, attemptlimit=None):
         """Open a serial port of some kind."""
-        self.pyserInit(port,timeout,attemptlimit);
-        #self.btInit(port,timeout,attemptlimit);
+        
+        if port=="bluetooth" or os.environ.get("GOODFET")=="bluetooth":
+            self.btInit(port,timeout,attemptlimit);
+        else:
+            self.pyserInit(port,timeout,attemptlimit);
     def btInit(self, port, timeout, attemptlimit):
         """Open a bluetooth port.""";
         self.verbose=True;
         self.serialport=GoodFETbtser(port);
+        
     def pyserInit(self, port, timeout, attemptlimit):
         """Open the serial port"""
         # Make timeout None to wait forever, 0 for non-blocking mode.

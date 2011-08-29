@@ -16,7 +16,7 @@
 
 # The delay is mandatory.
 
-import sys, time, string, cStringIO, struct, glob, serial, os;
+import sys, time, string, cStringIO, struct, glob, os;
 
 from GoodFETSPI import GoodFETSPI;
 

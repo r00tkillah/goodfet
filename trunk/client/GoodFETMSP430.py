@@ -5,7 +5,7 @@
 #
 # Presently being rewritten.
 
-import sys, time, string, cStringIO, struct, glob, serial, os;
+import sys, time, string, cStringIO, struct, glob, os;
 
 from GoodFET import GoodFET;
 

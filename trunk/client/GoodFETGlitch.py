@@ -5,7 +5,7 @@
 #
 # This code is being rewritten and refactored.  You've been warned!
 
-import sys, time, string, cStringIO, struct, glob, serial, os, random;
+import sys, time, string, cStringIO, struct, glob, os, random;
 import sqlite3;
 
 from GoodFET import *;

@@ -72,12 +72,15 @@ class GoodFETbtser:
         sock.connect((btaddr,port));
         sock.settimeout(10);  #IMPORTANT Must be patient.
         
-        #Once connected, we need to get synced.
-        #This might require a firmware patch.
-        str=None;
-        while str!="http://goodfet.sf.net/":
-            str=self.read(64);
-            print str;
+        ##This is what we'd do for a normal reset.
+        #str="";
+        #while not str.endswith("goodfet.sf.net/"):
+        #    str=self.read(64);
+        #    print str;
+        
+        # Instead, just return and hope for the best.
+        return;
+        
     def write(self,msg):
         """Send traffic."""
         return self.sock.send(msg);
@@ -109,14 +112,17 @@ class GoodFET:
         print "timeout\n";
     def serInit(self, port=None, timeout=2, attemptlimit=None):
         """Open a serial port of some kind."""
+        import re;
         
-        if port=="bluetooth" or os.environ.get("GOODFET")=="bluetooth":
+        if port==None:
+            port=os.environ.get("GOODFET");
+        if port=="bluetooth" or (port is not None and re.match("..:..:..:..:..:..",port)):
             self.btInit(port,timeout,attemptlimit);
         else:
             self.pyserInit(port,timeout,attemptlimit);
     def btInit(self, port, timeout, attemptlimit):
         """Open a bluetooth port.""";
-        self.verbose=True;
+        #self.verbose=True;  #For debugging BT.
         self.serialport=GoodFETbtser(port);
         
     def pyserInit(self, port, timeout, attemptlimit):

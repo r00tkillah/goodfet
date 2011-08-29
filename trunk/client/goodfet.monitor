@@ -48,6 +48,10 @@ if(sys.argv[1]=="exec"):
     
 if(sys.argv[1]=="info"):
     client.monitor_info()
+if(sys.argv[1]=="infotest"):
+    for foo in range(0,100):
+        client.monitor_info()
+
 if(sys.argv[1]=="clocktest"):
     print "GoodFET with %s MCU" % client.infostring();
     clocking=client.monitorgetclock();

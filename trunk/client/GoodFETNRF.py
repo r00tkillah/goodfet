@@ -65,9 +65,11 @@ class GoodFETNRF(GoodFET):
             data=data+[(val>>(8*i))&0xFF];
         self.writecmd(self.NRFAPP,0x03,len(data),data);
         if self.peek(reg,bytes)!=val and reg!=0x07:
-            print "Warning, failed to set r%02x=%02x, got %02x." %(reg,
-                                                                 val,
-                                                                 self.peek(reg,bytes));
+            print "Warning, failed to set r%02x=%02x, got %02x." %(
+                reg,
+                val,
+                self.peek(reg,bytes));
+        
         return;
     
     def status(self):

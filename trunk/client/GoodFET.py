@@ -84,8 +84,9 @@ class GoodFETbtser:
     def write(self,msg):
         """Send traffic."""
         import time;
-        time.sleep(0.1);
-        return self.sock.send(msg);
+        self.sock.send(msg);
+        #time.sleep(0.1);
+        return;
     def read(self,length):
         """Read traffic."""
         data="";

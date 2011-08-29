@@ -62,7 +62,7 @@ if(sys.argv[1]=="clocktest"):
         client.monitorsetclock(clocking-foo);
         print "-0x%04x: %s" % (foo,client.infostring());
         
-if(sys.argv[1]=="listapps"):
+if(sys.argv[1]=="listapps" or sys.argv[1]=="apps"):
     full = (len(sys.argv) > 2) and (sys.argv[2]=="full")
     client.monitor_list_apps(full);
     

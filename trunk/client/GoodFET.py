@@ -83,10 +83,15 @@ class GoodFETbtser:
         
     def write(self,msg):
         """Send traffic."""
+        import time;
+        time.sleep(0.1);
         return self.sock.send(msg);
-    def read(self,len):
+    def read(self,length):
         """Read traffic."""
-        return self.sock.recv(len);
+        data="";
+        while len(data)<length:
+            data=data+self.sock.recv(length-len(data));
+        return data;
 class GoodFET:
     """GoodFET Client Library"""
 
@@ -122,7 +127,7 @@ class GoodFET:
             self.pyserInit(port,timeout,attemptlimit);
     def btInit(self, port, timeout, attemptlimit):
         """Open a bluetooth port.""";
-        #self.verbose=True;  #For debugging BT.
+        self.verbose=True;  #For debugging BT.
         self.serialport=GoodFETbtser(port);
         
     def pyserInit(self, port, timeout, attemptlimit):
@@ -353,8 +358,8 @@ class GoodFET:
                     +(ord(self.serialport.read(1))<<8)
                     );
 
-                #if self.verbose:
-                #print "Rx: ( 0x%02x, 0x%02x, 0x%04x )" % ( self.app, self.verb, self.count )
+                if self.verbose:
+                    print "Rx: ( 0x%02x, 0x%02x, 0x%04x )" % ( self.app, self.verb, self.count )
             
                 #Debugging string; print, but wait.
                 if self.app==0xFF:

@@ -11,3 +11,8 @@ in MSPGCC from CVS.
 export mcu=msp430x2618
 make -e
 
+
+
+Some weird switches,
+1) Build for a static DCO configuration.  Useful for standalone firmware.
+CFLAGS="-DSTATICDCO=0x8F9E" make clean all

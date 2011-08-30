@@ -131,6 +131,10 @@ void msp430_init_dco() {
   #endif
   
   
+  #ifdef STATICDCO
+  BCSCTL1 = (STATICDCO>>8);
+  DCOCTL  = (STATICDCO&0xFF);
+  #else
   if(CALBC1_16MHZ!=0xFF){
     //Info is intact, use it.
     BCSCTL1 = CALBC1_16MHZ;
@@ -149,6 +153,7 @@ void msp430_init_dco() {
     choice[0]++;
     choice[0]%=dco_calibrations_count;
   }
+  #endif
   
   //Minor delay.
   while(i--);

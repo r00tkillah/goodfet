@@ -52,7 +52,7 @@ class GoodFETbtser:
     """py-bluez class for emulating py-serial."""
     def __init__(self,btaddr):
         import bluetooth;
-        while btaddr==None or btaddr=="none" or btaddr=="bluetooth":
+        if btaddr==None or btaddr=="none" or btaddr=="bluetooth":
             print "performing inquiry..."
             nearby_devices = bluetooth.discover_devices(lookup_names = True)
             print "found %d devices" % len(nearby_devices)
@@ -60,10 +60,11 @@ class GoodFETbtser:
                 print "  %s - '%s'" % (addr, name)
                 if name=='FireFly-A6BD':
                     btaddr=addr;
+            print "Please set $GOODFET to the address of your device.";
+            sys.exit();
         print "Identified GoodFET at %s" % btaddr;
 
-        # BlueFET doesn't run the Service Discovery Protocol.
-        # Instead we manually use the portnumber.
+        # Manually use the portnumber.
         port=1;
         
         print "Connecting to %s on port %i." % (btaddr, port);

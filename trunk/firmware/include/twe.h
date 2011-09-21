@@ -11,9 +11,6 @@
 #define TWE 0x05
 
 //Pins and I/O
-//~ #define MOSI BIT1
-//~ #define MISO BIT2
-//~ #define SCK  BIT3
 #define SDA BIT1
 #define SCL BIT3
 
@@ -27,13 +24,6 @@ void twe_setup();
 
 //! Read and write an SPI byte.
 unsigned char twe_trans8(unsigned char byte);
-
-//! Read a block to a buffer.
-//~ void twe_peekblock(uint8_t const app,
-              //~ uint8_t const verb,
-              //~ uint16_t adr,
-              //~ uint32_t len);
-
 
 void twe_handle_fn( uint8_t const app,
 					uint8_t const verb,

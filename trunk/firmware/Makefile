@@ -144,6 +144,12 @@ ifeq ($(filter spi, $(config)), spi)
 	hdrs+= spi.h
 endif
 
+# include twe app
+ifeq ($(filter twe, $(config)), twe)
+        apps+= apps/twe/twe.o
+        hdrs+= twe.h
+endif
+
 # include base jtag if they specified it explicitly
 ifeq ($(filter jtag, $(config)), jtag)
 	ifneq ($(filter apps/jtag/jtag.o, $(apps)), apps/jtag/jtag.o)

@@ -1,4 +1,4 @@
-/*! \file spi.c
+/*! \file twe.c
   \author EiNSTeiN_ <einstein@g3nius.org>
   \brief Atmel 2-wire EEPROM
 */
@@ -140,10 +140,6 @@ unsigned char twe_rx(unsigned int ack){
     CLRSCL;
     delay_us(15);
   }
-  //~ else {
-    //~ SETSDA;
-  //~ }
-  
   
   return rd;
 }
@@ -161,9 +157,7 @@ void twe_peekblock(uint8_t const app,
   twe_tx(0xa0); // preamble=1010, device adr=000, write=0
   
   // output address bytes
-  //~ debughex((adr >> 8) & 0xff);
   twe_tx((adr >> 8) & 0xff);
-  //~ debughex(adr & 0xff);
   twe_tx(adr & 0xff);
   
   // start command / read
@@ -224,8 +218,6 @@ void twe_setup()
   
   twe_start();
   twe_stop();
-  
-  
 }
 
 //! Handles a monitor command.

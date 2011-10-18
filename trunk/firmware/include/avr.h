@@ -9,7 +9,8 @@
 #include "spi.h"
 #include "app.h"
 
-#define AVR 0x32
+/* AVR is a known macro for the AVR C includes */
+#define XAVR 0x32
 
 //! Setup the AVR pins.
 void avrsetup();
@@ -20,24 +21,24 @@ void avrconnect();
 //! Enable AVR programming mode.
 void avr_prgen();
 //! Read AVR device code.
-u8 avr_sig(u8 i);
+uint8_t avr_sig(uint8_t i);
 //! Erase an AVR device
 void avr_erase();
 //! Read lock bits.
-u8 avr_lockbits();
+uint8_t avr_lockbits();
 //! Write lock bits.
-void avr_setlock(u8 bits);
+void avr_setlock(uint8_t bits);
 
 //! Read a byte of Flash
-u8 avr_peekflash(u16 adr);
+uint8_t avr_peekflash(uint16_t adr);
 
 //! Read a byte of EEPROM.
-u8 avr_peekeeprom(u16 adr);
+uint8_t avr_peekeeprom(uint16_t adr);
 //! Read a byte of EEPROM.
-u8 avr_pokeeeprom(u16 adr, u8 val);
+uint8_t avr_pokeeeprom(uint16_t adr, uint8_t val);
 
 //! Is the AVR ready or busy?
-u8 avr_isready();
+uint8_t avr_isready();
 
 //Command codes.
 //! Perform a chip erase.

@@ -11,9 +11,18 @@
 #define SPI 0x01
 
 //Pins and I/O
-#define MOSI BIT1
-#define MISO BIT2
-#define SCK  BIT3
+#if (platform == donbfet)
+# define MOSI (1 << PA2)
+# define MISO (1 << PA1)
+# define SCK  (1 << PA0)
+# define SS   (1 << PA3)
+# define TST  (1 << PA4)
+# define XRST (1 << PA5)
+#else
+# define MOSI BIT1
+# define MISO BIT2
+# define SCK  BIT3
+#endif
 
 #define SETMOSI SPIOUT|=MOSI
 #define CLRMOSI SPIOUT&=~MOSI
@@ -22,10 +31,17 @@
 #define READMISO (SPIIN&MISO?1:0)
 
 //FIXME this should be defined by the platform.
-#define SETTST P4OUT|=TST
-#define CLRTST P4OUT&=~TST
-#define SETRST P2OUT|=RST
-#define CLRRST P2OUT&=~RST
+#if (platform == donbfet)
+# define SETTST PORTA|=(1 << PA4);
+# define CLRTST PORTA&=~(1 << PA4);
+# define SETRST PORTA|=(1 << PA5);
+# define CLRRST PORTA&=~(1 << PA5);
+#else
+# define SETTST P4OUT|=TST
+# define CLRTST P4OUT&=~TST
+# define SETRST P2OUT|=RST
+# define CLRRST P2OUT&=~RST
+#endif
 
 //! Set up the pins for SPI mode.
 void spisetup();

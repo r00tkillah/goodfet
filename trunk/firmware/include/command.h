@@ -48,6 +48,9 @@ extern unsigned char silent;
 #define STOP  0x21
 #define CALL  0x30
 #define EXEC  0x31
+#define LIMIT 0x7B /* limit reached */
+#define EXIST 0x7C /* already or doesnt exist */
+#define NMEM  0x7D /* OOM */
 #define NOK   0x7E
 #define OK    0x7F
 

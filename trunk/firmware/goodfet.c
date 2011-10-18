@@ -32,6 +32,10 @@ void init(){
   #define INITCHIP arduino_init();
 #endif
 
+#if (platform == donbfet)
+# define INITCHIP donbfet_init();
+#endif
+
 #ifdef INITCHIP
 INITCHIP
 #else
@@ -97,6 +101,9 @@ int main(void)
 	} else {		// we come here after DTR high (release reset)
 		dputs("\nWarmstart\n");
 	}
+#elif (platform == donbfet)
+	extern void donbfet_reboot(void);
+	void (*reboot_function)(void) = donbfet_reboot;
 #else
 	void (*reboot_function)(void) = (void *) 0xFFFE;
 #endif
@@ -124,20 +131,24 @@ int main(void)
 				// or
 				// WDTCTL = WDTPW + WDTCNTCL + WDTSSEL + 0x00;
 				// but instead we'll jump to our reboot function pointer
-			  #ifdef MSP430
-#if (platform == tilaunchpad)
+#ifdef MSP430
+# if (platform == tilaunchpad)
 				// do we really need this, we do not want to reset the TUSB3410 
 				dputs("reset_count>4\n");
 				
 				//longjmp(warmstart,111);
 				goto warmstart;
 				
-#else
+# else
 				(*reboot_function)();
-#endif
-			  #else
+# endif
+#else /* !MSP430 */
+# if (platform == donbfet)
+				(*reboot_function)();
+# else
 				debugstr("Rebooting not supported on this platform.");
-			  #endif
+# endif
+#endif
 			}
 
 			continue;

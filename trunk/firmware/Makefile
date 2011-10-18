@@ -9,6 +9,12 @@
 #platform?=tilaunchpad
 platform?=goodfet
 
+# donb 
+ifeq ($(platform),donbfet)
+GCC?=avr-gcc
+mcu?=atmega644p
+CFLAGS=$(DEBUG) -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitialized -fpack-struct -fshort-enums -funsigned-bitfields
+endif
 
 ifeq ($(platform),tilaunchpad)
 mcu?=msp430x1612
@@ -117,6 +123,11 @@ ifeq ($(platform),tilaunchpad)
 config ?= monitor chipcon i2c
 else
 config ?= monitor chipcon spi jtag430 jtag430x2 avr openocd ccspi
+endif
+
+# donb 
+ifeq ($(platform),donbfet)
+config=monitor avr spi jscan
 endif
 
 # Build the needed list of app and lib object files from the config
@@ -323,6 +334,12 @@ ifeq ($(filter ps2, $(config)), ps2)
 	hdrs+= ps2.h
 endif
 
+# include jscan app
+ifeq ($(filter jscan, $(config)), jscan)
+	apps+= apps/jscan/jscan.o
+	hdrs+= jscan.h
+endif
+
 # Rules
 
 app= goodfet
@@ -372,8 +389,14 @@ erase:
 	$(MSP430BSL) -e 
 $(app).c: config builddate appsfiles err
 $(app): $(libs) $(apps)
+
+ifeq ($(platform),donbfet)
+$(app).hex: $(app)
+	avr-objcopy -j .text -j .data -O ihex goodfet goodfet.hex
+else
 $(app).hex: $(app)
 	msp430-objcopy goodfet -O ihex goodfet.hex
+endif
 m4s: $(app).hex
 	msp430-objdump -D -m msp430 $(app).hex | m4s init
 clean:

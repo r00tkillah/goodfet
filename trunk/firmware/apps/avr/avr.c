@@ -22,7 +22,7 @@ void avr_handle_fn( uint8_t const app,
 app_t const avr_app = {
 
 	/* app number */
-	AVR,
+	XAVR,
 
 	/* handle fn */
 	avr_handle_fn,

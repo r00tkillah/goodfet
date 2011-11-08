@@ -1,4 +1,4 @@
-
+-include config.mk
 
 #platform?=goodfet
 #platform?=telosb

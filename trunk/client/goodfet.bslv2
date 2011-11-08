@@ -3,6 +3,8 @@
 import hidapi
 import struct
 import time
+import os.path
+
 
 BSL_VID = 0x2047
 BSL_PID = 0x0200
@@ -181,7 +183,17 @@ F8 3F 80 00 36 80 80 00 3A 80 FF 3F
 12 34 56 78 99 10 11 12 13 14 15 16 17 18 00 80
 q"""
 
-BLINK_BSL2 = """@2000
+# reta: 10 01; jmp .: ff3f; ret: 3041
+BLINK_BSL3 = """@2400
+B2 40 80 5A 5C 01 E2 43 04 02 E2 43 02 02 2C 43
+3D 40 AD DE 3E 40 EF BE 80 00 02 10
+q"""
+
+RET_BSL = """@2400
+2C 43 3D 40 AD DE 3E 40 EF BE B0 13 02 10
+q"""
+
+BLINK_BSL2 = """@2400
 31 40 00 34 B0 13 0C 20 B0 13 32 20 21 83 D2 43
 04 02 D2 43 02 02 B2 40 80 5A 5C 01 07 3C 91 53
 00 00 B1 93 00 00 FB 23 D2 E3 02 02 81 43 00 00
@@ -214,6 +226,26 @@ class TiHex(object):
             yield x
 
 
+
+def segment_flash(iterator):
+    flash = {}
+    def insert(base, off, data):
+        assert off + len(data) <= 512
+        orig = flash.get(base, "\0" * 512)
+        new = orig[0:off] + data + orig[off+len(data):]
+        flash[base] = new
+    for addr, data in iterator:
+        while len(data) > 0:
+            base = addr >> 9
+            off = addr % 512
+
+            sub, data = data[0:512-off], data[512-off:]
+            addr += len(sub)
+
+            insert(base, off, sub)
+
+    for addr in sorted(flash):
+        yield (addr << 9), flash[addr]
 
 class BSL(object):
     MSGS = ["SUCCESS",
@@ -275,8 +307,8 @@ class BSL(object):
         return self._send_command(0x15, "")
     def CrcCheck(self, addr, length):
         return self._send_command(0x16, _fmt_addr(addr) + _fmt_addr(length, 2))
-    def LoadPc(self, addr):
-        return self._send_command(0x17, _fmt_addr(addr), False)
+    def LoadPc(self, addr, expect_response=False):
+        return self._send_command(0x17, _fmt_addr(addr), expect_response)
     def TxDataBlock(self, addr, length):
         return self._send_command(0x18, _fmt_addr(addr) + _fmt_addr(length, 2))
     def TxBslVersion(self):
@@ -285,10 +317,33 @@ class BSL(object):
         return self._send_command(0x1a, "")
 
     # Helpers
+    def RxLargeDatablock(self, addr, data):
+        # We can send at most 64 bytes at once, due to HID limitations.
+        while len(data) > 0:
+            sub, data = data[:64], data[64:]
+            self.RxDataBlockFast(addr, sub)
+            addr += len(sub)
+
     def RxTIHexFast(self, hexstring):
         tihex = TiHex(hexstring)
         for addr, value in tihex:
             self.RxDataBlockFast(addr, value)
+
+    def FlashTIHex(self, hexstring):
+        flash = segment_flash(TiHex(hexstring))
+        sled_path = os.path.join(os.path.dirname(__file__), "shellcode", "bslv2-flasher", "flasher.bin")
+        sled = open(sled_path, "rb").read()
+        for addr, data in flash:
+            # Maybe flash more than one block at a time? We do have 4K of ram
+            payload = struct.pack("<H", addr >> 8) + data
+            cksum = 256 - ((sum(ord(x) for x in "\001" + payload) + 1) % 256)
+            payload = "\001" + chr(cksum) + payload
+
+            assert (sum(ord(x) for x in payload) % 256) == 255
+
+            self.RxLargeDatablock(0x2400, sled + payload)
+            print repr(self.LoadPc(0x2400, True))
+
 
     def bounce_hid(self):
         "Reconnect to the target"
@@ -303,10 +358,12 @@ def main():
     #return
     try:
         print repr(bsl.RxPassword('\xff' * 32))
-        print repr(bsl.RxTIHexFast(RAM_BSL))
-        print repr(bsl.LoadPc(0x2400))
-        #print repr(bsl.RxTIHexFast(file("blinky.tihex","r").read()))
+        #print repr(bsl.FlashTIHex(BLINK_BSL))
+        print repr(bsl.RxTIHexFast(BLINK_BSL2))
         #print repr(bsl.LoadPc(0x2000))
+        #raise SystemExit(0)
+        #print repr(bsl.RxTIHexFast(file("blinky.tihex","r").read()))
+        print repr(bsl.LoadPc(0x2400, True))
         #bsl.device.close()
         print repr("Bouncing...")
         time.sleep(3)
@@ -317,5 +374,11 @@ def main():
         print repr(bsl.TxBslVersion())
     finally:
         bsl.device.close()
+
+def mainx():
+    for addr, data in segment_flash(TiHex(RAM_BSL)):
+        bs = 64
+        hexdata = "\n     ".join(data[s:s+bs].encode("hex") for s in range(0,len(data),bs))
+        print "%04x %s" % (addr, hexdata)
 
 main()

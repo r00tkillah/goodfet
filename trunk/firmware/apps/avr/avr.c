@@ -6,9 +6,6 @@
 #include "platform.h"
 #include "command.h"
 
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
 
 #include "avr.h"
 //#include "glitch.h"
@@ -43,10 +40,10 @@ void avrsetup(){
 void avrconnect(){
   //set I/O pins
   avrsetup(); //Cut this?
-  
+
   SETSS;
   //delay(50);
-  
+
   //Pulse !RST (SS) at least twice while CLK is low.
   CLRCLK;
   CLRSS;
@@ -57,7 +54,7 @@ void avrconnect(){
   //delay(5);
   CLRSS;
   //delay(5);
-  
+
   //Enable programming
   avr_prgen();
 }
@@ -67,7 +64,7 @@ u8 avrtrans8(u8 byte){
   register u16 bit;
   //This function came from the SPI Wikipedia article.
   //Minor alterations.
-  
+
   for (bit = 0; bit < 8; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (byte & 0x80)
@@ -75,16 +72,16 @@ u8 avrtrans8(u8 byte){
     else
       CLRMOSI;
     byte <<= 1;
-    
+
     delay(2);
     SETCLK;
-  
+
     /* read MISO on trailing edge */
     byte |= READMISO;
     delay(2);
     CLRCLK;
   }
-  
+
   return byte;
 }
 
@@ -169,12 +166,12 @@ void avr_handle_fn( uint8_t const app,
 {
   unsigned long i, l;
   unsigned int at;
-  
+
   /*
   if(!avr_isready() && connected)
     debugstr("AVR is not yet ready.");
   */
-  
+
   switch(verb){
   case READ:
   case WRITE:
@@ -231,7 +228,7 @@ void avr_handle_fn( uint8_t const app,
     //cmddata[0]=avr_peekflash(cmddataword[0]);
     //txdata(app,verb,1);
     at=cmddataword[0];
-    
+
     //Fetch large blocks for bulk fetches,
     //small blocks for individual peeks.
 	l = len;

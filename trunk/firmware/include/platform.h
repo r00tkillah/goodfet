@@ -1,7 +1,7 @@
 /*! \file platform.h
   \author Travis Goodspeed
   \brief Port and baud rate definitions.
-  
+
   The functions specified here are defined in the platform
   definition file, such as msp430x1612.c or msp430x2618.c.
 */
@@ -12,10 +12,19 @@
 #include <stdint.h>
 
 #ifdef MSP430
-#include <io.h>
+#ifdef __MSPGCC__
+#include <msp430.h>
+#else
 #include <signal.h>
+#include <io.h>
 #include <iomacros.h>
-#include "msp430.h"
+#endif
+
+void msp430_init();
+void led_init();
+void led_on();
+void led_off();
+void led_toggle();
 #endif
 
 #include "config.h"

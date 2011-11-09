@@ -3,10 +3,13 @@
   \brief Port descriptions for the GoodFET platform.
 */
 
+#ifdef __MSPGCC__
+#include <msp430.h>
+#else
 #include <signal.h>
 #include <io.h>
 #include <iomacros.h>
-
+#endif
 
 //LED on P1.0
 #define PLEDOUT P1OUT

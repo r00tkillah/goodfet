@@ -28,6 +28,7 @@ void led_off()
 }
 void led_toggle()
 {
+	PLEDOUT ^= PLEDPIN;
 }
 
 //! Initialize MSP430 registers and all that jazz.
@@ -79,13 +80,13 @@ void msp430_init(){
 #endif
 
 	/** FIXME
-	  
+
 	  This part is really ugly.  GSEL (P5.7) must be high to select
 	  normal voltage, but a lot of applications light to swing it low
 	  to be a nuissance.  To get around this, we assume that anyone
 	  with a glitching FET will also have a DAC, then we set that DAC
 	  to a high voltage.
-	  
+
 	  At some point, each target must be sanitized to show that it
 	  doesn't clear P5OUT or P5DIR.
 	*/

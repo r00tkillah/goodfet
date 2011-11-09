@@ -8,9 +8,13 @@
 
 #include "command.h"
 
+#ifdef __MSPGCC__
+#include <msp430.h>
+#else
 #include <signal.h>
 #include <io.h>
 #include <iomacros.h>
+#endif
 
 #include "spi.h"
 
@@ -52,10 +56,10 @@ void spisetup(){
   SPIDIR|=MOSI+SCK+BIT0; //BIT0 might be SS
   SPIDIR&=~MISO;
   DIRSS;
-  
+
   //Begin a new transaction.
-  
-  CLRSS; 
+
+  CLRSS;
   SETSS;
 }
 
@@ -65,7 +69,7 @@ unsigned char spitrans8(unsigned char byte){
   register unsigned int bit;
   //This function came from the SPI Wikipedia article.
   //Minor alterations.
-  
+
   for (bit = 0; bit < 8; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (byte & 0x80)
@@ -73,11 +77,11 @@ unsigned char spitrans8(unsigned char byte){
     else
       CLRMOSI;
     byte <<= 1;
-    
+
     //SPIDELAY(100);
     SETCLK;
     //SPIDELAY(100);
-  
+
     /* read MISO on trailing edge */
     byte |= READMISO;
     CLRCLK;
@@ -128,16 +132,16 @@ void spiflash_peekblock(unsigned long adr,
 			unsigned char *buf,
 			unsigned int len){
   unsigned char i;
-  
+
   SETSS;
   CLRSS; //Drop !SS to begin transaction.
   spitrans8(0x03);//Flash Read Command
-  
+
   //Send address
   spitrans8((adr&0xFF0000)>>16);
   spitrans8((adr&0xFF00)>>8);
   spitrans8(adr&0xFF);
-  
+
   for(i=0;i<len;i++)
     buf[i]=spitrans8(0);
   SETSS;  //Raise !SS to end transaction.
@@ -148,24 +152,24 @@ void spiflash_pokeblock(unsigned long adr,
 			unsigned char *buf,
 			unsigned int len){
   unsigned int i;
-  
+
   SETSS;
-  
+
   //if(len!=0x100)
   //  debugstr("Non-standard block size.");
-  
+
   while(spiflash_status()&0x01);//minor performance impact
-  
+
   spiflash_setstatus(0x02);
   spiflash_wrten();
-  
+
   //Are these necessary?
   //spiflash_setstatus(0x02);
   //spiflash_wrten();
-  
+
   CLRSS; //Drop !SS to begin transaction.
   spitrans8(0x02); //Poke command.
-  
+
   //Send address
   spitrans8((adr&0xFF0000)>>16);
   spitrans8((adr&0xFF00)>>8);
@@ -174,7 +178,7 @@ void spiflash_pokeblock(unsigned long adr,
   for(i=0;i<len;i++)
     spitrans8(buf[i]);
   SETSS;  //Raise !SS to end transaction.
-  
+
   while(spiflash_status()&0x01);//minor performance impact
   return;
 }
@@ -187,7 +191,7 @@ void spiflash_pokeblocks(unsigned long adr,
   long off=0;//offset of this block
   int blen;//length of this block
   SETSS;
-  
+
   while(off<len){
     //calculate block length
     blen=(len-off>0x100?0x100:len-off);
@@ -212,14 +216,14 @@ void spiflash_peek(unsigned char app,
   len=3;//write 3 byte pointer
   for(i=0;i<len;i++)
     spitrans8(cmddata[i]);
-  
+
   //Send reply header
   len=0x1000;
   txhead(app,verb,len);
-  
+
   while(len--)
     serial_tx(spitrans8(0));
-  
+
   SETSS;  //Raise !SS to end transaction.
 }
 
@@ -254,7 +258,7 @@ void em260_wake(){
   P2DIR|=RST;
   SETRST;
   delay(1024);
-  
+
   CLRRST;//Wake chip.
   while(P4IN&1);
   SETRST;//Woken.
@@ -265,22 +269,22 @@ void em260_wake(){
 void spi_rw_em260(u8 app, u8 verb, u32 len){
   unsigned long i;
   u8 lastin;
-    
+
   P4DIR=0; //TODO ASAP remove P4 references.
   P4OUT=0xFF;
   //P4REN=0xFF;
-    
+
   //See GoodFETEM260.py for details.
   //The EM260 requires that the host wait for the client.
-    
+
   /*
     if((~P4IN)&1)
     debugstr("Detected HOST_INT.");
   */
-    
+
   em260_wake();
-  
-    
+
+
   SETMOSI; //Autodetected SPI mode.
   CLRSS; //Drop !SS to begin transaction.
   //Host to slave.  Ignore data.
@@ -293,10 +297,10 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
     }
   }
   //debugstr("Finished transmission to EM260.");
-    
+
   //Wait for nHOST_INT to drop.
   i=0xffff;
-  
+
   /*
   while(P4IN&1
 	&& --i
@@ -305,10 +309,10 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
   */
   while((cmddata[0]=spitrans8(0xFF))==0xFF
 	&& --i);
-  
+
   if(!i)
     debugstr("Gave up on host interrupt.");
-  
+
  response:
   len=1;
   while(
@@ -318,7 +322,7 @@ void spi_rw_em260(u8 app, u8 verb, u32 len){
     while(len<cmddata[1]+3)
       cmddata[len++]=spitrans8(0xFF);
   SETSS;  //Raise !SS to end transaction.
-  
+
   txdata(app,verb,len);
   return;
 }
@@ -366,7 +370,7 @@ void spi_handle_fn( uint8_t const app,
 	case POKE://Poke up bytes from an SPI Flash ROM.
 		spiflash_pokeblocks(cmddatalong[0],//adr
 		cmddata+4,//buf
-		len-4);//len    
+		len-4);//len
 		txdata(app,verb,0);
 		break;
 

@@ -15,10 +15,6 @@
 #include "command.h"
 #include "chipcon.h"
 
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
-
 //! Handles a chipcon command.
 void cc_handle_fn( uint8_t const app,
 				   uint8_t const verb,
@@ -53,12 +49,12 @@ app_t const chipcon_app = {
 
 #if (platform == tilaunchpad)
 /*
- * The Launchpad has only pins easily available	
+ * The Launchpad has only pins easily available
  * P5.3 TCK	SCK		(labeled TEST J3-10 J2-17)	DC closest to antenna		(blue)
  * P5.2 IO	MISO MOSI	(labeled RST  J3-8  J2-16)	DD next to closer to USB		(yellow)
  * P3.6 txd1	RST		(labeled RXD  J3-6  J1-4)	next to GND, which is closest to USB	(orange)
  * P3.7 rxd1	RST		(labeled TXD  J3-4  J1-3) 	connect to led1 J1-2
- * 
+ *
  * for a permanent marriage between a TI-Launchpad, move RST to pin48 P5.4
  * (requeries soldering) and use rxd/txd for direct communication with IM-ME dongle.
  */
@@ -80,7 +76,7 @@ app_t const chipcon_app = {
 #define CCSPEED 3
 //#define CCSPEED 3
 //#define CCDELAY(x) delay(x)
-#define CCDELAY(x) 
+#define CCDELAY(x)
 
 #define SETMOSI SPIOUT|=MOSI
 #define CLRMOSI SPIOUT&=~MOSI
@@ -125,7 +121,7 @@ void ccsetup(){
 /* 33 cycle critical region
 0000000e <ccdebuginit>:
    e:	f2 d0 0d 00 	bis.b	#13,	&0x0031	;5 cycles
-  12:	31 00 
+  12:	31 00
   14:	f2 c2 31 00 	bic.b	#8,	&0x0031	;4 cycles
   18:	d2 c3 31 00 	bic.b	#1,	&0x0031	;4
   1c:	f2 e2 31 00 	xor.b	#8,	&0x0031	;4
@@ -133,7 +129,7 @@ void ccsetup(){
   24:	f2 e2 31 00 	xor.b	#8,	&0x0031	;4
   28:	f2 e2 31 00 	xor.b	#8,	&0x0031	;4
   2c:	d2 d3 31 00 	bis.b	#1,	&0x0031	;4
-  30:	30 41       	ret			
+  30:	30 41       	ret
 */
 
 
@@ -147,17 +143,17 @@ void ccdebuginit(){
 #else
   SPIOUT|=MOSI+SCK+RST;
 #endif
-  
+
   delay(30); //So the beginning is ready for glitching.
-  
+
   //Two positive debug clock pulses while !RST is low.
   //Take RST low, pulse twice, then high.
   SPIOUT&=~SCK;
   delay(10);
   CLRRST;
-  
+
   delay(10);
-  
+
   //Two rising edges.
   SPIOUT^=SCK; //up
   delay(1);
@@ -168,7 +164,7 @@ void ccdebuginit(){
   SPIOUT^=SCK; //Unnecessary.
   delay(1);
   //delay(0);
-  
+
   //Raise !RST.
   SETRST;
 }
@@ -178,7 +174,7 @@ unsigned char cctrans8(unsigned char byte){
   unsigned int bit;
   //This function came from the SPI Wikipedia article.
   //Minor alterations.
-  
+
   for (bit = 0; bit < 8; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (byte & 0x80)
@@ -186,19 +182,19 @@ unsigned char cctrans8(unsigned char byte){
     else
       CLRMOSI;
     byte <<= 1;
- 
+
     /* half a clock cycle before leading/rising edge */
     CCDELAY(CCSPEED>>2);
     SETCLK;
- 
+
     /* half a clock cycle before trailing/falling edge */
     CCDELAY(CCSPEED>>2);
- 
+
     /* read MISO on trailing edge */
     byte |= READMISO;
     CLRCLK;
   }
-  
+
   return byte;
 }
 
@@ -228,7 +224,7 @@ void cc_handle_fn( uint8_t const app,
   //ccdebuginit();
   long i;
   int blocklen, blockadr;
-  
+
   switch(verb){
     //CC_PEEK and CC_POKE will come later.
   case PEEK:
@@ -264,7 +260,7 @@ void cc_handle_fn( uint8_t const app,
     ccsetup();
     txdata(app,verb,0);
     break;
-    
+
   //Micro commands!
   case CC_CHIP_ERASE:
   case CC_MASS_ERASE_FLASH:
@@ -330,13 +326,13 @@ void cc_handle_fn( uint8_t const app,
     if(len>2)
       blocklen=cmddataword[1];
     blockadr=cmddataword[0];
-    
+
     //Return that many bytes.
     for(i=0;i<blocklen;i++)
       cmddata[i]=cc_peekdatabyte(blockadr+i);
     txdata(app,verb,blocklen);
     break;
-    
+
   case CC_WRITE_XDATA_MEMORY:
     cmddata[0]=cc_pokedatabyte(cmddataword[0], cmddata[2]);
     txdata(app,verb,1);
@@ -354,7 +350,7 @@ void cc_handle_fn( uint8_t const app,
       cc_pokedatabyte(i,0xFF);
     txdata(app,verb,0);
     break;
-  
+
   case CC_CLOCK_INIT:
   case CC_PROGRAM_FLASH:
   default:
@@ -390,20 +386,20 @@ void cc_wr_config(unsigned char config){
 //! Locks the chip.
 void cc_lockchip(){
   register int i;
-  
+
   //debugstr("Locking chip.");
-  cc_wr_config(1);//Select Info Flash 
+  cc_wr_config(1);//Select Info Flash
   if(!(cc_rd_config()&1))
     debugstr("Config forgotten!");
-  
+
   //Clear config page.
   for(i=0;i<2048;i++)
     cc_pokedatabyte(0xf000+i,0);
   cc_write_flash_page(0);
   if(cc_peekcodebyte(0))
     debugstr("Failed to clear info flash byte.");
-  
-  cc_wr_config(0);  
+
+  cc_wr_config(0);
   if(cc_rd_config()&1)
     debugstr("Stuck in info flash mode!");
 }
@@ -431,7 +427,7 @@ unsigned short cc_get_chip_id(){
   cccmd(1);
   ccread(2);
 
-  
+
   //Find the flash word size.
   switch(cmddata[0]){
   case 0x01://CC1110
@@ -451,7 +447,7 @@ unsigned short cc_get_chip_id(){
     flash_word_size=0x04;
     break;
   }
-  
+
   //Return the word.
   return cmddataword[0];
 }
@@ -503,39 +499,39 @@ u8 flash_word_size = 0; //0x02;
 
 const u8 flash_routine[] = {
   //0:
-  //MOV FADDRH, #imm; 
+  //MOV FADDRH, #imm;
   0x75, 0xAD,
   0x00,//#imm=((address >> 8) / FLASH_WORD_SIZE) & 0x7E,
-  
+
   //0x75, 0xAB, 0x23, //Set FWT per clock
-  0x75, 0xAC, 0x00,                                          //                 MOV FADDRL, #00; 
+  0x75, 0xAC, 0x00,                                          //                 MOV FADDRL, #00;
   /* Erase page. */
-  0x75, 0xAE, 0x01,                                          //                 MOV FLC, #01H; // ERASE 
-                                                             //                 ; Wait for flash erase to complete 
-  0xE5, 0xAE,                                                // eraseWaitLoop:  MOV A, FLC; 
-  0x20, 0xE7, 0xFB,                                          //                 JB ACC_BUSY, eraseWaitLoop; 
-  
+  0x75, 0xAE, 0x01,                                          //                 MOV FLC, #01H; // ERASE
+                                                             //                 ; Wait for flash erase to complete
+  0xE5, 0xAE,                                                // eraseWaitLoop:  MOV A, FLC;
+  0x20, 0xE7, 0xFB,                                          //                 JB ACC_BUSY, eraseWaitLoop;
+
   /* End erase page. */
-                                                             //                 ; Initialize the data pointer 
-  0x90, 0xF0, 0x00,                                          //                 MOV DPTR, #0F000H; 
-                                                             //                 ; Outer loops 
-  0x7F, HIBYTE_WORDS_PER_FLASH_PAGE,                         //                 MOV R7, #imm; 
-  0x7E, LOBYTE_WORDS_PER_FLASH_PAGE,                         //                 MOV R6, #imm; 
-  0x75, 0xAE, 0x02,                                          //                 MOV FLC, #02H; // WRITE 
-                                                             //                     ; Inner loops 
+                                                             //                 ; Initialize the data pointer
+  0x90, 0xF0, 0x00,                                          //                 MOV DPTR, #0F000H;
+                                                             //                 ; Outer loops
+  0x7F, HIBYTE_WORDS_PER_FLASH_PAGE,                         //                 MOV R7, #imm;
+  0x7E, LOBYTE_WORDS_PER_FLASH_PAGE,                         //                 MOV R6, #imm;
+  0x75, 0xAE, 0x02,                                          //                 MOV FLC, #02H; // WRITE
+                                                             //                     ; Inner loops
   //24:
-  0x7D, 0xde /*FLASH_WORD_SIZE*/,                                     // writeLoop:          MOV R5, #imm; 
-  0xE0,                                                      // writeWordLoop:          MOVX A, @DPTR; 
-  0xA3,                                                      //                         INC DPTR; 
-  0xF5, 0xAF,                                                //                         MOV FWDATA, A;  
-  0xDD, 0xFA,                                                //                     DJNZ R5, writeWordLoop; 
-                                                             //                     ; Wait for completion 
-  0xE5, 0xAE,                                                // writeWaitLoop:      MOV A, FLC; 
-  0x20, 0xE6, 0xFB,                                          //                     JB ACC_SWBSY, writeWaitLoop; 
-  0xDE, 0xF1,                                                //                 DJNZ R6, writeLoop; 
-  0xDF, 0xEF,                                                //                 DJNZ R7, writeLoop; 
-                                                             //                 ; Done, fake a breakpoint 
-  0xA5                                                       //                 DB 0xA5; 
+  0x7D, 0xde /*FLASH_WORD_SIZE*/,                                     // writeLoop:          MOV R5, #imm;
+  0xE0,                                                      // writeWordLoop:          MOVX A, @DPTR;
+  0xA3,                                                      //                         INC DPTR;
+  0xF5, 0xAF,                                                //                         MOV FWDATA, A;
+  0xDD, 0xFA,                                                //                     DJNZ R5, writeWordLoop;
+                                                             //                     ; Wait for completion
+  0xE5, 0xAE,                                                // writeWaitLoop:      MOV A, FLC;
+  0x20, 0xE6, 0xFB,                                          //                     JB ACC_SWBSY, writeWaitLoop;
+  0xDE, 0xF1,                                                //                 DJNZ R6, writeLoop;
+  0xDF, 0xEF,                                                //                 DJNZ R7, writeLoop;
+                                                             //                 ; Done, fake a breakpoint
+  0xA5                                                       //                 DB 0xA5;
 };
 
 
@@ -543,18 +539,18 @@ const u8 flash_routine[] = {
 void cc_write_flash_page(u32 adr){
   //Assumes that page has already been written to XDATA 0xF000
   //debugstr("Flashing 2kb at 0xF000 to given adr.");
-  
+
   if(adr&(MINFLASHPAGE_SIZE-1)){
     debugstr("Flash page address is not on a page boundary.  Aborting.");
     return;
   }
-  
+
   if(flash_word_size!=2 && flash_word_size!=4){
     debugstr("Flash word size is wrong, aborting write to");
     debughex(adr);
     while(1);
   }
-  
+
   //Routine comes next
   //WRITE_XDATA_MEMORY(IN: 0xF000 + FLASH_PAGE_SIZE, sizeof(routine), routine);
   cc_write_xdata(0xF000+MAXFLASHPAGE_SIZE,
@@ -568,29 +564,29 @@ void cc_write_flash_page(u32 adr){
     debugstr("Ugly patching code failing in chipcon.c");
   cc_pokedatabyte(0xF000+MAXFLASHPAGE_SIZE+25,
 		  flash_word_size);
-  
+
   //debugstr("Wrote flash routine.");
-    
+
   //MOV MEMCTR, (bank * 16) + 1;
   cmddata[0]=0x75;
   cmddata[1]=0xc7;
   cmddata[2]=0x51;
   cc_debug_instr(3);
   //debugstr("Loaded bank info.");
-  
+
   cc_set_pc(0xf000+MAXFLASHPAGE_SIZE);//execute code fragment
   cc_resume();
-  
+
   //debugstr("Executing.");
-  
-  
+
+
   while(!(cc_read_status()&CC_STATUS_CPUHALTED)){
-    led_toggle();//blink LED while flashing    
+    led_toggle();//blink LED while flashing
   }
-  
-  
+
+
   //debugstr("Done flashing.");
-  
+
   led_off();
 }
 
@@ -599,7 +595,7 @@ unsigned short cc_get_pc(){
   cmddata[0]=CCCMD_GET_PC; //0x28
   cccmd(1);
   ccread(2);
-  
+
   //Return the word.
   return cmddataword[0];
 }
@@ -675,12 +671,12 @@ unsigned char cc_peekcodebyte(unsigned long adr){
     hb=(adr>>8)&0x7F,
     toret=0;
   adr&=0x7FFF;
-  
+
   //MOV MEMCTR, (bank*16)+1
   cc_debug(3, 0x75, 0xC7, (bank<<4) + 1);
   //MOV DPTR, address
   cc_debug(3, 0x90, hb, lb);
-  
+
   //for each byte
   //CLR A
   cc_debug(2, 0xE4, 0, 0);
@@ -688,7 +684,7 @@ unsigned char cc_peekcodebyte(unsigned long adr){
   toret=cc_debug(3, 0x93, 0, 0);
   //INC DPTR
   //cc_debug(1, 0xA3, 0, 0);
-  
+
   return toret;
 }
 
@@ -699,14 +695,14 @@ unsigned char cc_pokedatabyte(unsigned int adr,
   unsigned char
     hb=(adr&0xFF00)>>8,
     lb=adr&0xFF;
-  
+
   //MOV DPTR, adr
   cc_debug(3, 0x90, hb, lb);
   //MOV A, val
   cc_debug(2, 0x74, val, 0);
   //MOVX @DPTR, A
   cc_debug(1, 0xF0, 0, 0);
-  
+
   return 0;
   /*
 DEBUG_INSTR(IN: 0x90, HIBYTE(address), LOBYTE(address), OUT: Discard);
@@ -723,7 +719,7 @@ unsigned char cc_peekdatabyte(unsigned int adr){
   unsigned char
     hb=(adr&0xFF00)>>8,
     lb=adr&0xFF;
-  
+
   //MOV DPTR, adr
   cc_debug(3, 0x90, hb, lb);
   //MOVX A, @DPTR

@@ -9,7 +9,7 @@
 #platform?=tilaunchpad
 platform?=goodfet
 
-# donb 
+# donb
 ifeq ($(platform),donbfet)
 GCC?=avr-gcc
 mcu?=atmega644p
@@ -44,16 +44,20 @@ mcu?=RUNCONFIG
 GCCINC?=
 
 #GCC?=avr-gcc
-GCC?=msp430-gcc -T ldscripts/$(mcu).x
+# We use -Wl,-dT because gcc adds the msp430mcu definitions at the
+# very end of the command line, so they only have an effect for a
+# default linker script
+GCC?=msp430-gcc
+LDFLAGS?=-Wl,-dT ldscripts/msp430.x
 
-CCEXTRA?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) -DGCC $(GCCINC) -I include -I platforms
+CCEXTRA?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) $(GCCINC) -I include -I platforms
 CC=$(GCC) -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
 
 # Available Applications
 # ======================
 # Below is a list of available applications and their descriptions.
 
-# PRODUCTION: 
+# PRODUCTION:
 # None have made it to production grade quality
 
 # BETA:
@@ -125,17 +129,17 @@ else
 config ?= monitor chipcon spi jtag430 jtag430x2 avr openocd ccspi
 endif
 
-# donb 
+# donb
 ifeq ($(platform),donbfet)
 config=monitor avr spi jscan
 endif
 
 # Build the needed list of app and lib object files from the config
-apps= 
+apps=
 
 ifeq ($(platform),tilaunchpad)
 libs= lib/$(platform).o lib/command.o lib/apps.o lib/msp430_serial.o
-#libs+=lib/setjmp.o 
+#libs+=lib/setjmp.o
 else
 libs= lib/$(mcu).o lib/command.o lib/dco_calib.o lib/apps.o lib/msp430.o lib/arduino.o
 endif
@@ -377,7 +381,7 @@ erase:
 	$(JTAG) -e $(app).hex
 else
 install: $(app).hex
-	$(MSP430BSL) -e -p $(app).hex 
+	$(MSP430BSL) -e -p $(app).hex
 installinfo:
 	$(MSP430BSL) -P $(app).hex -p info.txt || true  #MSP430F2xx targets only, inelegant.
 verify:
@@ -386,7 +390,7 @@ endif
 dumpinfo:
 	$(MSP430BSL) --dumpinfo
 erase:
-	$(MSP430BSL) -e 
+	$(MSP430BSL) -e
 $(app).c: config builddate appsfiles err
 $(app): $(libs) $(apps)
 

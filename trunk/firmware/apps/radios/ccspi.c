@@ -1,7 +1,7 @@
 /*! \file ccspi.c
   \author Travis Goodspeed
   \brief Chipcon SPI Register Interface
-  
+
   Unfortunately, there is very little similarity between the CC2420
   and the CC2500, to name just two of the myriad of Chipcon SPI
   radios.  Auto-detection will be a bit difficult, but more to the
@@ -13,9 +13,6 @@
 #include "platform.h"
 #include "command.h"
 #include <stdlib.h> //added for itoa
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
 
 #include "ccspi.h"
 #include "spi.h"
@@ -52,14 +49,14 @@ void ccspisetup(){
   SPIDIR|=MOSI+SCK;
   DIRSS;
   DIRCE;
-  
+
   P4OUT|=BIT5; //activate CC2420 voltage regulator
   msdelay(100);
-  
+
   //Reset the CC2420.
   P4OUT&=~BIT6;
   P4OUT|=BIT6;
-  
+
   //Begin a new transaction.
   CLRSS;
   SETSS;
@@ -70,7 +67,7 @@ u8 ccspitrans8(u8 byte){
   register unsigned int bit;
   //This function came from the CCSPI Wikipedia article.
   //Minor alterations.
-  
+
   for (bit = 0; bit < 8; bit++) {
     /* write MOSI on trailing edge of previous clock */
     if (byte & 0x80)
@@ -78,14 +75,14 @@ u8 ccspitrans8(u8 byte){
     else
       CLRMOSI;
     byte <<= 1;
- 
+
     SETCLK;
-  
+
     /* read MISO on trailing edge */
     byte |= READMISO;
     CLRCLK;
   }
-  
+
   return byte;
 }
 
@@ -93,22 +90,22 @@ u8 ccspitrans8(u8 byte){
 //! Writes a register
 u8 ccspi_regwrite(u8 reg, const u8 *buf, int len){
   CLRSS;
-  
+
   reg=ccspitrans8(reg);
   while(len--)
     ccspitrans8(*buf++);
-  
+
   SETSS;
   return reg;//status
 }
 //! Reads a register
 u8 ccspi_regread(u8 reg, u8 *buf, int len){
   CLRSS;
-  
+
   reg=ccspitrans8(reg);
   while(len--)
     *buf++=ccspitrans8(0);
-  
+
   SETSS;
   return reg;//status
 }
@@ -118,9 +115,9 @@ void ccspi_handle_fn( uint8_t const app,
 		      uint8_t const verb,
 		      uint32_t const len){
   unsigned long i;
-  
+
   //debugstr("Chipcon SPI handler.");
-  
+
   switch(verb){
   case PEEK:
     cmddata[0]|=0x40; //Set the read bit.
@@ -147,12 +144,12 @@ void ccspi_handle_fn( uint8_t const app,
       ccspitrans8(0x08); //SFLUSHRX
       SETSS;
     }
-    
+
     //Is there a packet?
     if(FIFOP&&FIFO){
       //Wait for completion.
       while(SFD);
-      
+
       //Get the packet.
       CLRSS;
       ccspitrans8(CCSPI_RXFIFO | 0x40);
@@ -161,7 +158,7 @@ void ccspi_handle_fn( uint8_t const app,
       for(i=0;i<cmddata[0]+2;i++)
         cmddata[i]=ccspitrans8(0xde);
       SETSS;
-      
+
       //Flush buffer.
       CLRSS;
       ccspitrans8(0x08); //SFLUSHRX
@@ -183,7 +180,7 @@ void ccspi_handle_fn( uint8_t const app,
     CLRSS;
     ccspitrans8(CCSPI_SFLUSHRX);
     SETSS;
-    
+
     txdata(app,verb,0);
     break;
 
@@ -350,36 +347,36 @@ void ccspi_handle_fn( uint8_t const app,
     CLRSS;
     ccspitrans8(CCSPI_SFLUSHTX);
     SETSS;
-    
+
     txdata(app,verb,0);
     break;
   case CCSPI_TX:
 #ifdef FIFOP
-    
+
     //Wait for last packet to TX.
     //while(ccspi_status()&BIT3);
-    
+
     //Load the packet.
     CLRSS;
     ccspitrans8(CCSPI_TXFIFO);
     for(i=0;i<cmddata[0];i++)
       ccspitrans8(cmddata[i]);
     SETSS;
-    
+
     //Transmit the packet.
     CLRSS;
     ccspitrans8(0x04); //STXON
     SETSS;
-    
+
     //Wait for the pulse on SFD, after which the packet has been sent.
     while(!SFD);
     while(SFD);
-    
+
     //Flush TX buffer.
     CLRSS;
     ccspitrans8(0x09); //SFLUSHTX
     SETSS;
-    
+
     txdata(app,verb,0);
 #else
     debugstr("Can't TX a packet with SFD and FIFOP definitions.");

@@ -16,11 +16,6 @@ mcu?=atmega644p
 CFLAGS=$(DEBUG) -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitialized -fpack-struct -fshort-enums -funsigned-bitfields
 endif
 
-ifeq ($(platform),tilaunchpad)
-mcu?=msp430x1612
-CFLAGS+=-DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
-#CFLAGS+= -Werror
-endif
 
 #include `uname`.mak
 GOODFET?=/dev/tty.usbser*
@@ -129,10 +124,6 @@ else
 config ?= monitor chipcon spi jtag430 jtag430x2 avr openocd ccspi
 endif
 
-# donb
-ifeq ($(platform),donbfet)
-config=monitor avr spi jscan
-endif
 
 # Build the needed list of app and lib object files from the config
 apps=

@@ -47,7 +47,7 @@ app_t const i2c_app = {
 
 
 //2xx only, need 1xx compat code
-#if (platform == tilaunchpad)
+#if (board == tilaunchpad)
 // P3.1 SDA
 // P3.3 SCL
 #define SDA (1<<1)

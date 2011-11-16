@@ -1,3 +1,6 @@
+##################################
+## These are production boards.
+##################################
 mcu = undef
 ifneq (,$(findstring $(board),goodfet20))
 mcu := msp430x1612
@@ -16,6 +19,34 @@ endif
 ifneq (,$(findstring $(board),goodfet50 goodfet51))
 mcu := msp430x5510
 endif
+
+ifneq (,$(findstring $(board),telosb))
+mcu :=msp430x1612
+CFLAGS := -DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
+#CFLAGS+= -Werror
+endif
+
+
+##################################
+## These are experimental boards.
+##################################
+
+ifneq (,$(findstring $(board),donbfet))
+GCC := avr-gcc
+mcu := atmega644p
+CFLAGS=$(DEBUG) -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitialized -fpack-struct -fshort-enums -funsigned-bitfields
+config := monitor avr spi jscan
+endif
+
+ifneq (,$(findstring $(board),tilaunchpad))
+mcu :=msp430x1612
+CFLAGS := -DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
+#CFLAGS+= -Werror
+config := monitor chipcon i2c
+endif
+
+
+
 
 ifeq ($(mcu),undef)
 $(error Please define board, as explained in the README)
@@ -47,6 +78,7 @@ CONFIG_glitch     ?= n
 CONFIG_smartcard  ?= n
 CONFIG_ps2        ?= n
 
-
+#The CONFIG_foo vars are only interpreted if $(config) is unset.
+ifeq ($(config),undef)
 config := $(foreach app,$(AVAILABLE_APPS),$(if $(findstring $(CONFIG_$(app)),y yes t true Y YES T TRUE),$(app)))
-
+endif

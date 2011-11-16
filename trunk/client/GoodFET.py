@@ -171,7 +171,7 @@ class GoodFET:
                     a=1;
         
         baud=115200;
-        if(os.environ.get("platform")=='arduino'):
+        if(os.environ.get("platform")=='arduino' or os.environ.get("board")=='arduino'):
             baud=19200; #Slower, for now.
         self.serialport = serial.Serial(
             port,
@@ -196,7 +196,7 @@ class GoodFET:
                 self.serialport.flushOutput()
                 
                 #TelosB reset, prefer software to I2C SPST Switch.
-                if(os.environ.get("platform")=='telosb'):
+                if(os.environ.get("platform")=='telosb' or  os.environ.get("board")=='telosb'):
                     #print "TelosB Reset";
                     self.telosBReset();
                 else:
@@ -223,7 +223,6 @@ class GoodFET:
             connected=1;
             olds=self.infostring();
             clocking=self.monitorclocking();
-            #if(os.environ.get("platform")!='arduino'):
             for foo in range(1,30):
                 if not self.monitorecho():
                     if self.verbose:
@@ -610,7 +609,7 @@ class GoodFET:
         self.MONpoke16(0x56, clock);
     def monitorgetclock(self):
         """Get the clocking value."""
-        if(os.environ.get("platform")=='arduino'):
+        if(os.environ.get("platform")=='arduino' or os.environ.get("board")=='arduino'):
             return 0xDEAD;
         #Check for MSP430 before peeking this.
         return self.MONpeek16(0x56);
@@ -618,7 +617,7 @@ class GoodFET:
     # every client.
     
     def infostring(self):
-        if(os.environ.get("platform")=='arduino'):
+        if(os.environ.get("platform")=='arduino' or os.environ.get("board")=='arduino'):
             return "Arduino";
         else:
             a=self.MONpeek8(0xff0);

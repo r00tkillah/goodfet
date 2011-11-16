@@ -24,6 +24,7 @@ ifneq (,$(findstring $(board),telosb))
 mcu :=msp430x1612
 CFLAGS := -DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
 #CFLAGS+= -Werror
+config := monitor spi ccspi
 endif
 
 
@@ -51,6 +52,7 @@ endif
 ifeq ($(mcu),undef)
 $(error Please define board, as explained in the README)
 endif
+platform := $(board)
 
 AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 
 

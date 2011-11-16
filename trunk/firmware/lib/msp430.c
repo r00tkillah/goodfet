@@ -17,6 +17,7 @@ void led_init()
 {
 	PLEDDIR |= PLEDPIN;
 }
+
 void led_on()
 {
 	PLEDOUT |= PLEDPIN;
@@ -24,7 +25,6 @@ void led_on()
 void led_off()
 {
   PLEDOUT&=~PLEDPIN;
-
 }
 void led_toggle()
 {

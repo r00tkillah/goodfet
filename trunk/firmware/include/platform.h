@@ -6,6 +6,9 @@
   definition file, such as msp430x1612.c or msp430x2618.c.
 */
 
+#ifndef __PLATFORM_H
+#define __PLATFORM_H
+
 
 #include "gfports.h"
 
@@ -21,7 +24,7 @@
 #endif
 
 void msp430_init();
-void led_init();
+void led_init();  //deprecated
 void led_on();
 void led_off();
 void led_toggle();
@@ -61,4 +64,7 @@ void msp430_init_uart1();
 void msp430_init_dco();
 //! Called by monitor() when the DCO is correct and communication established.
 void msp430_init_dco_done();
+
+
+#endif
 

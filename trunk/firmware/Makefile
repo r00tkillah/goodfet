@@ -1,12 +1,6 @@
 -include config.mk
 
-#platform?=goodfet
-#platform?=telosb
-#platform?=z1
-#platform?=nhbadge
-#platform?=nhbadgeb
-#platofrm?=arduino
-#platform?=tilaunchpad
+
 platform?=goodfet
 
 # donb
@@ -377,11 +371,12 @@ installinfo:
 	$(MSP430BSL) -P $(app).hex -p info.txt || true  #MSP430F2xx targets only, inelegant.
 verify:
 	$(MSP430BSL) -P $(app).hex -v $(app).hex
+erase:
+	$(MSP430BSL) -e
+
 endif
 dumpinfo:
 	$(MSP430BSL) --dumpinfo
-erase:
-	$(MSP430BSL) -e
 $(app).c: config builddate appsfiles err
 $(app): $(libs) $(apps)
 

@@ -2,31 +2,16 @@
 
 
 platform?=goodfet
-
-# donb
-ifeq ($(platform),donbfet)
-GCC?=avr-gcc
-mcu?=atmega644p
-CFLAGS=$(DEBUG) -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitialized -fpack-struct -fshort-enums -funsigned-bitfields
-endif
-
+mcu?=RUNCONFIG
 
 #include `uname`.mak
 GOODFET?=/dev/tty.usbser*
 
-#For Arduino,
-#BSL?=avrdude -V -F -c stk500v1 -p m328p -b 57600 -P /dev/tty.usbserial-* -U flash:w:blink.hex
 #For tos-bsl, use --invert-reset --invert-test
 MSP430BSL?=goodfet.bsl --speed=38400
 JTAG=msp430-jtag
 
-#One of these should be defined explicitly.
-#Default removed because of confusion.
 
-#mcu?=msp430x2618
-#mcu?=msp430x1612
-#mcu?=atmega168
-mcu?=RUNCONFIG
 
 
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.
@@ -39,7 +24,7 @@ GCCINC?=
 GCC?=msp430-gcc
 LDFLAGS?=-Wl,-dT ldscripts/$(mcu).x
 
-CCEXTRA?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) $(GCCINC) -I include -I platforms
+CCEXTRA?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) -Dboard=$(board) $(GCCINC) -I include -I platforms
 CC=$(GCC) -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
 
 # Available Applications

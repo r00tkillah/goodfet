@@ -39,6 +39,14 @@ CFLAGS=$(DEBUG) -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitializ
 config := monitor avr spi jscan
 endif
 
+ifneq (,$(findstring $(board),arduino))
+GCC := avr-gcc
+mcu := atmega168
+#BSL := avrdude -V -F -c stk500v1 -p m328p -b 57600 -P /dev/tty.usbserial-* -U flash:w:blink.hex
+LDFLAGS := 
+config := monitor
+endif
+
 ifneq (,$(findstring $(board),tilaunchpad))
 mcu :=msp430x1612
 CFLAGS := -DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG

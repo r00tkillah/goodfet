@@ -56,7 +56,7 @@ void handle(uint8_t const app,
   int i;
   
   //debugstr("GoodFET");
-  led_off();
+  //led_off();
   
   // find the app and call the handle fn
   for(i = 0; i < num_apps; i++){

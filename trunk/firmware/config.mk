@@ -5,6 +5,8 @@ endif
 
 ifneq (,$(findstring $(board),goodfet30 goodfet31))
 mcu := msp430x2274
+# This will link to fit in a '2254, so unneeded packages should be omited.
+CONFIG_ccspi = n
 endif
 
 ifneq (,$(findstring $(board),goodfet40 goodfet41))

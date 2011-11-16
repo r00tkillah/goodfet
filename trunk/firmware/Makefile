@@ -48,7 +48,7 @@ GCCINC?=
 # very end of the command line, so they only have an effect for a
 # default linker script
 GCC?=msp430-gcc
-LDFLAGS?=-Wl,-dT ldscripts/msp430.x
+LDFLAGS?=-Wl,-dT ldscripts/$(mcu).x
 
 CCEXTRA?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) $(GCCINC) -I include -I platforms
 CC=$(GCC) -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)

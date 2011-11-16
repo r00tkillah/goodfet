@@ -3,6 +3,10 @@ ifneq (,$(findstring $(board),goodfet20))
 mcu := msp430x1612
 endif
 
+ifneq (,$(findstring $(board),goodfet30 goodfet31))
+mcu := msp430x2274
+endif
+
 ifneq (,$(findstring $(board),goodfet40 goodfet41))
 mcu := msp430x2618
 endif
@@ -12,7 +16,7 @@ mcu := msp430x5510
 endif
 
 ifeq ($(mcu),undef)
-$(error Please define board)
+$(error Please define board, as explained in the README)
 endif
 
 AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 

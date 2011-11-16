@@ -1,14 +1,4 @@
 #!/bin/sh
 
-cat <<EOF
-Set \$GOODFET to be the port of your GoodFET, such as
-GOODFET=/dev/cu.usbserial-*      #Darwin
-GOODFET=/dev/ttyUSB*             #Linux (Default)
+cat README.txt
 
-The MSP430F161x is targetted by default.  Build for others
-by setting one of the following.
-mcu=msp430x2618                  #BadFET20
-mcu=msp430x1612                  #GoodFET10, GoodFET20
-mcu=msp430x2274                  #GoodFET30
-
-EOF

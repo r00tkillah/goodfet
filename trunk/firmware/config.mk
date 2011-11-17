@@ -62,7 +62,7 @@ $(error Please define board, as explained in the README)
 endif
 platform := $(board)
 
-AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 
+AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2 
 
 CONFIG_sbw         = y
 
@@ -87,6 +87,7 @@ CONFIG_ccspi      ?= y
 CONFIG_glitch     ?= n
 CONFIG_smartcard  ?= n
 CONFIG_ps2        ?= n
+CONFIG_slc2       ?= n
 
 #The CONFIG_foo vars are only interpreted if $(config) is unset.
 ifeq ($(config),undef)

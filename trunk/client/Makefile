@@ -67,6 +67,10 @@ py2exe:
 	sed s/PYTHONCONSOLE/goodfet.spi25c/ <p2e.txt >setup.py
 	python setup.py py2exe
 	mv dist/goodfet.exe dist/gfspi25.exe
+#Silicon Labs C2
+	sed s/PYTHONCONSOLE/goodfet.slc2/ <p2e.txt >setup.py
+	python setup.py py2exe
+	mv dist/goodfet.exe dist/gfslc2.exe
 
 #Goodfet.  This must be last.
 	sed s/PYTHONCONSOLE/goodfet/ <p2e.txt >setup.py

@@ -27,11 +27,13 @@ endif
 
 ifneq (,$(findstring $(board),nhb12b))
 mcu := msp430x2618
+CONFIG_nrf = y
 platform := nhb12b
 endif
 
 ifneq (,$(findstring $(board),nhb12))
 mcu := msp430x2618
+CONFIG_nrf = y
 platform := nhb12
 endif
 
@@ -84,8 +86,6 @@ endif
 #platform := $(board)
 
 AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2 
-
-CONFIG_sbw         = y
 
 # defaults
 CONFIG_monitor    ?= y

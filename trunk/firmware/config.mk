@@ -2,26 +2,37 @@
 ## These are production boards.
 ##################################
 mcu = undef
-ifneq (,$(findstring $(board),goodfet20))
+
+ifneq (,$(findstring $(board),goodfet20 goodfet10 goodfet11))
 mcu := msp430x1612
+platform := goodfet
+endif
+
+ifneq (,$(findstring $(board),goodfet21))
+mcu := msp430x2618
+platform := goodfet
 endif
 
 ifneq (,$(findstring $(board),goodfet30 goodfet31))
 mcu := msp430x2274
+platform := goodfet
 # This will link to fit in a '2254, so unneeded packages should be omited.
 CONFIG_ccspi = n
 endif
 
 ifneq (,$(findstring $(board),goodfet40 goodfet41))
 mcu := msp430x2618
+platform := goodfet
 endif
 
 ifneq (,$(findstring $(board),goodfet50 goodfet51))
 mcu := msp430x5510
+platform := goodfet
 endif
 
 ifneq (,$(findstring $(board),telosb))
 mcu :=msp430x1612
+platform := goodfet
 CFLAGS := -DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
 #CFLAGS+= -Werror
 config := monitor spi ccspi
@@ -60,7 +71,7 @@ endif
 ifeq ($(mcu),undef)
 $(error Please define board, as explained in the README)
 endif
-platform := $(board)
+#platform := $(board)
 
 AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2 
 

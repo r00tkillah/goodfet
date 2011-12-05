@@ -25,6 +25,16 @@ mcu := msp430x2618
 platform := goodfet
 endif
 
+ifneq (,$(findstring $(board),nhb12b))
+mcu := msp430x2618
+platform := nhb12b
+endif
+
+ifneq (,$(findstring $(board),nhb12))
+mcu := msp430x2618
+platform := nhb12
+endif
+
 ifneq (,$(findstring $(board),goodfet50 goodfet51))
 mcu := msp430x5510
 platform := goodfet

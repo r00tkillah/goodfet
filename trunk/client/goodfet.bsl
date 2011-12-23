@@ -1386,7 +1386,9 @@ def main(itest=1):
     bsl.invertRST = 1
     bsl.invertTEST = itest
     
-    if(os.environ.get("board")=='telosb' or os.environ.get("platform")=='telosb'):
+    if(os.environ.get("board")=='telosb' or 
+       os.environ.get("board")=='telosbbt' or
+       os.environ.get("platform")=='telosb'):
         bsl.swapRSTTEST = 1
         bsl.telosI2C = 1
         mayuseBSL = 0

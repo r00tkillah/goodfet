@@ -58,8 +58,12 @@ class GoodFETbtser:
             print "found %d devices" % len(nearby_devices)
             for addr, name in nearby_devices:
                 print "  %s - '%s'" % (addr, name)
+                #TODO switch to wildcards.
                 if name=='FireFly-A6BD':
                     btaddr=addr;
+                if name=='RN42-A94A':
+                    btaddr=addr;
+                
             print "Please set $GOODFET to the address of your device.";
             sys.exit();
         print "Identified GoodFET at %s" % btaddr;

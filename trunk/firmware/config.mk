@@ -42,18 +42,16 @@ mcu := msp430x5510
 platform := goodfet
 endif
 
-ifneq (,$(findstring $(board),telosb))
-mcu :=msp430x1612
-platform := goodfet
-CFLAGS := -Dtelosb
-#CFLAGS+= -Werror
+ifeq ($(board),telosb)
+mcu := msp430x1612
+platform := telosb
 config := monitor spi ccspi
+CFLAGS += -Duseuart1
 endif
 
-ifneq (,$(findstring $(board),telosbbt))
+ifeq ($(board),telosbbt)
 mcu :=msp430x1612
-platform := goodfet
-#CFLAGS+= -Werror
+platform := telosb
 config := monitor spi ccspi
 endif
 

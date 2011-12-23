@@ -32,14 +32,14 @@ void led_toggle();
 
 #include "config.h"
 
-#ifdef telosb
+#ifdef useuart1
 //TelosB uses second serial port.
 #define serial_tx serial1_tx
 #define serial_rx serial1_rx
 #define setbaud setbaud1
 #define msp430_init_uart msp430_init_uart1
 #else
-//Other targets use first.
+//Other targets use first uart.
 #define serial_tx serial0_tx
 #define serial_rx serial0_rx
 #define setbaud setbaud0

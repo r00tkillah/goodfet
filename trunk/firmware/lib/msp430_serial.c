@@ -5,6 +5,8 @@
  * serput{c,s} sergetc functionality as on UNIX
  */
 
+//FIXME This should switch to the standard GoodFET functions for the msp430f161x chips.
+
 #include "platform.h"
 #include <signal.h>
 #include <io.h>

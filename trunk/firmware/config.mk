@@ -111,6 +111,6 @@ CONFIG_ps2        ?= n
 CONFIG_slc2       ?= n
 
 #The CONFIG_foo vars are only interpreted if $(config) is unset.
-#ifeq ($(config),undef)
+ifeq ($(config),undef)
 config += $(foreach app,$(AVAILABLE_APPS),$(if $(findstring $(CONFIG_$(app)),y yes t true Y YES T TRUE),$(app)))
-#endif
+endif

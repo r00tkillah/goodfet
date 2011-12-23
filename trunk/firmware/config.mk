@@ -45,10 +45,19 @@ endif
 ifneq (,$(findstring $(board),telosb))
 mcu :=msp430x1612
 platform := goodfet
-CFLAGS := -DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
+CFLAGS := -Dtelosb
 #CFLAGS+= -Werror
 config := monitor spi ccspi
 endif
+
+ifneq (,$(findstring $(board),telosbbt))
+mcu :=msp430x1612
+platform := goodfet
+#CFLAGS+= -Werror
+config := monitor spi ccspi
+endif
+
+
 
 
 ##################################

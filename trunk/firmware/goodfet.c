@@ -157,7 +157,7 @@ int main(void)
 		{
 			reset_count = 0;
 		}
-
+		
 		verb = serial_rx();
 		len = rxword();
 

@@ -139,7 +139,7 @@ void ccspi_handle_fn( uint8_t const app,
 #ifdef FIFOP
     //Has there been an overflow?
     if((!FIFO)&&FIFOP){
-      debugstr("Clearing overflow");
+      //debugstr("Clearing overflow");
       CLRSS;
       ccspitrans8(0x08); //SFLUSHRX
       SETSS;
@@ -149,7 +149,7 @@ void ccspi_handle_fn( uint8_t const app,
     if(FIFOP&&FIFO){
       //Wait for completion.
       while(SFD);
-
+      
       //Get the packet.
       CLRSS;
       ccspitrans8(CCSPI_RXFIFO | 0x40);
@@ -160,9 +160,11 @@ void ccspi_handle_fn( uint8_t const app,
       SETSS;
 
       //Flush buffer.
-      CLRSS;
-      ccspitrans8(0x08); //SFLUSHRX
-      SETSS;
+      //CLRSS;
+      //ccspitrans8(0x08); //SFLUSHRX
+      //SETSS;
+      
+      
       //Only should transmit length of one more than the reported
       // length of the frame, which holds the length byte:
       txdata(app,verb,cmddata[0]+1);

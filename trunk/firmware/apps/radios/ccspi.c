@@ -115,6 +115,7 @@ void ccspi_handle_fn( uint8_t const app,
 		      uint8_t const verb,
 		      uint32_t const len){
   unsigned long i;
+  u8 j;
 
   //debugstr("Chipcon SPI handler.");
 
@@ -126,9 +127,11 @@ void ccspi_handle_fn( uint8_t const app,
   case WRITE:
   case POKE:
     CLRSS; //Drop !SS to begin transaction.
+    j=cmddata[0];//Backup address.
     for(i=0;i<len;i++)
       cmddata[i]=ccspitrans8(cmddata[i]);
     SETSS;  //Raise !SS to end transaction.
+    cmddata[0]=j&~0x40;//Restore address.
     txdata(app,verb,len);
     break;
   case SETUP:

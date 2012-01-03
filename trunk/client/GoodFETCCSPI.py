@@ -135,13 +135,15 @@ class GoodFETCCSPI(GoodFET):
         fsctrl=0x8000; #self.peek(0x18)&(~0x3FF);
         fsctrl=fsctrl+int(mhz-2048)
         self.poke(0x18,fsctrl);
-        self.strobe(0x02);
+        self.strobe(0x02);//SCAL
+        self.strobe(0x03);//SRXON
     def RF_getfreq(self):
         """Get the frequency in Hz."""
         fsctrl=self.peek(0x18);
         mhz=2048+(fsctrl&0x3ff)
         return mhz*1000000;
     def RF_setchan(self,channel):
+        """Set the ZigBee/802.15.4 channel number."""
         if channel < 11 or channel > 26:
             print "Only 802.15.4 channels 11 to 26 are currently supported.";
         else:

@@ -135,8 +135,8 @@ class GoodFETCCSPI(GoodFET):
         fsctrl=0x8000; #self.peek(0x18)&(~0x3FF);
         fsctrl=fsctrl+int(mhz-2048)
         self.poke(0x18,fsctrl);
-        self.strobe(0x02);//SCAL
-        self.strobe(0x03);//SRXON
+        self.strobe(0x02);#SCAL
+        self.strobe(0x03);#SRXON
     def RF_getfreq(self):
         """Get the frequency in Hz."""
         fsctrl=self.peek(0x18);

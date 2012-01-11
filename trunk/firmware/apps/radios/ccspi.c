@@ -163,9 +163,9 @@ void ccspi_handle_fn( uint8_t const app,
       SETSS;
 
       //Flush buffer.
-      //CLRSS;
-      //ccspitrans8(0x08); //SFLUSHRX
-      //SETSS;
+      CLRSS;
+      ccspitrans8(0x08); //SFLUSHRX
+      SETSS;
       
       
       //Only should transmit length of one more than the reported

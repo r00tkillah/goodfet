@@ -53,7 +53,7 @@
 #define PLEDPIN PB0
 
 //Use P3 instead of P5 for target I/O on chips without P5.
-#ifdef msp430x2274
+#ifdef msp430f2274
 //#warning "No P5, using P3 instead.  Will break 2618 and 1612 support."
 # define P5OUT P3OUT
 # define P5DIR P3DIR

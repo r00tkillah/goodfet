@@ -15,7 +15,7 @@
 #define u32 unsigned long
 
 
-#ifdef msp430x2274
+#ifdef msp430f2274
 //256 bytes, plus overhead
 //For chips with very little RAM.
 #define CMDDATALEN 0x104

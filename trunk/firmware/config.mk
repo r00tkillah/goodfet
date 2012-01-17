@@ -4,53 +4,53 @@
 mcu = undef
 
 ifneq (,$(findstring $(board),goodfet20 goodfet10 goodfet11))
-mcu := msp430x1612
+mcu := msp430f1612
 platform := goodfet
 endif
 
 ifneq (,$(findstring $(board),goodfet21))
-mcu := msp430x2618
+mcu := msp430f2618
 platform := goodfet
 endif
 
 ifneq (,$(findstring $(board),goodfet30 goodfet31))
-mcu := msp430x2274
+mcu := msp430f2274
 platform := goodfet
 # This will link to fit in a '2254, so unneeded packages should be omited.
 CONFIG_ccspi = n
 endif
 
 ifneq (,$(findstring $(board),goodfet40 goodfet41))
-mcu := msp430x2618
+mcu := msp430f2618
 platform := goodfet
 endif
 
 ifneq (,$(findstring $(board),nhb12b))
-mcu := msp430x2618
+mcu := msp430f2618
 CONFIG_nrf = y
 platform := nhb12b
 endif
 
 ifneq (,$(findstring $(board),nhb12))
-mcu := msp430x2618
+mcu := msp430f2618
 CONFIG_nrf = y
 platform := nhb12
 endif
 
 ifneq (,$(findstring $(board),goodfet50 goodfet51))
-mcu := msp430x5510
+mcu := msp430f5510
 platform := goodfet
 endif
 
 ifeq ($(board),telosb)
-mcu := msp430x1612
+mcu := msp430f1611
 platform := telosb
 config := monitor spi ccspi
 CFLAGS += -Duseuart1
 endif
 
 ifeq ($(board),telosbbt)
-mcu :=msp430x1612
+mcu :=msp430f1612
 platform := telosb
 config := monitor spi ccspi
 endif
@@ -78,7 +78,7 @@ config := monitor
 endif
 
 ifneq (,$(findstring $(board),tilaunchpad))
-mcu :=msp430x1612
+mcu :=msp430f1612
 CFLAGS := -DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
 #CFLAGS+= -Werror
 config := monitor chipcon i2c

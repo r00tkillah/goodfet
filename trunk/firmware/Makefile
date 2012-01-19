@@ -12,8 +12,6 @@ MSP430BSL?=goodfet.bsl --speed=38400
 JTAG=msp430-jtag
 
 
-
-
 #N.B., gcc WILL NOT BITCH if this file doesn't exist.
 GCCINC?=
 
@@ -25,7 +23,7 @@ GCC?=msp430-gcc
 LDFLAGS?=-mmcu=$(mcu) #-Wl,-dT ldscripts/$(mcu).x
 
 CCEXTRA?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) -Dboard=$(board) $(GCCINC) -I include -I platforms
-CC=$(GCC) -Wall -Os -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
+CC=$(GCC) -Wall -O1 -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
 
 # Available Applications
 # ======================
@@ -270,7 +268,7 @@ endif
 
 # include adc app
 ifeq ($(filter adc, $(config)), adc)
-	ifeq ($(mcu), msp430x2274)
+	ifeq ($(mcu), msp430f2274)
 		apps+= apps/adc/adc.o
 		hdrs+= adc.h
 	else

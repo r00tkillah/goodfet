@@ -5,13 +5,9 @@
 #include "platform.h"
 
 #include "dco_calib.h"
-#ifdef __MSPGCC__
+
 #include <msp430.h>
-#else
-#include <signal.h>
-#include <io.h>
-#include <iomacros.h>
-#endif
+#include <sys/crtld.h>
 
 
 //! Receive a byte.
@@ -114,27 +110,30 @@ void msp430_init_uart(){
 }
 
 
+//This must be in .noinit.
+__attribute__ ((section (".noinit"))) char dcochoice;
+
 //! Initialization is correct.
 void msp430_init_dco_done(){
-  char *choice=(char *) 0x200; //First word of RAM.
-  choice[0]--;
+  //char *dcochoice=(char *) DCOCHOICEAT; //First word of RAM.
+  dcochoice--;
 }
 
 //! Initialize the MSP430 clock.
 void msp430_init_dco() {
   int i=1000;
-  char *choice=(char *) 0x200; //First word of RAM.
-
+  //char *dcochoice=(char *) DCOCHOICEAT; //First word of RAM.
+  
   #ifdef __MSP430_HAS_PORT8__
   P8SEL = 0; // disable XT2 on P8.7/8
   #endif
-
+  
   //Set P2.6 mode for MSP430F2274
   #ifndef __MSP430_HAS_PORT5__
   P2SEL = 0; //disable XIN on 2274
   #endif
-
-
+  
+  
   #ifdef STATICDCO
   BCSCTL1 = (STATICDCO>>8);
   DCOCTL  = (STATICDCO&0xFF);
@@ -152,10 +151,10 @@ void msp430_init_dco() {
     */
     DCOCTL = 0x00; //clear DCO
 
-    BCSCTL1 =  dco_calibrations[2*choice[0]+1];
-    DCOCTL  =  dco_calibrations[2*choice[0]];
-    choice[0]++;
-    choice[0]%=dco_calibrations_count;
+    BCSCTL1 =  dco_calibrations[2*dcochoice+1];
+    DCOCTL  =  dco_calibrations[2*dcochoice];
+    dcochoice++;
+    dcochoice%=dco_calibrations_count;
   }
   #endif
 

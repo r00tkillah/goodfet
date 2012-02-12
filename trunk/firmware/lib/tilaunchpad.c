@@ -5,7 +5,7 @@
 
 #include "platform.h"
 #include <signal.h>
-#include <io.h>
+#include <msp430.h>
 #include <iomacros.h>
 
 #define MSP430_CPU_SPEED 6000000UL

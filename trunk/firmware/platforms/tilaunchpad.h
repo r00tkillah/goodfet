@@ -46,7 +46,7 @@ P1.0 LED
 #define TI_LAUNCHPAD 1
 
 #include <signal.h>
-#include <io.h>
+#include <msp430.h>
 #include <iomacros.h>
 
 // Here is how I try to remember rs232 signaling

@@ -10,7 +10,7 @@
 
 #if (platform != donbfet)
 # include <signal.h>
-# include <io.h>
+# include <msp430.h>
 # include <iomacros.h>
 #endif
 

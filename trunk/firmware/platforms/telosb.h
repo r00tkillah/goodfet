@@ -9,7 +9,7 @@
 */
 
 #ifdef MSP430
-#include <io.h>
+#include <msp430.h>
 #endif
 
 //LED on P5.4 (LED1 red)

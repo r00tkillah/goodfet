@@ -5,7 +5,7 @@
 
 
 #ifdef MSP430
-#include <io.h>
+#include <msp430.h>
 #endif
 
 

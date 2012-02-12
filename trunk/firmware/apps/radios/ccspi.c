@@ -88,7 +88,7 @@ u8 ccspitrans8(u8 byte){
 
 
 //! Reflexively jam on the present channel.
-void ccspireflexjam(){
+void ccspireflexjam(u16 delay){
   unsigned long i;
   #if defined(FIFOP) && defined(SFD) && defined(FIFO) && defined(PLED2DIR) && defined(PLED2PIN) && defined(PLED2OUT)
     debugstr("Reflex jamming until reset.");
@@ -127,7 +127,7 @@ void ccspireflexjam(){
       CLRSS;
       ccspitrans8(0x04); //STXON
       SETSS;
-      msdelay(100);      //Instead of waiting for pulse on SFD
+      msdelay(100+delay);      //Instead of waiting for pulse on SFD
       //Flush TX buffer.
       CLRSS;
       ccspitrans8(0x09); //SFLUSHTX
@@ -248,7 +248,7 @@ void ccspi_handle_fn( uint8_t const app,
     break;
 
   case CCSPI_REFLEX:
-    ccspireflexjam();
+    ccspireflexjam(0);
     break;
 
   case CCSPI_REFLEX_AUTOACK:

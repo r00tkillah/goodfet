@@ -27,7 +27,7 @@ if(len(sys.argv)==1):
     print "%s sniffdissect" % sys.argv[0];
     
     print "\n%s txtoscount [-i|-r]   TinyOS BlinkToLED" % sys.argv[0];
-    print "%s reflexjam" % sys.argv[0];
+    print "%s reflexjam [channel=11] [delay=0]" % sys.argv[0];
 
     sys.exit();
 
@@ -66,11 +66,14 @@ if(sys.argv[1]=="reflexjam" or sys.argv[1]=="reflexjamack"):
             client.RF_setfreq(freq);
         else:
             client.RF_setchan(freq);
+    duration=0;
+    if len(sys.argv)>3:
+        duration=eval(sys.argv[3]);
     client.CC_RFST_RX();
     print "Reflexively jamming on %i MHz" % (client.RF_getfreq()/10**6);
     #Now we let the firmware take over, watching for packets and jamming them.
     if sys.argv[1]=="reflexjam":
-        client.RF_reflexjam();
+        client.RF_reflexjam(duration);
     elif sys.argv[1]=="reflexjamack":
         client.RF_reflexjam_autoack();
 

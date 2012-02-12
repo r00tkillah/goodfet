@@ -188,9 +188,10 @@ class GoodFETCCSPI(GoodFET):
         #self.strobe(0x09);
         return;
     
-    def RF_reflexjam(self):
+    def RF_reflexjam(self,duration=0):
         """Place the device into reflexive jamming mode."""
-        data = "";
+        data = [duration&0xff,
+                (duration>>8)&0xff];
         self.writecmd(self.CCSPIAPP,0xA0,len(data),data);
         return;
 

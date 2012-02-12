@@ -191,42 +191,50 @@ void ccspi_handle_fn( uint8_t const app,
 
   case CCSPI_REFLEX:
 #if defined(FIFOP) && defined(SFD) && defined(FIFO) && defined(PLED2DIR) && defined(PLED2PIN) && defined(PLED2OUT)
-    txdata(app,verb,1);  //Just sending some response back to client
+    //txdata(app,verb,1);  //Let the client continue its business.
     while(1) {
-        //Wait until a packet is received
-        while(!SFD);
-        //Turn on LED 2 (green) as signal
-	    PLED2DIR |= PLED2PIN;
-	    PLED2OUT &= ~PLED2PIN;
+      //Wait until a packet is received
+      while(!SFD){
+	//Has there been an overflow in the RX buffer?
+        if((!FIFO)&&FIFOP){
+          debugstr("Clearing RX overflow");
+          CLRSS;
+          ccspitrans8(0x08); //SFLUSHRX
+          SETSS;
+        }
+      }
+      //Turn on LED 2 (green) as signal
+      PLED2DIR |= PLED2PIN;
+      PLED2OUT &= ~PLED2PIN;
 
-        //Put radio in TX mode
-        CLRSS;
-        ccspitrans8(0x04);
-        SETSS;
+      //Put radio in TX mode
+      CLRSS;
+      ccspitrans8(0x04);
+      SETSS;
 
-        //Load the jamming packet.
-        //Note: attempts to preload this actually slowed the jam time down from 7 to 9 bytes.
-        CLRSS;
-        ccspitrans8(CCSPI_TXFIFO);
-        char pkt[15] = {0x0f, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef, 0xba, 0xbe, 0xc0};
-        //char pkt[12] = {0x0c, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef};
-        for(i=0;i<pkt[0];i++)
-          ccspitrans8(pkt[i]);
-        SETSS;
+      //Load the jamming packet.
+      //Note: attempts to preload this actually slowed the jam time down from 7 to 9 bytes.
+      CLRSS;
+      ccspitrans8(CCSPI_TXFIFO);
+      char pkt[15] = {0x0f, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef, 0xba, 0xbe, 0xc0};
+      //char pkt[12] = {0x0c, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef};
+      for(i=0;i<pkt[0];i++)
+	ccspitrans8(pkt[i]);
+      SETSS;
 
-        //Transmit the packet.
-        CLRSS;
-        ccspitrans8(0x04); //STXON
-        SETSS;
-        msdelay(100);      //Instead of waiting for pulse on SFD
-        //Flush TX buffer.
-        CLRSS;
-        ccspitrans8(0x09); //SFLUSHTX
-        SETSS;
+      //Transmit the packet.
+      CLRSS;
+      ccspitrans8(0x04); //STXON
+      SETSS;
+      msdelay(100);      //Instead of waiting for pulse on SFD
+      //Flush TX buffer.
+      CLRSS;
+      ccspitrans8(0x09); //SFLUSHTX
+      SETSS;
 
-        //Turn off LED 2 (green) as signal
-	    PLED2DIR |= PLED2PIN;
-	    PLED2OUT |= PLED2PIN;
+      //Turn off LED 2 (green) as signal
+      PLED2DIR |= PLED2PIN;
+      PLED2OUT |= PLED2PIN;
     }
     //TODO the firmware stops staying in this mode after a while, and stops jamming... need to find a fix.
     break;

@@ -19,8 +19,8 @@
 
 //! Handles a Chipcon SPI command.
 void ccspi_handle_fn( uint8_t const app,
-					  uint8_t const verb,
-					  uint32_t const len);
+		      uint8_t const verb,
+		      uint32_t const len);
 
 // define the ccspi app's app_t
 app_t const ccspi_app = {

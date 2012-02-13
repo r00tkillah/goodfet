@@ -101,7 +101,7 @@ void ccspireflexjam(u16 delay){
     while(!SFD){
       //Has there been an overflow in the RX buffer?
       if((!FIFO)&&FIFOP){
-	debugstr("Clearing RX overflow");
+	//debugstr("Clearing RX overflow");
 	CLRSS;
 	ccspitrans8(0x08); //SFLUSHRX
 	SETSS;
@@ -116,35 +116,32 @@ void ccspireflexjam(u16 delay){
     //Wait a few us to send it.
     delay_us(delay);
 
-    //Put radio in TX mode
+    //Transmit the packet.
     CLRSS;
     ccspitrans8(0x04);
     SETSS;
     
     
-    //Load the jamming packet.
+    //Load the next jamming packet.
     //Note: attempts to preload this actually slowed the jam time down from 7 to 9 bytes.
     CLRSS;
     ccspitrans8(CCSPI_TXFIFO);
-    char pkt[15] = {0x0f, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef, 0xba, 0xbe, 0xc0};
+    char pkt[5] = {0x05, 0, 0, 0, 0};
+    //char pkt[15] = {0x0f, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef, 0xba, 0xbe, 0xc0};
     //char pkt[12] = {0x0c, 0x01, 0x08, 0x82, 0xff, 0xff, 0xff, 0xff, 0xde, 0xad, 0xbe, 0xef};
     for(i=0;i<pkt[0];i++)
       ccspitrans8(pkt[i]);
     SETSS;
     
-    
-    //Transmit the packet.
-    CLRSS;
-    ccspitrans8(0x04); //STXON
-    SETSS;
-    
+    //* I think this might be unnecessary.
     //msdelay(100+delay);      //Instead of waiting for pulse on SFD
-    delay_ms(1);
+    //delay_ms(1);
     //Flush TX buffer.
     CLRSS;
     ccspitrans8(0x09); //SFLUSHTX
     SETSS;
-
+    
+    
     //Turn off LED 2 (green) as signal
     PLED2DIR |= PLED2PIN;
     PLED2OUT |= PLED2PIN;

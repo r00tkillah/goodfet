@@ -170,7 +170,7 @@ class GoodFETMSP430(GoodFET):
         0xF427: "MSP430FE42x", #or FW42x, F415, F417
         0xF439: "MSP430FG43x",
         0xf46f: "MSP430FG46xx", #or F471xx
-        
+        0xF413: "MSP430F413", #or maybe others.
         }
     def MSP430test(self):
         """Test MSP430 JTAG.  Requires that a chip be attached."""

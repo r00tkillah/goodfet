@@ -148,7 +148,7 @@ void ccspireflexjam(u16 delay){
   }
 #else
   debugstr("Can't reflexively jam without SFD, FIFO, FIFOP, and P2LEDx definitions - try using telosb platform.");
-  txdata(app,NOK,0);
+  txdata(CCSPI,NOK,0);
 #endif
 }
 

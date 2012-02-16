@@ -4,6 +4,10 @@
 #define _GNU_ASSEMBLER_
 #include "config.h"
 
+//We need to include port definitions,
+//but msp430.h is no long asm clean.
+#include <msp430f1612.h>
+
 //This detects model, chooses appropriate timing.
 jtag430_tclk_flashpulses:
 	mov &0x0ff0, r14

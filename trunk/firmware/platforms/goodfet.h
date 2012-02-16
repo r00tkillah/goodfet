@@ -3,12 +3,16 @@
   \brief Port descriptions for the GoodFET platform.
 */
 
-#ifdef __MSPGCC__
+/* #ifdef __MSPGCC__ */
+/* #include <msp430.h> */
+/* #else */
+/* #include <signal.h> */
+/* #include <msp430.h> */
+/* #include <iomacros.h> */
+/* #endif */
+
+#ifndef _GNU_ASSEMBLER_
 #include <msp430.h>
-#else
-#include <signal.h>
-#include <msp430.h>
-#include <iomacros.h>
 #endif
 
 //LED on P1.0

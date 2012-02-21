@@ -22,13 +22,3 @@ goodfet.bsl --fromweb
 goodfet.monitor test
 
 
-# Now that we've got it working, let's
-# install the compiler for building firmware.
-sudo mkdir -p /opt
-cd /opt
-curl http://goodserv.cis.upenn.edu/mspgcc/mspgcc-osx.tar.bz2 | sudo tar -xjv
-# Add it to the $PATH.
-echo 'export PATH=/opt/mspgcc/bin:$PATH' >~/.profile
-
-# And then build the firmware
-cd ~/svn/goodfet/trunk/firmware

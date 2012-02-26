@@ -89,7 +89,6 @@ def printmspacket(packet,offset=1):
             letter=ord(',');
         elif ct[9]==0x37:
             letter=ord('.');
-        
         else:
             print "Unknown character 0x%02x." % ct[9];
             letter=ord('?');

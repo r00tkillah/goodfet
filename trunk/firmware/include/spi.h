@@ -22,6 +22,8 @@
 # define MOSI BIT1
 # define MISO BIT2
 # define SCK  BIT3
+# define TST  BIT0
+# define RST  BIT6
 #endif
 
 #define SETMOSI SPIOUT|=MOSI

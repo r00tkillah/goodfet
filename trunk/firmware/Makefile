@@ -141,6 +141,14 @@ ifeq ($(filter jtag, $(config)), jtag)
 	endif
 endif
 
+# include MAX342x USB drivers.
+ifeq ($(filter maxusb, $(config)), maxusb)
+	ifneq ($(filter apps/usb/maxusb.o, $(apps)), apps/usb/maxusb.o)
+		apps+= apps/usb/maxusb.o
+		hdrs+= maxusb.h
+	endif
+endif
+
 # include the sbw defs if they specified it
 ifeq ($(filter sbw, $(config)), sbw)
 	# if they only specify sbw, include jtag

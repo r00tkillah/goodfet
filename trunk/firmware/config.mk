@@ -102,6 +102,7 @@ AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagx
 # defaults
 CONFIG_monitor    ?= y
 CONFIG_spi        ?= y
+CONFIG_maxusb     ?= n
 CONFIG_jtag       ?= n
 CONFIG_sbw        ?= n
 CONFIG_jtag430    ?= y

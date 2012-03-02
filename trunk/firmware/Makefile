@@ -12,7 +12,6 @@ MSP430BSL?=goodfet.bsl --speed=38400
 JTAG=msp430-jtag
 
 
-#N.B., gcc WILL NOT BITCH if this file doesn't exist.
 GCCINC?=
 
 #GCC?=avr-gcc
@@ -98,7 +97,7 @@ CC=$(GCC) -Wall -O1 -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
 ifeq ($(platform),tilaunchpad)
 config ?= monitor chipcon i2c
 else
-config ?= monitor chipcon spi jtag430 jtag430x2 avr openocd ccspi
+config ?= monitor chipcon spi jtag430 jtag430x2 avr openocd ccspi maxusb
 endif
 
 

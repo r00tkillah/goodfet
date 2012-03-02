@@ -97,12 +97,12 @@ $(error Please define board, as explained in the README)
 endif
 #platform := $(board)
 
-AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2 
+AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2  maxusb
 
 # defaults
 CONFIG_monitor    ?= y
 CONFIG_spi        ?= y
-CONFIG_maxusb     ?= n
+CONFIG_maxusb     ?= y
 CONFIG_jtag       ?= n
 CONFIG_sbw        ?= n
 CONFIG_jtag430    ?= y

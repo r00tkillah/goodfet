@@ -28,6 +28,7 @@ endif
 ifneq (,$(findstring $(board),goodfet24))
 mcu ?= msp430f2618
 platform := goodfet
+CONFIG_glitch = y
 endif
 
 ifneq (,$(findstring $(board),nhb12b))

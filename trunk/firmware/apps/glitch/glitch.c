@@ -11,6 +11,8 @@
 #include "command.h"
 #include "glitch.h"
 
+#include <msp430.h>
+
 //! Handles a monitor command.
 void glitch_handle_fn( uint8_t const app,
 					   uint8_t const verb,
@@ -41,7 +43,8 @@ void glitchprime(){
   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT
   
   glitchsetup();
-  _EINT();
+  //_EINT();
+  __eint();
   return;
 #endif
 }
@@ -69,7 +72,7 @@ void glitchsetup(){
 }
 
 // Timer A0 interrupt service routine
-interrupt(TIMERA0_VECTOR) Timer_A (void){
+void __attribute__((interrupt(TIMERA0_VECTOR))) Timer_A (void){
   //This oughtn't be necessary, but glitches repeat without it.
   TACTL=0; //disable counter.
   
@@ -148,11 +151,11 @@ void glitch_handle_fn( uint8_t const app,
     break;
   case GLITCHTIME:
     debugstr("Measuring start time.");
-    _DINT();//disable interrupts
+    __dint();//disable interrupts
     TACTL=0; //clear dividers
     TACTL|=TACLR; //clear config
     TACTL|=
-      TASSEL_SMCLK //smclk source
+      TASSEL_2 //smclk source
       | MC_2; //continuous mode.
     
     //perform the function

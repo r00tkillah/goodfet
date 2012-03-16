@@ -8,7 +8,7 @@
 
 */
 
-#ifdef MSP430
+#ifndef _GNU_ASSEMBLER_
 #include <msp430.h>
 #endif
 

@@ -2,6 +2,8 @@
 ## These are production boards.
 ##################################
 
+#Unset by default, but can be explicitly set later.
+config=undef
 
 ifneq (,$(findstring $(board),goodfet20 goodfet10 goodfet11))
 mcu ?= msp430f1612
@@ -118,13 +120,13 @@ CONFIG_avr        ?= y
 CONFIG_pic        ?= n
 CONFIG_adc        ?= n
 CONFIG_nrf        ?= n
-CONFIG_ccspi      ?= y
+CONFIG_ccspi      ?= n
 CONFIG_glitch     ?= n
 CONFIG_smartcard  ?= n
 CONFIG_ps2        ?= n
 CONFIG_slc2       ?= n
 
-#The CONFIG_foo vars are only interpreted if $(config) is unset.
+#The CONFIG_foo vars are only interpreted if $(config) is "unset".
 ifeq ($(config),undef)
 config += $(foreach app,$(AVAILABLE_APPS),$(if $(findstring $(CONFIG_$(app)),y yes t true Y YES T TRUE),$(app)))
 endif

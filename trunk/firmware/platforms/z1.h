@@ -1,10 +1,9 @@
-/*! \file telosb.h
+/*! \file z1.h
   \author Travis Goodspeed
-  \brief Port descriptions for the TelosB platform.
+  \brief Port descriptions for the Zolertia Z1 platform.
   
-  This file defines the Telos B hardware, so that the GoodFET firmware
-  may be loaded onto it.  Adjustments include the !CS line of the CC2420
-  radio, the choice of serial port, and the LEDs.
+  This file defines the Zolertia hardware, so that the GoodFET firmware
+  may be loaded onto it.  Adjustments are identical to the Telos B.
 
 */
 

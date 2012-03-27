@@ -260,7 +260,9 @@ class LowLevel:
     ERR_CMD_FAILED          = "Command failed, is not defined or is not allowed"
     ERR_BSL_SYNC            = "Bootstrap loader synchronization error"
     ERR_FRAME_NUMBER        = "Frame sequence number error."
-
+    
+    z1 = 0;
+    
     def calcChecksum(self, data, length):
         """Calculates a checksum of "data"."""
         checksum = 0
@@ -312,8 +314,10 @@ class LowLevel:
             timeout = self.timeout
         )
         if DEBUG: sys.stderr.write("using serial port %r\n" % self.serialport.portstr)
-        self.SetRSTpin()                        #enable power
-        self.SetTESTpin()                       #enable power
+        
+        if not self.z1:
+            self.SetRSTpin()                        #enable power
+            self.SetTESTpin()                       #enable power
         self.serialport.flushInput()
         self.serialport.flushOutput()
 
@@ -523,6 +527,83 @@ class LowLevel:
         self.telosI2CWriteByte( 0x90 | (addr << 1) )
         self.telosI2CWriteByte( cmdbyte )
         self.telosI2CStop()
+    def writepicROM(self, address, data):
+        ''' Writes data to @address'''
+        for i in range(7,-1,-1):
+            self.picROMclock((address >> i) & 0x01)
+        self.picROMclock(0)
+        recbuf = 0
+        for i in range(7,-1,-1):
+            s = ((data >> i) & 0x01)
+            #print s
+            if i < 1:
+                r = not self.picROMclock(s, True)
+            else:
+                r = not self.picROMclock(s)
+            recbuf = (recbuf << 1) + r
+
+        self.picROMclock(0, True)
+        #k = 1
+        #while not self.serial.getCTS():
+        #    pass 
+        #time.sleep(0.1)
+        return recbuf
+
+    def readpicROM(self, address):
+        ''' reads a byte from @address'''
+        for i in range(7,-1,-1):
+            self.picROMclock((address >> i) & 0x01)
+        self.picROMclock(1)
+        recbuf = 0
+        r = 0
+        for i in range(7,-1,-1):
+            r = self.picROMclock(0)
+            recbuf = (recbuf << 1) + r
+        self.picROMclock(r)
+        #time.sleep(0.1)
+        return recbuf
+        
+    def picROMclock(self, masterout, slow = False):
+        #print "setting masterout to "+str(masterout)
+        self.serialport.setRTS(masterout)
+        self.serialport.setDTR(1)
+        #time.sleep(0.02)
+        self.serialport.setDTR(0)
+        if slow:
+            time.sleep(0.02)
+        return self.serialport.getCTS()
+
+    def picROMfastclock(self, masterout):
+        #print "setting masterout to "+str(masterout)
+        self.serialport.setRTS(masterout)
+        self.serialport.setDTR(1)
+        self.serialport.setDTR(0)
+        time.sleep(0.02)
+        return self.serialport.getCTS()
+
+    def bslResetZ1(self, invokeBSL=0):
+        '''
+        Applies BSL entry sequence on RST/NMI and TEST/VPP pins
+        Parameters:
+            invokeBSL = 1: complete sequence
+            invokeBSL = 0: only RST/NMI pin accessed
+            
+        By now only BSL mode is accessed
+        '''
+        
+        if DEBUG > 1: sys.stderr.write("* bslReset(invokeBSL=%s)\n" % invokeBSL)
+        if invokeBSL:
+            #sys.stderr.write("in Z1 bsl reset...\n")
+            time.sleep(0.1)
+            self.writepicROM(0xFF, 0xFF)
+            time.sleep(0.1)
+            #sys.stderr.write("z1 bsl reset done...\n")
+        else:
+            #sys.stderr.write("in Z1 reset...\n")
+            time.sleep(0.1)
+            self.writepicROM(0xFF, 0xFE)
+            time.sleep(0.1)
+            #sys.stderr.write("z1 reset done...\n")
 
     def telosBReset(self,invokeBSL=0):
         # "BSL entry sequence at dedicated JTAG pins"
@@ -564,6 +645,12 @@ class LowLevel:
         if self.telosI2C:
             self.telosBReset(invokeBSL)
             return
+        
+        if self.z1:
+            if DEBUG > 1: sys.stderr.write("* entering bsl with z1\n")
+            self.bslResetZ1(invokeBSL)
+            return
+    
 
         if DEBUG > 1: sys.stderr.write("* bslReset(invokeBSL=%s)\n" % invokeBSL)
         self.SetRSTpin(1)       #power suply
@@ -574,8 +661,8 @@ class LowLevel:
             self.SetTESTpin(0)
             self.SetRSTpin(0)
             self.SetTESTpin(1)
-
         self.SetRSTpin(0)       #RST  pin: GND
+
         if invokeBSL:
             self.SetTESTpin(1)  #TEST pin: GND
             self.SetTESTpin(0)  #TEST pin: Vcc
@@ -1287,6 +1374,7 @@ General options:
   --goodfet20
   --goodfet30
   --tmote               Identical operation to --telosb
+  --z1                  Bootstrap a Z1
   --no-BSL-download     Do not download replacement BSL (disable automatic)
   --force-BSL-download  Download replacement BSL even if not needed (the one
                         in the device would have the required features)
@@ -1392,6 +1480,10 @@ def main(itest=1):
         bsl.swapRSTTEST = 1
         bsl.telosI2C = 1
         mayuseBSL = 0
+    if(os.environ.get("board")=='z1' or 
+       os.environ.get("board")=='zolertiaz1'):
+        bsl.z1 = 1
+    
     
     if comPort is None and os.environ.get("GOODFET")!=None:
         glob_list = glob.glob(os.environ.get("GOODFET"));
@@ -1431,6 +1523,7 @@ def main(itest=1):
              "tmote","no-BSL-download", "force-BSL-download", "slow",
              "dumpivt", "dumpinfo", "fromweb",
              "goodfet40", "goodfet30", "goodfet20", "goodfet10",
+             "z1",
              "nhbadge", "nhbadgeb", "goodfet"
             ]
         )
@@ -1599,6 +1692,9 @@ def main(itest=1):
             bsl.swapRSTTEST = 1
             bsl.telosI2C = 1
             mayuseBSL = 0
+            speed = 38400
+        elif o in ("--z1", ):
+            bsl.z1 = 1
             speed = 38400
         elif o in ("--no-BSL-download", ):
             mayuseBSL = 0

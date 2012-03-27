@@ -30,8 +30,8 @@ endif
 
 ifeq ($(board),z1)
 mcu ?= msp430f2618
-platform := goodfet
-CONFIG_ccspi = y
+platform := z1
+config = monitor spi ccspi
 MSP430BSL?=goodfet.bsl --z1  --speed=38400
 endif
 

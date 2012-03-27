@@ -200,9 +200,11 @@ class GoodFET:
                 self.serialport.flushOutput()
                 
                 #TelosB reset, prefer software to I2C SPST Switch.
-                if(os.environ.get("platform")=='telosb' or  os.environ.get("board")=='telosb'):
+                if (os.environ.get("platform")=='telosb' or  os.environ.get("board")=='telosb'):
                     #print "TelosB Reset";
                     self.telosBReset();
+                elif (os.environ.get("board")=='zolertiaz1' or  os.environ.get("board")=='z1'):
+                    self.bslResetZ1();
                 else:
                     #Explicitly set RTS and DTR to halt board.
                     self.serialport.setRTS(1);
@@ -278,6 +280,81 @@ class GoodFET:
         self.telosI2CWriteByte( 0x90 | (addr << 1) )
         self.telosI2CWriteByte( cmdbyte )
         self.telosI2CStop()
+    def bslResetZ1(self, invokeBSL=0):
+        '''
+        Applies BSL entry sequence on RST/NMI and TEST/VPP pins
+        Parameters:
+            invokeBSL = 1: complete sequence
+            invokeBSL = 0: only RST/NMI pin accessed
+            
+        By now only BSL mode is accessed
+        '''
+        
+        #if DEBUG > 1: sys.stderr.write("* bslReset(invokeBSL=%s)\n" % invokeBSL)
+        if invokeBSL:
+            #sys.stderr.write("in Z1 bsl reset...\n")
+            time.sleep(0.1)
+            self.writepicROM(0xFF, 0xFF)
+            time.sleep(0.1)
+            #sys.stderr.write("z1 bsl reset done...\n")
+        else:
+            #sys.stderr.write("in Z1 reset...\n")
+            time.sleep(0.1)
+            self.writepicROM(0xFF, 0xFE)
+            time.sleep(0.1)
+            #sys.stderr.write("z1 reset done...\n")
+    def writepicROM(self, address, data):
+        ''' Writes data to @address'''
+        for i in range(7,-1,-1):
+            self.picROMclock((address >> i) & 0x01)
+        self.picROMclock(0)
+        recbuf = 0
+        for i in range(7,-1,-1):
+            s = ((data >> i) & 0x01)
+            #print s
+            if i < 1:
+                r = not self.picROMclock(s, True)
+            else:
+                r = not self.picROMclock(s)
+            recbuf = (recbuf << 1) + r
+
+        self.picROMclock(0, True)
+        #k = 1
+        #while not self.serial.getCTS():
+        #    pass 
+        #time.sleep(0.1)
+        return recbuf
+    def readpicROM(self, address):
+        ''' reads a byte from @address'''
+        for i in range(7,-1,-1):
+            self.picROMclock((address >> i) & 0x01)
+        self.picROMclock(1)
+        recbuf = 0
+        r = 0
+        for i in range(7,-1,-1):
+            r = self.picROMclock(0)
+            recbuf = (recbuf << 1) + r
+        self.picROMclock(r)
+        #time.sleep(0.1)
+        return recbuf
+        
+    def picROMclock(self, masterout, slow = False):
+        #print "setting masterout to "+str(masterout)
+        self.serialport.setRTS(masterout)
+        self.serialport.setDTR(1)
+        #time.sleep(0.02)
+        self.serialport.setDTR(0)
+        if slow:
+            time.sleep(0.02)
+        return self.serialport.getCTS()
+
+    def picROMfastclock(self, masterout):
+        #print "setting masterout to "+str(masterout)
+        self.serialport.setRTS(masterout)
+        self.serialport.setDTR(1)
+        self.serialport.setDTR(0)
+        time.sleep(0.02)
+        return self.serialport.getCTS()
 
     def telosBReset(self,invokeBSL=0):
         # "BSL entry sequence at dedicated JTAG pins"

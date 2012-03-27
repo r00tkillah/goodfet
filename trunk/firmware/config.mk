@@ -28,6 +28,13 @@ platform := goodfet
 CONFIG_nrf = y
 endif
 
+ifneq (,$(findstring $(board),zolertiaz1))
+mcu ?= msp430f2618
+platform := goodfet
+CONFIG_ccspi = y
+MSP430BSL?=z1-bsl --z1  --speed=38400
+endif
+
 ifneq (,$(findstring $(board),goodfet24))
 mcu ?= msp430f2618
 platform := goodfet

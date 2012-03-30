@@ -29,7 +29,7 @@ CONFIG_nrf = y
 endif
 
 ifeq ($(board),z1)
-mcu ?= msp430f2618
+mcu ?= msp430f2617
 platform := z1
 config = monitor spi ccspi
 MSP430BSL?=goodfet.bsl --z1  --speed=38400

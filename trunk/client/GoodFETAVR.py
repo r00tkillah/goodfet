@@ -57,6 +57,7 @@ class GoodFETAVR(GoodFET):
         0x9406: "ATmega168",
         0x9405: "ATmega169",
         0x9502: "ATmega32",
+        0x958a: "ATmega32U2", #TODO add the other U series.
         0x9501: "ATmega323",
         0x9503: "ATmega325",
         0x9504: "ATmega3250",

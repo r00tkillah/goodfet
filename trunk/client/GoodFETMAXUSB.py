@@ -408,7 +408,7 @@ class GoodFETMAXUSBHost(GoodFETMAXUSB):
         time.sleep(0.2);
         self.vbus_on();
         
-        self.hostrun();
+        #self.hostrun();
     def hostrun(self):
         """Run as a minimal host and dump the config tables."""
         while 1:

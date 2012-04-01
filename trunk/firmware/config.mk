@@ -20,6 +20,7 @@ mcu ?= msp430f2274
 platform := goodfet
 # This will link to fit in a '2254, so unneeded packages should be omited.
 CONFIG_ccspi = n
+CONFIG_nrf = y
 endif
 
 ifneq (,$(findstring $(board),goodfet40 goodfet41))

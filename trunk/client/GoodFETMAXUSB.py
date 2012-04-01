@@ -32,6 +32,23 @@ rPINCTL=17
 rREVISION=18
 rFNADDR=19
 rIOPINS=20
+rIOPINS1=20  #Same as rIOPINS
+rIOPINS2=21
+rHIRQ=25
+rHIEN=26
+rMODE=27
+rPERADDR=28
+rHCTL=29
+rHXFR=30
+rHRSL=31
+
+#Host mode registers.
+rRCVFIFO =1
+rSNDFIFO =2
+rRCVBC   =6
+rSNDBC   =7
+rHIRQ    =25
+
 
 # R11 EPIRQ register bits
 bmSUDAVIRQ =0x20
@@ -48,6 +65,8 @@ bmIN2BAVIE  =0x08
 bmOUT1DAVIE =0x04
 bmOUT0DAVIE =0x02
 bmIN0BAVIE  =0x01
+
+
 
 
 # ************************
@@ -90,8 +109,97 @@ SET_IDLE		=0x0A
 SET_PROTOCOL            =0x0B
 INPUT_REPORT            =1
 
+# PINCTL bits
+bmEP3INAK   =0x80
+bmEP2INAK   =0x40
+bmEP1INAK   =0x20
+bmFDUPSPI   =0x10
+bmINTLEVEL  =0x08
+bmPOSINT    =0x04
+bmGPXB      =0x02
+bmGPXA      =0x01
 
+# rUSBCTL bits
+bmHOSCSTEN  =0x80
+bmVBGATE    =0x40
+bmCHIPRES   =0x20
+bmPWRDOWN   =0x10
+bmCONNECT   =0x08
+bmSIGRWU    =0x04
 
+# USBIRQ bits
+bmURESDNIRQ =0x80
+bmVBUSIRQ   =0x40
+bmNOVBUSIRQ =0x20
+bmSUSPIRQ   =0x10
+bmURESIRQ   =0x08
+bmBUSACTIRQ =0x04
+bmRWUDNIRQ  =0x02
+bmOSCOKIRQ  =0x01
+
+# MODE bits
+bmHOST          =0x01
+bmLOWSPEED      =0x02
+bmHUBPRE        =0x04
+bmSOFKAENAB     =0x08
+bmSEPIRQ        =0x10
+bmDELAYISO      =0x20
+bmDMPULLDN      =0x40
+bmDPPULLDN      =0x80
+
+# PERADDR/HCTL bits
+bmBUSRST        =0x01
+bmFRMRST        =0x02
+bmSAMPLEBUS     =0x04
+bmSIGRSM        =0x08
+bmRCVTOG0       =0x10
+bmRCVTOG1       =0x20
+bmSNDTOG0       =0x40
+bmSNDTOG1       =0x80
+
+# rHXFR bits
+# Host XFR token values for writing the HXFR register (R30).
+# OR this bit field with the endpoint number in bits 3:0
+tokSETUP  =0x10  # HS=0, ISO=0, OUTNIN=0, SETUP=1
+tokIN     =0x00  # HS=0, ISO=0, OUTNIN=0, SETUP=0
+tokOUT    =0x20  # HS=0, ISO=0, OUTNIN=1, SETUP=0
+tokINHS   =0x80  # HS=1, ISO=0, OUTNIN=0, SETUP=0
+tokOUTHS  =0xA0  # HS=1, ISO=0, OUTNIN=1, SETUP=0 
+tokISOIN  =0x40  # HS=0, ISO=1, OUTNIN=0, SETUP=0
+tokISOOUT =0x60  # HS=0, ISO=1, OUTNIN=1, SETUP=0
+
+# rRSL bits
+bmRCVTOGRD   =0x10
+bmSNDTOGRD   =0x20
+bmKSTATUS    =0x40
+bmJSTATUS    =0x80
+# Host error result codes, the 4 LSB's in the HRSL register.
+hrSUCCESS   =0x00
+hrBUSY      =0x01
+hrBADREQ    =0x02
+hrUNDEF     =0x03
+hrNAK       =0x04
+hrSTALL     =0x05
+hrTOGERR    =0x06
+hrWRONGPID  =0x07
+hrBADBC     =0x08
+hrPIDERR    =0x09
+hrPKTERR    =0x0A
+hrCRCERR    =0x0B
+hrKERR      =0x0C
+hrJERR      =0x0D
+hrTIMEOUT   =0x0E
+hrBABBLE    =0x0F
+
+# HIRQ bits
+bmBUSEVENTIRQ   =0x01   # indicates BUS Reset Done or BUS Resume     
+bmRWUIRQ        =0x02
+bmRCVDAVIRQ     =0x04
+bmSNDBAVIRQ     =0x08
+bmSUSDNIRQ      =0x10
+bmCONDETIRQ     =0x20
+bmFRAMEIRQ      =0x40
+bmHXFRDNIRQ     =0x80
 
 class GoodFETMAXUSB(GoodFET):
     MAXUSBAPP=0x40;
@@ -142,6 +250,114 @@ class GoodFETMAXUSB(GoodFET):
             ashex=ashex+(" %02x"%ord(foo));
         print "GET %02x==%s" % (reg,ashex);
         return toret;
+    def ctl_write_nd(self,request):
+        """Control Write with no data stage.  Assumes PERADDR is set
+        and the SUDFIFO contains the 8 setup bytes.  Returns with
+        result code = HRSLT[3:0] (HRSL register).  If there is an
+        error, the 4MSBits of the returned value indicate the stage 1
+        or 2."""
+        
+        # 1. Send the SETUP token and 8 setup bytes. 
+        # Should ACK immediately.
+        self.writebytes(rSUDFIFO,request);
+        resultcode=self.send_packet(tokSETUP,0); #SETUP packet to EP0.
+        if resultcode: return resultcode;
+        
+        # 2. No data stage, so the last operation is to send an IN
+        # token to the peripheral as the STATUS (handhsake) stage of
+        # this control transfer.  We should get NAK or the DATA1 PID.
+        # When we get back to the DATA1 PID the 3421 automatically
+        # sends the closing NAK.
+        resultcode=self.send_packet(tokINHS,0); #Function takes care of retries.
+        if resultcode: return resultcode;
+        
+        return 0;
+        
+        
+    def ctl_read(self,request):
+        """Control read transfer, used in Host mode."""
+        resultcode=0;
+        bytes_to_read=request[6]+256*request[7];
+        
+        ##SETUP packet
+        self.writebytes(rSUDFIFO,request);     #Load the FIFO
+        resultcode=self.send_packet(tokSETUP,0); #SETUP packet to EP0
+        if resultcode:
+            print "Failed to get ACK on SETUP request in ctl_read()."
+            return resultcode;
+        
+        self.wreg(rHCTL,bmRCVTOG1);              #FIRST data packet in CTL transfer uses DATA1 toggle.
+        resultcode=self.IN_Transfer(0,bytes_to_read);
+        if resultcode:
+            print "Failed on IN Transfer in ctl_read()";
+            return resultcode;
+        
+        self.IN_nak_count=self.nak_count;
+        
+        #The OUT status stage.
+        resultcode=self.send_packet(tokOUTHS,0);
+        if resultcode:
+            print "Failed on OUT Status stage in ctl_read()";
+            return resultcode;
+        
+        return 0; #Success
+    
+    xfrdata=[]; #Ugly variable used only by a few functions.  FIXME
+    def IN_Transfer(self,endpoint,INbytes):
+        """Does an IN transfer to an endpoint, used for Host mode."""
+        xfrsize=INbytes;
+        xfrlen=0;
+        self.xfrdata=[];
+        
+        while 1:
+            resultcode=self.send_packet(tokIN,endpoint); #IN packet to EP. NAKS taken care of.
+            if resultcode: return resultcode;
+            
+            pktsize=self.rreg(rRCVBC); #Numer of RXed bytes.
+            
+            #Very innefficient, move this to C if performance is needed.
+            for j in range(0,pktsize):
+                self.xfrdata=self.xfrdata+[self.rreg(rRCVFIFO)];
+            self.wreg(rHIRQ,bmRCVDAVIRQ); #Clear IRQ
+            xfrlen=xfrlen+pktsize; #Add byte count to total transfer length.
+            
+            
+            #Packet is complete if:
+            # 1. The device sent a short packet, <maxPacketSize
+            # 2. INbytes have been transfered.
+            if (pktsize<self.maxPacketSize) or (xfrlen>=xfrsize):
+                self.last_transfer_size=xfrlen;
+                ashex="";
+                for foo in self.xfrdata:
+                    ashex=ashex+(" %02x"%foo);
+                print "INPACKET EP%i==%s" % (endpoint,ashex);
+                return resultcode;
+
+    RETRY_LIMIT=3;
+    NAK_LIMIT=300;
+    def send_packet(self,token,endpoint):
+        """Send a packet to an endpoint as the Host, taking care of NAKs.
+        Don't use this for device code."""
+        self.retry_count=0;
+        self.nak_count=0;
+        
+        #Repeat until NAK_LIMIT or RETRY_LIMIT is reached.
+        while self.nak_count<self.NAK_LIMIT and self.retry_count<self.RETRY_LIMIT:
+            self.wreg(rHXFR,(token|endpoint)); #launch the transfer
+            while not (self.rreg(rHIRQ) & bmHXFRDNIRQ):
+                # wait for the completion IRQ
+                pass;
+            self.wreg(rHIRQ,bmHXFRDNIRQ);           #Clear IRQ
+            resultcode = (self.rreg(rHRSL) & 0x0F); # get the result
+            if (resultcode==hrNAK):
+                self.nak_count=self.nak_count+1;
+            elif (resultcode==hrTIMEOUT):
+                self.retry_count=self.retry_count+1;
+            else:
+                #Success!
+                return resultcode;
+        return resultcode;
+            
     def writebytes(self,reg,tosend):
         """Poke some bytes into a register."""
         data="";
@@ -166,6 +382,159 @@ class GoodFETMAXUSB(GoodFET):
     def SETBIT(self,reg,val):
         """Set a bit in a register."""
         self.wreg(reg,self.rreg(reg)|val);
+    def vbus_on(self):
+        """Turn on the target device."""
+        self.wreg(rIOPINS2,(self.rreg(rIOPINS2)|0x08));
+    def vbus_off(self):
+        """Turn off the target device's power."""
+        self.wreg(rIOPINS2,0x00);
+    def reset_host(self):
+        """Resets the chip into host mode."""
+        self.wreg(rUSBCTL,bmCHIPRES); #Stop the oscillator.
+        self.wreg(rUSBCTL,0x00);      #restart it.
+        while self.rreg(rUSBIRQ)&bmOSCOKIRQ:
+            #Hang until the PLL stabilizes.
+            pass;
+
+class GoodFETMAXUSBHost(GoodFETMAXUSB):
+    """This is a class for implemented a minimal USB host.
+    It's intended for fuzzing, rather than for daily use."""
+    def hostinit(self):
+        """Initialize the MAX3421 as a USB Host."""
+        self.usb_connect();
+        self.wreg(rPINCTL,(bmFDUPSPI|bmPOSINT));
+        self.reset_host();
+        self.vbus_off();
+        time.sleep(0.2);
+        self.vbus_on();
+        
+        self.hostrun();
+    def hostrun(self):
+        """Run as a minimal host and dump the config tables."""
+        while 1:
+            self.detect_device();
+            time.sleep(0.2);
+            self.enumerate_device();
+            self.wait_for_disconnect();
+    def detect_device(self):
+        """Waits for a device to be inserted and then returns."""
+        busstate=0;
+        
+        #Activate host mode and turn on 15K pulldown resistors on D+ and D-.
+        self.wreg(rMODE,(bmDPPULLDN|bmDMPULLDN|bmHOST));
+        #Clear connection detect IRQ.
+        self.wreg(rHIRQ,bmCONDETIRQ);
+        
+        print "Waiting for a device connection.";
+        while busstate==0:
+            self.wreg(rHCTL,bmSAMPLEBUS); #Update JSTATUS and KSTATUS bits.
+            busstate=self.rreg(rHRSL) & (bmJSTATUS|bmKSTATUS);
+            
+        if busstate==bmJSTATUS:
+            print "Detected Full-Speed Device.";
+            self.wreg(rMODE,(bmDPPULLDN|bmDMPULLDN|bmHOST|bmSOFKAENAB));
+        elif busstate==bmKSTATUS:
+            print "Detected Low-Speed Device.";
+            self.wreg(rMODE,(bmDPPULLDN|bmDMPULLDN|bmHOST|bmLOWSPEED|bmSOFKAENAB));
+        else:
+            print "Not sure whether this is Full-Speed or Low-Speed.  Please investigate.";
+    def wait_for_disconnect(self):
+        """Wait for a device to be disconnected."""
+        print "Waiting for a device disconnect.";
+        
+        self.wreg(rHIRQ,bmCONDETIRQ); #Clear disconnect IRQ
+        while not (self.rreg(rHIRQ) & bmCONDETIRQ):
+            #Wait for IRQ to change.
+            pass;
+        
+        #Turn off markers.
+        self.wreg(rMODE,bmDPPULLDN|bmDMPULLDN|bmHOST);
+        print "Device disconnected.";
+        self.wreg(rIOPINS2,(self.rreg(rIOPINS2) & ~0x04)); #HL1_OFF
+        self.wreg(rIOPINS1,(self.rreg(rIOPINS1) & ~0x02)); #HL4_OFF
+
+    def enumerate_device(self):
+        """Enumerates a device on the present port."""
+        
+        Set_Address_to_7 = [0x00,0x05,0x07,0x00,0x00,0x00,0x00,0x00];
+        Get_Descriptor_Device = [0x80,0x06,0x00,0x01,0x00,0x00,0x00,0x00]; #len filled in
+        Get_Descriptor_Config = [0x80,0x06,0x00,0x02,0x00,0x00,0x00,0x00];
+        
+        
+        print "Issuing USB bus reset.";
+        self.wreg(rHCTL,bmBUSRST);
+        while self.rreg(rHCTL) & bmBUSRST:
+            #Wait for reset to complete.
+            pass;
+        
+        time.sleep(0.2);
+        
+        #Get the device descriptor.
+        self.wreg(rPERADDR,0); #First request to address 0.
+        self.maxPacketSize=8; #Only safe value for first check.
+        Get_Descriptor_Device[6]=8; # wLengthL
+        Get_Descriptor_Device[7]=0; # wLengthH
+        
+        print "Fetching 8 bytes of Device Descriptor.";
+        self.ctl_read(Get_Descriptor_Device); # Get device descriptor into self.xfrdata;
+        self.maxPacketSize=self.xfrdata[7];
+        print "EP0 maxPacketSize is %02i bytes." % self.maxPacketSize;
+        
+        # Issue another USB bus reset
+        print "Resetting the bus again."
+        self.wreg(rHCTL,bmBUSRST);
+        while self.rreg(rHCTL) & bmBUSRST:
+            #Wait for reset to complete.
+            pass;
+        time.sleep(0.2);
+        
+        # Set_Address to 7 (Note: this request goes to address 0, already set in PERADDR register).
+        print "Setting address to 0x07";
+        HR = self.ctl_write_nd(Set_Address_to_7);   # CTL-Write, no data stage
+        #if(print_error(HR)) return;
+        
+        time.sleep(0.002);           # Device gets 2 msec recovery time
+        self.wreg(rPERADDR,7);       # now all transfers go to addr 7
+        
+        
+        #Get the device descriptor at the assigned address.
+        Get_Descriptor_Device[6]=0x12; #Fill in real descriptor length.
+        print "Fetching Device Descriptor."
+        self.ctl_read(Get_Descriptor_Device); #Result in self.xfrdata;
+        
+        self.descriptor=self.xfrdata;
+        self.VID 	= self.xfrdata[8] + 256*self.xfrdata[9];
+        self.PID 	= self.xfrdata[10]+ 256*self.xfrdata[11];
+        iMFG 	= self.xfrdata[14];
+        iPROD 	= self.xfrdata[15];
+        iSERIAL	= self.xfrdata[16];
+        
+        self.manufacturer=self.getDescriptorString(iMFG);
+        self.product=self.getDescriptorString(iPROD);
+        self.serial=self.getDescriptorString(iSERIAL);
+        
+        self.printstrings();
+        
+    def printstrings(self):
+        print "Vendor  ID is %04x." % self.VID;
+        print "Product ID is %04x." % self.PID;
+        print "Manufacturer: %s" % self.manufacturer;
+        print "Product:      %s" % self.product;
+        print "Serial:       %s" % self.serial;
+        
+    def getDescriptorString(self, index):
+        """Grabs a string from the descriptor string table."""
+        # Get_Descriptor-String template. Code fills in idx at str[2].
+        Get_Descriptor_String = [0x80,0x06,index,0x03,0x00,0x00,0x40,0x00];
+        
+        if index==0: return "MISSING STRING";
+        
+        self.ctl_read(Get_Descriptor_String);
+        toret="";
+        for c in self.xfrdata:
+            if c>0: toret=toret+chr(c);
+        return toret;
+        
 class GoodFETMAXUSBHID(GoodFETMAXUSB):
     """This is an example HID keyboard driver, loosely based on the
     MAX3420 examples."""

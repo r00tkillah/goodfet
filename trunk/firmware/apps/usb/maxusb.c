@@ -51,10 +51,10 @@ void maxusb_setup(){
   //Setup the configuration pins.
   //This might need some delays.
   CLRRST; //Put the chip into RESET.
-  debugstr("MAXUSB is off.");
+  //debugstr("MAXUSB is off.");
   SETSS;  //Deselect the chip, end any existing transation.
   SETRST; //Bring the chip out of RESET.
-  debugstr("MAXUSB is on.");
+  //debugstr("MAXUSB is on.");
 }
 
 

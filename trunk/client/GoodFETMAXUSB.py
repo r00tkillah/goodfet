@@ -318,9 +318,11 @@ class GoodFETMAXUSB(GoodFET):
             #Very innefficient, move this to C if performance is needed.
             for j in range(0,pktsize):
                 self.xfrdata=self.xfrdata+[self.rreg(rRCVFIFO)];
+            xfrsize=self.xfrdata[0];
             self.wreg(rHIRQ,bmRCVDAVIRQ); #Clear IRQ
             xfrlen=xfrlen+pktsize; #Add byte count to total transfer length.
             
+            print "%i / %i" % (xfrlen,xfrsize)
             
             #Packet is complete if:
             # 1. The device sent a short packet, <maxPacketSize
@@ -330,7 +332,7 @@ class GoodFETMAXUSB(GoodFET):
                 ashex="";
                 for foo in self.xfrdata:
                     ashex=ashex+(" %02x"%foo);
-                print "INPACKET EP%i==%s" % (endpoint,ashex);
+                print "INPACKET EP%i==%s (0x%02x bytes remain)" % (endpoint,ashex,xfrsize);
                 return resultcode;
 
     RETRY_LIMIT=3;

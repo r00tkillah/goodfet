@@ -21,9 +21,8 @@
 #include "platform.h"
 
 
-// define the spi app's app_t
+// define for the app list.
 app_t const maxusb_app = {
-
 	/* app number */
 	MAXUSB,
 
@@ -51,10 +50,8 @@ void maxusb_setup(){
   //Setup the configuration pins.
   //This might need some delays.
   CLRRST; //Put the chip into RESET.
-  //debugstr("MAXUSB is off.");
   SETSS;  //Deselect the chip, end any existing transation.
   SETRST; //Bring the chip out of RESET.
-  //debugstr("MAXUSB is on.");
 }
 
 

@@ -529,9 +529,12 @@ class GoodFETMAXUSBHost(GoodFETMAXUSB):
         
         if index==0: return "MISSING STRING";
         
-        self.ctl_read(Get_Descriptor_String);
+        status=self.ctl_read(Get_Descriptor_String);
+        if status: return None;
+        
+        #Since we've got a string
         toret="";
-        for c in self.xfrdata:
+        for c in self.xfrdata[2:len(self.xfrdata)]:
             if c>0: toret=toret+chr(c);
         return toret;
         

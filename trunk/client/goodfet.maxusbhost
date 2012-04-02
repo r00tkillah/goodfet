@@ -34,8 +34,9 @@ if(sys.argv[1]=="allstrings"):
     client.detect_device();
     time.sleep(0.2);
     client.enumerate_device();
-    for foo in range(1,40):
+    for foo in range(1,255):
         print "Grabbing string at index=%i" % foo;
         string=client.getDescriptorString(foo);
-        print "Strings[%i]=%s" % (foo,string);
+        if string!=None:
+            print "Strings[%i]=%s" % (foo,string);
         sys.stdout.flush();

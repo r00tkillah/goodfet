@@ -29,6 +29,12 @@ platform := goodfet
 CONFIG_nrf = y
 endif
 
+ifneq (,$(findstring $(board),facedancer10))
+mcu ?= msp430f2618
+platform := goodfet
+config = monitor spi maxusb
+endif
+
 ifeq ($(board),z1)
 mcu ?= msp430f2617
 platform := z1

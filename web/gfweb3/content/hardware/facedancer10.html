@@ -3,19 +3,23 @@ title: Facedancer10
 ---
 <h1>Facedancer10</h1>
 
-<p>The GoodFET41 is the fourteenth hardware revision of the GoodFET,
-owing its heritage to
+<p>The Facedancer10 is the fourteenth hardware revision of the
+GoodFET, owing its heritage to
 the <a href="/hardware/goodfet41/">GoodFET41</a>.  Unlike the
 general-purpose GoodFET boards, the only purpose of this board is to
 allow USB devices to be written in host-side Python, so that one
 workstation can fuzz-test the USB device drivers of another host.
 </p>
 
+<p><i>N.B.: This device is still being prototyped.  At present, the
+firmware is functional but the hardware has not yet been
+finalized.</i></p>
+
 <h2>CAD Files</h2>
 
 <p>Eagle CAD 5.x files for the design can be found in
-/targets/facedancer10 of the subversion repository, or as
-<a href="/releases/facedancer.zip">facedancer10.zip</a>.</p>
+/branches/facedancer10 of the subversion repository, or as
+<a href="/releases/facedancer10.zip">facedancer10.zip</a>.</p>
 
 <h2>Bill of Materials</h2>
 
@@ -32,11 +36,15 @@ variant of the MSP430F2618, as 80-pin versions are also manufactured.</p>
 <tr><td>1</td><td>LQFP32</td><td><a href="http://www.maxim-ic.com/datasheet/index.mvp/id/4751">MAX3420E</a></td></tr>
 <tr><td>2</td><td>0603</td><td>1.0&mu;F Capacitors</td></tr>
 <tr><td>3</td><td>0603</td><td>0.1&mu;F Decoupling Capacitors</td></tr>
+<tr><td>2</td><td>0603</td><td>18pF Capacitors</td></tr>
+<tr><td>1</td><td>HC49/UP SMD</td><td>12MHz SMD Crystal, 18pF</td></tr>
 <tr><td>3</td><td>0603</td><td>0603 LED</td></tr>
 <tr><td>2</td><td>0603</td><td>330R LED Series Resistors</td></tr>
 <tr><td>2</td><td>0603</td><td>33R USB Series Resistors</td></tr>
 <tr><td>2</td><td></td><td>USB Mini Receptacle UX60-MB-5ST</td></tr>
 </table>
+
+
 
 
 <h2>Construction</h2>
@@ -45,10 +53,21 @@ variant of the MSP430F2618, as 80-pin versions are also manufactured.</p>
 As this is a surface-mount design, be sure that you are familiar with
 such techniques or have assistance before beginning assembly.</p>
 
-<a href="http://www.flickr.com/photos/travisgoodspeed/5338660983/"
-title="GoodFET41 Layout by Travis Goodspeed, on
-Flickr"><img src="http://farm6.static.flickr.com/5162/5338660983_e499391f97.jpg"
-width="500" height="208" alt="GoodFET41 Layout" /></a>
+<p><a href="http://www.flickr.com/photos/travisgoodspeed/7106527681/"
+title="Facedancer10 by Travis Goodspeed, on Flickr">
+<img src="http://farm9.staticflickr.com/8004/7106527681_2c1481fa77.jpg"
+width="500" height="168" alt="Facedancer10"></a></p>
+
+<h2>Usage</h2>
+
+<p>Build and flash firmware with the following commands.  This board
+self-flashes over USB through a masked-ROM bootloader, so there is no
+need for an external programmer.</p>
+
+<pre>export board=facedancer10
+make clean install
+goodfet.maxusbhid
+</pre>
 
 <h2>Errata</h2>
 

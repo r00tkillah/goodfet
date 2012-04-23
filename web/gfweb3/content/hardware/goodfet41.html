@@ -49,6 +49,17 @@ title="GoodFET41 Layout by Travis Goodspeed, on
 Flickr"><img src="http://farm6.static.flickr.com/5162/5338660983_e499391f97.jpg"
 width="500" height="208" alt="GoodFET41 Layout" /></a>
 
+<h2>Usage</h2>
+
+<p>Build and flash firmware with the following commands.  This board
+self-flashes over USB through a masked-ROM bootloader, so there is no
+need for an external programmer.</p>
+
+<pre>export board=goodfet41
+make clean install
+goodfet.maxusbhid
+</pre>
+
 <h2>Errata</h2>
 
 <p>Nothing yet.</p>

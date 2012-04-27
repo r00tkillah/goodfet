@@ -38,7 +38,7 @@ class GoodFETCC(GoodFET):
             self.SRF_loadsymbols();
             self.haveloadedsymbols=True;
         except:
-            print "SmartRF not found for this chip.";
+            print "SmartRF not found for this chip.\nInstall it with wine and symlink to /opt/smartrf7 .";
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
         """Loads the chip XML definitions from SmartRF7."""
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);

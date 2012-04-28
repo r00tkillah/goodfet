@@ -11,7 +11,8 @@ All previous models are still supported by the programming
 software.</p>
 
 <!--jbest: finally added the construction tutorial. March 2010-->
-<p>If you are new to surface mount components, start <a href=/construction/>here</a>.</p>
+<p>If you are new to surface mount components, start with the
+<a href=/construction/>Construction Guide</a>.</p>
 
 <h3>Verification</h3>
 
@@ -28,7 +29,7 @@ ones.</p>
 
 <h3>Software</h3>
 
-<p>Until a first version of the GoodFET software is released, you will
+<p>Until a stable release of the GoodFET software is available, you will
 need to track the project by svn.  This makes upgrading a breeze, but
 you will not be able to install the software by your favorite Linux
 distribution's package manager.</p>
@@ -45,8 +46,15 @@ cd goodfet/trunk/client
 sudo make link
 </pre><br/></p>
 
-<p><i>(TODO: Describe the installation of prerequisite packages
-such as Gnuplot-py, py-sqlite3, py-serial, etc here.)</i></p>
+<p>The client requires a number of prerequisite packages, most notable
+python-sqlite3 and python-serial.  For Windows, you need a 32-bit
+version of Python as python-serial does not work in 64-bit on that
+platform.</p>
+
+<p>You will also need to set an environment variable so that the GoodFET
+client knows which model of GoodFET you have.  For example, if you have
+a GoodFET41, set the variable like so in your /etc/environment script.</p>
+<p><pre>export board=goodfet41</pre></p>
 
 <p>Now that the software is installed, dump the info flash of your
 GoodFET to a text file for safekeeping.  This information is destroyed
@@ -55,7 +63,7 @@ is very handy to have.  If you have the time, it would be nice to
 email a copy of this file to Travis Goodspeed &lt;travis at
 radiantmachines.com&gt;.</p>
 
-<p><pre>goodfet.bsl --dumpinfo &gt;infoflash.txt
+<p><pre>goodfet.bsl --dumpinfo &gt;info.txt
 </pre><br/></p>
 
 <p>Once this backup has been made, you can use goodfet.bsl to install
@@ -75,25 +83,64 @@ development of the project will require you to build it from
 scratch.</p>
 
 <p>The <a href="http://mspgcc.sourceforge.net/">mspgcc</a> compiler is
-preferred for the project.  Binary packages are hard to find, if they
-exist at all.  If you are running Linux, I suggest you follow 
-<a href="http://sourceforge.net/apps/mediawiki/mspgcc/index.php?title=Linux_installation#Building_from_Source">
-the build instructions found in the mspgcc wiki.</a>  The instructions
-have been verified to work on Debian 5 (Lenny) as of January 9, 2011.
-The build instructions will result in the toolchain being installed in
-a folder named /opt/mspgcc.  You must add /opt/mspgcc/bin to your PATH
-environment variable before you can build the firmware.
+preferred for the project.  Binary packages used to be hard to find,
+but nowadays you can just install it from many unix package repositories.
+In Ubuntu or Debian, use the following.</p>
 
-NOTE: There appears to be a newer version of the mspgcc toolchain
-located in the <a href="http://mspgcc4.sourceforge.net/">mspgcc4</a>
-project.  However, after building mspgcc4 from source on my Debian 5
-(Lenny) machine, it was able to build the firmware, but it did not
-successfully run on my GoodFET board.
+<p><pre>pro% apt-cache search msp430
+binutils-msp430 - Binary utilities supporting TI's MSP430 targets
+gcc-msp430 - GNU C compiler (cross compiler for MSP430)
+gdb-msp430 - The GNU debugger for MSP430
+msp430-libc - Standard C library for TI MSP430 development
+msp430mcu - Spec files, headers and linker scripts for TI's MSP430 targets
+mspdebug - debugging tool for MSP430 microcontrollers
+pro% sudo apt-get install binutils-msp430 gcc-msp430 msp430-libc msp430mcu
+</pre></p>
 
-If you are using Windows, the mspgcc sourceforge page has pre-built
-binary installers for Windows.
+<p>Once you have a working compiler and client, you can compile and
+install the firmware like so.  Be sure that your $board variable is set
+as described earlier in the tutorial.</p>
+
+<p><pre>pro% cd ~/svn/goodfet/trunk/firmware 
+pro% board=goodfet41 make clean install</pre></p>
+
+<p>You probably also want to install the info file, as this saves your
+GoodFET from having to autocalibrate its clock.  With info.txt in your
+firmware directory, run the following.</p>
+
+<p><pre>pro% cd ~/svn/goodfet/trunk/firmware 
+pro% board=goodfet41 make installinfo</pre></p>
+
 
 <h3>Use</h3>
 
-<p><i>(TODO: Write this section.)</i></p>
+<p>Once your GoodFET has been flashed with the appropriate firmware
+and an info file, you can grab a list of installed applications from
+the monitor.</p>
 
+<p><pre>pro% board=z1 goodfet.monitor listapps full
+GoodFET with f26f MCU
+Clocked at 0x8f74
+Build Date: 2012-03-27 17:11
+Firmware apps:
+Monitor
+        The monitor app handles basic operations on the MSP430
+        such as peeking and poking memory, calling functions and
+        managing the baud rate.
+
+SPI
+        The SPI app handles the SPI bus protocol, turning
+        your GoodFET into a USB-to-SPI adapter.
+
+CCSPI
+        The CCSPI app adds support for the Chipcon SPI register
+        interface. Unfortunately, there is very little similarity
+        between the CC2420 and the CC2500, to name just two of the
+        myriad of Chipcon SPI radios.  Auto-detection will be a bit
+        difficult, but more to the point, all high level functionality
+        must be moved into the client.
+
+pro% </pre></p>
+
+<p>For more usage information, see the list of Clients on the left.
+Wiring diagrams can be found in the list of Firmware Applications.</p>

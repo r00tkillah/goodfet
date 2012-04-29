@@ -61,10 +61,13 @@ app_t const chipcon_app = {
 
 #define RST  BIT6	// P3.7
 #include <msp430_serial.h>
-#else	// tilaunchpad
-#define RST  BIT0
+
+
+//Normal pins.
+#else  
+#define RST  BIT0       // P5.0
 #define dputs(s)
-#endif	// ! tilaunchad
+#endif
 
 #define MOSI BIT2
 #define MISO BIT2
@@ -75,7 +78,7 @@ app_t const chipcon_app = {
 //Does it ever need to be?
 #define CCSPEED 3
 //#define CCSPEED 3
-//#define CCDELAY(x) delay(x)
+//#define CCDELAY(x) delay_ms(x)
 #define CCDELAY(x)
 
 #define SETMOSI SPIOUT|=MOSI
@@ -94,8 +97,8 @@ app_t const chipcon_app = {
 #  define SETRST  P3OUT|=RST
 #  define CLRRST  P3OUT&=~RST
 #else
-#  define SETRST  P3OUT|=RST
-#  define CLRRST  P3OUT&=~RST
+#  define SETRST  P5OUT|=RST
+#  define CLRRST  P5OUT&=~RST
 #endif
 
 #define CCWRITE SPIDIR|=MOSI
@@ -176,6 +179,7 @@ unsigned char cctrans8(unsigned char byte){
   //Minor alterations.
 
   for (bit = 0; bit < 8; bit++) {
+    CCDELAY(CCSPEED>>2);
     /* write MOSI on trailing edge of previous clock */
     if (byte & 0x80)
       SETMOSI;

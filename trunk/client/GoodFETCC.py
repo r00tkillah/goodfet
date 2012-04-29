@@ -42,7 +42,7 @@ class GoodFETCC(GoodFET):
             if ident==0x0000 or ident==0xFFFF:
                 print "Chip ID is 0x%04x, implying a wiring problem." % ident;
             else:
-                print "SmartRF not found for chip 0x%04x.\nInstall it with wine and symlink to /opt/smartrf7 ." % ident;
+                print "SmartRF not found for chip 0x%04x." % ident;
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
         """Loads the chip XML definitions from SmartRF7."""
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
@@ -751,16 +751,16 @@ class GoodFETCC(GoodFET):
         self.CClockchip();
     
 
-    CCversions={0x0100:"CC1110",
-                0x1100:"CC1111",
-                0x8500:"CC2430",
-                0x8900:"CC2431",
-                0x8100:"CC2510",
-                0x9100:"CC2511",
-                0xA500:"CC2530", #page 57 of SWRU191B
-                0xB500:"CC2531",
-                0x9500:"CC2533",
-                0x8D00:"CC2540",
+    CCversions={0x0100:"cc1110",
+                0x1100:"cc1111",
+                0x8500:"cc2430",
+                0x8900:"cc2431",
+                0x8100:"cc2510",
+                0x9100:"cc2511",
+                0xA500:"cc2530", #page 57 of SWRU191B
+                0xB500:"cc2531",
+                0x9500:"cc2533",
+                0x8D00:"cc2540",
                 0xFF00:"CCmissing"};
     execbuf=None;
     CCexecbuf= {0x0100:0xF000,

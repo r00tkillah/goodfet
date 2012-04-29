@@ -69,7 +69,7 @@ void handle(uint8_t const app,
     }
   }
 
-  // if we get here, then the desired app is not copiled in 
+  // if we get here, then the desired app is not compiled into
   // this firmware
   debugstr("App missing.");
   debughex(app);

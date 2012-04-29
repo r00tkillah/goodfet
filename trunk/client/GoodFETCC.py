@@ -38,7 +38,11 @@ class GoodFETCC(GoodFET):
             self.SRF_loadsymbols();
             self.haveloadedsymbols=True;
         except:
-            print "SmartRF not found for this chip.\nInstall it with wine and symlink to /opt/smartrf7 .";
+            ident=self.CCident();
+            if ident==0x0000 or ident==0xFFFF:
+                print "Chip ID is 0x%04x, implying a wiring problem." % ident;
+            else:
+                print "SmartRF not found for chip 0x%04x.\nInstall it with wine and symlink to /opt/smartrf7 ." % ident;
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
         """Loads the chip XML definitions from SmartRF7."""
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
@@ -701,7 +705,7 @@ class GoodFETCC(GoodFET):
         if(ident1!=ident2 or ident2!=ident3):
             print "Error, repeated ident attempts unequal."
             print "%04x, %04x, %04x" % (ident1, ident2, ident3);
-        
+
         #Single step, printing PC.
         print "Tracing execution at startup."
         for i in range(1,15):

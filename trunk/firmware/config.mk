@@ -29,6 +29,26 @@ platform := goodfet
 CONFIG_nrf = y
 endif
 
+ifneq (,$(findstring $(board),stm32f4discovery))
+GCC     = arm-none-eabi-gcc
+CC      = arm-none-eabi-gcc
+LD      = arm-none-eabi-ld -v
+AR      = arm-none-eabi-ar
+AS      = arm-none-eabi-as
+CP      = arm-none-eabi-objcopy
+OD	= arm-none-eabi-objdump
+CFLAGS  =  -I./ -Iinclude/ -c -fno-common -O1 -g -mcpu=cortex-m3 -mthumb 
+AFLAGS  = -ahls -mapcs-32
+LFLAGS  = -Ttmplink.cmd -nostartfiles
+CPFLAGS = -Obinary
+ODFLAGS	= -S
+LDFLAGS = 
+
+mcu ?= stm32f407
+platform := stm32f4discovery
+config = monitor
+endif
+
 ifneq (,$(findstring $(board),facedancer10))
 mcu ?= msp430f2618
 platform := goodfet
@@ -87,8 +107,10 @@ endif
 
 ifneq (,$(findstring $(board),donbfet))
 GCC := avr-gcc
+CC := avr-gcc
 mcu ?= atmega644p
-CFLAGS=$(DEBUG) -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitialized -fpack-struct -fshort-enums -funsigned-bitfields
+platform = donbfet
+CFLAGS=$(DEBUG) -Iinclude -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitialized -fpack-struct -fshort-enums -funsigned-bitfields
 config := monitor avr spi jscan
 endif
 

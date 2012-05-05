@@ -14,15 +14,12 @@ JTAG=msp430-jtag
 
 GCCINC?=
 
-#GCC?=avr-gcc
-# We use -Wl,-dT because gcc adds the msp430mcu definitions at the
-# very end of the command line, so they only have an effect for a
-# default linker script
-GCC?=msp430-gcc
+#All of these are ?= in order ot allow overriding.
+GCC?=msp430-gcc -mmcu=$(mcu)
 LDFLAGS?=-mmcu=$(mcu) #-Wl,-dT ldscripts/$(mcu).x
 
-CCEXTRA?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) -Dboard=$(board) $(GCCINC) -I include -I platforms
-CC=$(GCC) -Wall -O1 -fno-strict-aliasing -g -mmcu=$(mcu)  $(CCEXTRA)
+CCEXTRA ?=  $(CFLAGS) -D$(mcu) -D$(platform) -Dplatform=$(platform) -Dboard=$(board) $(GCCINC) -I include -I platforms
+CC =$(GCC) -Wall -O1 -fno-strict-aliasing -g   $(CCEXTRA)
 
 # Available Applications
 # ======================

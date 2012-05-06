@@ -46,6 +46,7 @@ uint32_t strlen(const char *s){
 
 //! Initialize the STM32F4xx ports and USB.
 void stm32f4xx_init(){
+  SystemInit();
   ioinit();
   while(1){
     ledon();

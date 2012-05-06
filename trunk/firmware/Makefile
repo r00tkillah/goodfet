@@ -339,8 +339,10 @@ endif
 dumpinfo:
 	$(MSP430BSL) --dumpinfo
 $(app).c: config builddate appsfiles err
-$(app): $(app).c $(libs) $(apps) 
-
+$(app): $(app).o $(libs) $(apps) 
+armlink: $(app).o $(libs) $(apps) $(platformlibs)
+	arm-none-eabi-ld -v -Tlinkers/stm32f407.cmd -nostartfiles -o goodfet.elf $(app).o $(libs) $(apps)
+	arm-none-eabi-objcopy -Obinary goodfet.elf goodfet.bin
 ifeq ($(platform),donbfet)
 $(app).hex: $(app)
 	avr-objcopy -j .text -j .data -O ihex goodfet goodfet.hex
@@ -351,7 +353,7 @@ endif
 m4s: $(app).hex
 	msp430-objdump -D -m msp430 $(app).hex | m4s init
 clean:
-	rm -f $(app) $(app).hex $(libs) $(apps) lib/apps.c include/config.h include/builddate.h include/apps.h
+	rm -f *.o $(app) $(app).hex $(libs) $(apps) lib/apps.c include/config.h include/builddate.h include/apps.h
 docs:
 	doxygen
 pushdocs: docs

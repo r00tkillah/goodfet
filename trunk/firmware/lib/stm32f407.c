@@ -6,6 +6,11 @@
 #include "platform.h"
 
 
+//! Count the length of a string.
+uint32_t strlen(const char *s){
+  return 0;
+}
+
 //! Initialize the STM32F4xx ports and USB.
 void stm32f4xx_init(){
   

@@ -30,6 +30,13 @@ CONFIG_nrf = y
 endif
 
 ifneq (,$(findstring $(board),stm32f4discovery))
+
+periph ?= /opt/STM32F4xx_StdPeriph_Driver
+discovery ?= /opt/STM32F4-Discovery_FW_V1.1.0
+pincs ?=  -I$(periph)/inc -I$(discovery)/Libraries/CMSIS/ST/STM32F4xx/Include -I$(discovery)/Libraries/CMSIS/Include -Dassert_param\(x\)
+psrc ?=  /opt/STM32F4xx_StdPeriph_Driver/src
+
+
 GCC     = arm-none-eabi-gcc
 CC      = arm-none-eabi-gcc
 LD      = arm-none-eabi-ld -v
@@ -37,17 +44,19 @@ AR      = arm-none-eabi-ar
 AS      = arm-none-eabi-as
 CP      = arm-none-eabi-objcopy
 OD	= arm-none-eabi-objdump
-CFLAGS  =  -I./ -Iinclude/ -c -fno-common -O1 -g -mcpu=cortex-m3 -mthumb 
+CFLAGS  = -c -fno-common -O1 -g -mcpu=cortex-m3 -mthumb $(pincs)
 AFLAGS  = -ahls -mapcs-32
 LFLAGS  = -Ttmplink.cmd -nostartfiles
 CPFLAGS = -Obinary
 ODFLAGS	= -S
 LDFLAGS = 
 
+
 mcu ?= stm32f407
 platform := stm32f4discovery
 config = monitor
-extralibs = lib/cortexm3.o
+extralibs = lib/cortexm3.o lib/system_stm32f4xx.o $(psrc)/stm32f4xx_rcc.o $(psrc)/stm32f4xx_gpio.o
+
 endif
 
 ifneq (,$(findstring $(board),facedancer10))

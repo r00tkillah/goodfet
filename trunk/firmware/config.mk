@@ -47,6 +47,7 @@ LDFLAGS =
 mcu ?= stm32f407
 platform := stm32f4discovery
 config = monitor
+extralibs = lib/cortexm3.o
 endif
 
 ifneq (,$(findstring $(board),facedancer10))

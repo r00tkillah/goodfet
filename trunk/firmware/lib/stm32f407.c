@@ -1,9 +1,15 @@
-//! MSP430F2618 clock and I/O definitions
-
-// Included by other 2xx ports, such as the 2274.
+/*! \file stm32f407.h
+  \author Travis Goodspeed
+  \brief STM32F407 port definitions.
+*/
 
 #include "platform.h"
 
+
+//! Initialize the STM32F4xx ports and USB.
+void stm32f4xx_init(){
+  
+}
 
 //! Receive a byte.
 unsigned char serial0_rx(){
@@ -35,16 +41,4 @@ void setbaud1(unsigned char rate){
 
 }
 
-void msp430_init_uart(){
-
-}
-
-
-//! Initialization is correct.
-void msp430_init_dco_done(){
-}
-
-//! Initialize the MSP430 clock.
-void msp430_init_dco() {
-}
 

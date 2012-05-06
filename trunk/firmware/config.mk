@@ -33,7 +33,13 @@ ifneq (,$(findstring $(board),stm32f4discovery))
 
 periph ?= /opt/STM32F4xx_StdPeriph_Driver
 discovery ?= /opt/STM32F4-Discovery_FW_V1.1.0
-pincs ?=  -I$(periph)/inc -I$(discovery)/Libraries/CMSIS/ST/STM32F4xx/Include -I$(discovery)/Libraries/CMSIS/Include -Dassert_param\(x\)=
+
+usbcore ?= $(discovery)/Libraries/STM32_USB_Device_Library/Core
+usbsrc ?= $(usbcore)/src
+otginc ?= /opt/STM32F4-Discovery_FW_V1.1.0/Libraries/STM32_USB_OTG_Driver/inc
+otgsrc ?= /opt/STM32F4-Discovery_FW_V1.1.0/Libraries/STM32_USB_OTG_Driver/src
+
+pincs ?=  -I$(periph)/inc -I$(usbcore)/inc -I$(otginc) -I$(discovery)/Libraries/CMSIS/ST/STM32F4xx/Include  -I$(discovery)/Libraries/CMSIS/Include -Dassert_param\(x\)= -DUSE_USB_OTG_FS -I/opt/STM32F4-Discovery_FW_V1.1.0/Utilities/STM32F4-Discovery
 psrc ?=  /opt/STM32F4xx_StdPeriph_Driver/src
 
 
@@ -55,7 +61,10 @@ LDFLAGS =
 mcu ?= stm32f407
 platform := stm32f4discovery
 config = monitor
-extralibs = lib/cortexm3.o lib/system_stm32f4xx.o $(psrc)/stm32f4xx_rcc.o $(psrc)/stm32f4xx_gpio.o
+
+# This is a pain.
+#usblibs =  $(usbsrc)/usbd_core.o $(usbsrc)/usbd_req.o $(usbsrc)/usbd_ioreq.o $(usbsrc)/usbd_core.o $(otgsrc)/usb_dcd.o $(otgsrc)/usb_dcd_int.o $(otgsrc)/usb_hcd.o $(otgsrc)/usb_hcd_int.o $(otgsrc)/usb_otg.o
+extralibs = lib/cortexm3.o lib/system_stm32f4xx.o $(psrc)/stm32f4xx_rcc.o $(psrc)/stm32f4xx_gpio.o $(psrc)/stm32f4xx_usart.o $(usblibs) 
 
 endif
 

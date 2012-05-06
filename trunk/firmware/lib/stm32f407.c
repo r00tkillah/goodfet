@@ -47,3 +47,21 @@ void setbaud1(unsigned char rate){
 }
 
 
+//Declarations
+void nmi_handler(void);
+void hardfault_handler(void);
+int main(void);
+
+//From min.s
+void Reset_Handler(void);
+
+
+
+// Define the vector table
+unsigned int * myvectors[50] 
+   __attribute__ ((section("vectors")))= {
+   	(unsigned int *)	0x20000800,	        // stack pointer
+   	(unsigned int *) 	Reset_Handler,		        // code entry point
+   	(unsigned int *)	main,		// NMI handler (not really)
+   	(unsigned int *)	main,	// hard fault handler (let's hope not)	
+};

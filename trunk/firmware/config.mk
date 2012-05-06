@@ -33,7 +33,7 @@ ifneq (,$(findstring $(board),stm32f4discovery))
 
 periph ?= /opt/STM32F4xx_StdPeriph_Driver
 discovery ?= /opt/STM32F4-Discovery_FW_V1.1.0
-pincs ?=  -I$(periph)/inc -I$(discovery)/Libraries/CMSIS/ST/STM32F4xx/Include -I$(discovery)/Libraries/CMSIS/Include -Dassert_param\(x\)
+pincs ?=  -I$(periph)/inc -I$(discovery)/Libraries/CMSIS/ST/STM32F4xx/Include -I$(discovery)/Libraries/CMSIS/Include -Dassert_param\(x\)=
 psrc ?=  /opt/STM32F4xx_StdPeriph_Driver/src
 
 

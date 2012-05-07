@@ -136,19 +136,8 @@ void monitor_handle_fn(uint8_t const app,
 		break;
 
 	case MONITOR_DIR:
-	  //P5DIR=cmddata[0];
-	  debugstr("Command deprecated.");
-	  txdata(app,verb,1);
-	  break;
-
 	case MONITOR_IN:
-	  //cmddata[0]=P5IN;
-	  debugstr("Command deprecated.");
-	  txdata(app,verb,1);
-	  break;
-
 	case MONITOR_OUT:
-	  //P5OUT=cmddata[0];
 	  debugstr("Command deprecated.");
 	  txdata(app,verb,1);
 	  break;

@@ -33,6 +33,9 @@ void stmdelay(){
   //__IO uint32_t count= 0x100000; // 5 bits per second, for testing
   while(count--);
 }
+
+/* Used for debugging only.
+
 void ledon(){
   GPIO_SetBits(GPIOD, GPIO_Pin_14);
 }
@@ -45,6 +48,8 @@ void clkon(){
 void clkoff(){
   GPIO_ResetBits(GPIOD, GPIO_Pin_12);
 }
+
+
 
 void spibit(int one){
   if(one) ledon();
@@ -74,7 +79,7 @@ void spibyte(uint8_t word){
   }
 }
 
-
+*/
 
 //! Count the length of a string.
 uint32_t strlen(const char *s){
@@ -123,14 +128,17 @@ void USART1_Configuration(void)
  
   /* USARTx configuration ------------------------------------------------------*/
   /* USARTx configured as follow:
-        - BaudRate = 9600 baud
+        - BaudRate = 115200 baud
         - Word Length = 8 Bits
         - One Stop Bit
         - No parity
         - Hardware flow control disabled (RTS and CTS signals)
         - Receive and transmit enabled
   */
-  USART_InitStructure.USART_BaudRate = 9600;
+  //USART_InitStructure.USART_BaudRate = 9600;
+  //USART_InitStructure.USART_BaudRate = 10000; //Close enough to 9600
+  //USART_InitStructure.USART_BaudRate = 115200;
+  USART_InitStructure.USART_BaudRate = 125200;  //Close enough to 115200
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
   USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -182,23 +190,12 @@ unsigned char serial1_rx(){
 //! Transmit a byte.
 void serial0_tx(unsigned char x){
   
-  spiword(0xdeadbeef);
-  
-  spiword(USART1->SR);
-  
-  while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET) //original
-    spiword(USART1->SR);
+  //Send through USART1 on PB6
+  while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET); //original
   USART_SendData(USART1, (uint16_t) x);
   
-  spiword(USART1->SR);
-  
-  stmdelay();
-  stmdelay();
-  stmdelay();
-  stmdelay();
-  stmdelay();
-  stmdelay();
-  
+  //Spare goes to SPI.
+  //spibyte(x);
 }
 
 //! Transmit a byte on the second UART.

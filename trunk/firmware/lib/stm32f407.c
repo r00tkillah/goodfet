@@ -138,7 +138,10 @@ void USART1_Configuration(void)
   //USART_InitStructure.USART_BaudRate = 9600;
   //USART_InitStructure.USART_BaudRate = 10000; //Close enough to 9600
   //USART_InitStructure.USART_BaudRate = 115200;
-  USART_InitStructure.USART_BaudRate = 125200;  //Close enough to 115200
+  //USART_InitStructure.USART_BaudRate = 125200;  //Close enough to 115200
+  
+  USART_InitStructure.USART_BaudRate = 130000;  //Close enough to 115200
+  
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
   USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -171,8 +174,6 @@ void stm32f4xx_init(){
   usartinit();
   
   while(i--) stmdelay();
-  
-  serial0_tx(0xAA);
   
   return;
 }

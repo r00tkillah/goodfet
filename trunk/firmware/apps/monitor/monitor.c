@@ -64,7 +64,6 @@ void monitor_handle_fn(uint8_t const app,
 
 	case MONITOR_ECHO:
 	  //Echo back the same buffer.
-	  debugstr("About to monitor echo.");
 	  txdata(app,verb,len);
 	  break;
 

@@ -140,7 +140,9 @@ void USART1_Configuration(void)
   //USART_InitStructure.USART_BaudRate = 115200;
   //USART_InitStructure.USART_BaudRate = 125200;  //Close enough to 115200
   
-  USART_InitStructure.USART_BaudRate = 130000;  //Close enough to 115200
+  //135000 is too high
+  //115200 is too low
+  USART_InitStructure.USART_BaudRate = 125000;  //Close enough to 115200
   
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;

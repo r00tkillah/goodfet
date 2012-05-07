@@ -51,8 +51,8 @@ app_t const monitor_app = {
 
 //! Handles a monitor command.
 void monitor_handle_fn(uint8_t const app,
-					   uint8_t const verb,
-					   uint32_t const len)
+		       uint8_t const verb,
+		       uint32_t const len)
 {
 	int i;
 
@@ -63,9 +63,10 @@ void monitor_handle_fn(uint8_t const app,
 		break;
 
 	case MONITOR_ECHO:
-		//Echo back the same buffer.
-		txdata(app,verb,len);
-		break;
+	  //Echo back the same buffer.
+	  debugstr("About to monitor echo.");
+	  txdata(app,verb,len);
+	  break;
 
 	case MONITOR_LIST_APPS:
 		// transmit firmware build date
@@ -87,6 +88,8 @@ void monitor_handle_fn(uint8_t const app,
 		cmddata[0]=memorybyte[cmddataword[0]];
           #else
 		debugstr("Monitor peeks are unsupported on this platform.");
+		debughex(cmddataword[0]);
+		cmddata[0]=0x00;
 	  #endif
 		txdata(app,verb,1);
 		break;
@@ -98,6 +101,8 @@ void monitor_handle_fn(uint8_t const app,
 		cmddata[0] = memorybyte[cmddataword[0]];
           #else
 		debugstr("Monitor pokes are unsupported on this platform.");
+		debughex(cmddataword[0]);
+		cmddata[0]=0x00;
 	  #endif
 		txdata(app,verb,1);
 		break;

@@ -84,6 +84,9 @@ int main(void){
   unsigned long len;
   // MSP reboot count for reset input & reboot function located at 0xFFFE
   volatile unsigned int reset_count = 0;
+  
+  silent=0; //Don't trust globals.
+  
 #if (platform == tilaunchpad)
   int ret=0;
   

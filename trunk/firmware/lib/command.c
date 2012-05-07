@@ -66,7 +66,7 @@ void txhead(unsigned char app,
 void txdata(unsigned char app,
 	    unsigned char verb,
 	    unsigned long len){
-  unsigned int i=0;
+  unsigned long i=0;
   if(silent)
     return;
   txhead(app,verb,len);
@@ -148,7 +148,7 @@ void prep_timer()
   TBCTL = 0x0204; /* Driven by SMCLK; disable Timer B interrupts;
 		     reset timer in case it was previously in use */
   #else
-  #warning "Function unimplemented for this platform."
+  #warning "prep_timer() unimplemented for this platform."
   #endif
 }
 #if (platform != tilaunchpad)

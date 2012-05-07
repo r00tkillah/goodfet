@@ -86,49 +86,50 @@ uint32_t strlen(const char *s){
 
 //! Initialize the USART
 void usartinit(){
-  USART_InitTypeDef USART_InitStructure;
   GPIO_InitTypeDef GPIO_InitStructure;
-  USART_ClockInitTypeDef USART_ClockInitStruct;
+  USART_InitTypeDef USART_InitStructure;
   
-  /* Enable GPIOA and USART1 clock */
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-  
-  //USART1 and USART6, other in APB1
+  /* --------------------------- System Clocks Configuration -----------------*/
+  /* USART1 clock enable */
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
-  
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
-  /* A 9 to USART1_Tx
-   * A10 to USART1_Rx
-   * A11 to USART1_CTS
-   * A12 to USART1_RTS 
-   */
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_USART1);
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_USART1);
  
-  /* Configure USART Tx and Rx as alternate function push-pull */
+  /* GPIOB clock enable */
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+  
+  
+  
+  /*-------------------------- GPIO Configuration ----------------------------*/
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 
+  /* Connect USART pins to AF */
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1); // USART1_TX
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1); // USART1_RX
   
-  
-  USART_StructInit(&USART_InitStructure);
+  /* USARTx configuration ------------------------------------------------------*/
+  /* USARTx configured as follow:
+        - BaudRate = 9600 baud
+        - Word Length = 8 Bits
+        - One Stop Bit
+        - No parity
+        - Hardware flow control disabled (RTS and CTS signals)
+        - Receive and transmit enabled
+  */
   USART_InitStructure.USART_BaudRate = 9600;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
   USART_InitStructure.USART_Parity = USART_Parity_No;
-  USART_InitStructure.USART_HardwareFlowControl =  USART_HardwareFlowControl_None;
-  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+ 
+  //USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+  USART_InitStructure.USART_Mode = USART_Mode_Tx;
+ 
   USART_Init(USART1, &USART_InitStructure);
-  
-  
-  USART_ClockStructInit(&USART_ClockInitStruct);
-  USART_ClockInit(USART1,&USART_ClockInitStruct);
-  
+ 
   USART_Cmd(USART1, ENABLE);
 }
 
@@ -137,18 +138,18 @@ void usartinit(){
 void stm32f4xx_init(){
   int i=20;
   
-  //SystemInit();
-  usartinit();
+  SystemInit();
   ioinit();
+  usartinit();
   
-  ledoff();
-  clkoff();
   
   return;
 }
 
 //! Receive a byte.
 unsigned char serial0_rx(){
+  while(USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == RESET); // Wait for Character
+  return USART_ReceiveData(USART1);
 }
 
 //! Receive a byte.
@@ -157,10 +158,13 @@ unsigned char serial1_rx(){
 
 //! Transmit a byte.
 void serial0_tx(unsigned char x){
-  USART_SendData(USART1, (uint16_t) x);
-  //while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
   
-  spibyte(x);
+  spiword(0xdead);
+  
+  while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+  USART_SendData(USART1, (uint16_t) x);
+  
+  spiword(0xbeef);
 }
 
 //! Transmit a byte on the second UART.

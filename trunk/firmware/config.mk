@@ -64,7 +64,7 @@ config = monitor
 
 # This is a pain.
 #usblibs =  $(usbsrc)/usbd_core.o $(usbsrc)/usbd_req.o $(usbsrc)/usbd_ioreq.o $(usbsrc)/usbd_core.o $(otgsrc)/usb_dcd.o $(otgsrc)/usb_dcd_int.o $(otgsrc)/usb_hcd.o $(otgsrc)/usb_hcd_int.o $(otgsrc)/usb_otg.o
-extralibs = lib/cortexm3.o lib/system_stm32f4xx.o $(psrc)/stm32f4xx_rcc.o $(psrc)/stm32f4xx_gpio.o $(psrc)/stm32f4xx_usart.o $(usblibs) 
+extralibs = lib/cortexm3.o lib/system_stm32f4xx.o lib/stm32f4xx_rcc.o $(psrc)/stm32f4xx_gpio.o $(psrc)/stm32f4xx_usart.o $(usblibs) 
 
 endif
 

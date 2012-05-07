@@ -176,7 +176,8 @@
 
   uint32_t SystemCoreClock = 168000000;
 
-  __I uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+//__I uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+__attribute__ ((section (".text"))) uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 
 /**
   * @}
@@ -208,6 +209,8 @@ static void SetSysClock(void);
   */
 void SystemInit(void)
 {
+  SystemCoreClock = 168000000; //In case global variables aren't initted.
+  
   /* Reset the RCC clock configuration to the default reset state ------------*/
   /* Set HSION bit */
   RCC->CR |= (uint32_t)0x00000001;

@@ -11,9 +11,10 @@ allow USB devices to be written in host-side Python, so that one
 workstation can fuzz-test the USB device drivers of another host.
 </p>
 
-<p><i>N.B.: This device is still being prototyped.  At present, the
-firmware is functional but the hardware has not yet been
-finalized.</i></p>
+<p><a href="http://www.flickr.com/photos/travisgoodspeed/7208636254/"
+title="Facedancer10 Prototype">
+<img src="http://farm8.staticflickr.com/7090/7208636254_c88097aaf8.jpg"
+width="500" height="282" alt="Facedancer10 Prototype"></a></p>
 
 <h2>CAD Files</h2>
 
@@ -29,22 +30,23 @@ or 2419 chip, provided that the $mcu variable is set.</p>
 <p>Resistor values can be approximated.  Be sure to get the 64 pin
 variant of the MSP430F2618, as 80-pin versions are also manufactured.</p>
 
-<table border="1">
+<p><table border="1">
 <tr><td>Quantity</td><td>Package</td><td></td></tr>
 <tr><td>1</td><td>SSOP28</td><td><a href="http://www.ftdichip.com/Products/FT232R.htm">FT232RL</a></td></tr>
 <tr><td>1</td><td>QFP64</td><td><a href="http://focus.ti.com/docs/prod/folders/print/msp430f2618.html">MSP430F2618TPM</a></td></tr>
 <tr><td>1</td><td>LQFP32</td><td><a href="http://www.maxim-ic.com/datasheet/index.mvp/id/4751">MAX3420E</a></td></tr>
 <tr><td>2</td><td>0603</td><td>1.0&mu;F Capacitors</td></tr>
 <tr><td>3</td><td>0603</td><td>0.1&mu;F Decoupling Capacitors</td></tr>
-<tr><td>2</td><td>0603</td><td>18pF Capacitors</td></tr>
-<tr><td>1</td><td>HC49/UP*</td><td>12MHz SMD Crystal, 18pF</td></tr>
+<tr><td>2</td><td>0603</td><td>18pF Capacitors*</td></tr>
+<tr><td>1</td><td>HC49/UP**</td><td>12MHz SMD Crystal, 18pF</td></tr>
 <tr><td>3</td><td>0603</td><td>0603 LED</td></tr>
 <tr><td>2</td><td>0603</td><td>330R LED Series Resistors</td></tr>
 <tr><td>2</td><td>0603</td><td>33R USB Series Resistors</td></tr>
 <tr><td>2</td><td></td><td>USB Mini Receptacle UX60-MB-5ST</td></tr>
-</table>
+</table></p>
 
-<p>* The /US package can work as an alternative.</p>
+<p>* These should match the required capacitance of the crystal.</p>
+<p>** The /US SMD package works as an alternative.</p>
 
 
 
@@ -65,12 +67,15 @@ width="500" height="168" alt="Facedancer10"></a></p>
 self-flashes over USB through a masked-ROM bootloader, so there is no
 need for an external programmer.</p>
 
-<pre>export board=facedancer10
+<p><pre>export board=facedancer10
 make clean install
 goodfet.maxusbhid
-</pre>
+</pre></p>
 
 <h2>Errata</h2>
 
-<p>Nothing yet.  Hopefully it'll stay that way!</p>
+<p>The MAX3420 pad just is just a little bit too small for the legs,
+which will teach Travis not to trust part libraries he finds on the
+Internet.  Shorten the legs by clipping them at their knees or use an
+SMD rework station so heat the solder without an iron.</p>
 

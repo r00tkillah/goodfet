@@ -90,7 +90,7 @@ GD_STRING		=0x03	# Get device descriptor: String
 GD_HID	            	=0x21	# Get descriptor: HID
 GD_REPORT	        =0x22	# Get descriptor: Report
 
-# SETUP packet offsets
+# SETUP packet header offsets
 bmRequestType           =0
 bRequest       	        =1
 wValueL			=2
@@ -203,6 +203,16 @@ bmHXFRDNIRQ     =0x80
 
 class GoodFETMAXUSB(GoodFET):
     MAXUSBAPP=0x40;
+    
+    def setup2str(self,SUD):
+        """Converts the header of a setup packet to a string."""
+        return "bmRequestType=0x%02x, bRequest=0x%02x, wValue=0x%04x, wIndex=0x%04x, wLength=0x%04x" % (
+                ord(SUD[0]), ord(SUD[1]),
+                ord(SUD[2])+(ord(SUD[3])<<8),
+                ord(SUD[4])+(ord(SUD[5])<<8),
+                ord(SUD[6])+(ord(SUD[7])<<8)
+                );
+    
     def MAXUSBsetup(self):
         """Move the FET into the MAXUSB application."""
         self.writecmd(self.MAXUSBAPP,0x10,0,self.data); #MAXUSB/SETUP
@@ -376,10 +386,16 @@ class GoodFETMAXUSB(GoodFET):
         """Connect the USB port."""
         
         #disconnect D+ pullup if host turns off VBUS
-        self.wreg(rUSBCTL,0x48);
-    def STALL_EP0(self):
-        """Stall for an unknown event."""
-        print "Stalling.";
+        self.wreg(rUSBCTL,bmVBGATE|bmCONNECT);
+    def usb_disconnect(self):
+        """Disconnect the USB port."""
+        self.wreg(rUSBCTL,bmVBGATE);
+    def STALL_EP0(self,SUD=None):
+        """Stall for an unknown SETUP event."""
+        if SUD==None:
+            print "Stalling EP0.";
+        else:
+            print "Stalling EPO for %s" % self.setup2str(SUD);
         self.wreg(rEPSTALLS,0x23); #All three stall bits.
     def SETBIT(self,reg,val):
         """Set a bit in a register."""
@@ -545,7 +561,9 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
     MAX3420 examples."""
     def hidinit(self):
         """Initialize a USB HID device."""
+        self.usb_disconnect();
         self.usb_connect();
+        
         self.hidrun();
         
     def hidrun(self):
@@ -560,7 +578,8 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
         SUD=self.readbytes(rSUDFIFO,8);
         
         #Parse the SETUP packet
-        print "Handling a setup packet type 0x%02x" % ord(SUD[bmRequestType]);
+        print "Handling a setup packet of %s" % self.setup2str(SUD);
+        
         setuptype=(ord(SUD[bmRequestType])&0x60);
         if setuptype==0x00:
             self.std_request(SUD);
@@ -570,14 +589,14 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
             self.vendor_request(SUD);
         else:
             print "Unknown request type 0x%02x." % ord(SUD[bmRequestType])
-            self.STALL_EP0();
+            self.STALL_EP0(SUD);
     def class_request(self,SUD):
         """Handle a class request."""
         print "Stalling a class request.";
-        self.STALL_EP0();
+        self.STALL_EP0(SUD);
     def vendor_request(self,SUD):
         print "Stalling a vendor request.";
-        self.STALL_EP0();
+        self.STALL_EP0(SUD);
     def std_request(self,SUD):
         """Handles a standard setup request."""
         setuptype=ord(SUD[bRequest]);
@@ -590,7 +609,7 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
         else:
             print "Stalling Unknown standard setup request type %02x" % setuptype;
             
-            self.STALL_EP0();
+            self.STALL_EP0(SUD);
     
     def get_interface(self,SUD):
         """Handles a setup request for SR_GET_INTERFACE."""
@@ -598,9 +617,9 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
             self.wreg(rEP0FIFO,0);
             self.wregAS(rEP0BC,1);
         else:
-            self.STALL_EP0();
+            self.STALL_EP0(SUD);
     
-    #Device Descriptor
+#Device Descriptor
     DD=[0x12,	       		# bLength = 18d
         0x01,			# bDescriptorType = Device (1)
         0x00,0x01,		# bcdUSB(L/H) USB spec rev (BCD)
@@ -611,7 +630,7 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
 	0x34,0x12,		# bcdDevice--1234
 	1,2,3,			# iManufacturer, iProduct, iSerialNumber
 	1];
-    #Configuration Descriptor
+#Configuration Descriptor
     CD=[0x09,			# bLength
 	0x02,			# bDescriptorType = Config
 	0x22,0x00,		# wTotalLength(L/H) = 34 bytes
@@ -733,7 +752,7 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
             self.wregAS(rEP0BC,sendlen);
         else:
             print "Stalling in send_descriptor() for lack of handler for %02x." % desctype;
-            self.STALL_EP0();
+            self.STALL_EP0(SUD);
     def set_configuration(self,SUD):
         """Set the configuration."""
         bmSUSPIE=0x10;
@@ -762,9 +781,9 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
                 self.wreg(rEP0FIFO,0x00); #Second byte is always zero.
                 self.wregAS(rEP0BC,2);
             else:
-                self.STALL_EP0();
+                self.STALL_EP0(SUD);
         else:
-            self.STALL_EP0();
+            self.STALL_EP0(SUD);
     def service_irqs(self):
         """Handle USB interrupt events."""
         

@@ -375,6 +375,7 @@ class GoodFETMAXUSB(GoodFET):
         data="";
         if type(tosend)==str:
             data=chr((reg<<3)|2)+tosend;
+            print "PUT %02x:=%s" % (reg,tosend)
         else:
             data=[(reg<<3)|2]+tosend;
             ashex="";
@@ -601,7 +602,7 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
         """Handles a standard setup request."""
         setuptype=ord(SUD[bRequest]);
         if setuptype==SR_GET_DESCRIPTOR: self.send_descriptor(SUD);
-        elif setuptype==SR_SET_FEATURE: self.feature(1);
+        #elif setuptype==SR_SET_FEATURE: self.feature(1);
         elif setuptype==SR_SET_CONFIGURATION: self.set_configuration(SUD);
         elif setuptype==SR_GET_STATUS: self.get_status(SUD);
         elif setuptype==SR_SET_ADDRESS: self.rregAS(rFNADDR);

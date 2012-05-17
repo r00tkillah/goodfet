@@ -1,0 +1,376 @@
+#!/usr/bin/env python
+
+#FTDI USB Device Emulator
+#by Travis Goodspeed
+
+import sys;
+import binascii;
+import array;
+
+from GoodFETMAXUSB import *;
+
+class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
+    """This emulates the FTDI USB to Serial chips."""
+    def hidinit(self):
+        """Initialize a USB FTDI device."""
+        self.usb_disconnect();
+	self.usb_connect();
+        self.hidrun();
+        
+    def hidrun(self):
+        """Main loop of the USB FTDI emulator."""
+        print "Starting a FTDI device.  This won't return.";
+        while 1:
+            self.service_irqs();
+    def do_SETUP(self):
+        """Handle USB Enumeration"""
+        
+        #Grab the SETUP packet from the buffer.
+        SUD=self.readbytes(rSUDFIFO,8);
+        
+        #Parse the SETUP packet
+        print "Handling a setup packet of %s" % self.setup2str(SUD);
+        setuptype=(ord(SUD[bmRequestType])&0x60);
+        if setuptype==0x00:
+            self.std_request(SUD);
+        elif setuptype==0x20:
+            self.class_request(SUD);
+        elif setuptype==0x40:
+            self.vendor_request(SUD);
+        else:
+            print "Unknown request type 0x%02x." % ord(SUD[bmRequestType])
+            self.STALL_EP0(SUD);
+    def ftdi_request(self,SUD):
+        """Handle an FTDI request."""
+        
+    def class_request(self,SUD):
+        """Handle a class request."""
+        print "Stalling a class request.";
+        self.STALL_EP0(SUD);
+    def vendor_request(self,SUD):
+        """Handle an FTDI vendor request."""
+        request=ord(SUD[bRequest]);
+        
+        if request==0:   #reset
+            pass
+        elif request==1: #modem_ctrl
+            valuel=ord(SUD[wValueL])
+            valueh=ord(SUD[wValueH]);
+            dtr=valuel&1;
+            rts=(valuel&2)>>1;
+            dtren=valueh&1;
+            rtsen=(valueh&2)>>1;
+            
+            if dtren: print "DTR is enabled, value %i" % dtr;
+            if rtsen: print "RTS is enabled, value %i" % rts;
+            
+            pass;
+        elif request==2: #set_flow_ctrl
+            indexh=ord(SUD[wIndexH]);
+            indexl=ord(SUD[wIndexL]);
+            if indexh==0:
+                print "SET_FLOW_CTRL to no handshaking.";
+            if indexl&1:
+                print "SET_FLOW_CTRL for RTS/CTS handshaking.";
+            if indexl&2:
+                print "SET_FLOW_CTRL for DTR/DSR handshaking.";
+            if indexl&4:
+                print "SET_FLOW_CTRL for XON/XOFF handshaking.";
+            
+            pass;
+        elif request==3: #set_baud_rate
+            print "Baud rate set to %i." % ord(SUD[wValueL]);
+            pass;
+        elif request==4: #set_data
+            pass;
+        elif request==5: #get_status
+            print "I don't know how to send the status.";
+            pass; #FIXME
+        elif request==6: #set_event_char
+            pass;
+        elif request==7: #set_error_char
+            pass;
+        elif request==9: #set_latency_timer
+            print "Expected to set latency timer to 0x%02x." % ord(SUD[wValueL]);
+            pass;
+        elif request==0x0a: #get_latency_timer
+            print "Bullshitting a value for the latency timer."
+            #Send some sort of reply.
+            self.wreg(rEP0FIFO,0x01);
+            self.wreg(rEP0FIFO,0x00);
+            self.wregAS(rEP0BC,2);
+            #Don't send reply twice.
+            return;
+            
+        
+        print "Blindly accepting vendor request";
+        #self.wreg(rEP0FIFO,0);
+        self.wregAS(rEP0BC,0);
+    def std_request(self,SUD):
+        """Handles a standard setup request."""
+        setuptype=ord(SUD[bRequest]);
+        if setuptype==SR_GET_DESCRIPTOR: self.send_descriptor(SUD);
+        elif setuptype==SR_SET_FEATURE: self.feature(1);
+        elif setuptype==SR_SET_CONFIGURATION: self.set_configuration(SUD);
+        elif setuptype==SR_GET_STATUS: self.get_status(SUD);
+        elif setuptype==SR_SET_ADDRESS: self.rregAS(rFNADDR);
+        elif setuptype==SR_GET_INTERFACE: self.get_interface(SUD);
+        else:
+            print "Stalling Unknown standard setup request type %02x" % setuptype;
+            self.STALL_EP0(SUD);
+    
+    def get_interface(self,SUD):
+        """Handles a setup request for SR_GET_INTERFACE."""
+        if ord(SUD[wIndexL]==0):
+            self.wreg(rEP0FIFO,0);
+            self.wregAS(rEP0BC,1);
+        else:
+            self.STALL_EP0(SUD);
+    
+
+#0403:6001
+
+#Device Descriptor
+    DD=[0x12,	       		# bLength = 18d
+        0x01,			# bDescriptorType = Device (1)
+        0x00,0x01,		# bcdUSB(L/H) USB spec rev (BCD)
+	0x00,0x00,0x00, 	# bDeviceClass, bDeviceSubClass, bDeviceProtocol
+	0x40,			# bMaxPacketSize0 EP0 is 64 bytes
+	0x03,0x04,		# idVendor(L/H)--FTDI is 0403
+	0x01,0x60,		# idProduct(L/H)--6001
+	0x34,0x12,		# bcdDevice--1234
+	1,2,3,			# iManufacturer, iProduct, iSerialNumber
+	1];
+#Configuration Descriptor
+    CD=[0x09,			# bLength
+	0x02,			# bDescriptorType = Config
+	0x20,0x00,		# wTotalLength(L/H) = 34 bytes (0x22)
+	0x01,			# bNumInterfaces
+	0x01,			# bConfigValue
+	0x00,			# iConfiguration
+	0xE0,			# bmAttributes. b7=1 b6=self-powered b5=RWU supported
+	0x01,			# MaxPower is 2 ma
+# INTERFACE Descriptor
+	0x09,			# length = 9
+	0x04,			# type = IF
+	0x00,			# IF #0
+	0x00,			# bAlternate Setting
+	0x02,			# bNum Endpoints
+	0xFF,			# bInterfaceClass = FF=vendor
+	0xFF,0xFF,		# bInterfaceSubClass, bInterfaceProtocol
+	0x02,			# iInterface
+# HID Descriptor--It's at CD[18]
+	# 0x09,			# bLength
+	# 0x21,			# bDescriptorType = HID
+	# 0x10,0x01,		# bcdHID(L/H) Rev 1.1
+	# 0x00,			# bCountryCode (none)
+	# 0x01,			# bNumDescriptors (one report descriptor)
+	# 0x22,			# bDescriptorType	(report)
+	# 43,0,                   # CD[25]: wDescriptorLength(L/H) (report descriptor size is 43 bytes)
+# Endpoint Descriptor
+	0x07,			# bLength
+	0x05,			# bDescriptorType (Endpoint)
+	0x83,			# bEndpointAddress (EP3-IN)		
+	0x02,			# bmAttributes	(interrupt)
+	64,0,                   # wMaxPacketSize (64)
+	10,
+# Endpoint Descriptor
+	0x07,			# bLength
+	0x05,			# bDescriptorType (Endpoint)
+	0x01,			# bEndpointAddress (EP1-OUT)		
+	0x02,			# bmAttributes	(interrupt)
+	64,0,                   # wMaxPacketSize (64)
+	10];
+    strDesc=[
+# STRING descriptor 0--Language string
+"\x04\x03\x09\x04",
+# [
+#         0x04,			# bLength
+# 	0x03,			# bDescriptorType = string
+# 	0x09,0x04		# wLANGID(L/H) = English-United Sates
+# ],
+# STRING descriptor 1--Manufacturer ID
+"\x0c\x03M\x00a\x00x\x00i\x00m\x00",
+# [
+#         12,			# bLength
+# 	0x03,			# bDescriptorType = string
+# 	'M',0,'a',0,'x',0,'i',0,'m',0 # text in Unicode
+# ], 
+# STRING descriptor 2 - Product ID
+"\x18\x03M\x00A\x00X\x003\x004\x002\x000\x00E\x00 \x00E\x00n\x00u\x00m\x00 \x00C\x00o\x00d\x00e\x00",
+# [	24,			# bLength
+# 	0x03,			# bDescriptorType = string
+# 	'M',0,'A',0,'X',0,'3',0,'4',0,'2',0,'0',0,'E',0,' ',0,
+#         'E',0,'n',0,'u',0,'m',0,' ',0,'C',0,'o',0,'d',0,'e',0
+# ],
+
+
+# STRING descriptor 3 - Serial Number ID
+"\x14\x03S\x00/\x00N\x00 \x003\x004\x002\x000\x00E\x00"
+# [       20,			# bLength
+# 	0x03,			# bDescriptorType = string
+# 	'S',0,				
+# 	'/',0,
+# 	'N',0,
+# 	' ',0,
+# 	'3',0,
+# 	'4',0,
+# 	'2',0,
+# 	'0',0,
+#         'E',0,
+# ]
+];
+    RepD=[
+        0x05,0x01,		# Usage Page (generic desktop)
+	0x09,0x06,		# Usage (keyboard)
+	0xA1,0x01,		# Collection
+	0x05,0x07,		#   Usage Page 7 (keyboard/keypad)
+	0x19,0xE0,		#   Usage Minimum = 224
+	0x29,0xE7,		#   Usage Maximum = 231
+	0x15,0x00,		#   Logical Minimum = 0
+	0x25,0x01,		#   Logical Maximum = 1
+	0x75,0x01,		#   Report Size = 1
+	0x95,0x08,		#   Report Count = 8
+	0x81,0x02,		#  Input(Data,Variable,Absolute)
+	0x95,0x01,		#   Report Count = 1
+	0x75,0x08,		#   Report Size = 8
+	0x81,0x01,		#  Input(Constant)
+	0x19,0x00,		#   Usage Minimum = 0
+	0x29,0x65,		#   Usage Maximum = 101
+	0x15,0x00,		#   Logical Minimum = 0,
+	0x25,0x65,		#   Logical Maximum = 101
+	0x75,0x08,		#   Report Size = 8
+	0x95,0x01,		#   Report Count = 1
+	0x81,0x00,		#  Input(Data,Variable,Array)
+	0xC0]
+    def send_descriptor(self,SUD):
+        """Send the USB descriptors based upon the setup data."""
+        desclen=0;
+        reqlen=ord(SUD[wLengthL])+256*ord(SUD[wLengthH]); #16-bit length
+        desctype=ord(SUD[wValueH]);
+        
+        if desctype==GD_DEVICE:
+            desclen=self.DD[0];
+            ddata=self.DD;
+        elif desctype==GD_CONFIGURATION:
+            desclen=self.CD[2];
+            ddata=self.CD;
+        elif desctype==GD_STRING:
+            desclen=self.strDesc[ord(SUD[wValueL])][0];
+            ddata=self.strDesc[ord(SUD[wValueL])];
+        elif desctype==GD_REPORT:
+            desclen=self.CD[25];
+            ddata=self.RepD;
+        
+        #TODO Configuration, String, Hid, and Report
+        
+        if desclen>0:
+            sendlen=min(reqlen,desclen);
+            self.writebytes(rEP0FIFO,ddata);
+            self.wregAS(rEP0BC,sendlen);
+        else:
+            print "Stalling in send_descriptor() for lack of handler for %02x." % desctype;
+            self.STALL_EP0(SUD);
+    def set_configuration(self,SUD):
+        """Set the configuration."""
+        bmSUSPIE=0x10;
+        configval=ord(SUD[wValueL]);
+        if(configval>0):
+            self.SETBIT(rUSBIEN,bmSUSPIE);
+        self.rregAS(rFNADDR);
+    def get_status(self,SUD):
+        """Get the USB Setup Status."""
+        testbyte=ord(SUD[bmRequestType])
+        
+        #Toward Device
+        if testbyte==0x80:
+            self.wreg(rEP0FIFO,0x03); #Enable RWU and self-powered
+            self.wreg(rEP0FIFO,0x00); #Second byte is always zero.
+            self.wregAS(rEP0BC,2);    #Load byte count, arm transfer, and ack CTL.
+        #Toward Interface
+        elif testbyte==0x81:
+            self.wreg(rEP0FIFO,0x00);
+            self.wreg(rEP0FIFO,0x00); #Second byte is always zero.
+            self.wregAS(rEP0BC,2);
+        #Toward Endpoint
+        elif testbyte==0x82:
+            if(ord(SUD[wIndexL])==0x83):
+                self.wreg(rEP0FIFO,0x01); #Stall EP3
+                self.wreg(rEP0FIFO,0x00); #Second byte is always zero.
+                self.wregAS(rEP0BC,2);
+            else:
+                self.STALL_EP0(SUD);
+        else:
+            self.STALL_EP0(SUD);
+    def service_irqs(self):
+        """Handle USB interrupt events."""
+        
+        epirq=self.rreg(rEPIRQ);
+        usbirq=self.rreg(rUSBIRQ);
+        
+        #Are we being asked for setup data?
+        if(epirq&bmSUDAVIRQ): #Setup Data Requested
+            self.wreg(rEPIRQ,bmSUDAVIRQ); #Clear the bit
+            self.do_SETUP();
+        elif(epirq&bmIN3BAVIRQ): #EN3-IN packet
+            self.do_IN3();
+        elif(epirq&bmOUT1DAVIRQ): #OUT1-OUT packet
+            self.wreg(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit
+            self.do_OUT1();
+        
+    
+    
+    typephase=0;
+    typestring="                      GoodFET emulating FTDI!";
+    typepos=0;
+    
+    def asc2hid(self,ascii):
+        """Translate ASCII to an USB keycode."""
+        a=ascii;
+        if a>='a' and a<='z':
+            return ord(a)-ord('a')+4;
+        elif a>='A' and a<='Z':
+            return ord(a)-ord('A')+4;
+        elif a==' ':
+            return 0x2C; #space
+        else:
+            return 0; #key-up
+    def type_IN3(self):
+        """Type next letter in buffer."""
+        if self.typepos>=len(self.typestring):
+            self.typeletter(0);
+        elif self.typephase==0:
+            self.typephase=1;
+            self.typeletter(0);
+        else:
+            typephase=0;
+            self.typeletter(self.typestring[self.typepos]);
+            self.typepos=self.typepos+1;
+        return;
+    def typeletter(self,key):
+        """Type a letter on IN3.  Zero for keyup."""
+        #if type(key)==str: key=ord(key);
+        #Send a key-up.
+        self.wreg(rEP3INFIFO,0);
+        self.wreg(rEP3INFIFO,0);
+        self.wreg(rEP3INFIFO,self.asc2hid(key));
+        self.wreg(rEP3INBC,3);
+    def do_IN3(self):
+        """Handle IN3 input event."""
+        #Don't bother clearing interrupt flag, that's done by sending the reply.
+        #print "Got an input event, sending back some garbage that might be right.";
+        self.type_IN3();
+    def do_OUT1(self):
+        """Handle an OUT1 output event."""
+        print "Got an output event, printing the result.";
+        frame=self.readbytes(rEP1OUTFIFO,64);
+        #print "Got %s" % frame;
+
+#Initialize FET and set baud rate
+client=GoodFETMAXUSBFTDI();
+client.serInit()
+
+
+client.MAXUSBsetup();
+client.hidinit();
+

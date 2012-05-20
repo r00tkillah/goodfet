@@ -15,16 +15,22 @@ all:
 	rm -rf $(gfpath)
 	svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet/trunk $(gfpath)
 	#cd $(testpath) && make nodiff 
-	cd $(fwpath) && mcu=msp430x1612 make clean all >/dev/null 2>>/dev/null
-	cp $(fwpath)/goodfet.hex dist/msp430x1612.hex >/dev/null
-	cd $(fwpath) && mcu=msp430x2618 make clean all >/dev/null 2>>/dev/null
-	cp $(fwpath)/goodfet.hex dist/msp430x2618.hex >/dev/null
-	cd $(fwpath) && mcu=msp430x2274 make clean all >/dev/null 2>>/dev/null
-	cp $(fwpath)/goodfet.hex dist/msp430x2274.hex >/dev/null
+	cd $(fwpath) && board=goodfet11 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/goodfet11.hex >/dev/null
+	cd $(fwpath) && board=goodfet41 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/goodfet41.hex >/dev/null
+	cd $(fwpath) && board=goodfet31 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/goodfet31.hex >/dev/null
+	cd $(fwpath) && board=telosb make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/telosb.hex >/dev/null
+	cd $(fwpath) && board=z1 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/z1.hex >/dev/null
+	cd $(fwpath) && board=facedancer10 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/facedancer10.hex >/dev/null
 	cp $(clientpath)/*.py $(clientpath)/goodfet.* dist
 	cp distreadme.txt dist/README.txt
 	#cp $(hwpath)/*.sch $(hwpath)/*.brd dist/
-	cd dist && zip goodfet.zip *
+	cd dist && zip `date +goodfet-%Y-%m-%d.zip` *
 clean:
 	rm -rf *.hex *~ $(gfpath)
 upload: all

@@ -6,6 +6,7 @@
 import sys;
 import binascii;
 import array;
+import time;
 
 from GoodFETMAXUSB import *;
 
@@ -14,10 +15,11 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
     def hidinit(self):
         """Initialize a USB FTDI device."""
         self.usb_disconnect();
+        time.sleep(1);
 	self.usb_connect();
-        self.hidrun();
+        self.ftdirun();
         
-    def hidrun(self):
+    def ftdirun(self):
         """Main loop of the USB FTDI emulator."""
         print "Starting a FTDI device.  This won't return.";
         while 1:
@@ -190,35 +192,11 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
 # 	0x09,0x04		# wLANGID(L/H) = English-United Sates
 # ],
 # STRING descriptor 1--Manufacturer ID
-"\x0c\x03M\x00a\x00x\x00i\x00m\x00",
-# [
-#         12,			# bLength
-# 	0x03,			# bDescriptorType = string
-# 	'M',0,'a',0,'x',0,'i',0,'m',0 # text in Unicode
-# ], 
+"\x10\x03G\x00o\x00o\x00d\x00F\x00E\x00T\x00",
 # STRING descriptor 2 - Product ID
-"\x18\x03M\x00A\x00X\x003\x004\x002\x000\x00E\x00 \x00E\x00n\x00u\x00m\x00 \x00C\x00o\x00d\x00e\x00",
-# [	24,			# bLength
-# 	0x03,			# bDescriptorType = string
-# 	'M',0,'A',0,'X',0,'3',0,'4',0,'2',0,'0',0,'E',0,' ',0,
-#         'E',0,'n',0,'u',0,'m',0,' ',0,'C',0,'o',0,'d',0,'e',0
-# ],
-
-
+"\x18\x03F\x00T\x00D\x00I\x00 \x00E\x00m\x00u\x00l\x00a\x00t\x00o\x00r\x00 \x00 \x00 \x00 \x00 \x00",
 # STRING descriptor 3 - Serial Number ID
 "\x14\x03S\x00/\x00N\x00 \x003\x004\x002\x000\x00E\x00"
-# [       20,			# bLength
-# 	0x03,			# bDescriptorType = string
-# 	'S',0,				
-# 	'/',0,
-# 	'N',0,
-# 	' ',0,
-# 	'3',0,
-# 	'4',0,
-# 	'2',0,
-# 	'0',0,
-#         'E',0,
-# ]
 ];
     RepD=[
         0x05,0x01,		# Usage Page (generic desktop)
@@ -315,45 +293,29 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
         elif(epirq&bmIN3BAVIRQ): #EN3-IN packet
             self.do_IN3();
         elif(epirq&bmOUT1DAVIRQ): #OUT1-OUT packet
-            self.wreg(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit
             self.do_OUT1();
-        
+            self.wreg(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit *AFTER* servicing.
     
     
-    typephase=0;
-    typestring="                      GoodFET emulating FTDI!";
+    typestring="GoodFET emulates FTDI properly, if you can read this!";
     typepos=0;
     
-    def asc2hid(self,ascii):
-        """Translate ASCII to an USB keycode."""
-        a=ascii;
-        if a>='a' and a<='z':
-            return ord(a)-ord('a')+4;
-        elif a>='A' and a<='Z':
-            return ord(a)-ord('A')+4;
-        elif a==' ':
-            return 0x2C; #space
-        else:
-            return 0; #key-up
     def type_IN3(self):
         """Type next letter in buffer."""
         if self.typepos>=len(self.typestring):
-            self.typeletter(0);
-        elif self.typephase==0:
-            self.typephase=1;
+            self.typepos=0;
             self.typeletter(0);
         else:
-            typephase=0;
             self.typeletter(self.typestring[self.typepos]);
             self.typepos=self.typepos+1;
         return;
     def typeletter(self,key):
         """Type a letter on IN3.  Zero for keyup."""
-        #if type(key)==str: key=ord(key);
+        if type(key)==str: key=ord(key);
         #Send a key-up.
         self.wreg(rEP3INFIFO,0);
         self.wreg(rEP3INFIFO,0);
-        self.wreg(rEP3INFIFO,self.asc2hid(key));
+        self.wreg(rEP3INFIFO,key);
         self.wreg(rEP3INBC,3);
     def do_IN3(self):
         """Handle IN3 input event."""
@@ -363,8 +325,10 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
     def do_OUT1(self):
         """Handle an OUT1 output event."""
         print "Got an output event, printing the result.";
-        frame=self.readbytes(rEP1OUTFIFO,64);
-        #print "Got %s" % frame;
+        l=self.rreg(rEP1OUTBC);
+        frame=self.readbytes(rEP1OUTFIFO,l);
+        print "FTDI OUT: %s" % frame;
+
 
 #Initialize FET and set baud rate
 client=GoodFETMAXUSBFTDI();

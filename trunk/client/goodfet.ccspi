@@ -2,6 +2,7 @@
 
 #GoodFET Chipcon SPI Client
 # (C) 2011 Travis Goodspeed
+# Additions 2011-2012 Ryan Speers ryan@rmspeers.com
 
 #N.B.,
 #Might be CC2420 Specific
@@ -72,6 +73,11 @@ if(sys.argv[1]=="reflexjam" or sys.argv[1]=="reflexjamack"):
     client.CC_RFST_RX();
     print "Reflexively jamming on %i MHz" % (client.RF_getfreq()/10**6);
     #Now we let the firmware take over, watching for packets and jamming them.
+    #Standard reflexive jam is done with duration=0.
+    #To selectively jam packets that are above a certain length, set duration
+    # to the number of milliseconds needed to jam frames of that length.
+    # Api-Do project has script available to tune/test this duration.
+    #  code.google.com/p/zigbeesecurity (rmspeers)
     if sys.argv[1]=="reflexjam":
         client.RF_reflexjam(duration);
     elif sys.argv[1]=="reflexjamack":
@@ -112,6 +118,7 @@ if(sys.argv[1]=="rssi"):
         for foo in range(0,rssi>>2):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
+
 if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
     #Promiscuous mode.
     client.RF_promiscuity(1);
@@ -136,6 +143,7 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
         else:
             client.printpacket(packet);
         sys.stdout.flush();
+
 if(sys.argv[1]=="bsniff"):
     #Just broadcast.
     client.RF_promiscuity(0);
@@ -175,11 +183,12 @@ if(sys.argv[1]=="txtest"):
                             0xff, 0xff, 0xff, 0xff,
                             0xde, 0xad, 0xbe, 0xef,
                             0xba, 0xbe, 0xc0]);
+
 if(sys.argv[1]=="txtoscount"):
     '''
     Clone of what TinyOS's RadioCountToLeds demo code does.  Specify a
     channel a TinyOS mote programmed with RadioCountToLeds is on, and
-    this will act as the second device.
+    this will act as the second device. (ryan@rmspeers.com)
     '''
     if (len(sys.argv)<=3):
         print "Provide -r to work via replays or -i to work via incrementing itself.";
@@ -263,19 +272,18 @@ if(sys.argv[1]=="txpiptest" or sys.argv[1]=="txpipscapy"):
                     0xff, 0xff, 0xff, 0xff,
                     ]);
         elif(sys.argv[1]=="txpipscapy"):
+            # NB: Requires Scapy with dot15d4.py layer. (rmspeers)
             try:
                 from scapy.all import Dot15d4, Dot15d4FCS, Dot15d4Data, Raw
                 import struct
             except ImportError:
-                print "To use packet building, Scapy must be installed and have the dot15d4 extension present."
+                print "To use packet building, Scapy must be installed and have the dot15d4 layer present."
                 print "try: hg clone http://hg.secdev.org/scapy-com";
                 print "     sudo ./setup.py install";
             #Overall method is to build from the inner packet outwards in the pkt string
             # Make inner packet
             scapyinner = Dot15d4FCS(seqnum=130)/Dot15d4Data()/Raw('\xde\xad\xbe\xef');
-            #pkt = str(scapyinner)[:-2] + '\xba\xbe\xc0';
             pkt = str(scapyinner);                  #build inner pkt to bytes, adding FCS automatically
-            #pkt = '\x0f'+pkt
             pkt = struct.pack('b', len(pkt)) + pkt  #prepend with its length
             pkt = "\x00\x00\x00\x00\xA7" + pkt      #add preamble and SFD to inner packet
             # Make outer (wrapping) packet
@@ -287,7 +295,6 @@ if(sys.argv[1]=="txpiptest" or sys.argv[1]=="txpipscapy"):
             client.printpacket(pkt)
             client.RF_autocrc(1);
             client.RF_txpacket(pkt)
-
 
 if(sys.argv[1]=="peek"):
     start=0x0000;

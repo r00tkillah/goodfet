@@ -89,7 +89,8 @@ class GoodFETCCSPI(GoodFET):
                 reg,
                 val,
                 self.peek(reg,bytes));
-        return;
+            return False;
+        return True;
     
     def status(self):
         """Read the status byte."""
@@ -200,7 +201,7 @@ class GoodFETCCSPI(GoodFET):
            and that also sends a forged ACK if needed."""
         data = "";
         self.writecmd(self.CCSPIAPP,0xA1,len(data),data);
-        time.sleep(30);
+        print "Got:", data, "and", self.data
         return;
 
     def RF_modulated_spectrum(self):

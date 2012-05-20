@@ -260,6 +260,16 @@ class GoodFETMAXUSB(GoodFET):
             ashex=ashex+(" %02x"%ord(foo));
         print "GET %02x==%s" % (reg,ashex);
         return toret;
+    def readbytesAS(self,reg,length):
+        """Peek some bytes from a register, acking prior transfer."""
+        data=[(reg<<3)|1]+range(0,length);
+        self.writecmd(self.MAXUSBAPP,0x00,len(data),data);
+        toret=self.data[1:len(self.data)];
+        ashex="";
+        for foo in toret:
+            ashex=ashex+(" %02x"%ord(foo));
+        print "GET %02x==%s" % (reg,ashex);
+        return toret;
     def ctl_write_nd(self,request):
         """Control Write with no data stage.  Assumes PERADDR is set
         and the SUDFIFO contains the 8 setup bytes.  Returns with
@@ -374,14 +384,14 @@ class GoodFETMAXUSB(GoodFET):
         """Poke some bytes into a register."""
         data="";
         if type(tosend)==str:
-            data=chr((reg<<3)|2)+tosend;
-            print "PUT %02x:=%s" % (reg,tosend)
+            data=chr((reg<<3)|3)+tosend;
+            print "PUT %02x:=%s (0x%02x bytes)" % (reg,tosend,len(data))
         else:
-            data=[(reg<<3)|2]+tosend;
+            data=[(reg<<3)|3]+tosend;
             ashex="";
             for foo in tosend:
                 ashex=ashex+(" %02x"%foo);
-            print "PUT %02x:=%s" % (reg,ashex)
+            print "PUT %02x:=%s (0x%02x bytes)" % (reg,ashex,len(data))
         self.writecmd(self.MAXUSBAPP,0x00,len(data),data);
     def usb_connect(self):
         """Connect the USB port."""

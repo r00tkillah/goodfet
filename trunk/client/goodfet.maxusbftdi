@@ -24,6 +24,7 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
         print "Starting a FTDI device.  This won't return.";
         while 1:
             self.service_irqs();
+            #self.typeletter_empty();
     def do_SETUP(self):
         """Handle USB Enumeration"""
         
@@ -135,14 +136,15 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
 #Device Descriptor
     DD=[0x12,	       		# bLength = 18d
         0x01,			# bDescriptorType = Device (1)
-        0x00,0x01,		# bcdUSB(L/H) USB spec rev (BCD)
+        0x10,0x01,		# bcdUSB(L/H) USB spec rev (BCD)
 	0x00,0x00,0x00, 	# bDeviceClass, bDeviceSubClass, bDeviceProtocol
 	0x40,			# bMaxPacketSize0 EP0 is 64 bytes
 	0x03,0x04,		# idVendor(L/H)--FTDI is 0403
-	0x01,0x60,		# idProduct(L/H)--6001
-	0x34,0x12,		# bcdDevice--1234
+	0x72,0x83,		# idProduct(L/H)--6001
+	0x01,0x00,		# bcdDevice--1234
 	1,2,3,			# iManufacturer, iProduct, iSerialNumber
-	1];
+	1                       # One configuration.
+        ];
 #Configuration Descriptor
     CD=[0x09,			# bLength
 	0x02,			# bDescriptorType = Config
@@ -161,28 +163,20 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
 	0xFF,			# bInterfaceClass = FF=vendor
 	0xFF,0xFF,		# bInterfaceSubClass, bInterfaceProtocol
 	0x02,			# iInterface
-# HID Descriptor--It's at CD[18]
-	# 0x09,			# bLength
-	# 0x21,			# bDescriptorType = HID
-	# 0x10,0x01,		# bcdHID(L/H) Rev 1.1
-	# 0x00,			# bCountryCode (none)
-	# 0x01,			# bNumDescriptors (one report descriptor)
-	# 0x22,			# bDescriptorType	(report)
-	# 43,0,                   # CD[25]: wDescriptorLength(L/H) (report descriptor size is 43 bytes)
-# Endpoint Descriptor
+# IN Endpoint Descriptor
 	0x07,			# bLength
 	0x05,			# bDescriptorType (Endpoint)
 	0x83,			# bEndpointAddress (EP3-IN)		
-	0x02,			# bmAttributes	(interrupt)
+        0x02,			# bmAttributes	(bulk)
 	64,0,                   # wMaxPacketSize (64)
-	10,
-# Endpoint Descriptor
+	00,
+# OUT Endpoint Descriptor
 	0x07,			# bLength
 	0x05,			# bDescriptorType (Endpoint)
 	0x01,			# bEndpointAddress (EP1-OUT)		
-	0x02,			# bmAttributes	(interrupt)
+        0x02,			# bmAttributes	(bulk)
 	64,0,                   # wMaxPacketSize (64)
-	10];
+	00];
     strDesc=[
 # STRING descriptor 0--Language string
 "\x04\x03\x09\x04",
@@ -236,9 +230,9 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
         elif desctype==GD_STRING:
             desclen=self.strDesc[ord(SUD[wValueL])][0];
             ddata=self.strDesc[ord(SUD[wValueL])];
-        elif desctype==GD_REPORT:
-            desclen=self.CD[25];
-            ddata=self.RepD;
+        #elif desctype==GD_REPORT:
+        #    desclen=self.CD[25];
+        #    ddata=self.RepD;
         
         #TODO Configuration, String, Hid, and Report
         
@@ -292,10 +286,12 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
             self.do_SETUP();
         elif(epirq&bmIN3BAVIRQ): #EN3-IN packet
             self.do_IN3();
+            #self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the bit
         elif(epirq&bmOUT1DAVIRQ): #OUT1-OUT packet
             self.do_OUT1();
-            self.wreg(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit *AFTER* servicing.
-    
+            self.wregAS(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit *AFTER* servicing.
+        #else:
+        #    self.do_IN3();
     
     typestring="GoodFET emulates FTDI properly, if you can read this!";
     typepos=0;
@@ -304,7 +300,7 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
         """Type next letter in buffer."""
         if self.typepos>=len(self.typestring):
             self.typepos=0;
-            self.typeletter(0);
+            self.typeletter(' ');
         else:
             self.typeletter(self.typestring[self.typepos]);
             self.typepos=self.typepos+1;
@@ -312,23 +308,22 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
     def typeletter(self,key):
         """Type a letter on IN3.  Zero for keyup."""
         if type(key)==str: key=ord(key);
-        #Send a key-up.
-        self.wreg(rEP3INFIFO,0);
-        self.wreg(rEP3INFIFO,0);
+        
+        self.wreg(rEP3INFIFO,0x01);      #Modem Status
+        self.wreg(rEP3INFIFO,0x00);      #Line Status
         self.wreg(rEP3INFIFO,key);
-        self.wreg(rEP3INBC,3);
+        self.wregAS(rEP3INBC,3);
     def do_IN3(self):
         """Handle IN3 input event."""
         #Don't bother clearing interrupt flag, that's done by sending the reply.
-        #print "Got an input event, sending back some garbage that might be right.";
         self.type_IN3();
     def do_OUT1(self):
         """Handle an OUT1 output event."""
         print "Got an output event, printing the result.";
         l=self.rreg(rEP1OUTBC);
-        frame=self.readbytes(rEP1OUTFIFO,l);
-        print "FTDI OUT: %s" % frame;
-
+        frame=self.readbytesAS(rEP1OUTFIFO,l);
+        print "FTDI OUT: %s" % frame[1:len(frame)];
+        #self.type_IN3();
 
 #Initialize FET and set baud rate
 client=GoodFETMAXUSBFTDI();

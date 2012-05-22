@@ -192,29 +192,7 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
 # STRING descriptor 3 - Serial Number ID
 "\x14\x03S\x00/\x00N\x00 \x003\x004\x002\x000\x00E\x00"
 ];
-    RepD=[
-        0x05,0x01,		# Usage Page (generic desktop)
-	0x09,0x06,		# Usage (keyboard)
-	0xA1,0x01,		# Collection
-	0x05,0x07,		#   Usage Page 7 (keyboard/keypad)
-	0x19,0xE0,		#   Usage Minimum = 224
-	0x29,0xE7,		#   Usage Maximum = 231
-	0x15,0x00,		#   Logical Minimum = 0
-	0x25,0x01,		#   Logical Maximum = 1
-	0x75,0x01,		#   Report Size = 1
-	0x95,0x08,		#   Report Count = 8
-	0x81,0x02,		#  Input(Data,Variable,Absolute)
-	0x95,0x01,		#   Report Count = 1
-	0x75,0x08,		#   Report Size = 8
-	0x81,0x01,		#  Input(Constant)
-	0x19,0x00,		#   Usage Minimum = 0
-	0x29,0x65,		#   Usage Maximum = 101
-	0x15,0x00,		#   Logical Minimum = 0,
-	0x25,0x65,		#   Logical Maximum = 101
-	0x75,0x08,		#   Report Size = 8
-	0x95,0x01,		#   Report Count = 1
-	0x81,0x00,		#  Input(Data,Variable,Array)
-	0xC0]
+
     def send_descriptor(self,SUD):
         """Send the USB descriptors based upon the setup data."""
         desclen=0;
@@ -230,9 +208,6 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
         elif desctype==GD_STRING:
             desclen=self.strDesc[ord(SUD[wValueL])][0];
             ddata=self.strDesc[ord(SUD[wValueL])];
-        #elif desctype==GD_REPORT:
-        #    desclen=self.CD[25];
-        #    ddata=self.RepD;
         
         #TODO Configuration, String, Hid, and Report
         
@@ -293,7 +268,7 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
         #else:
         #    self.do_IN3();
     
-    typestring="GoodFET emulates FTDI properly, if you can read this!";
+    typestring="GoodFET emulates FTDI properly, if you can read this!\n";
     typepos=0;
     
     def type_IN3(self):

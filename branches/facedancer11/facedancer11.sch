@@ -8276,7 +8276,7 @@ Source: 008-0260-0_E.pdf</description>
 <part name="CN1" library="adafruit" deviceset="USB" device="MINIB" value="HOST"/>
 <part name="U3" library="active" deviceset="MAX3420E" device="LQFP32"/>
 <part name="Q1" library="crystal" deviceset="CRYSTAL" device="HC49UP" value="12MHz"/>
-<part name="CN2" library="adafruit" deviceset="USB" device="MINIB" value="VICTIM"/>
+<part name="CN2" library="adafruit" deviceset="USB" device="MINIB" value="TARGET"/>
 <part name="R3" library="rcl" deviceset="R-US_" device="R0603" value="33"/>
 <part name="R4" library="rcl" deviceset="R-US_" device="R0603" value="33"/>
 <part name="C3" library="rcl" deviceset="C-EU" device="C0603" value="1.0uF"/>

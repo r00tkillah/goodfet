@@ -8,7 +8,7 @@ poorly written USB device drivers, prototype USB devices, or otherwise
 play with USB as a network instead of as a magic school bus.
 
 The MAX3420E part in active.lbr came from a tutorial by Andrew Greensted.
-It has been patched to allow for easier hand-soldering.
+It has been patched to correct for placement errors.
 http://www.labbookpages.co.uk/circuits/max3420.html
 
 

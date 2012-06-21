@@ -690,7 +690,7 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
 # 	'M',0,'a',0,'x',0,'i',0,'m',0 # text in Unicode
 # ], 
 # STRING descriptor 2 - Product ID
-"\x18\x03M\x00A\x00X\x003\x004\x002\x000\x00E\x00 \x00%\x00s\x00%\x00n\x00 \x00C\x00o\x00d\x00e\x00",
+"\x18\x03M\x00A\x00X\x003\x004\x002\x000\x00E\x00 \x00E\x00n\x00u\x00m\x00 \x00C\x00o\x00d\x00e\x00",
 # [	24,			# bLength
 # 	0x03,			# bDescriptorType = string
 # 	'M',0,'A',0,'X',0,'3',0,'4',0,'2',0,'0',0,'E',0,' ',0,

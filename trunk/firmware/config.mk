@@ -68,7 +68,7 @@ extralibs = lib/cortexm3.o lib/system_stm32f4xx.o lib/stm32f4xx_rcc.o $(psrc)/st
 
 endif
 
-ifneq (,$(findstring $(board),facedancer10))
+ifneq (,$(findstring $(board),facedancer10 facedancer11))
 mcu ?= msp430f2618
 platform := goodfet
 config = monitor spi maxusb

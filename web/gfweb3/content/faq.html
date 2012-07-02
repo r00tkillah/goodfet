@@ -13,8 +13,9 @@ GoodFET's FT232 chip look like a power management device, which upowerd
 then grabs hold of.  The fix is to delete the udev rule in /lib/udev/rules.d/95-upower-wup.rules.</p>
 
 <p><i>Is there a standalone version for Windows?</i><br/>
-Yes, but it
-is very new.
+Yes, but it is rather old, as no one in the development team uses
+Windows.  Please get in touch if you would like to help automate
+py2exe builds for us.
 Download <a href="http://sourceforge.net/projects/goodfet/files/">GFWin.zip</a>
 and be sure that you have
 the <a href="http://www.microsoft.com/downloads/details.aspx?familyid=9b2da534-3e03-4391-8a4d-074b9f2bc1bf&displaylang=en">Visual
@@ -22,8 +23,11 @@ Studio Redistribution Package</a>.
 </p>
 
 <p><i>Will the client run on my operating system?</i><br/>
-While the software is developed in unix, you ought to be able to run it
-under Windows with Cygwin and Python.</p>
+
+While the software is developed in unix, you ought to be able to run
+it under Windows with Cygwin and Python.  Linux, OpenBSD, and OS X are
+well supported.  There is also an experimental QT-Quick GUI for Meego.
+</p>
 
 <p><i>Which python packages are required?</i><br/>
 <a href="http://pyserial.sourceforge.net/">python-serial</a>, <a href="http://code.google.com/p/pysqlite/">python-sqlite</a></p>
@@ -37,7 +41,8 @@ free to omit GDB if you don't need it.</p>
 <p><i>Can I install the firmware without MSPGCC?</i><br/>
 Sure.  'goodfet.bsl --fromweb' will download the most recent firmware from
 the website.  This does not work for special platforms like the Next Hope Badge
-or the Telos B.</p>
+or the Telos B.
+</p>
 
 
 <h3>BSL</h3>
@@ -80,6 +85,12 @@ svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet
 <p><i>Is a zip archive available that's just a little more stable</i><br/>
 <a href="http://goodfet.sourceforge.net/dist/goodfet.zip">http://goodfet.sourceforge.net/dist/goodfet.zip</a>
 </p>
+
+<h3>Ordering</h3>
+
+<p><i>How can I order a GoodFET?</i><br/>
+Pre-assembled boards are not available, but you can get PCBs from our
+<a href="/orders/">ordering</a> page and solder them yourself.</p>
 
 
 <h3>Development</h3>

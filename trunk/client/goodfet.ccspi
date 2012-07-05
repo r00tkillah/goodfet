@@ -126,8 +126,10 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
     
     if len(sys.argv)>2:
         freq=eval(sys.argv[2]);
-        if freq>100:
+        if freq>3000:
             client.RF_setfreq(freq);
+        elif freq>100:
+            client.RF_setfreq(freq*1000000);
         else:
             client.RF_setchan(freq);
     client.CC_RFST_RX();

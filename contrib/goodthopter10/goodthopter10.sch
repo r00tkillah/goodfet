@@ -8635,7 +8635,7 @@ Source: Sibalco Kycon KUSBVX-BS1N-xxx.pdf</description>
 <part name="C2" library="rcl" deviceset="C-EU" device="C0603" value="15pF"/>
 <part name="C3" library="rcl" deviceset="C-EU" device="C0603" value="15pF"/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
-<part name="X2" library="SparkFun-Connectors" deviceset="DB9" device="MALE"/>
+<part name="CAN" library="SparkFun-Connectors" deviceset="DB9" device="MALE"/>
 <part name="Q1" library="crystal" deviceset="CRYSTAL" device="MM20SS" value="20MHz"/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
@@ -8651,7 +8651,7 @@ Source: Sibalco Kycon KUSBVX-BS1N-xxx.pdf</description>
 <text x="-17.78" y="5.08" size="1.778" layer="91">A Sexy GoodFET CAN Adapter</text>
 <text x="-43.18" y="15.24" size="1.778" layer="91">Andrew Righter</text>
 <text x="-43.18" y="12.7" size="1.778" layer="91">&lt;andrew.righter at gmail.com&gt;</text>
-<text x="-53.34" y="129.54" size="1.27" layer="95">Crystal/Ceramic Parallel Cut Crystal</text>
+<text x="-53.34" y="129.54" size="1.27" layer="95">Crystal - Parallel Cut Crystal</text>
 <text x="-53.34" y="132.08" size="1.27" layer="95">Notes:</text>
 <text x="-53.34" y="127" size="1.27" layer="95">No SPI operations until Osc Startup Timer (OST) Expires</text>
 <text x="-53.34" y="124.46" size="1.27" layer="95">Series resistor may be required for AT strip cut crystals (direclty out of OSC2)</text>
@@ -8679,7 +8679,7 @@ Source: Sibalco Kycon KUSBVX-BS1N-xxx.pdf</description>
 <instance part="C2" gate="G$1" x="-35.56" y="111.76" rot="R90"/>
 <instance part="C3" gate="G$1" x="-35.56" y="99.06" rot="R90"/>
 <instance part="GND1" gate="1" x="-48.26" y="96.52"/>
-<instance part="X2" gate="G$1" x="121.92" y="99.06"/>
+<instance part="CAN" gate="G$1" x="121.92" y="99.06"/>
 <instance part="Q1" gate="G$1" x="-22.86" y="104.14" rot="R90"/>
 <instance part="GND2" gate="1" x="106.68" y="93.98"/>
 <instance part="GND6" gate="1" x="30.48" y="86.36"/>
@@ -8869,7 +8869,7 @@ Source: Sibalco Kycon KUSBVX-BS1N-xxx.pdf</description>
 <junction x="-43.18" y="106.68"/>
 </segment>
 <segment>
-<pinref part="X2" gate="G$1" pin="3"/>
+<pinref part="CAN" gate="G$1" pin="3"/>
 <wire x1="114.3" y1="99.06" x2="106.68" y2="99.06" width="0.1524" layer="91"/>
 <pinref part="GND2" gate="1" pin="GND"/>
 <wire x1="106.68" y1="99.06" x2="106.68" y2="96.52" width="0.1524" layer="91"/>
@@ -8995,7 +8995,7 @@ Source: Sibalco Kycon KUSBVX-BS1N-xxx.pdf</description>
 <pinref part="C2" gate="G$1" pin="2"/>
 <wire x1="-30.48" y1="111.76" x2="-22.86" y2="111.76" width="0.1524" layer="91"/>
 <wire x1="-22.86" y1="111.76" x2="-22.86" y2="116.84" width="0.1524" layer="91"/>
-<label x="-22.86" y="114.3" size="1.778" layer="95"/>
+<label x="-22.86" y="116.84" size="1.778" layer="95"/>
 <pinref part="Q1" gate="G$1" pin="2"/>
 <wire x1="-22.86" y1="106.68" x2="-22.86" y2="111.76" width="0.1524" layer="91"/>
 <junction x="-22.86" y="111.76"/>
@@ -9013,7 +9013,7 @@ Source: Sibalco Kycon KUSBVX-BS1N-xxx.pdf</description>
 <label x="30.48" y="114.3" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="X2" gate="G$1" pin="7"/>
+<pinref part="CAN" gate="G$1" pin="7"/>
 <wire x1="129.54" y1="99.06" x2="137.16" y2="99.06" width="0.1524" layer="91"/>
 <label x="129.54" y="99.06" size="1.778" layer="95"/>
 </segment>
@@ -9025,7 +9025,7 @@ Source: Sibalco Kycon KUSBVX-BS1N-xxx.pdf</description>
 <label x="30.48" y="111.76" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="X2" gate="G$1" pin="2"/>
+<pinref part="CAN" gate="G$1" pin="2"/>
 <wire x1="114.3" y1="101.6" x2="106.68" y2="101.6" width="0.1524" layer="91"/>
 <label x="106.68" y="101.6" size="1.778" layer="95"/>
 </segment>

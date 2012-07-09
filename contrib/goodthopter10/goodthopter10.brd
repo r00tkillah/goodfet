@@ -829,7 +829,7 @@ design rules under a new name.</description>
 <element name="U$1" library="MCP2515" package="TSSOP20" value="MCP2515" x="4.1275" y="-2.8575"/>
 <element name="C2" library="rcl" package="C0603" value="15pF" x="-10.16" y="-8.89"/>
 <element name="C3" library="rcl" package="C0603" value="15pF" x="-10.16" y="-12.3825"/>
-<element name="X2" library="SparkFun-Connectors" package="DB9_MALE" value="" x="4.1275" y="-29.5275"/>
+<element name="CAN" library="SparkFun-Connectors" package="DB9_MALE" value="" x="4.1275" y="-29.5275"/>
 <element name="Q1" library="crystal" package="MM20SS" value="20MHz" x="-7.3025" y="-36.83">
 <attribute name="OC_NEWARK" value="unknown" x="-7.3025" y="-36.83" size="1.778" layer="27" display="off"/>
 <attribute name="MPN" value="" x="-7.3025" y="-36.83" size="1.778" layer="27" display="off"/>
@@ -1022,7 +1022,7 @@ design rules under a new name.</description>
 </polygon>
 <contactref element="C2" pad="1"/>
 <contactref element="C3" pad="1"/>
-<contactref element="X2" pad="3"/>
+<contactref element="CAN" pad="3"/>
 <contactref element="U$1" pad="10"/>
 <wire x1="35.56" y1="5.08" x2="35.56" y2="12.065" width="0" layer="19" extent="16-16"/>
 <wire x1="25.6025" y1="4.445" x2="35.2425" y2="5.08" width="0" layer="19" extent="1-16"/>
@@ -1136,12 +1136,12 @@ design rules under a new name.</description>
 </signal>
 <signal name="TXCAN">
 <contactref element="U$1" pad="1"/>
-<contactref element="X2" pad="7"/>
+<contactref element="CAN" pad="7"/>
 <wire x1="0.8255" y1="-0.2159" x2="5.5075" y2="-28.1075" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="RXCAN">
 <contactref element="U$1" pad="2"/>
-<contactref element="X2" pad="2"/>
+<contactref element="CAN" pad="2"/>
 <wire x1="0.8255" y1="-0.8763" x2="6.8975" y2="-30.9475" width="0" layer="19" extent="1-1"/>
 </signal>
 </signals>

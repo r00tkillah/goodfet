@@ -527,6 +527,91 @@ We've spent an enormous amount of time creating and checking these footprints an
 </package>
 </packages>
 </library>
+<library name="con-kycon">
+<description>&lt;b&gt;Connector from KYCON, Inc&lt;/b&gt;&lt;p&gt;
+1810 Little Orchard Street,&lt;br&gt;
+San Jose,&lt;br&gt;
+CA 95125 (408)494-0330&lt;br&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/autor&gt;</description>
+<packages>
+<package name="KUSBVX-BS1N">
+<description>&lt;b&gt;USB B-type Receptacle&lt;/b&gt; Vertical, 4 Position, Through Hole&lt;p&gt;
+Source: Sibalco Kycon KUSBVX-BS1N-xxx.pdf</description>
+<wire x1="-5.925" y1="6.405" x2="5.925" y2="6.405" width="0.2032" layer="21"/>
+<wire x1="5.925" y1="6.405" x2="5.925" y2="-4.695" width="0.2032" layer="21"/>
+<wire x1="-5.925" y1="-4.695" x2="-5.925" y2="6.405" width="0.2032" layer="21"/>
+<wire x1="-5.925" y1="-4.695" x2="5.925" y2="-4.695" width="0.2032" layer="21"/>
+<wire x1="2.8715" y1="5.9445" x2="-2.8715" y2="5.9445" width="0.2032" layer="21"/>
+<wire x1="2.8715" y1="5.9445" x2="3.6271" y2="5.6422" width="0.2032" layer="21" curve="-43.609095"/>
+<wire x1="3.6271" y1="5.6422" x2="4.7354" y2="4.5339" width="0.2032" layer="21"/>
+<wire x1="4.7354" y1="4.5339" x2="5.1385" y2="3.5264" width="0.2032" layer="21" curve="-46.385418"/>
+<wire x1="5.1385" y1="3.5264" x2="5.1385" y2="2.4685" width="0.2032" layer="21"/>
+<wire x1="4.7858" y1="1.9143" x2="5.0881" y2="1.9143" width="0.2032" layer="21"/>
+<wire x1="5.0881" y1="1.9143" x2="5.1385" y2="2.4685" width="0.2032" layer="21" curve="169.607414"/>
+<wire x1="4.7354" y1="1.9143" x2="4.7354" y2="3.6775" width="0.2032" layer="21"/>
+<wire x1="4.7354" y1="3.6775" x2="4.4836" y2="4.2317" width="0.2032" layer="21" curve="48.86809"/>
+<wire x1="4.4836" y1="4.2317" x2="3.3753" y2="5.34" width="0.2032" layer="21"/>
+<wire x1="3.3753" y1="5.34" x2="2.8715" y2="5.5415" width="0.2032" layer="21" curve="53.107366"/>
+<wire x1="4.7354" y1="1.9143" x2="4.4332" y2="1.9143" width="0.2032" layer="21"/>
+<wire x1="4.4332" y1="1.9143" x2="4.4332" y2="-1.2594" width="0.2032" layer="21"/>
+<wire x1="4.4332" y1="-1.2594" x2="5.0881" y2="-1.2594" width="0.2032" layer="21"/>
+<wire x1="5.0881" y1="-1.2594" x2="5.1385" y2="-1.7632" width="0.2032" layer="21" curve="-168.57431"/>
+<wire x1="5.1385" y1="-1.7632" x2="5.1385" y2="-2.8211" width="0.2032" layer="21"/>
+<wire x1="5.1385" y1="-2.8211" x2="4.3828" y2="-3.5768" width="0.2032" layer="21" curve="-90"/>
+<wire x1="4.282" y1="-3.1738" x2="-4.282" y2="-3.1738" width="0.2032" layer="21"/>
+<wire x1="4.282" y1="-3.1738" x2="4.7354" y2="-2.7204" width="0.2032" layer="21" curve="90"/>
+<wire x1="4.7354" y1="-2.7204" x2="4.7354" y2="-1.3098" width="0.2032" layer="21"/>
+<wire x1="-2.7204" y1="2.67" x2="2.7707" y2="2.67" width="0.2032" layer="51"/>
+<wire x1="2.7707" y1="2.67" x2="2.7707" y2="-0.3023" width="0.2032" layer="21"/>
+<wire x1="2.7707" y1="-0.3023" x2="-2.7204" y2="-0.3023" width="0.2032" layer="51"/>
+<wire x1="-2.7204" y1="-0.3023" x2="-2.7204" y2="2.67" width="0.2032" layer="21"/>
+<wire x1="-2.7204" y1="2.67" x2="-2.1662" y2="2.267" width="0.2032" layer="21"/>
+<wire x1="-2.1662" y1="2.267" x2="2.2166" y2="2.267" width="0.2032" layer="51"/>
+<wire x1="2.2166" y1="2.267" x2="2.2166" y2="0.1008" width="0.2032" layer="21"/>
+<wire x1="2.2166" y1="0.1008" x2="-2.1662" y2="0.1008" width="0.2032" layer="51"/>
+<wire x1="-2.1662" y1="0.1008" x2="-2.1662" y2="2.267" width="0.2032" layer="21"/>
+<wire x1="-2.7204" y1="-0.3023" x2="-2.1662" y2="0.1008" width="0.2032" layer="21"/>
+<wire x1="2.7707" y1="-0.3023" x2="2.2166" y2="0.1008" width="0.2032" layer="21"/>
+<wire x1="2.7707" y1="2.67" x2="2.2166" y2="2.267" width="0.2032" layer="21"/>
+<wire x1="-2.8715" y1="5.9445" x2="-3.6271" y2="5.6422" width="0.2032" layer="21" curve="43.609095"/>
+<wire x1="-3.6271" y1="5.6422" x2="-4.7354" y2="4.5339" width="0.2032" layer="21"/>
+<wire x1="-4.7354" y1="4.5339" x2="-5.1385" y2="3.5264" width="0.2032" layer="21" curve="46.385418"/>
+<wire x1="-5.1385" y1="3.5264" x2="-5.1385" y2="2.4685" width="0.2032" layer="21"/>
+<wire x1="-4.7858" y1="1.9143" x2="-5.0881" y2="1.9143" width="0.2032" layer="21"/>
+<wire x1="-5.0881" y1="1.9143" x2="-5.1385" y2="2.4685" width="0.2032" layer="21" curve="-169.607414"/>
+<wire x1="-4.7354" y1="1.9143" x2="-4.7354" y2="3.6775" width="0.2032" layer="21"/>
+<wire x1="-4.7354" y1="3.6775" x2="-4.4836" y2="4.2317" width="0.2032" layer="21" curve="-48.86809"/>
+<wire x1="-4.4836" y1="4.2317" x2="-3.3753" y2="5.34" width="0.2032" layer="21"/>
+<wire x1="-3.3753" y1="5.34" x2="-2.8715" y2="5.5415" width="0.2032" layer="21" curve="-53.107366"/>
+<wire x1="-2.8715" y1="5.5415" x2="2.8715" y2="5.5415" width="0.2032" layer="21"/>
+<wire x1="-4.7354" y1="1.9143" x2="-4.4332" y2="1.9143" width="0.2032" layer="21"/>
+<wire x1="-4.4332" y1="1.9143" x2="-4.4332" y2="-1.2594" width="0.2032" layer="21"/>
+<wire x1="-4.4332" y1="-1.2594" x2="-5.0881" y2="-1.2594" width="0.2032" layer="21"/>
+<wire x1="-5.0881" y1="-1.2594" x2="-5.1385" y2="-1.7632" width="0.2032" layer="21" curve="168.57431"/>
+<wire x1="-5.1385" y1="-1.7632" x2="-5.1385" y2="-2.8211" width="0.2032" layer="21"/>
+<wire x1="-5.1385" y1="-2.8211" x2="-4.3828" y2="-3.5768" width="0.2032" layer="21" curve="90"/>
+<wire x1="-4.3828" y1="-3.5768" x2="4.3828" y2="-3.5768" width="0.2032" layer="21"/>
+<wire x1="-4.282" y1="-3.1738" x2="-4.7354" y2="-2.7204" width="0.2032" layer="21" curve="-90"/>
+<wire x1="-4.7354" y1="-2.7204" x2="-4.7354" y2="-1.3098" width="0.2032" layer="21"/>
+<pad name="1" x="1.25" y="2.7" drill="0.9" diameter="1.4224"/>
+<pad name="2" x="-1.25" y="2.7" drill="0.9" diameter="1.4224"/>
+<pad name="3" x="-1.25" y="-0.5" drill="0.9" diameter="1.4224"/>
+<pad name="4" x="1.25" y="-0.5" drill="0.9" diameter="1.4224"/>
+<pad name="M1" x="-6.02" y="0" drill="2.3" diameter="2.7"/>
+<pad name="M2" x="6.02" y="0" drill="2.3" diameter="2.7"/>
+<text x="-6" y="7" size="1.27" layer="25">&gt;NAME</text>
+<text x="-6" y="-6.5" size="1.27" layer="27">&gt;VALUE</text>
+<text x="1.5" y="1.5" size="0.6096" layer="21" font="vector">1</text>
+<text x="-1" y="1.5" size="0.6096" layer="21" font="vector">2</text>
+<text x="-1.75" y="0.25" size="0.6096" layer="21" font="vector">3</text>
+<text x="0.5" y="0.25" size="0.6096" layer="21" font="vector">4</text>
+<rectangle x1="-1.7632" y1="2.67" x2="-0.7053" y2="3.879" layer="51"/>
+<rectangle x1="0.7557" y1="2.67" x2="1.8136" y2="3.879" layer="51"/>
+<rectangle x1="-1.7632" y1="-1.5113" x2="-0.7053" y2="-0.3023" layer="51"/>
+<rectangle x1="0.7557" y1="-1.5113" x2="1.8136" y2="-0.3023" layer="51"/>
+</package>
+</packages>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -742,15 +827,16 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="40.005" y="4.1275" size="1.27" layer="27"/>
 </element>
 <element name="U$1" library="MCP2515" package="TSSOP20" value="MCP2515" x="4.1275" y="-2.8575"/>
-<element name="C2" library="rcl" package="C0603" value="" x="-10.16" y="-8.89"/>
-<element name="C3" library="rcl" package="C0603" value="" x="-10.16" y="-12.3825"/>
+<element name="C2" library="rcl" package="C0603" value="15pF" x="-10.16" y="-8.89"/>
+<element name="C3" library="rcl" package="C0603" value="15pF" x="-10.16" y="-12.3825"/>
 <element name="X2" library="SparkFun-Connectors" package="DB9_MALE" value="" x="4.1275" y="-29.5275"/>
-<element name="Q1" library="crystal" package="MM20SS" value="" x="-7.3025" y="-36.83">
+<element name="Q1" library="crystal" package="MM20SS" value="20MHz" x="-7.3025" y="-36.83">
 <attribute name="OC_NEWARK" value="unknown" x="-7.3025" y="-36.83" size="1.778" layer="27" display="off"/>
 <attribute name="MPN" value="" x="-7.3025" y="-36.83" size="1.778" layer="27" display="off"/>
 <attribute name="MF" value="" x="-7.3025" y="-36.83" size="1.778" layer="27" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="-7.3025" y="-36.83" size="1.778" layer="27" display="off"/>
 </element>
+<element name="X3" library="con-kycon" package="KUSBVX-BS1N" value="KUSBVX-BS1N" x="-19.685" y="-32.385"/>
 </elements>
 <signals>
 <signal name="!CS">

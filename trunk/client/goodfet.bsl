@@ -14,7 +14,7 @@
 # JTAG programmer.
 
 import sys, time, string, cStringIO, struct
-sys.path.append("/usr/lib/tinyos")
+#sys.path.append("/usr/lib/tinyos")  #We no longer require TinyOS.
 import serial, os, glob
 
 #forked from TinyOS Telos version.
@@ -1370,6 +1370,7 @@ General options:
                         --swap-reset-test, and --telos-latch
   --telosb              Implies options --swap-reset-test, --telos-i2c,
                         --no-BSL-download, and --speed=38400
+  --apimote             Implies --swap-reset-test
   --goodfet10
   --goodfet20
   --goodfet30
@@ -1483,6 +1484,8 @@ def main(itest=1):
     if(os.environ.get("board")=='z1' or 
        os.environ.get("board")=='zolertiaz1'):
         bsl.z1 = 1
+    if(os.environ.get("board")=='apimote'):
+        bsl.swapRSTTEST = 1;
     
     
     if comPort is None and os.environ.get("GOODFET")!=None:
@@ -1680,6 +1683,8 @@ def main(itest=1):
         elif o in ("--goodfet", ):
             bsl.invertRST = 1
             bsl.invertTEST = 1
+        elif o in ("--apimote",):
+            bsl.swapRSTTEST = 1;
         elif o in ("--nhbadge", "--nhbadgeb" ):
             bsl.invertRST = 1
             bsl.invertTEST = 1

@@ -1,15 +1,7 @@
 /*! \file apimote.h
   \author Ryan Speers
-  \brief Port descriptions for the GoodFET platform.
+  \brief Port descriptions for the Apimote platform.
 */
-
-/* #ifdef __MSPGCC__ */
-/* #include <msp430.h> */
-/* #else */
-/* #include <signal.h> */
-/* #include <msp430.h> */
-/* #include <iomacros.h> */
-/* #endif */
 
 #ifndef _GNU_ASSEMBLER_
 #include <msp430.h>
@@ -46,9 +38,15 @@
 */
 
 
-/* TODO what to do here?.  Hopefully nothing.
+
 #define INITPLATFORM \
-  P1DIR = 0xe0;\
+  P2DIR |= BIT0+BIT7; \
+  P2OUT &= ~BIT7; \
+  P2OUT |= BIT0; \
+  P3DIR |= BIT0;
+
+  /*
+  P1DIR = 0xe0;  \
   P1OUT = 0x00;\
   P2DIR = 0x7b;\
   P2OUT = 0x10;\
@@ -60,7 +58,8 @@
   P5OUT = 0xff;\
   P6DIR = 0xff;\
   P6OUT = 0x00;
-*/
+  */
+
 
 //RF Control
 //TelosB:  Radio CS is 38/P4.2 (to CC2420 pin31)

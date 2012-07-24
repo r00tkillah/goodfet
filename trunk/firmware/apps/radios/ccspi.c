@@ -50,12 +50,14 @@ void ccspisetup(){
   DIRSS;
   DIRCE;
 
-  P4OUT|=BIT5; //activate CC2420 voltage regulator
+  //P4OUT|=BIT5; //activate CC2420 voltage regulator
   msdelay(100);
 
   //Reset the CC2420.
-  P4OUT&=~BIT6;
-  P4OUT|=BIT6;
+  /*P4OUT&=~BIT6; FIXME Does the new code work on Z1 and Telosb?
+    P4OUT|=BIT6;*/ 
+  CLRCE;
+  SETCE;
 
   //Begin a new transaction.
   CLRSS;
@@ -362,8 +364,8 @@ void ccspi_handle_fn( uint8_t const app,
         //TODO disable AUTOCRC here again to go back to promiscous mode
 
         //Turn off LED 2 (green) as signal
-	    PLED2DIR |= PLED2PIN;
-	    PLED2OUT |= PLED2PIN;
+	PLED2DIR |= PLED2PIN;
+	PLED2OUT |= PLED2PIN;
     }
     //TODO the firmware stops staying in this mode after a while, and stops jamming... need to find a fix.
 #else

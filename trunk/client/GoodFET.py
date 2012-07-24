@@ -205,7 +205,7 @@ class GoodFET:
                     self.telosBReset();
                 elif (os.environ.get("board")=='zolertiaz1' or  os.environ.get("board")=='z1'):
                     self.bslResetZ1();
-                elif (os.environ.get("board")=='apimote1'):
+                elif (os.environ.get("board")=='apimote'):
                     #Explicitly set RTS and DTR to halt board.
                     self.serialport.setRTS(1);
                     self.serialport.setDTR(1);

@@ -24,8 +24,13 @@ unsigned char serial0_rx(){
 
 //! Receive a byte.
 unsigned char serial1_rx(){
-  //TODO
-  return 00;
+  char c;
+
+  while (!(UC1IFG&UCA1RXIFG));               // USCI_A1 TX buffer ready?
+  c = UCA1RXBUF;
+  UC1IFG&=~UCA1RXIFG;
+
+  return c;
 }
 
 //! Transmit a byte.
@@ -34,6 +39,13 @@ void serial0_tx(unsigned char x){
   UCA0TXBUF = x;	/* send the character */
   while(!(IFG2 & UCA0TXIFG));
 }
+//! Transmit a byte on the second UART.
+void serial1_tx(unsigned char x){
+  while ((UC1IFG & UCA1TXIFG) == 0); //loop until buffer is free
+  UCA1TXBUF = x;	/* send the character */
+  while(!(UC1IFG & UCA1TXIFG));
+}
+
 //! Transmit a byte.
 void serial_tx_old(unsigned char x){
   while ((IFG2 & UCA0TXIFG) == 0); //loop until buffer is free
@@ -41,10 +53,6 @@ void serial_tx_old(unsigned char x){
   while(!(IFG2 & UCA0TXIFG));
 }
 
-//! Transmit a byte on the second UART.
-void serial1_tx(unsigned char x){
-
-}
 
 //! Set the baud rate.
 void setbaud0(unsigned char rate){
@@ -77,7 +85,30 @@ void setbaud0(unsigned char rate){
 
 //! Set the baud rate of the second uart.
 void setbaud1(unsigned char rate){
-
+  //Table 15-4, page 481 of 2xx Family Guide
+  switch(rate){
+  case 1://9600 baud
+    UCA1BR1 = 0x06;
+    UCA1BR0 = 0x82;
+    break;
+  case 2://19200 baud
+    UCA1BR1 = 0x03;
+    UCA1BR0 = 0x41;
+    break;
+  case 3://38400 baud
+    UCA1BR1 = 0xa0;
+    UCA1BR0 = 0x01;
+    break;
+  case 4://57600 baud
+    UCA1BR1 = 0x1d;
+    UCA1BR0 = 0x01;
+    break;
+  default:
+  case 5://115200 baud
+    UCA1BR0 = 0x8a;
+    UCA1BR1 = 0x00;
+    break;
+  }
 }
 
 #define BAUD0EN 0x41
@@ -85,7 +116,7 @@ void setbaud1(unsigned char rate){
 
 void msp430_init_uart(){
 
-  // Serial on P3.4, P3.5
+  // Serial0 on P3.4, P3.5
   P3SEL |= BIT4 + BIT5;
   P3DIR |= BIT4;
 
@@ -106,7 +137,16 @@ void msp430_init_uart(){
 
   //Leave this commented!
   //Interrupt is handled by target code, not by bootloader.
-  //IE2 |= UCA0RXIE;
+  //IE2 |= UCA0RXIE; //DO NOT UNCOMMENT
+  
+  // Serial 1 on P3.6, 3.7
+  P3SEL    |=  0xC0;
+  //UCA1CTL0 = 0x00;
+  UCA1CTL1 |=  UCSSEL_2;                     // SMCLK
+  setbaud1(5); //115200
+  UCA1MCTL  =  0;
+  UCA1CTL1 &= ~UCSWRST;                      // Initialize USCI state machine
+  
 }
 
 

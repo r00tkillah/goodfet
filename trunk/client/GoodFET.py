@@ -205,7 +205,7 @@ class GoodFET:
                     self.telosBReset();
                 elif (os.environ.get("board")=='zolertiaz1' or  os.environ.get("board")=='z1'):
                     self.bslResetZ1();
-                elif (os.environ.get("board")=='apimote'):
+                elif (os.environ.get("board")=='apimote1'):
                     #Explicitly set RTS and DTR to halt board.
                     self.serialport.setRTS(1);
                     self.serialport.setDTR(1);
@@ -669,6 +669,14 @@ class GoodFET:
         print "GoodFET with %s MCU" % self.infostring();
         print "Clocked at %s" % self.monitorclocking();
         return 1;
+
+    def testleds(self):
+        print "Flashing LEDs"
+        self.writecmd(self.MONITORAPP,0xD0,0,"");
+        try:
+            print "Flashed %d LED." % ord(self.data)
+        except:
+            print "Unable to process response:", self.data
 
     def monitor_list_apps(self, full=False): 
         self.monitor_info()

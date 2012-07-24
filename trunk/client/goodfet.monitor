@@ -19,6 +19,7 @@ if(len(sys.argv)==1):
     print "%s call 0x$start" % sys.argv[0];
     print "%s exec '0x35 0x00 0x..'" % sys.argv[0];
     print "%s listapps [full]" % sys.argv[0]
+    print "%s testleds" % sys.argv[0]
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -125,4 +126,5 @@ if(sys.argv[1]=="verify"):
             if(i%0x100==0):
                 print "%04x" % i;
 
-
+if(sys.argv[1]=="testleds"):
+    client.testleds();

@@ -31,6 +31,26 @@
 #define SPIIN  P3IN
 #define SPIREN P3REN
 
+/* INITPLATFORM         PX.7  PX.6  PX.5  PX.4  PX.3  PX.2  PX.1  PX.0
+                        HUM   HUM   HUM   RGIO1 RGIO0 PDVCC UART1TX PKT_INT
+  P1DIR = 0xe0 11100000 Out   Out   Out   In    In    In    In    In
+  P1OUT = 0x00                                              Out??
+                        UsrInt GIO3 NC    1Wire GIO2 UART1RX GIO1 GIO0
+  P2DIR = 0x7b 01111011 In    Out   Out   Out   Out   In    Out   Out
+  P2OUT = 0x10 00010000                   Hi
+                        U1RX  U1TX  U0RX  U0TX  RSCLK R_SO  R_SI  NC
+  P3DIR = 0xf1 11110001 Out   Out   Out   Out   In    In    In    Out
+  P3OUT = 0x00
+                        FHold RRST RVREFEN F_CS NC    R_CS  R_SFD NC
+  P4DIR = 0xfd 11111101 Out   Out   Out   Out   Out   Out   In    Out
+  P4OUT = 0xfd 11111101 Hi    Hi    Hi    Hi    Hi    Hi    Lo    Hi
+                        SVSoutLED3  LED2  LED1  NC    NC    NC    NC
+  P5DIR = 0xff 11111111 Out   Out   Out   Out   Out   Out   Out   Out
+  P5OUT = 0xff 11111111 Hi    Hi    Hi    Hi    Hi    Hi    Hi    Hi
+                        SVSin DAC0  ADC5  ADC4  ADC3  ADC2  ADC1  ADC0
+  P6DIR = 0xff 11111111 Out   Out   Out   Out   Out   Out   Out   Out
+  P6OUT = 0x00
+*/
 
 /* For the radio to be used:
    4.6 (!RST) must be low

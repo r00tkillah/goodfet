@@ -5,9 +5,9 @@
 #Unset by default, but can be explicitly set later.
 config=undef
 
-ifneq (,$(findstring $(board),apimote))
+ifneq (,$(findstring $(board),apimote1))
 mcu ?= msp430f2618
-platform := apimote
+platform := apimote1
 config := monitor spi ccspi
 MSP430BSL?=goodfet.bsl --speed=38400 --swap-reset-test
 CFLAGS += -Duseuart1

@@ -29,6 +29,8 @@
 #define MONITOR_WRITEBUF 0xC1
 #define MONITOR_SIZEBUF 0xC2
 
+#define MONITOR_LEDTEST 0xD0
+
 extern app_t const monitor_app;
 
 #endif // MONITOR_H

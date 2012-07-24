@@ -16,8 +16,15 @@
 void led_init()
 {
 	PLEDDIR |= PLEDPIN;
+	#ifdef PLED2OUT
+	PLED2DIR |= PLED2PIN;
+	#endif
+	#ifdef PLED3OUT
+	PLED3DIR |= PLED3PIN;
+	#endif
 }
 
+//TODO define differently if needed for telos/apimote
 void led_on()
 {
 	PLEDOUT |= PLEDPIN;
@@ -31,6 +38,24 @@ void led_toggle()
 	PLEDOUT ^= PLEDPIN;
 }
 
+//LED2 and LED3 are only used by the telosb and apimote for now
+void led2_on()
+{
+    PLED2OUT &= ~PLED2PIN;
+}
+void led2_off()
+{
+    PLED2OUT |= PLED2PIN;
+}
+void led3_on()
+{
+    PLED3OUT &= ~PLED3PIN;
+}
+void led3_off()
+{
+    PLED3OUT |= PLED3PIN;
+}
+
 //! Initialize MSP430 registers and all that jazz.
 void msp430_init(){
 	WDTCTL = WDTPW + WDTHOLD;					// Stop watchdog timer
@@ -38,7 +63,6 @@ void msp430_init(){
 	//LED out and on.
 	led_init();
 	led_off();
-
 
 	/* P5.0 out and low; this is chosen for the PIC app (in which P5.0
 	 is !MCLR) to ensure that an attached PIC chip, if present, is

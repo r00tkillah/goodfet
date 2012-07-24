@@ -33,7 +33,7 @@ void led_toggle();
 #include "config.h"
 
 #ifdef useuart1
-//TelosB uses second serial port.
+//TelosB and the ApiMote use the second serial port.
 #define serial_tx serial1_tx
 #define serial_rx serial1_rx
 #define setbaud setbaud1

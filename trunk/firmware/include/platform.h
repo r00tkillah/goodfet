@@ -15,19 +15,25 @@
 #include <stdint.h>
 
 #ifdef MSP430
-#ifdef __MSPGCC__
-#include <msp430.h>
-#else
-#include <signal.h>
-#include <msp430.h>
-#include <iomacros.h>
-#endif
+ #ifdef __MSPGCC__
+  #include <msp430.h>
+ #else
+  #include <signal.h>
+  #include <msp430.h>
+  #include <iomacros.h>
+ #endif
 
-void msp430_init();
-void led_init();  //deprecated
-void led_on();
-void led_off();
-void led_toggle();
+ void msp430_init();
+ void led_init();  //deprecated
+ void led_on();
+ void led_off();
+ void led_toggle();
+ #if defined telosb || defined apimote
+  void led2_on();
+  void led2_off();
+  void led3_on();
+  void led3_off();
+ #endif
 #endif
 
 #include "config.h"

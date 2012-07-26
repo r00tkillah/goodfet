@@ -10,7 +10,7 @@ mcu ?= msp430f2618
 platform := apimote1
 config := monitor spi ccspi
 MSP430BSL?=goodfet.bsl --speed=38400 --swap-reset-test
-CFLAGS += -Duseuart1
+CFLAGS += -Duseuart1 -Dapimote
 endif
 
 ifneq (,$(findstring $(board),goodfet20 goodfet10 goodfet11))

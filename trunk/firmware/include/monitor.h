@@ -8,7 +8,7 @@
 
 #include "app.h"
 
-// Montir app number
+// Monitor application number
 #define MONITOR 0x00
 
 // Monitor Commands

@@ -41,19 +41,27 @@ void led_toggle()
 //LED2 and LED3 are only used by the telosb and apimote for now
 void led2_on()
 {
+#ifdef PLED2OUT
     PLED2OUT &= ~PLED2PIN;
+#endif
 }
 void led2_off()
 {
+#ifdef PLED2OUT
     PLED2OUT |= PLED2PIN;
+#endif
 }
 void led3_on()
 {
+#ifdef PLED3OUT
     PLED3OUT &= ~PLED3PIN;
+#endif
 }
 void led3_off()
 {
+#ifdef PLED3OUT
     PLED3OUT |= PLED3PIN;
+#endif
 }
 
 //! Initialize MSP430 registers and all that jazz.

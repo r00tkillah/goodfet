@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.2">
+<eagle version="6.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -8,20 +8,20 @@
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
-<layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
-<layer number="17" name="Pads" color="2" fill="1" visible="no" active="no"/>
-<layer number="18" name="Vias" color="2" fill="1" visible="no" active="no"/>
-<layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="no"/>
-<layer number="20" name="Dimension" color="15" fill="1" visible="no" active="no"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="no"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="no" active="no"/>
-<layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="no"/>
-<layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="no"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="no" active="no"/>
-<layer number="26" name="bNames" color="7" fill="1" visible="no" active="no"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="no" active="no"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="no" active="no"/>
+<layer number="1" name="Top" color="4" fill="1" visible="yes" active="no"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="no"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="no"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="no"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="no"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="no"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="no"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="no"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="no"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="no"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="no"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="no"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="no"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="no"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="no"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="no"/>
 <layer number="31" name="tCream" color="7" fill="4" visible="no" active="no"/>
@@ -30,8 +30,8 @@
 <layer number="34" name="bFinish" color="6" fill="6" visible="no" active="no"/>
 <layer number="35" name="tGlue" color="7" fill="4" visible="no" active="no"/>
 <layer number="36" name="bGlue" color="7" fill="5" visible="no" active="no"/>
-<layer number="37" name="tTest" color="7" fill="1" visible="no" active="no"/>
-<layer number="38" name="bTest" color="7" fill="1" visible="no" active="no"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="yes" active="no"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="yes" active="no"/>
 <layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="no"/>
 <layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="no"/>
 <layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="no"/>
@@ -39,16 +39,16 @@
 <layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="no"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="no" active="no"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="no" active="no"/>
-<layer number="46" name="Milling" color="3" fill="1" visible="no" active="no"/>
-<layer number="47" name="Measures" color="7" fill="1" visible="no" active="no"/>
-<layer number="48" name="Document" color="7" fill="1" visible="no" active="no"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="no" active="no"/>
-<layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="no"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="no"/>
-<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
-<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
-<layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="yes" active="no"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="yes" active="no"/>
+<layer number="48" name="Document" color="7" fill="1" visible="yes" active="no"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="no"/>
+<layer number="50" name="dxf" color="7" fill="1" visible="yes" active="no"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="no"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="no"/>
+<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="yes" active="no"/>
+<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="yes" active="no"/>
+<layer number="56" name="wert" color="7" fill="1" visible="yes" active="no"/>
 <layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="93" name="Pins" color="2" fill="1" visible="no" active="yes"/>
@@ -8522,77 +8522,6 @@ Source: www.cypressindustries.com</description>
 </deviceset>
 </devicesets>
 </library>
-<library name="MCP2551">
-<packages>
-<package name="SOIC-8">
-<smd name="TXD" x="-2.54" y="1.905" dx="1.27" dy="0.635" layer="1" rot="R180"/>
-<smd name="VSS" x="-2.54" y="0.635" dx="1.27" dy="0.635" layer="1" rot="R180"/>
-<smd name="VDD" x="-2.54" y="-0.635" dx="1.27" dy="0.635" layer="1" rot="R180"/>
-<smd name="RXD" x="-2.54" y="-1.905" dx="1.27" dy="0.635" layer="1" rot="R180"/>
-<smd name="VREF" x="2.54" y="-1.905" dx="1.27" dy="0.635" layer="1"/>
-<smd name="CANL" x="2.54" y="-0.635" dx="1.27" dy="0.635" layer="1"/>
-<smd name="CANH" x="2.54" y="0.635" dx="1.27" dy="0.635" layer="1"/>
-<smd name="RS" x="2.54" y="1.905" dx="1.27" dy="0.635" layer="1"/>
-<wire x1="1.905" y1="2.54" x2="-1.905" y2="2.54" width="0.127" layer="1"/>
-<wire x1="-1.905" y1="2.54" x2="-1.905" y2="-2.54" width="0.127" layer="1"/>
-<wire x1="-1.905" y1="-2.54" x2="1.905" y2="-2.54" width="0.127" layer="1"/>
-<wire x1="1.905" y1="-2.54" x2="1.905" y2="2.54" width="0.127" layer="1"/>
-<text x="-2.54" y="3.175" size="1.016" layer="25">Name</text>
-<text x="-3.175" y="-4.445" size="1.016" layer="27">Value</text>
-<circle x="-1.27" y="1.905" radius="0.127" width="0.127" layer="1"/>
-</package>
-</packages>
-<symbols>
-<symbol name="MCP2551">
-<description>The MCP2551 is a high-speed CAN, fault-tolerant device that serves as the interface between a CAN 
-protocol controller and the physical bus. The MCP2551 provides differential transmit and receive capability 
-for the CAN protocol controller and is fully compatible with the ISO-11898 standard, including 24V requirements.  It will operate at speeds of up to 1 Mb/s. Typically, each node in a CAN system must have a device to convert the digital signals generated by a CAN controller to signals suitable for transmission over the bus cabling (differential output). It also provides a buffer between the CAN controller and the high-voltage spikes that can be generated on the CAN bus by outside sources (EMI, ESD, electrical transients, etc.).</description>
-<pin name="TXD" x="-15.24" y="2.54" visible="pin" length="middle"/>
-<pin name="VSS" x="-15.24" y="0" visible="pin" length="middle"/>
-<pin name="VDD" x="-15.24" y="-2.54" visible="pin" length="middle"/>
-<pin name="RXD" x="-15.24" y="-5.08" visible="pin" length="middle"/>
-<pin name="VREF" x="17.78" y="-5.08" visible="pin" length="middle" rot="R180"/>
-<pin name="CANL" x="17.78" y="-2.54" visible="pin" length="middle" rot="R180"/>
-<pin name="CANH" x="17.78" y="0" visible="pin" length="middle" rot="R180"/>
-<pin name="RS" x="17.78" y="2.54" visible="pin" length="middle" rot="R180"/>
-<circle x="-7.62" y="5.08" radius="0.508" width="0.127" layer="94"/>
-<wire x1="-10.16" y1="7.62" x2="-10.16" y2="-10.16" width="0.254" layer="94"/>
-<wire x1="-10.16" y1="-10.16" x2="12.7" y2="-10.16" width="0.254" layer="94"/>
-<wire x1="12.7" y1="-10.16" x2="12.7" y2="7.62" width="0.254" layer="94"/>
-<wire x1="-10.16" y1="7.62" x2="12.7" y2="7.62" width="0.254" layer="94"/>
-<text x="-5.08" y="-12.7" size="1.778" layer="95">MCP2551</text>
-</symbol>
-</symbols>
-<devicesets>
-<deviceset name="MCP2551">
-<description>The MCP2551 is a high-speed CAN, fault-tolerant device that serves as the interface 
-between a CAN protocol controller and the physical bus. The MCP2551 provides differential 
-transmit and receive capability for the CAN protocol controller and is fully compatible with the 
-ISO-11898 standard, including 24V requirements. It will operate at speeds of up to 1 Mb/s.
-Typically, each node in a CAN system must have a device to convert the digital signals generated by a CAN controller to signals suitable for transmission over the bus cabling (differential output). It also provides a buffer between the CAN controller and the high-voltage spikes that can be generated on the CAN bus by outside sources (EMI, ESD, electrical transients, etc.).</description>
-<gates>
-<gate name="G$1" symbol="MCP2551" x="-2.54" y="2.54"/>
-</gates>
-<devices>
-<device name="" package="SOIC-8">
-<connects>
-<connect gate="G$1" pin="CANH" pad="CANH"/>
-<connect gate="G$1" pin="CANL" pad="CANL"/>
-<connect gate="G$1" pin="RS" pad="RS"/>
-<connect gate="G$1" pin="RXD" pad="RXD"/>
-<connect gate="G$1" pin="TXD" pad="TXD"/>
-<connect gate="G$1" pin="VDD" pad="VDD"/>
-<connect gate="G$1" pin="VREF" pad="VREF"/>
-<connect gate="G$1" pin="VSS" pad="VSS"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-</devicesets>
-</library>
 <library name="con-lstb">
 <description>&lt;b&gt;Pin Headers&lt;/b&gt;&lt;p&gt;
 Naming:&lt;p&gt;
@@ -8710,6 +8639,76 @@ W = angled&lt;p&gt;
 </deviceset>
 </devicesets>
 </library>
+<library name="MCP2551">
+<packages>
+<package name="SOIC-8">
+<smd name="TXD" x="-2.54" y="1.905" dx="1.27" dy="0.635" layer="1" rot="R180"/>
+<smd name="VSS" x="-2.54" y="0.635" dx="1.27" dy="0.635" layer="1" rot="R180"/>
+<smd name="VDD" x="-2.54" y="-0.635" dx="1.27" dy="0.635" layer="1" rot="R180"/>
+<smd name="RXD" x="-2.54" y="-1.905" dx="1.27" dy="0.635" layer="1" rot="R180"/>
+<smd name="VREF" x="2.54" y="-1.905" dx="1.27" dy="0.635" layer="1"/>
+<smd name="CANL" x="2.54" y="-0.635" dx="1.27" dy="0.635" layer="1"/>
+<smd name="CANH" x="2.54" y="0.635" dx="1.27" dy="0.635" layer="1"/>
+<smd name="RS" x="2.54" y="1.905" dx="1.27" dy="0.635" layer="1"/>
+<wire x1="1.905" y1="2.54" x2="-1.905" y2="2.54" width="0.127" layer="1"/>
+<wire x1="-1.905" y1="2.54" x2="-1.905" y2="-2.54" width="0.127" layer="1"/>
+<wire x1="-1.905" y1="-2.54" x2="1.905" y2="-2.54" width="0.127" layer="1"/>
+<wire x1="1.905" y1="-2.54" x2="1.905" y2="2.54" width="0.127" layer="1"/>
+<circle x="-1.27" y="1.905" radius="0.127" width="0.127" layer="1"/>
+<text x="2.54" y="3.81" size="0.8128" layer="21" rot="R180">MCP2551</text>
+</package>
+</packages>
+<symbols>
+<symbol name="MCP2551">
+<description>The MCP2551 is a high-speed CAN, fault-tolerant device that serves as the interface between a CAN 
+protocol controller and the physical bus. The MCP2551 provides differential transmit and receive capability 
+for the CAN protocol controller and is fully compatible with the ISO-11898 standard, including 24V requirements.  It will operate at speeds of up to 1 Mb/s. Typically, each node in a CAN system must have a device to convert the digital signals generated by a CAN controller to signals suitable for transmission over the bus cabling (differential output). It also provides a buffer between the CAN controller and the high-voltage spikes that can be generated on the CAN bus by outside sources (EMI, ESD, electrical transients, etc.).</description>
+<pin name="TXD" x="-15.24" y="2.54" visible="pin" length="middle"/>
+<pin name="VSS" x="-15.24" y="0" visible="pin" length="middle"/>
+<pin name="VDD" x="-15.24" y="-2.54" visible="pin" length="middle"/>
+<pin name="RXD" x="-15.24" y="-5.08" visible="pin" length="middle"/>
+<pin name="VREF" x="17.78" y="-5.08" visible="pin" length="middle" rot="R180"/>
+<pin name="CANL" x="17.78" y="-2.54" visible="pin" length="middle" rot="R180"/>
+<pin name="CANH" x="17.78" y="0" visible="pin" length="middle" rot="R180"/>
+<pin name="RS" x="17.78" y="2.54" visible="pin" length="middle" rot="R180"/>
+<circle x="-7.62" y="5.08" radius="0.508" width="0.127" layer="94"/>
+<wire x1="-10.16" y1="7.62" x2="-10.16" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="-10.16" x2="12.7" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="12.7" y1="-10.16" x2="12.7" y2="7.62" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="7.62" x2="12.7" y2="7.62" width="0.254" layer="94"/>
+<text x="-5.08" y="-12.7" size="1.778" layer="95">MCP2551</text>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="MCP2551">
+<description>The MCP2551 is a high-speed CAN, fault-tolerant device that serves as the interface 
+between a CAN protocol controller and the physical bus. The MCP2551 provides differential 
+transmit and receive capability for the CAN protocol controller and is fully compatible with the 
+ISO-11898 standard, including 24V requirements. It will operate at speeds of up to 1 Mb/s.
+Typically, each node in a CAN system must have a device to convert the digital signals generated by a CAN controller to signals suitable for transmission over the bus cabling (differential output). It also provides a buffer between the CAN controller and the high-voltage spikes that can be generated on the CAN bus by outside sources (EMI, ESD, electrical transients, etc.).</description>
+<gates>
+<gate name="G$1" symbol="MCP2551" x="-2.54" y="2.54"/>
+</gates>
+<devices>
+<device name="" package="SOIC-8">
+<connects>
+<connect gate="G$1" pin="CANH" pad="CANH"/>
+<connect gate="G$1" pin="CANL" pad="CANL"/>
+<connect gate="G$1" pin="RS" pad="RS"/>
+<connect gate="G$1" pin="RXD" pad="RXD"/>
+<connect gate="G$1" pin="TXD" pad="TXD"/>
+<connect gate="G$1" pin="VDD" pad="VDD"/>
+<connect gate="G$1" pin="VREF" pad="VREF"/>
+<connect gate="G$1" pin="VSS" pad="VSS"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -8744,7 +8743,6 @@ W = angled&lt;p&gt;
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
 <part name="292304-2" library="USB-TYPE-B" deviceset="MINI-USB_4P-" device="292304-2"/>
-<part name="U$2" library="MCP2551" deviceset="MCP2551" device=""/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="C5" library="rcl" deviceset="C-EU" device="C0603" value="0.1uF"/>
@@ -8762,6 +8760,7 @@ W = angled&lt;p&gt;
 <part name="CAN_IO" library="con-lstb" deviceset="MA06-1" device=""/>
 <part name="VCC5V" library="supply1" deviceset="VCC" device=""/>
 <part name="Q2" library="crystal" deviceset="CRYSTAL" device="HC49UP" value="20MHz"/>
+<part name="U$2" library="MCP2551" deviceset="MCP2551" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -8805,7 +8804,6 @@ W = angled&lt;p&gt;
 <instance part="GND2" gate="1" x="99.06" y="93.98"/>
 <instance part="GND6" gate="1" x="35.56" y="81.28"/>
 <instance part="292304-2" gate="G$1" x="-33.02" y="68.58" rot="R180"/>
-<instance part="U$2" gate="G$1" x="-5.08" y="137.16"/>
 <instance part="GND7" gate="1" x="20.32" y="147.32" rot="R180"/>
 <instance part="GND9" gate="1" x="-35.56" y="132.08"/>
 <instance part="C5" gate="G$1" x="-22.86" y="154.94" rot="R180"/>
@@ -8823,6 +8821,7 @@ W = angled&lt;p&gt;
 <instance part="CAN_IO" gate="1" x="68.58" y="149.86" rot="R180"/>
 <instance part="VCC5V" gate="VCC" x="-30.48" y="170.18"/>
 <instance part="Q2" gate="G$1" x="-22.86" y="104.14" rot="R90"/>
+<instance part="U$2" gate="G$1" x="-5.08" y="137.16"/>
 </instances>
 <busses>
 </busses>
@@ -8913,7 +8912,6 @@ W = angled&lt;p&gt;
 <pinref part="P+1" gate="VCC" pin="VCC"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="VDD"/>
 <wire x1="-20.32" y1="134.62" x2="-30.48" y2="134.62" width="0.1524" layer="91"/>
 <wire x1="-30.48" y1="134.62" x2="-30.48" y2="162.56" width="0.1524" layer="91"/>
 <wire x1="-30.48" y1="162.56" x2="-30.48" y2="165.1" width="0.1524" layer="91"/>
@@ -8924,6 +8922,7 @@ W = angled&lt;p&gt;
 <label x="-30.48" y="144.78" size="1.778" layer="95" rot="R90"/>
 <pinref part="VCC5V" gate="VCC" pin="VCC"/>
 <wire x1="-30.48" y1="167.64" x2="-30.48" y2="162.56" width="0.1524" layer="91"/>
+<pinref part="U$2" gate="G$1" pin="VDD"/>
 </segment>
 </net>
 <net name="RXD" class="0">
@@ -9031,16 +9030,16 @@ W = angled&lt;p&gt;
 <wire x1="35.56" y1="86.36" x2="43.18" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="RS"/>
 <wire x1="12.7" y1="139.7" x2="20.32" y2="139.7" width="0.1524" layer="91"/>
 <pinref part="GND7" gate="1" pin="GND"/>
 <wire x1="20.32" y1="139.7" x2="20.32" y2="144.78" width="0.1524" layer="91"/>
+<pinref part="U$2" gate="G$1" pin="RS"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="VSS"/>
 <pinref part="GND9" gate="1" pin="GND"/>
 <wire x1="-20.32" y1="137.16" x2="-35.56" y2="137.16" width="0.1524" layer="91"/>
 <wire x1="-35.56" y1="137.16" x2="-35.56" y2="134.62" width="0.1524" layer="91"/>
+<pinref part="U$2" gate="G$1" pin="VSS"/>
 </segment>
 <segment>
 <pinref part="C5" gate="G$1" pin="1"/>
@@ -9182,9 +9181,9 @@ W = angled&lt;p&gt;
 <pinref part="TX_LED" gate="G$1" pin="C"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="TXD"/>
 <wire x1="-20.32" y1="139.7" x2="-27.94" y2="139.7" width="0.1524" layer="91"/>
 <label x="-27.94" y="139.7" size="1.778" layer="95"/>
+<pinref part="U$2" gate="G$1" pin="TXD"/>
 </segment>
 <segment>
 <pinref part="CAN_IO" gate="1" pin="1"/>
@@ -9201,9 +9200,9 @@ W = angled&lt;p&gt;
 <pinref part="RX_LED" gate="G$1" pin="C"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="RXD"/>
 <wire x1="-20.32" y1="132.08" x2="-27.94" y2="132.08" width="0.1524" layer="91"/>
 <label x="-27.94" y="132.08" size="1.778" layer="95"/>
+<pinref part="U$2" gate="G$1" pin="RXD"/>
 </segment>
 <segment>
 <pinref part="CAN_IO" gate="1" pin="2"/>
@@ -9267,9 +9266,9 @@ W = angled&lt;p&gt;
 </net>
 <net name="CANL" class="0">
 <segment>
-<pinref part="U$2" gate="G$1" pin="CANL"/>
 <wire x1="12.7" y1="134.62" x2="20.32" y2="134.62" width="0.1524" layer="91"/>
 <label x="12.7" y="134.62" size="1.778" layer="95"/>
+<pinref part="U$2" gate="G$1" pin="CANL"/>
 </segment>
 <segment>
 <pinref part="CAN(12V)" gate="G$1" pin="2"/>
@@ -9279,9 +9278,9 @@ W = angled&lt;p&gt;
 </net>
 <net name="CANH" class="0">
 <segment>
-<pinref part="U$2" gate="G$1" pin="CANH"/>
 <wire x1="12.7" y1="137.16" x2="20.32" y2="137.16" width="0.1524" layer="91"/>
 <label x="12.7" y="137.16" size="1.778" layer="95"/>
+<pinref part="U$2" gate="G$1" pin="CANH"/>
 </segment>
 <segment>
 <pinref part="CAN(12V)" gate="G$1" pin="7"/>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.1">
+<eagle version="6.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -8,20 +8,20 @@
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
-<layer number="1" name="Top" color="4" fill="1" visible="yes" active="no"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="no"/>
-<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="no"/>
-<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="no"/>
-<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="no"/>
-<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="no"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="no"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="no"/>
-<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="no"/>
-<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="no"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="no"/>
-<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="no"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="no"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="no"/>
+<layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="no" active="no"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="no" active="no"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="no"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="no" active="no"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="no"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="no" active="no"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="no"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="no"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="no" active="no"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="no" active="no"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="no" active="no"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="no" active="no"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="no"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="no"/>
 <layer number="31" name="tCream" color="7" fill="4" visible="no" active="no"/>
@@ -30,8 +30,8 @@
 <layer number="34" name="bFinish" color="6" fill="6" visible="no" active="no"/>
 <layer number="35" name="tGlue" color="7" fill="4" visible="no" active="no"/>
 <layer number="36" name="bGlue" color="7" fill="5" visible="no" active="no"/>
-<layer number="37" name="tTest" color="7" fill="1" visible="yes" active="no"/>
-<layer number="38" name="bTest" color="7" fill="1" visible="yes" active="no"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="no" active="no"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="no" active="no"/>
 <layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="no"/>
 <layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="no"/>
 <layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="no"/>
@@ -39,16 +39,16 @@
 <layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="no"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="no" active="no"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="no" active="no"/>
-<layer number="46" name="Milling" color="3" fill="1" visible="yes" active="no"/>
-<layer number="47" name="Measures" color="7" fill="1" visible="yes" active="no"/>
-<layer number="48" name="Document" color="7" fill="1" visible="yes" active="no"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="no"/>
-<layer number="50" name="dxf" color="7" fill="1" visible="yes" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="no"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="no"/>
-<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="yes" active="no"/>
-<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="yes" active="no"/>
-<layer number="56" name="wert" color="7" fill="1" visible="yes" active="no"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="no" active="no"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="no" active="no"/>
+<layer number="48" name="Document" color="7" fill="1" visible="no" active="no"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="no" active="no"/>
+<layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="no"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="no"/>
+<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
+<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
+<layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
 <layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="93" name="Pins" color="2" fill="1" visible="no" active="yes"/>
@@ -8650,12 +8650,12 @@ W = angled&lt;p&gt;
 <smd name="CANL" x="2.54" y="-0.635" dx="1.27" dy="0.635" layer="1"/>
 <smd name="CANH" x="2.54" y="0.635" dx="1.27" dy="0.635" layer="1"/>
 <smd name="RS" x="2.54" y="1.905" dx="1.27" dy="0.635" layer="1"/>
-<wire x1="1.905" y1="2.54" x2="-1.905" y2="2.54" width="0.127" layer="1"/>
-<wire x1="-1.905" y1="2.54" x2="-1.905" y2="-2.54" width="0.127" layer="1"/>
-<wire x1="-1.905" y1="-2.54" x2="1.905" y2="-2.54" width="0.127" layer="1"/>
-<wire x1="1.905" y1="-2.54" x2="1.905" y2="2.54" width="0.127" layer="1"/>
-<circle x="-1.27" y="1.905" radius="0.127" width="0.127" layer="1"/>
-<text x="2.54" y="3.81" size="0.8128" layer="21" rot="R180">MCP2551</text>
+<wire x1="1.905" y1="2.54" x2="-1.905" y2="2.54" width="0.127" layer="21"/>
+<wire x1="-1.905" y1="2.54" x2="-1.905" y2="-2.54" width="0.127" layer="21"/>
+<wire x1="-1.905" y1="-2.54" x2="1.905" y2="-2.54" width="0.127" layer="21"/>
+<wire x1="1.905" y1="-2.54" x2="1.905" y2="2.54" width="0.127" layer="21"/>
+<text x="-2.54" y="3.175" size="1.016" layer="25">MCP2551</text>
+<circle x="-1.27" y="1.905" radius="0.127" width="0.127" layer="21"/>
 </package>
 </packages>
 <symbols>
@@ -8749,9 +8749,8 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="TX_LED" library="led" deviceset="LED" device="CHIP-LED0603"/>
 <part name="RX_LED" library="led" deviceset="LED" device="CHIP-LED0603"/>
-<part name="R2" library="rcl" deviceset="R-US_" device="R0603" value="470"/>
-<part name="R3" library="rcl" deviceset="R-US_" device="R0603" value="470"/>
-<part name="P+6" library="supply1" deviceset="VCC" device=""/>
+<part name="R2" library="rcl" deviceset="R-US_" device="R0603" value="330"/>
+<part name="R3" library="rcl" deviceset="R-US_" device="R0603" value="330"/>
 <part name="P+7" library="supply1" deviceset="VCC" device=""/>
 <part name="R4" library="rcl" deviceset="R-US_" device="R0603" value="10k"/>
 <part name="C6" library="rcl" deviceset="C-EU" device="C0603" value="0.1uF"/>
@@ -8765,12 +8764,10 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <sheets>
 <sheet>
 <plain>
-<text x="2.54" y="15.24" size="1.778" layer="91">Travis Goodspeed</text>
-<text x="2.54" y="12.7" size="1.778" layer="91">&lt;Travis at RadiantMachines.com&gt;</text>
-<text x="-17.78" y="7.62" size="1.778" layer="91">GoodThopter10</text>
-<text x="-17.78" y="5.08" size="1.778" layer="91">A Sexy GoodFET CAN Adapter</text>
-<text x="-43.18" y="15.24" size="1.778" layer="91">Andrew Righter</text>
-<text x="-43.18" y="12.7" size="1.778" layer="91">&lt;andrew.righter at gmail.com&gt;</text>
+<text x="-17.78" y="15.24" size="1.778" layer="91">GoodThopter10</text>
+<text x="-17.78" y="12.7" size="1.778" layer="91">A Sexy GoodFET CAN Adapter</text>
+<text x="-17.78" y="5.08" size="1.778" layer="91">Andrew Righter</text>
+<text x="-17.78" y="2.54" size="1.778" layer="91">&lt;andrew.righter at gmail.com&gt;</text>
 <text x="101.6" y="147.32" size="1.27" layer="95">Crystal - Parallel Cut Crystal</text>
 <text x="101.6" y="149.86" size="1.27" layer="95">Notes:</text>
 <text x="101.6" y="144.78" size="1.27" layer="95">No SPI operations until Osc Startup Timer (OST) Expires</text>
@@ -8778,6 +8775,7 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <text x="-40.64" y="91.44" size="1.27" layer="95">MCP2515 Crystal Circuit</text>
 <text x="-40.64" y="60.96" size="1.778" layer="95" rot="R90">292304-2</text>
 <text x="101.6" y="139.7" size="1.27" layer="95">All NC inputs must be run to Vcc or GND</text>
+<text x="45.72" y="162.56" size="1.778" layer="91">Test Only: Do Not Populate</text>
 </plain>
 <instances>
 <instance part="GND3" gate="1" x="-20.32" y="78.74" rot="R180"/>
@@ -8812,7 +8810,6 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <instance part="RX_LED" gate="G$1" x="22.86" y="114.3"/>
 <instance part="R2" gate="G$1" x="30.48" y="124.46" rot="R180"/>
 <instance part="R3" gate="G$1" x="43.18" y="121.92" rot="R180"/>
-<instance part="P+6" gate="VCC" x="60.96" y="124.46" rot="R270"/>
 <instance part="P+7" gate="VCC" x="55.88" y="132.08"/>
 <instance part="R4" gate="G$1" x="88.9" y="116.84" rot="R270"/>
 <instance part="C6" gate="G$1" x="76.2" y="127" rot="R180"/>
@@ -8897,19 +8894,25 @@ Typically, each node in a CAN system must have a device to convert the digital s
 </segment>
 <segment>
 <pinref part="R2" gate="G$1" pin="1"/>
-<pinref part="P+6" gate="VCC" pin="VCC"/>
-<wire x1="35.56" y1="124.46" x2="58.42" y2="124.46" width="0.1524" layer="91"/>
-</segment>
-<segment>
+<wire x1="35.56" y1="124.46" x2="55.88" y2="124.46" width="0.1524" layer="91"/>
 <pinref part="R3" gate="G$1" pin="1"/>
 <pinref part="P+7" gate="VCC" pin="VCC"/>
 <wire x1="48.26" y1="121.92" x2="55.88" y2="121.92" width="0.1524" layer="91"/>
-<wire x1="55.88" y1="121.92" x2="55.88" y2="129.54" width="0.1524" layer="91"/>
+<wire x1="55.88" y1="121.92" x2="55.88" y2="124.46" width="0.1524" layer="91"/>
+<junction x="55.88" y="124.46"/>
+<wire x1="55.88" y1="124.46" x2="55.88" y2="129.54" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="VDD"/>
-<wire x1="81.28" y1="109.22" x2="81.28" y2="137.16" width="0.1524" layer="91"/>
+<wire x1="81.28" y1="109.22" x2="81.28" y2="132.08" width="0.1524" layer="91"/>
 <pinref part="P+1" gate="VCC" pin="VCC"/>
+<pinref part="R4" gate="G$1" pin="1"/>
+<wire x1="81.28" y1="132.08" x2="81.28" y2="137.16" width="0.1524" layer="91"/>
+<wire x1="88.9" y1="121.92" x2="88.9" y2="132.08" width="0.1524" layer="91"/>
+<wire x1="88.9" y1="132.08" x2="81.28" y2="132.08" width="0.1524" layer="91"/>
+<pinref part="C6" gate="G$1" pin="2"/>
+<junction x="81.28" y="132.08"/>
+<wire x1="81.28" y1="132.08" x2="76.2" y2="132.08" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <wire x1="-20.32" y1="134.62" x2="-30.48" y2="134.62" width="0.1524" layer="91"/>
@@ -9051,20 +9054,22 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <wire x1="76.2" y1="124.46" x2="76.2" y2="121.92" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$3" class="0">
+<net name="USBDP" class="0">
 <segment>
-<wire x1="-20.32" y1="63.5" x2="-2.54" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="-17.78" y1="63.5" x2="-2.54" y2="63.5" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="G$1" pin="USBDP"/>
-<wire x1="-20.32" y1="63.5" x2="-20.32" y2="68.58" width="0.1524" layer="91"/>
-<wire x1="-20.32" y1="68.58" x2="-27.94" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="-17.78" y1="63.5" x2="-17.78" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="-17.78" y1="68.58" x2="-27.94" y2="68.58" width="0.1524" layer="91"/>
 <pinref part="292304-2" gate="G$1" pin="3"/>
+<label x="-27.94" y="68.58" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$4" class="0">
+<net name="USBDM" class="0">
 <segment>
 <wire x1="-2.54" y1="66.04" x2="-27.94" y2="66.04" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="G$1" pin="USBDM"/>
 <pinref part="292304-2" gate="G$1" pin="2"/>
+<label x="-27.94" y="66.04" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$6" class="0">
@@ -9312,14 +9317,6 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <wire x1="88.9" y1="106.68" x2="88.9" y2="111.76" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$11" class="0">
-<segment>
-<pinref part="R4" gate="G$1" pin="1"/>
-<wire x1="88.9" y1="121.92" x2="88.9" y2="132.08" width="0.1524" layer="91"/>
-<wire x1="88.9" y1="132.08" x2="76.2" y2="132.08" width="0.1524" layer="91"/>
-<pinref part="C6" gate="G$1" pin="2"/>
-</segment>
-</net>
 <net name="CLKOUT" class="0">
 <segment>
 <pinref part="CAN_IO" gate="1" pin="3"/>
@@ -9368,9 +9365,30 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <label x="50.8" y="144.78" size="1.778" layer="95" font="fixed"/>
 </segment>
 </net>
+<net name="!CS" class="0">
+<segment>
+<pinref part="IC1" gate="G$1" pin="11"/>
+<wire x1="78.74" y1="45.72" x2="71.12" y2="45.72" width="0.1524" layer="91"/>
+<label x="71.12" y="45.72" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="!CS"/>
+<wire x1="81.28" y1="104.14" x2="88.9" y2="104.14" width="0.1524" layer="91"/>
+<label x="83.82" y="104.14" size="1.778" layer="95"/>
+</segment>
+</net>
 </nets>
 </sheet>
 </sheets>
+<errors>
+<approved hash="208,1,-2.54,55.88,VCC,out,,,,"/>
+<approved hash="208,1,-12.7,55.88,VCC,sup,,,,"/>
+<approved hash="208,1,43.18,55.88,VCC,sup,,,,"/>
+<approved hash="208,1,5.08,96.52,VCC,sup,,,,"/>
+<approved hash="208,1,55.88,129.54,VCC,sup,,,,"/>
+<approved hash="208,1,81.28,137.16,VCC,sup,,,,"/>
+<approved hash="208,1,-30.48,167.64,VCC,sup,,,,"/>
+</errors>
 </schematic>
 </drawing>
 </eagle>

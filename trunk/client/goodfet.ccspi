@@ -23,6 +23,10 @@ if(len(sys.argv)==1):
     print "%s txtest" % sys.argv[0];
     
     print "\n%s rssi" % sys.argv[0];
+    print "%s spectrum" % sys.argv[0];
+    print "%s spectrumcsv" % sys.argv[0];
+    
+    print "\n%s surf" % sys.argv[0];
     print "%s sniff [chan]" % sys.argv[0];
     print "%s bsniff [chan]" % sys.argv[0];
     print "%s sniffdissect" % sys.argv[0];
@@ -118,11 +122,73 @@ if(sys.argv[1]=="rssi"):
         for foo in range(0,rssi>>2):
             string=("%s."%string);
         print "%02x %04i %s" % (rssi,rssi, string); 
+if(sys.argv[1]=="spectrum"):
+    for chan in range(2400000000,2480000000,5000000):
+        client.RF_setfreq(chan);
+        #print "Listening on %f MHz." % (client.RF_getfreq()/10.0**6);
+        
+        client.strobe(0x02); #Calibrate
+        #time.sleep(0.01);
+        
+        maxrssi=0;
+        for foo in range(1,10):
+            client.CC_RFST_RX();
+            rssi=client.RF_getrssi();
+            maxrssi=max(rssi,maxrssi);
+        string="";
+        for foo in range(50,rssi):
+            string=("%s."%string);
+        print "%04i %i %s" % (client.RF_getfreq()/10.0**6,rssi, string); 
+if(sys.argv[1]=="spectrumcsv"):
+    start=time.time();
+    while 1:
+        for freq in range(2400000000,2480000000,1000000):
+            client.RF_setfreq(freq);
+            
+            client.strobe(0x02); #Calibrate
+            client.CC_RFST_RX();
+            rssi=client.RF_getrssi();
+        
+            print "%f %i %3i" % (
+                time.time()-start,
+                client.RF_getfreq()/10.0**6,
+                rssi); 
+        sys.stdout.flush();
+
+if sys.argv[1]=="surf":
+    print "Scanning channels [11,26].";
+    
+    #Promiscuous mode.
+    client.RF_promiscuity(1);
+    client.RF_autocrc(1);
+    
+    chan=11;
+    if len(sys.argv)>2:
+        chan=eval(sys.argv[2]);
+        
+    client.CC_RFST_RX();
+    
+    #Now we're ready to get packets.
+    while 1:
+        if chan>26: chan=11;
+        
+        client.setup(); #Really oughtn't be necessary, but can't hurt.
+        client.RF_setchan(chan);
+        
+        packet=None;
+        lasttime=time.time();
+        while packet==None and time.time()-lasttime<0.5:
+            packet=client.RF_rxpacket();
+        if packet!=None:
+            client.printpacket(packet=packet,
+                           prefix=("%02d: "%chan));
+        sys.stdout.flush();
+        chan=chan+1;
 
 if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
     #Promiscuous mode.
     client.RF_promiscuity(1);
-    client.RF_autocrc(0);
+    client.RF_autocrc(1);
     
     if len(sys.argv)>2:
         freq=eval(sys.argv[2]);
@@ -137,6 +203,9 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
                                             client.RF_getfreq()/10**6);
     #Now we're ready to get packets.
     while 1:
+        client.setup(); #Really oughtn't be necessary, but can't hurt.
+        client.CC_RFST_RX();
+        
         packet=None;
         while packet==None:
             packet=client.RF_rxpacket();

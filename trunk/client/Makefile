@@ -1,4 +1,5 @@
-
+#This is a py2exe Makefile for the Windows port, which is only
+#maintained when Travis gets stuck doing MSP430 manufacturing.
 
 link:
 	rm -f /usr/local/bin/goodfet.* /usr/local/bin/goodfet

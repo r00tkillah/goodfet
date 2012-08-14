@@ -83,7 +83,7 @@ public:
 
     //! Setup the Chipcon radio for use.
     Q_INVOKABLE void CCsetup(){
-        cmd(0x51,0x10,0x00,0); //FIXME WTF does this do?
+        cmd(0x51,0x10,0x00,0); //CCSPI/SETUP
         CCstrobe(0x01); //SXOSCON
         CCstrobe(0x02); //SCAL
         CCpoke(0x11,0x0AC2&(~0x0800)); //MDMCTRL0, cleared to be promiscuous

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # GoodFET Chipcon RF Radio Client
 # 
-# (C) 2009 Travis Goodspeed <travis at radiantmachines.com>
+# (C) 2009, 2012 Travis Goodspeed <travis at radiantmachines.com>
 #
 # This code is being rewritten and refactored.  You've been warned!
 
@@ -20,11 +20,12 @@ class GoodFETCCSPI(GoodFET):
         #Set up the radio for ZigBee
         self.strobe(0x01);       #SXOSCON
         self.strobe(0x02);       #SCAL
-        self.poke(0x11, 0x0AC2); #MDMCTRL0
+        self.poke(0x11, 0x0AC2 & (~0x0800)); #MDMCTRL0, promiscuous
         self.poke(0x12, 0x0500); #MDMCTRL1
         self.poke(0x1C, 0x007F); #IOCFG0
         self.poke(0x19, 0x01C4); #SECCTRL0, disabling crypto
-        self.RF_setsync();
+        #self.poke(0x19, 0x0204); #SECCTRL0, as seen elsewhere.
+        #self.RF_setsync();
         
     def ident(self):
         return self.peek(0x1E); #MANFIDL
@@ -58,10 +59,10 @@ class GoodFETCCSPI(GoodFET):
         self.strobe(0x04);  #0x05 for CCA
     def CC_RFST_RX(self):
         """Switch the radio to RX mode."""
-        self.strobe(0x03);
+        self.strobe(0x03); #RX ON
     def CC_RFST_CAL(self):
         """Calibrate strobe the radio."""
-        self.strobe(0x02);
+        self.strobe(0x02); #RX Calibrate
     def CC_RFST(self,state=0x00):
         self.strobe(state);
         return;
@@ -133,10 +134,13 @@ class GoodFETCCSPI(GoodFET):
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         mhz=frequency/1000000;
-        fsctrl=0x8000; #self.peek(0x18)&(~0x3FF);
+        #fsctrl=0x8000; #
+        fsctrl=self.peek(0x18)&(~0x3FF);
         fsctrl=fsctrl+int(mhz-2048)
         self.poke(0x18,fsctrl);
+        #self.CC_RFST_IDLE();
         self.strobe(0x02);#SCAL
+        time.sleep(0.01);
         self.strobe(0x03);#SRXON
     def RF_getfreq(self):
         """Get the frequency in Hz."""
@@ -162,7 +166,7 @@ class GoodFETCCSPI(GoodFET):
         """Set the target MAC address."""
         return 0xdeadbeef;
     def RF_getrssi(self):
-        """Returns the received signal strenght, with a weird offset."""
+        """Returns the received signal strength, with a weird offset."""
         rssival=self.peek(0x13)&0xFF; #raw RSSI register
         return rssival^0x80;
     lastpacket=range(0,0xff);
@@ -181,6 +185,8 @@ class GoodFETCCSPI(GoodFET):
         self.lastpacket=buffer;
         if(len(buffer)==0):
             return None;
+        #self.strobe(0x08);         #SFLUSHRX
+        
         return buffer;
     def RF_txpacket(self,packet):
         """Send a packet through the radio."""
@@ -313,12 +319,12 @@ class GoodFETCCSPI(GoodFET):
         choice=choices[len];
         self.poke(0x03,choice);
         self.maclen=len;
-    def printpacket(self,packet):
+    def printpacket(self,packet,prefix="#"):
         s="";
         i=0;
         for foo in packet:
             s="%s %02x" % (s,ord(foo));
-        print "#%s" % s;
+        print "%s%s" % (prefix,s);
         
     def printdissect(self,packet):
         try:

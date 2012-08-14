@@ -128,7 +128,7 @@ class GoodFET:
         if port==None:
             port=os.environ.get("GOODFET");
         if port=="bluetooth" or (port is not None and re.match("..:..:..:..:..:..",port)):
-            self.btInit(port,timeout,attemptlimit);
+            self.btInit(port,2,attemptlimit);
         else:
             self.pyserInit(port,timeout,attemptlimit);
     def btInit(self, port, timeout, attemptlimit):
@@ -195,16 +195,16 @@ class GoodFET:
                 if attemptlimit is not None and attempts >= attemptlimit:
                     return
                 elif attempts>2:
-                    print "Resyncing.";
-                self.serialport.flushInput()
-                self.serialport.flushOutput()
+                    print "Resyncing.  See the GoodFET FAQ about missing info flash.";
+                #self.serialport.flushInput()
+                #self.serialport.flushOutput()
                 
                 #TelosB reset, prefer software to I2C SPST Switch.
                 if (os.environ.get("platform")=='telosb' or  os.environ.get("board")=='telosb'):
                     #print "TelosB Reset";
                     self.telosBReset();
                 elif (os.environ.get("board")=='zolertiaz1' or  os.environ.get("board")=='z1'):
-                    self.bslResetZ1();
+                    self.bslResetZ1(invokeBSL=0);
                 elif (os.environ.get("board")=='apimote1'):
                     #Explicitly set RTS and DTR to halt board.
                     self.serialport.setRTS(1);
@@ -231,6 +231,10 @@ class GoodFET:
                 attempts=attempts+1;
                 self.readcmd(); #Read the first command.
                 #print "Got %02x,%02x:'%s'" % (self.app,self.verb,self.data);
+                if self.verb!=0x7f:
+                    #Retry again. This usually times out, but helps connect.
+                    self.readcmd();
+                    #print "Retry got %02x,%02x:'%s'" % (self.app,self.verb,self.data);
             #Here we have a connection, but maybe not a good one.
             #print "We have a connection."
             connected=1;
@@ -345,7 +349,8 @@ class GoodFET:
         #time.sleep(0.1)
         return recbuf
         
-    def picROMclock(self, masterout, slow = False):
+    #This seems more reliable when slowed.
+    def picROMclock(self, masterout, slow = True):
         #print "setting masterout to "+str(masterout)
         self.serialport.setRTS(masterout)
         self.serialport.setDTR(1)

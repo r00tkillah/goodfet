@@ -211,10 +211,12 @@ void ccspi_handle_fn( uint8_t const app,
 #ifdef FIFOP
     //Has there been an overflow?
     if((!FIFO)&&FIFOP){
-      //debugstr("Clearing overflow");
+      debugstr("Clearing overflow");
       CLRSS;
       ccspitrans8(0x08); //SFLUSHRX
       SETSS;
+      txdata(app,verb,0); //no packet
+      return;
     }
 
     //Is there a packet?
@@ -227,19 +229,29 @@ void ccspi_handle_fn( uint8_t const app,
       ccspitrans8(CCSPI_RXFIFO | 0x40);
       //ccspitrans8(0x3F|0x40);
       cmddata[0]=0xff; //to be replaced with length
-      for(i=0;i<cmddata[0]+2;i++)
-        cmddata[i]=ccspitrans8(0xde);
+      
+      
+      /* This reads too far on some CC2420 revisions, but on others it
+	 works fine.  It probably has to do with whether FIFO drops
+	 before or after the SPI clocking.
+	 
+	 A software fix is to reset the CC2420 between packets.  This
+	 works, but a better solution is desired.
+      */
+      //for(i=0;i<cmddata[0]+1;i++)
+      for(i=0;FIFO && i<0x80;i++)
+        cmddata[i]=ccspitrans8(0x00);
       SETSS;
 
-      //Flush buffer.
+      /* We used to flush the RX buffer after receive. No longer.
       CLRSS;
       ccspitrans8(0x08); //SFLUSHRX
       SETSS;
-      
+      */
       
       //Only should transmit length of one more than the reported
       // length of the frame, which holds the length byte:
-      txdata(app,verb,cmddata[0]+1);
+      txdata(app,verb,i&0x7F);
     }else{
       //No packet.
       txdata(app,verb,0);

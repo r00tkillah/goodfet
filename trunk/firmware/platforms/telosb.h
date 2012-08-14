@@ -97,13 +97,6 @@
 #define FIFOP (P1IN&BIT0)
 #define FIFO  (P1IN&BIT3)
 
-//GPIO Expansion Pins
-#define GIO0  (P2OUT&BIT0)
-#define GIO0HIGH P2OUT|=BIT0
-#define GIO0LOW P2OUT&=~BIT0
-#define GIO0OUT P2OUT
-#define GIO0DIR P2DIR
-#define GIO0PIN BIT0
 
 // network byte order converters
 #define htons(x) ((((uint16_t)(x) & 0xFF00) >> 8) | \

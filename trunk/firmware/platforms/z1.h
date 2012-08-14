@@ -40,12 +40,14 @@
 #define INITPLATFORM \
   P1DIR = 0xe0;\
   P1OUT = 0x00;\
+  P1REN = 0x0F;\
   P2DIR = 0x7b;\
   P2OUT = 0x10;\
   P3DIR = 0xf1;\
   P3OUT = 0x00;\
   P4DIR = 0xfd;\
-  P4OUT = 0xFd;\
+  P4OUT = ~0x02;\
+  P4REN = 0x02;\
   P5DIR = 0xff;\
   P5OUT = 0xff;\
   P6DIR = 0xff;\
@@ -72,17 +74,10 @@
 #define DIRCE P4DIR|=BIT6
 
 //CC2420 signals
-#define SFD   (P4IN&BIT1)
-#define FIFOP (P1IN&BIT0)
+#define SFD   (P4IN&BIT1) //Might be broken on the Z1.
+#define FIFOP (P1IN&BIT2) // Was 1.0, mistakenly.
 #define FIFO  (P1IN&BIT3)
 
-//GPIO Expansion Pins
-#define GIO0  (P2OUT&BIT0)
-#define GIO0HIGH P2OUT|=BIT0
-#define GIO0LOW P2OUT&=~BIT0
-#define GIO0OUT P2OUT
-#define GIO0DIR P2DIR
-#define GIO0PIN BIT0
 
 // network byte order converters
 #define htons(x) ((((uint16_t)(x) & 0xFF00) >> 8) | \

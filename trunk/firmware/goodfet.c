@@ -147,9 +147,7 @@ int main(void){
     //Read data, looking for buffer overflow.
     if(len <= CMDDATALEN){
       for(i = 0; i < len; i++)
-	{
 	  cmddata[i] = serial_rx();
-	}
 	    
       handle(app,verb,len);
     }else {

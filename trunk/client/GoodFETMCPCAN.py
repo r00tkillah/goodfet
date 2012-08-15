@@ -23,7 +23,9 @@ class GoodFETMCPCAN(GoodFETSPI):
         """Sets up the ports."""
         self.SPIsetup();
         self.MCPreset(); #Reset the chip.
-        self.MCPreqstatLoopback();
+        
+        #Loopback mode for testing.
+        self.MCPreqstatConfiguration();
     def MCPreset(self):
         """Reset the MCP2515 chip."""
         self.SPItrans([0xC0]);
@@ -88,18 +90,28 @@ class GoodFETMCPCAN(GoodFETSPI):
                        0x00, 0x00, 0x00, 0x00
                        ]);
         return data[1:len(data)];
+    def writetxbuffer(self,packet,packbuf=0):
+        """Writes the transmit buffer."""
+        self.SPItrans([0x40|(packbuf<<1)]+packet);
+        
     def rxpacket(self):
         """Reads the next incoming packet from either buffer.
         Returns None immediately if no packet is waiting."""
         status=self.MCPrxstatus()&0xC0;
         if status&0x40:
             #Buffer 0 has higher priority.
-            return self.rxbuffer(0);
+            return self.readrxbuffer(0);
         elif status&0x80:
             #Buffer 1 has lower priority.
-            return self.rxbuffer(1);
+            return self.readrxbuffer(1);
         else:
             return None;
+    def txpacket(self,packet):
+        """Transmits a packet through one of the outbound buffers.
+        As usual, the packet should begin with SIDH.
+        For now, only TXB0 is supported."""
+        self.writetxbuffer(packet,0);
+        self.MCPrts(TXB0=True);
     def packet2str(self,packet):
         """Converts a packet from the internal format to a string."""
         toprint="";

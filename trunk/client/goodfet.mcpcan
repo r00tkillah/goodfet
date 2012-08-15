@@ -53,12 +53,24 @@ if(sys.argv[1]=="sniff"):
 if(sys.argv[1]=="test"):
     print "MCP2515 Self Test:";
     
+    #Switch to config mode and try to rewrite TEC.
+    client.MCPreqstatConfiguration();
     client.poke8(0x00,0xde);
     if client.peek8(0x00)!=0xde:
         print "ERROR: Poke to TEC failed.";
     else:
         print "SUCCESS: Register read/write.";
-
+    
+    #Switch to Loopback mode and try to catch our own packet.
+    client.MCPreqstatLoopback();
+    client.txpacket([0xb1, 0x6b, 0x00, 0x65,
+                     0xb1, 0x6b, 0x00, 0x65
+                     ]);
+    print "Waiting on loopback packet.";
+    packet=None;
+    while packet==None:
+        packet=client.rxpacket();
+    print "Success!  Got %s" % client.packet2str(packet);
 if(sys.argv[1]=="peek"):
     start=0x0000;
     if(len(sys.argv)>2):

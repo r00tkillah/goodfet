@@ -26,10 +26,12 @@ unsigned char serial0_rx(){
 unsigned char serial1_rx(){
   char c;
 
+#ifdef UC1IFG
   while (!(UC1IFG&UCA1RXIFG));               // USCI_A1 TX buffer ready?
   c = UCA1RXBUF;
   UC1IFG&=~UCA1RXIFG;
-
+#endif
+  
   return c;
 }
 
@@ -41,16 +43,11 @@ void serial0_tx(unsigned char x){
 }
 //! Transmit a byte on the second UART.
 void serial1_tx(unsigned char x){
+#ifdef UC1IFG
   while ((UC1IFG & UCA1TXIFG) == 0); //loop until buffer is free
   UCA1TXBUF = x;	/* send the character */
   while(!(UC1IFG & UCA1TXIFG));
-}
-
-//! Transmit a byte.
-void serial_tx_old(unsigned char x){
-  while ((IFG2 & UCA0TXIFG) == 0); //loop until buffer is free
-  UCA0TXBUF = x;	/* send the character */
-  while(!(IFG2 & UCA0TXIFG));
+#endif
 }
 
 
@@ -85,6 +82,7 @@ void setbaud0(unsigned char rate){
 
 //! Set the baud rate of the second uart.
 void setbaud1(unsigned char rate){
+#ifdef UC1IFG
   //Table 15-4, page 481 of 2xx Family Guide
   switch(rate){
   case 1://9600 baud
@@ -109,6 +107,7 @@ void setbaud1(unsigned char rate){
     UCA1BR1 = 0x00;
     break;
   }
+#endif
 }
 
 #define BAUD0EN 0x41
@@ -139,6 +138,8 @@ void msp430_init_uart(){
   //Interrupt is handled by target code, not by bootloader.
   //IE2 |= UCA0RXIE; //DO NOT UNCOMMENT
   
+  
+#ifdef UC1IFG
   // Serial 1 on P3.6, 3.7
   P3SEL    |=  0xC0;
   //UCA1CTL0 = 0x00;
@@ -146,7 +147,7 @@ void msp430_init_uart(){
   setbaud1(5); //115200
   UCA1MCTL  =  0;
   UCA1CTL1 &= ~UCSWRST;                      // Initialize USCI state machine
-  
+#endif
 }
 
 

@@ -33,7 +33,9 @@ client.MCPsetup();
 #Might read as all ones if chip has a startup delay.
 
 if(sys.argv[1]=="info"):
-    print "MCP2515 Info:";
+    print "MCP2515 Info:\n\n";
+    
+    print "Mode: %s" % client.MCPcanstatstr();
     print "Read Status: %02x" % client.MCPreadstatus();
     print "Rx Status:   %02x" % client.MCPrxstatus();
     print "Tx Errors:  %3d" % client.peek8(0x1c);

@@ -17,16 +17,45 @@ from GoodFETSPI import GoodFETSPI;
 class GoodFETMCPCAN(GoodFETSPI):
     """This class uses the regular SPI app to implement a CAN Bus
     adapter on the Goodthopter10 hardware."""
-    
+    MCPMODES=["Normal","Sleep","Loopback","Listen-only","Configuration",
+              "UNKNOWN","UNKNOWN","PowerUp"];
     def MCPsetup(self):
         """Sets up the ports."""
         self.SPIsetup();
         self.MCPreset(); #Reset the chip.
-        
+        self.MCPreqstatLoopback();
     def MCPreset(self):
         """Reset the MCP2515 chip."""
         self.SPItrans([0xC0]);
-
+    def MCPcanstat(self):
+        """Get the CAN Status."""
+        return self.peek8(0x0E);
+    def MCPreqstatNormal(self):
+        """Set the CAN state."""
+        state=0x0;
+        self.MCPbitmodify(0x0F,0xE0,(state<<5));
+    def MCPreqstatSleep(self):
+        """Set the CAN state."""
+        state=0x1;
+        self.MCPbitmodify(0x0F,0xE0,(state<<5));
+    def MCPreqstatLoopback(self):
+        """Set the CAN state."""
+        state=0x2;
+        self.MCPbitmodify(0x0F,0xE0,(state<<5));
+    def MCPreqstatListenOnly(self):
+        """Set the CAN state."""
+        state=0x3;
+        self.MCPbitmodify(0x0F,0xE0,(state<<5));
+    def MCPreqstatConfiguration(self):
+        """Set the CAN state."""
+        state=0x4;
+        self.MCPbitmodify(0x0F,0xE0,(state<<5));
+    
+    def MCPcanstatstr(self):
+        """Read the present status as a string."""
+        status=self.MCPcanstat();
+        opmod=(status&0xE0)>>5;
+        return self.MCPMODES[opmod];
     def MCPrxstatus(self):
         """Reads the RX Status by the SPI verb of the same name."""
         data=self.SPItrans([0xB0,0x00]);

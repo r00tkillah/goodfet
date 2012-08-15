@@ -59,6 +59,24 @@ class GoodFETMCPCAN(GoodFETSPI):
                        0x00, 0x00, 0x00, 0x00
                        ]);
         return data[1:len(data)];
+    def rxpacket(self):
+        """Reads the next incoming packet from either buffer.
+        Returns None immediately if no packet is waiting."""
+        status=self.MCPrxstatus()&0xC0;
+        if status&0x40:
+            #Buffer 0 has higher priority.
+            return self.rxbuffer(0);
+        elif status&0x80:
+            #Buffer 1 has lower priority.
+            return self.rxbuffer(1);
+        else:
+            return None;
+    def packet2str(self,packet):
+        """Converts a packet from the internal format to a string."""
+        toprint="";
+        for bar in packet:
+            toprint=toprint+("%02x "%ord(bar))
+        return toprint;
     def peek8(self,adr):
         """Read a byte from the given address.  Untested."""
         data=self.SPItrans([0x03,adr&0xFF,00]);

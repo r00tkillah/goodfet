@@ -28,9 +28,22 @@ class GoodFETMCPCAN(GoodFETSPI):
         data=self.SPItrans([0xB0,0x00]);
         return ord(data[1]);
     def MCPreadstatus(self):
-        """Reads the RX Status by the SPI verb of the same name."""
+        """Reads the Read Status by the SPI verb of the same name."""
+        #See page 67 of the datasheet for the flag names.
         data=self.SPItrans([0xA0,0x00]);
         return ord(data[1]);
+    def MCPrts(self,TXB0=False,TXB1=False,TXB2=False):
+        """Requests to send one of the transmit buffers."""
+        flags=0;
+        if TXB0: flags=flags|1;
+        if TXB1: flags=flags|2;
+        if TXB2: flags=flags|4;
+        
+        if flags==0:
+            print "Warning: Requesting to send no buffer.";
+        
+        """Request To Send a transmission."""
+        self.SPItrans([0x80|flags]);
     def peek8(self,adr):
         """Read a byte from the given address.  Untested."""
         data=self.SPItrans([0x03,adr&0xFF,00]);
@@ -40,23 +53,3 @@ class GoodFETMCPCAN(GoodFETSPI):
         """Poke a value into RAM.  Untested"""
         self.SPItrans([0x02,adr&0xFF,val&0xFF]);
         return val;
-    def rand16(self):
-        """Read a random 16-bit word."""
-        
-        data=self.EZSPtrans([0x49]);
-        if data==None:
-            print "Insufficient random data.";
-            return 0;
-        return ord(data[6])+(ord(data[7])<<8);
-
-    def info(self):
-        """Read the info bytes."""
-        print "Ember EM26 Z-Stack SPI Module.";
-        version=self.EM260spiversion();
-        status=self.EM260spistatus();
-        print "Version: %i" % (version); 
-        print "Status:  %s" % (["dead","alive"][status]);
-        print ""
-        self.setVersion();
-        print "Node ID: %04x" % (self.getNodeID());
-        print "Connected to %2i neighbors." % self.neighborCount();

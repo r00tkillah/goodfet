@@ -1374,6 +1374,7 @@ General options:
   --goodfet10
   --goodfet20
   --goodfet30
+  --goodthopter         Same as GF30.
   --tmote               Identical operation to --telosb
   --z1                  Bootstrap a Z1
   --no-BSL-download     Do not download replacement BSL (disable automatic)
@@ -1525,7 +1526,7 @@ def main(itest=1):
              "swap-reset-test", "telos-latch", "telos-i2c", "telos", "telosb",
              "tmote","no-BSL-download", "force-BSL-download", "slow",
              "dumpivt", "dumpinfo", "fromweb",
-             "goodfet40", "goodfet30", "goodfet20", "goodfet10",
+             "goodfet40", "goodfet30",  "goodthopter", "goodfet20", "goodfet10",
              "z1",
              "nhbadge", "nhbadgeb", "goodfet"
             ]
@@ -1674,7 +1675,7 @@ def main(itest=1):
         elif o in ("--goodfet20", ):
             bsl.invertRST = 1
             bsl.invertTEST = 1
-        elif o in ("--goodfet30", ):
+        elif o in ("--goodfet30", "--goodfet31", "--goodthopter" ):
             bsl.invertRST = 1
             bsl.invertTEST = 0
         elif o in ("--goodfet40", ):

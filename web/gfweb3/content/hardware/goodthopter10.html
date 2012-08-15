@@ -3,28 +3,24 @@ title: Goodthopter10
 ---
 <h1>Goodthopter10</h1>
 
-<p>The Goodthopter10 is the fifteenth hardware revision of the GoodFET,
-owing its heritage to the <a href="/hardware/goodfet41/">GoodFET41</a>
-and <a href="/hardware/facedancer10/">Facedancer10</a>.  Unlike the
-general-purpose GoodFET boards, the only purpose of this board is to
-allow USB devices to be written in host-side Python, so that one
-workstation can fuzz-test the USB device drivers of another host.
-The board is functionally identical to the Facedancer10, correcting
-only minor errata.
+<p>The GoodThopter10 is a sexy GoodFET CAN device based around the design
+of the <a href="/hardware/goodfet41/">GoodFET41</a>. Unlike the general-
+purpose GoodFET boards, the purpose of this board is to be used in the
+exploration of Automotive communication buses, currently supporting only
+the CAN bus. In addition to GF41 circuitry we have added a high-speed
+CAN Transceiver (MCP2551) and a Stand-alone CAN Controller with a SPI
+Interface (MCP2515). 
 </p>
 
-<p><b>N.B.,</b> that this design has been ordered but not yet received
-from the manufacturer.  We expect boards to arrive on 4 July.</p>
-
-<p><a href="http://www.flickr.com/photos/travisgoodspeed/7208636254/"
-title="Goodthopter10 Prototype">
-<img src="http://farm8.staticflickr.com/7090/7208636254_c88097aaf8.jpg"
-width="500" height="282" alt="Facedancer10 Prototype"></a></p>
+<p>
+<a href="http://www.flickr.com/photos/andrewrighter/7790994956/" 
+title="Goodthopter10 Prototype"><img src="http://farm9.staticflickr.com/8291/7790994956_161268e71b.jpg"
+width="500" height="214" alt="GoodThopter10 Prototype"></a></p>
 
 <h2>CAD Files</h2>
 
 <p>Eagle CAD 6.x files for the design can be found in
-/branches/facedancer11 of the GoodFET subversion repository, or along
+/contrib/goodthopter10 of the GoodFET subversion repository, or along
 with gerbers as
 <a href="/releases/goodthopter10.zip">goodthopter10.zip</a>.</p>
 
@@ -32,27 +28,27 @@ with gerbers as
 
 <p>Resistor values can be approximated.</p>
 
-<p>FIXME: This is the BOM from the Facedancer11, not the Goodthopter10.</p>
+<p><b>Note: The BOM including Digi-Key part numbers can be found in SVN /contrib/goodthopter10/bom</b></p>
 
 <p><table border="1">
 <tr><td>Quantity</td><td>Package</td><td></td></tr>
 <tr><td>1</td><td>SSOP28</td><td><a href="http://www.ftdichip.com/Products/FT232R.htm">FT232RL</a></td></tr>
 <tr><td>1</td><td>QFP64</td><td><a href="http://focus.ti.com/docs/prod/folders/print/msp430f2618.html">MSP430F2618TPM</a></td></tr>
-<tr><td>1</td><td>LQFP32</td><td><a href="http://www.maxim-ic.com/datasheet/index.mvp/id/4751">MAX3420E</a></td></tr>
-<tr><td>2</td><td>0603</td><td>1.0&mu;F Capacitors</td></tr>
-<tr><td>3</td><td>0603</td><td>0.1&mu;F Decoupling Capacitors</td></tr>
-<tr><td>2</td><td>0603</td><td>18pF Capacitors*</td></tr>
-<tr><td>1</td><td>HC49/UP**</td><td>12MHz SMD Crystal, 18pF</td></tr>
-<tr><td>3</td><td>0603</td><td>0603 LED</td></tr>
-<tr><td>2</td><td>0603</td><td>330R LED Series Resistors</td></tr>
-<tr><td>2</td><td>0603</td><td>33R USB Series Resistors</td></tr>
-<tr><td>2</td><td></td><td>USB Mini Receptacle UX60-MB-5ST</td></tr>
-</table></p>
+<tr><td>1</td><td>TSSOP20</td><td><a href="http://www.microchip.com/wwwproducts/Devices.aspx?dDocName=en010406">MCP2515</a></td></tr>
+<tr><td>1</td><td>SOIC8</td><td><a href="http://www.microchip.com/wwwproducts/Devices.aspx?dDocName=en010405">MCP2551</a></td></tr>
+<tr><td>1</td><td>HC49/UP**</td><td>20MHz SMD Crystal, 15pF</td></tr>
+<tr><td>4</td><td>0603</td><td>0.1&mu;F Decoupling Capacitors</td></tr>
+<tr><td>2</td><td>0603</td><td>15pF Capacitors*</td></tr>
+<tr><td>5</td><td>0603</td><td>0603 LED</td></tr>
+<tr><td>4</td><td>0603</td><td>330R LED Series Resistors</td></tr>
+<tr><td>1</td><td>0603</td><td>10K Pull-up Resistor</td></tr>
+<tr><td>1</td><td></td><td>USB Mini Type B - 292304-2</td></tr>
+<tr><td>1</td><td></td><td>D-SUB 9 Position Mountable Conn. - 1734351-1</td></tr>
+</table>
+</p>
 
 <p>* These should match the required capacitance of the crystal.</p>
 <p>** The /US SMD package works as an alternative.</p>
-
-
 
 <h2>Construction</h2>
 
@@ -80,6 +76,6 @@ goodfet.can info
 Tutorial</a> for more detailed explanations.</p>
 
 <h2>Errata</h2>
-
-<p>Tons!  We'll be redrafting this design soon.</p>
-
+The worst errata is the MCP2551 needs operating voltage between 4.5-5.5V. Right now it is connected to a 3.3V bus.
+<p><a href="http://www.flickr.com/photos/andrewrighter/7791441864/"><img src="http://farm9.staticflickr.com/8426/7791441864_b3d8d58ed9.jpg"
+width="500" height="266" alt="GoodThopter10-Errata"</a></p>

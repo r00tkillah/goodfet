@@ -46,10 +46,12 @@ if(sys.argv[1]=="info"):
     for foo in [packet0, packet1]:
         print client.packet2str(foo);
 if(sys.argv[1]=="sniff"):
+    client.MCPreqstatListenOnly();
     while 1:
         packet=client.rxpacket();
         if packet!=None:
             print client.packet2str(packet);
+
 if(sys.argv[1]=="test"):
     print "MCP2515 Self Test:";
     

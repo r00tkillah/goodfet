@@ -24,8 +24,43 @@ class GoodFETMCPCAN(GoodFETSPI):
         self.SPIsetup();
         self.MCPreset(); #Reset the chip.
         
-        #Loopback mode for testing.
+        # We're going to set some registers, so we must be in config
+        # mode.
         self.MCPreqstatConfiguration();
+        
+        # Now we need to set the timing registers.  See chapter 5 of
+        # the MCP2515 datasheet to get some clue as to how this
+        # arithmetic of this works, as my comments here will likely be
+        # rambling, incoherent, and unchanged after I get the infernal
+        # thing working.
+        
+        # First, we must chose a Time Quanta (QT) which is used to
+        # define the durations of these segments.  Section 5.3
+        # suggests setting BRP<5:0> to 0x04 to get a TQ=500ns, as a 20
+        # MHz crystal gives a clock period of 50ns.  This way, for 125
+        # kHz communication, the bit time must be 16 TQ.
+        
+        # A bit consists of four parts:
+        # 1: SyncSeg             1 TQ
+        # 2: PropSeg             2 TQ
+        # 3: PhaseSeg1 (PS1)     7 TQ
+        # 4: PhaseSeg2 (PS2)     6 TQ
+        
+        # CNF1 with a prescaler of 4 and a SJW of 1 TQ.  SJW of 4
+        # might be more stable.
+        self.poke8(0x2a,0x04);
+        
+        # CNF2 with a BLTMODE of 1, SAM of 0, PS1 of 7TQ, and PRSEG of 2TQ
+        self.poke8(0x29,
+                   0x80   |  # BTLMODE=1
+                   (6<<3) |  # 6+1=7TQ for PHSEG1
+                   (1)       # 1+1=2TQ for PRSEG
+                   );
+        
+        #CNF3 with a PS2 length of 6TQ.
+        self.poke8(0x28,
+                   5      #5+1=6TQ
+                   );
     def MCPreset(self):
         """Reset the MCP2515 chip."""
         self.SPItrans([0xC0]);

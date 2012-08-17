@@ -28,6 +28,10 @@ class GoodFETMCPCAN(GoodFETSPI):
         # mode.
         self.MCPreqstatConfiguration();
         
+        # If we don't enable promiscous mode, we'll miss a lot of
+        # packets.  It can be manually disabled later.
+        self.poke8(0x60,0xFF); #TODO Does this have any unpleasant side effects?
+        
         # Now we need to set the timing registers.  See chapter 5 of
         # the MCP2515 datasheet to get some clue as to how this
         # arithmetic of this works, as my comments here will likely be

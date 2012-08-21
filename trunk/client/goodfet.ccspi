@@ -203,7 +203,7 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
                                             client.RF_getfreq()/10**6);
     #Now we're ready to get packets.
     while 1:
-        client.setup(); #Really oughtn't be necessary, but can't hurt.
+        #client.setup(); #Really oughtn't be necessary, but can't hurt.
         client.CC_RFST_RX();
         
         packet=None;

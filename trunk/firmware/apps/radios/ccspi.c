@@ -228,7 +228,7 @@ void ccspi_handle_fn( uint8_t const app,
       CLRSS;
       ccspitrans8(CCSPI_RXFIFO | 0x40);
       //ccspitrans8(0x3F|0x40);
-      cmddata[0]=0xff; //to be replaced with length
+      cmddata[0]=0x20; //to be replaced with length
       
       
       /* This reads too far on some CC2420 revisions, but on others it
@@ -238,8 +238,8 @@ void ccspi_handle_fn( uint8_t const app,
 	 A software fix is to reset the CC2420 between packets.  This
 	 works, but a better solution is desired.
       */
-      //for(i=0;i<cmddata[0]+1;i++)
-      for(i=0;FIFO && i<0x80;i++)
+      for(i=0;i<cmddata[0]+1;i++)
+      //for(i=0;FIFO && i<0x80;i++)
         cmddata[i]=ccspitrans8(0x00);
       SETSS;
 

@@ -208,28 +208,18 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         verb=ord(cb[0]);
         status=00; #good, set to 1 for bad.
         if verb==0x00: # Test Unit Ready
-            response=[0,0,0,0,0,0];
-            self.writebytes(rEP3INFIFO,
-                       response);
-            self.wreg(rEP3INBC,len(response));
-            while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
-                #Wait for the packet to complete before sending the next.
-                print "Waiting to complete inquiry."
-                pass;
+            # Send nothing, just the success code.
+            status=0;
         elif verb==0x03: # Request Sense
             print "Responding to Request Sense.  Needed for Macs.";
             response=[0x70, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x0A,
                       0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
                       0x00, 0x00,
                       0,0,0,0,0];
-            status=1;
+            #status=1;
             self.writebytes(rEP3INFIFO,
                             response);
             self.wreg(rEP3INBC,len(response));
-            #while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
-            #    #Wait for the packet to complete before sending the next.
-            #    print "Waiting to complete inquiry."
-            #    pass;
         elif verb==0x12: #Inquiry
             #print "Responding to CB inquiry.";
             response=[
@@ -261,14 +251,48 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
             #    #Wait for the packet to complete before sending the next.
             #    print "Waiting to complete inquiry."
             #    pass;
+        elif verb==0x1e: #Prevent/Allow Removal
+            # Give a good status to pretend we understand.
+            status=0x00;
+        elif verb==0x1A: #Mode Sense (6)
+            # I should probably send six bytes here.
+            response=[0x12,0,0,0, 0,0,0,0x1C];
+            self.writebytes(rEP3INFIFO,
+                            response);
+            self.wregAS(rEP3INBC,
+                        len(response));
+        elif verb==0x23: #Read Format Capacity
+            response=[
+                0x00, 0,0x00,0x08, #Capacity list length.
+                0,0x00,x10,0x00,   # Number of sectors, implying 10MB.
+                0x01,0x00,            #reserved/desciptor code.
+                0x02,0x00             # 512 bytes/sector.  Why is this twice?
+                ];
+            self.writebytes(rEP3INFIFO,
+                            response);
+            self.wregAS(rEP3INBC,
+                        len(response));
+        elif verb==0x25: #Read Capacity
+            response=[
+                0x00, 0,0x0f,0xFF, # Last LBA; might have endianness backward.
+                0x00,0x00,0x02,0x00   # Block length of 512 bytes.
+                ];
+            self.writebytes(rEP3INFIFO,
+                            response);
+            self.wregAS(rEP3INBC,
+                        len(response));
+        elif verb==0x28: #READ SECTOR
+            print "Haven't implemented READ SECTOR.";
+            sys.exit();
+        elif verb==0x2A: #WRITE SECTOR
+            print "Haven't implemented WRITE SECTOR.";
+            sys.exit();
         else:
-            print "ERROR: Unknown command block verb %02x." % verb;
+            print "ERROR: Unknown SCSI command block verb %02x." % verb;
             status=1; #Command Failed
             if dtlen>0:
-                print "Exiting, as %i bytes are expected to be transfered toward %i." % (
-                    dtlen,dtdir);
-                    
-                sys.exit();
+                print "Perhaps I should send %i bytes of dummy data here." % dtlen;
+            sys.exit(1);
         cbw=self.lastCBW;
         
         #Now we need to send the CSW.
@@ -286,7 +310,6 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         self.wregAS(rEP3INBC,len(csw));
         
         
-        self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the IRQ bit.
         return;
 #Initialize FET and set baud rate
 client=GoodFETMAXUSBMass();

@@ -10,7 +10,7 @@ import time;
 
 from GoodFETMAXUSB import *;
 
-class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
+class GoodFETMAXUSBFTDI(GoodFETMAXUSBDevice):
     """This emulates the FTDI USB to Serial chips."""
     def hidinit(self):
         """Initialize a USB FTDI device."""
@@ -100,14 +100,13 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
             print "Bullshitting a value for the latency timer."
             #Send some sort of reply.
             self.wreg(rEP0FIFO,0x01);
-            self.wreg(rEP0FIFO,0x00);
-            self.wregAS(rEP0BC,2);
+            #self.wreg(rEP0FIFO,0x00);
+            self.wregAS(rEP0BC,1);
             #Don't send reply twice.
             return;
             
         
-        print "Blindly accepting vendor request";
-        #self.wreg(rEP0FIFO,0);
+        print "Blindly accepting unhandled vendor request %02x" % request;
         self.wregAS(rEP0BC,0);
     def std_request(self,SUD):
         """Handles a standard setup request."""
@@ -193,31 +192,7 @@ class GoodFETMAXUSBFTDI(GoodFETMAXUSB):
 "\x14\x03S\x00/\x00N\x00 \x003\x004\x002\x000\x00E\x00"
 ];
 
-    def send_descriptor(self,SUD):
-        """Send the USB descriptors based upon the setup data."""
-        desclen=0;
-        reqlen=ord(SUD[wLengthL])+256*ord(SUD[wLengthH]); #16-bit length
-        desctype=ord(SUD[wValueH]);
-        
-        if desctype==GD_DEVICE:
-            desclen=self.DD[0];
-            ddata=self.DD;
-        elif desctype==GD_CONFIGURATION:
-            desclen=self.CD[2];
-            ddata=self.CD;
-        elif desctype==GD_STRING:
-            desclen=self.strDesc[ord(SUD[wValueL])][0];
-            ddata=self.strDesc[ord(SUD[wValueL])];
-        
-        #TODO Configuration, String, Hid, and Report
-        
-        if desclen>0:
-            sendlen=min(reqlen,desclen);
-            self.writebytes(rEP0FIFO,ddata);
-            self.wregAS(rEP0BC,sendlen);
-        else:
-            print "Stalling in send_descriptor() for lack of handler for %02x." % desctype;
-            self.STALL_EP0(SUD);
+
     def set_configuration(self,SUD):
         """Set the configuration."""
         bmSUSPIE=0x10;

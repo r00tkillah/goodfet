@@ -611,13 +611,19 @@ class GoodFETMAXUSBDevice(GoodFETMAXUSB):
         elif desctype==GD_STRING:
             desclen=ord(self.strDesc[ord(SUD[wValueL])][0]);
             ddata=self.strDesc[ord(SUD[wValueL])];
-        
+        elif desctype==GD_HID:
+            #Don't know how to do this yet.
+            pass;
+        elif desctype==GD_REPORT:
+            desclen=self.CD[25];
+            ddata=self.RepD;
         #TODO Configuration, String, Hid, and Report
         
         if desclen>0:
-            sendlen=min(reqlen,desclen);
-            self.writebytes(rEP0FIFO,ddata);
-            #self.wregAS(rEP0BC,sendlen);
+            #Reduce desclen if asked for fewer bytes.
+            desclen=min(reqlen,desclen);
+            #Send those bytes.
+            self.writebytes(rEP0FIFO,ddata[0:desclen]);
             self.wregAS(rEP0BC,desclen);
         else:
             print "Stalling in send_descriptor() for lack of handler for %02x." % desctype;

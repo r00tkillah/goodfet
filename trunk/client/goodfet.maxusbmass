@@ -11,7 +11,7 @@ import time;
 
 from GoodFETMAXUSB import *;
 
-class GoodFETMAXUSBMass(GoodFETMAXUSB):
+class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
     """This emulates a USB Mass Storage device."""
     def massinit(self):
         """Initialize a USB Mass Storage device."""
@@ -98,7 +98,9 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
     0x01, 0x00, 0x02, 0x00, 0x00, 0x00, 0x40,
     0x81, 0x07, #Sandisk 
     0x50, 0x51, #SDCZ2 Cruzer Mini Flash Drive (thin)
-    0x00, 0x03, 0x00, 0x00, 0x00, 0x01
+    0x00, 0x03,
+    0x01, 0x02, 0x03, #Strings
+    0x01
     
     ];
 
@@ -136,38 +138,6 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
 "\x14\x03S\x00/\x00N\x00 \x003\x004\x002\x000\x00E\x00"
 ];
 
-    def send_descriptor(self,SUD):
-        """Send the USB descriptors based upon the setup data."""
-        desclen=0;
-        reqlen=ord(SUD[wLengthL])+256*ord(SUD[wLengthH]); #16-bit length
-        desctype=ord(SUD[wValueH]);
-        
-        if desctype==GD_DEVICE:
-            desclen=self.DD[0];
-            ddata=self.DD;
-        elif desctype==GD_CONFIGURATION:
-            desclen=self.CD[2];
-            ddata=self.CD;
-        elif desctype==GD_STRING:
-            desclen=self.strDesc[ord(SUD[wValueL])][0];
-            ddata=self.strDesc[ord(SUD[wValueL])];
-        
-        #TODO Configuration, String, Hid, and Report
-        
-        if desclen>0:
-            sendlen=min(reqlen,desclen);
-            self.writebytes(rEP0FIFO,ddata);
-            self.wregAS(rEP0BC,sendlen);
-        else:
-            print "Stalling in send_descriptor() for lack of handler for %02x." % desctype;
-            self.STALL_EP0(SUD);
-    def set_configuration(self,SUD):
-        """Set the configuration."""
-        bmSUSPIE=0x10;
-        configval=ord(SUD[wValueL]);
-        if(configval>0):
-            self.SETBIT(rUSBIEN,bmSUSPIE);
-        self.rregAS(rFNADDR);
     def get_status(self,SUD):
         """Get the USB Setup Status."""
         testbyte=ord(SUD[bmRequestType])
@@ -190,8 +160,10 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
                 self.wreg(rEP0FIFO,0x00); #Second byte is always zero.
                 self.wregAS(rEP0BC,2);
             else:
+                print "Stalling unknown status.";
                 self.STALL_EP0(SUD);
         else:
+            print "Stalling unknown status.";
             self.STALL_EP0(SUD);
     
     def do_IN3(self):
@@ -202,14 +174,14 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
         #self.wreg(rEP3INFIFO,0x01);      #Modem 
         #self.wreg(rEP3INFIFO,0x00);      #Line 
         #self.wreg(rEP3INFIFO,0x00);
-        self.wregAS(rEP3INBC,0);
+        #self.wregAS(rEP3INBC,0);
         
         
     def do_OUT1(self):
         """Handle an OUT1 output event."""
         print "Got an output event, printing the result.";
         l=self.rreg(rEP1OUTBC);
-        frame=self.readbytesAS(rEP1OUTFIFO,l);
+        frame=self.readbytes(rEP1OUTFIFO,l);
         self.handleCBW(frame);
     lastCBW="";
     def handleCBW(self,cbw):
@@ -218,6 +190,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
         
         if len(cbw)!=31:
             print "Invalid CBW length of %i bytes.  Aborting." % len(cbw);
+            return;
         sig=cbw[0:4];
         if sig!="USBC":
             print "Invalid CBW signature: %s.  Should be USBC; aborting." % sig;
@@ -234,7 +207,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
         
     def handleCB(self,cb,cblen,dtlen,dtdir):
         """Handles a command block, then replies with a CSW."""
-        print "Got command block 0x%02x, length %i bytes" % (
+        print "\nGot command block 0x%02x, requesting 0x%02x bytes" % (
             ord(cb[0]), dtlen);
         verb=ord(cb[0]);
         status=00; #good, set to 1 for bad.
@@ -242,7 +215,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
             response=[0,0,0,0,0,0];
             self.writebytes(rEP3INFIFO,
                        response);
-            self.wregAS(rEP3INBC,len(response));
+            self.wreg(rEP3INBC,len(response));
             while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
                 #Wait for the packet to complete before sending the next.
                 print "Waiting to complete inquiry."
@@ -255,34 +228,43 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
                       0,0,0,0,0];
             status=1;
             self.writebytes(rEP3INFIFO,
-                       response);
-            self.wregAS(rEP3INBC,len(response));
-            while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
-                #Wait for the packet to complete before sending the next.
-                print "Waiting to complete inquiry."
-                pass;
+                            response);
+            self.wreg(rEP3INBC,len(response));
+            #while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
+            #    #Wait for the packet to complete before sending the next.
+            #    print "Waiting to complete inquiry."
+            #    pass;
         elif verb==0x12: #Inquiry
-            print "Responding to CB inquiry.";
+            #print "Responding to CB inquiry.";
             response=[
-                0x00,
+                0x00, # 00 for Direct, 1F for "no floppy"
                 0x80, # make 0x80 for removable media
-                0x05, # SPC2
-                0x02, # SPC2
+                0x00, # Version
+                0x01, # Response Data Format
                 0x1f, #Additional length.
                 0x00, 0x00, 0x00,
                 #Manufacturer
-                ord('G'),ord('o'),ord('o'),ord('d'),ord('F'),ord('E'),ord('T'),0,
+                ord('G'),ord('o'),ord('o'),ord('d'),ord('F'),ord('E'),ord('T'),0x20,
                 #Device name
-                ord('G'),ord('o'),ord('o'),ord('d'),ord('F'),ord('E'),ord('T'),0,
-                0,0,0,0,0,0,0,0,
+                ord('G'),ord('o'),ord('o'),ord('d'),ord('F'),ord('E'),ord('T'),0x20,
+                0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
                 ord('0'),ord('.'),ord('0'),ord('1')]
+            #print "Sending %i byte reply to %i byte query." % (
+            #        len(response),dtlen);
+            #while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
+            #    #Wait for the packet to complete before sending the next.
+            #    print "Waiting to complete inquiry."
+            #    pass;
             self.writebytes(rEP3INFIFO,
                             response);
-            self.wregAS(rEP3INBC,len(response));
-            while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
-                #Wait for the packet to complete before sending the next.
-                print "Waiting to complete inquiry."
-                pass;
+            self.wregAS(rEP3INBC,
+                        dtlen);
+                        #len(response));
+            #self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the bit
+            #while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
+            #    #Wait for the packet to complete before sending the next.
+            #    print "Waiting to complete inquiry."
+            #    pass;
         else:
             print "ERROR: Unknown command block verb %02x." % verb;
             status=1; #Command Failed

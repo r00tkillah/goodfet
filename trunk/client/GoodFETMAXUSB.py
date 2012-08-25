@@ -210,17 +210,13 @@ class GoodFETMAXUSB(GoodFET):
         usbirq=self.rreg(rUSBIRQ);
         
         
-        # Note *very* well that these interrupts are handled in order.
-        # You might need to alter the order or swap the elif
-        # statements for if statements.
-        
         #Are we being asked for setup data?
         if(epirq&bmSUDAVIRQ): #Setup Data Requested
             self.wreg(rEPIRQ,bmSUDAVIRQ); #Clear the bit
             self.do_SETUP();
         if(epirq&bmOUT1DAVIRQ): #OUT1-OUT packet
             self.do_OUT1();
-            self.wregAS(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit *AFTER* servicing.
+            self.wreg(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit *AFTER* servicing.
         if(epirq&bmIN3BAVIRQ): #IN3-IN packet
             self.do_IN3();
             self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the bit
@@ -290,7 +286,7 @@ class GoodFETMAXUSB(GoodFET):
         ashex="";
         for foo in toret:
             ashex=ashex+(" %02x"%ord(foo));
-        print "GET %02x==%s" % (reg,ashex);
+        print "GET   %02x==%s" % (reg,ashex);
         return toret;
     def readbytesAS(self,reg,length):
         """Peek some bytes from a register, acking prior transfer."""
@@ -300,7 +296,7 @@ class GoodFETMAXUSB(GoodFET):
         ashex="";
         for foo in toret:
             ashex=ashex+(" %02x"%ord(foo));
-        print "GET %02x==%s" % (reg,ashex);
+        print "GETAS %02x==%s" % (reg,ashex);
         return toret;
     def ctl_write_nd(self,request):
         """Control Write with no data stage.  Assumes PERADDR is set
@@ -598,8 +594,42 @@ class GoodFETMAXUSBHost(GoodFETMAXUSB):
         for c in self.xfrdata[2:len(self.xfrdata)]:
             if c>0: toret=toret+chr(c);
         return toret;
+class GoodFETMAXUSBDevice(GoodFETMAXUSB):
+    
+    def send_descriptor(self,SUD):
+        """Send the USB descriptors based upon the setup data."""
+        desclen=0;
+        reqlen=ord(SUD[wLengthL])+256*ord(SUD[wLengthH]); #16-bit length
+        desctype=ord(SUD[wValueH]);
         
-class GoodFETMAXUSBHID(GoodFETMAXUSB):
+        if desctype==GD_DEVICE:
+            desclen=self.DD[0];
+            ddata=self.DD;
+        elif desctype==GD_CONFIGURATION:
+            desclen=self.CD[2];
+            ddata=self.CD;
+        elif desctype==GD_STRING:
+            desclen=ord(self.strDesc[ord(SUD[wValueL])][0]);
+            ddata=self.strDesc[ord(SUD[wValueL])];
+        
+        #TODO Configuration, String, Hid, and Report
+        
+        if desclen>0:
+            sendlen=min(reqlen,desclen);
+            self.writebytes(rEP0FIFO,ddata);
+            #self.wregAS(rEP0BC,sendlen);
+            self.wregAS(rEP0BC,desclen);
+        else:
+            print "Stalling in send_descriptor() for lack of handler for %02x." % desctype;
+            self.STALL_EP0(SUD);
+    def set_configuration(self,SUD):
+        """Set the configuration."""
+        bmSUSPIE=0x10;
+        configval=ord(SUD[wValueL]);
+        if(configval>0):
+            self.SETBIT(rUSBIEN,bmSUSPIE);
+        self.rregAS(rFNADDR);
+class GoodFETMAXUSBHID(GoodFETMAXUSBDevice):
     """This is an example HID keyboard driver, loosely based on the
     MAX3420 examples."""
     def hidinit(self):
@@ -769,41 +799,7 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
 	0x95,0x01,		#   Report Count = 1
 	0x81,0x00,		#  Input(Data,Variable,Array)
 	0xC0]
-    def send_descriptor(self,SUD):
-        """Send the USB descriptors based upon the setup data."""
-        desclen=0;
-        reqlen=ord(SUD[wLengthL])+256*ord(SUD[wLengthH]); #16-bit length
-        desctype=ord(SUD[wValueH]);
-        
-        if desctype==GD_DEVICE:
-            desclen=self.DD[0];
-            ddata=self.DD;
-        elif desctype==GD_CONFIGURATION:
-            desclen=self.CD[2];
-            ddata=self.CD;
-        elif desctype==GD_STRING:
-            desclen=self.strDesc[ord(SUD[wValueL])][0];
-            ddata=self.strDesc[ord(SUD[wValueL])];
-        elif desctype==GD_REPORT:
-            desclen=self.CD[25];
-            ddata=self.RepD;
-        
-        #TODO Configuration, String, Hid, and Report
-        
-        if desclen>0:
-            sendlen=min(reqlen,desclen);
-            self.writebytes(rEP0FIFO,ddata);
-            self.wregAS(rEP0BC,sendlen);
-        else:
-            print "Stalling in send_descriptor() for lack of handler for %02x." % desctype;
-            self.STALL_EP0(SUD);
-    def set_configuration(self,SUD):
-        """Set the configuration."""
-        bmSUSPIE=0x10;
-        configval=ord(SUD[wValueL]);
-        if(configval>0):
-            self.SETBIT(rUSBIEN,bmSUSPIE);
-        self.rregAS(rFNADDR);
+
     def get_status(self,SUD):
         """Get the USB Setup Status."""
         testbyte=ord(SUD[bmRequestType])

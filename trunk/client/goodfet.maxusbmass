@@ -168,14 +168,9 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
     
     def do_IN3(self):
         """Handle IN3 input event."""
-        #Don't bother clearing interrupt flag, that's done by sending the reply.
-        print "Got an input event, no idea what to do about it.";
-        #This would be for FTDI emulation.  Not for Mass Storage.
-        #self.wreg(rEP3INFIFO,0x01);      #Modem 
-        #self.wreg(rEP3INFIFO,0x00);      #Line 
-        #self.wreg(rEP3INFIFO,0x00);
-        #self.wregAS(rEP3INBC,0);
-        
+        # Do nothing here, as it'll be taken care of elsewhere.  The
+        # interrupt just means that the buffer is empty, not that we
+        # are expected to fill it.
         
     def do_OUT1(self):
         """Handle an OUT1 output event."""
@@ -183,6 +178,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         l=self.rreg(rEP1OUTBC);
         frame=self.readbytes(rEP1OUTFIFO,l);
         self.handleCBW(frame);
+        
     lastCBW="";
     def handleCBW(self,cbw):
         """Handles an incoming Command Block Wrapper.  See USB Mass
@@ -282,7 +278,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
             #CBW key; must be the same as the one we're replying to.
             ord(cbw[4]),ord(cbw[5]),ord(cbw[6]),ord(cbw[7]),
             #CSW Data Residue, probably oughtn't be zeroed.
-            0,0,0,
+            0,0,0,0,
             #Status byte: 00 for good, 01 for bad.
             status];
         self.writebytes(rEP3INFIFO,

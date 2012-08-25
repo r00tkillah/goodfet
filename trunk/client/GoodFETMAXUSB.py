@@ -219,10 +219,10 @@ class GoodFETMAXUSB(GoodFET):
             self.wreg(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit *AFTER* servicing.
         if(epirq&bmIN3BAVIRQ): #IN3-IN packet
             self.do_IN3();
-            self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the bit
+            #self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the bit
         if(epirq&bmIN2BAVIRQ): #IN2 packet
             self.do_IN2();
-            self.wreg(rEPIRQ,bmIN2BAVIRQ); #Clear the bit
+            #self.wreg(rEPIRQ,bmIN2BAVIRQ); #Clear the bit
         #else:
         #    print "No idea how to service this IRQ: %02x" % epirq;
     def do_IN2(self):

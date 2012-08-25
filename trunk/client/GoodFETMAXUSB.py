@@ -204,6 +204,38 @@ bmHXFRDNIRQ     =0x80
 class GoodFETMAXUSB(GoodFET):
     MAXUSBAPP=0x40;
     
+    def service_irqs(self):
+        """Handle USB interrupt events."""
+        epirq=self.rreg(rEPIRQ);
+        usbirq=self.rreg(rUSBIRQ);
+        
+        
+        # Note *very* well that these interrupts are handled in order.
+        # You might need to alter the order or swap the elif
+        # statements for if statements.
+        
+        #Are we being asked for setup data?
+        if(epirq&bmSUDAVIRQ): #Setup Data Requested
+            self.wreg(rEPIRQ,bmSUDAVIRQ); #Clear the bit
+            self.do_SETUP();
+        if(epirq&bmOUT1DAVIRQ): #OUT1-OUT packet
+            self.do_OUT1();
+            self.wregAS(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit *AFTER* servicing.
+        if(epirq&bmIN3BAVIRQ): #IN3-IN packet
+            self.do_IN3();
+            self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the bit
+        if(epirq&bmIN2BAVIRQ): #IN2 packet
+            self.do_IN2();
+            self.wreg(rEPIRQ,bmIN2BAVIRQ); #Clear the bit
+        #else:
+        #    print "No idea how to service this IRQ: %02x" % epirq;
+    def do_IN2(self):
+        """Overload this."""
+    def do_IN3(self):
+        """Overload this."""
+    def do_OUT1(self):
+        """Overload this."""
+        print "Ignoring an OUT1 interrupt.";
     def setup2str(self,SUD):
         """Converts the header of a setup packet to a string."""
         return "bmRequestType=0x%02x, bRequest=0x%02x, wValue=0x%04x, wIndex=0x%04x, wLength=0x%04x" % (
@@ -612,14 +644,15 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
         """Handles a standard setup request."""
         setuptype=ord(SUD[bRequest]);
         if setuptype==SR_GET_DESCRIPTOR: self.send_descriptor(SUD);
-        #elif setuptype==SR_SET_FEATURE: self.feature(1);
+        #elif setuptype==SR_SET_FEATURE:
+        #    self.rregAS(rFNADDR);
+        #    # self.feature(1);
         elif setuptype==SR_SET_CONFIGURATION: self.set_configuration(SUD);
         elif setuptype==SR_GET_STATUS: self.get_status(SUD);
         elif setuptype==SR_SET_ADDRESS: self.rregAS(rFNADDR);
         elif setuptype==SR_GET_INTERFACE: self.get_interface(SUD);
         else:
             print "Stalling Unknown standard setup request type %02x" % setuptype;
-            
             self.STALL_EP0(SUD);
     
     def get_interface(self,SUD):
@@ -795,19 +828,8 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
                 self.STALL_EP0(SUD);
         else:
             self.STALL_EP0(SUD);
-    def service_irqs(self):
-        """Handle USB interrupt events."""
-        
-        epirq=self.rreg(rEPIRQ);
-        usbirq=self.rreg(rUSBIRQ);
-        
-        #Are we being asked for setup data?
-        if(epirq&bmSUDAVIRQ): #Setup Data Requested
-            self.wreg(rEPIRQ,bmSUDAVIRQ); #Clear the bit
-            self.do_SETUP();
-        if(epirq&bmIN3BAVIRQ): #EN3-IN packet
-            self.do_IN3();
-        
+
+    
     
     typephase=0;
     typestring="                      Python does USB HID!";

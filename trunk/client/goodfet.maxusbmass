@@ -37,7 +37,6 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
         if setuptype==0x00:
             self.std_request(SUD);
         elif setuptype==0x20:
-            print "XXXXXXXXXX Got a class request."
             self.class_request(SUD);
         elif setuptype==0x40:
             self.vendor_request(SUD);
@@ -46,7 +45,20 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
             self.STALL_EP0(SUD);
     def class_request(self,SUD):
         """Handle a class request."""
-        print "Stalling a class request.";
+        requesttype=ord(SUD[bmRequestType]);
+        request=ord(SUD[bRequest]);
+        if requesttype==0xA1 and request==0xFE:
+            print "Reporting 0 as the maximum LUN.";
+            #This is a Get Max LUN request.
+            #Return 1-byte maximum Logical Unit Number
+            self.wreg(rEP0FIFO,0x00); # Just one LUN.
+            self.wregAS(rEP0BC,1); # ARM and fire!
+            return; #Don't stall.
+        if requesttype==0x21 and request==0xff:
+            print "Received BBB reset."
+            self.wregAS(rEP0BC,0); # ARM and fire!
+            return; #Don't stall.
+        print "Stalling an unknown class request: %s" % self.setup2str(SUD);
         self.STALL_EP0(SUD);
     def vendor_request(self,SUD):
         """Handle a vendor request."""
@@ -64,9 +76,11 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
         elif setuptype==SR_SET_ADDRESS: self.rregAS(rFNADDR);
         elif setuptype==SR_GET_INTERFACE: self.get_interface(SUD);
         else:
-            print "Stalling Unknown standard setup request type %02x" % setuptype;
-            self.STALL_EP0(SUD);
-    
+            #print "Stalling Unknown standard setup request type %02x" % setuptype;
+            #self.STALL_EP0(SUD);
+            print "Accepting unknown standard setup request type %02x" % setuptype;
+            self.wregAS(rEP0BC,0);
+            
     def get_interface(self,SUD):
         """Handles a setup request for SR_GET_INTERFACE."""
         if ord(SUD[wIndexL]==0):
@@ -76,7 +90,6 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
             self.STALL_EP0(SUD);
     
 
-#0403:6001
 
 #Device Descriptor
     DD=[ 
@@ -101,10 +114,10 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
   0x06, #SCSI
   0x50, 0x00,
   
+  #OUT EP1
+  0x07, 0x05, 0x01, 0x02, 0x40, 0x00, 0x00,
   #IN EP3
   0x07, 0x05, 0x83, 0x02, 0x40, 0x00, 0x00,
-  #OUT EP1
-  0x07, 0x05, 0x01, 0x02, 0x40, 0x00, 0x00
 
 ];
     strDesc=[
@@ -180,49 +193,126 @@ class GoodFETMAXUSBMass(GoodFETMAXUSB):
                 self.STALL_EP0(SUD);
         else:
             self.STALL_EP0(SUD);
-    def service_irqs(self):
-        """Handle USB interrupt events."""
-        
-        epirq=self.rreg(rEPIRQ);
-        usbirq=self.rreg(rUSBIRQ);
-        
-        #Are we being asked for setup data?
-        if(epirq&bmSUDAVIRQ): #Setup Data Requested
-            self.wreg(rEPIRQ,bmSUDAVIRQ); #Clear the bit
-            self.do_SETUP();
-        elif(epirq&bmIN3BAVIRQ): #EN3-IN packet
-            self.do_IN3();
-            #self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the bit
-        elif(epirq&bmOUT1DAVIRQ): #OUT1-OUT packet
-            self.do_OUT1();
-            self.wregAS(rEPIRQ,bmOUT1DAVIRQ); #Clear the bit *AFTER* servicing.
-        #else:
-        #    self.do_IN3();
-    
-    typestring="GoodFET emulates Mass properly, if you can read this!\n";
-    typepos=0;
     
     def do_IN3(self):
         """Handle IN3 input event."""
         #Don't bother clearing interrupt flag, that's done by sending the reply.
-        #self.type_IN3();
         print "Got an input event, no idea what to do about it.";
-        self.wreg(rEP3INFIFO,0x01);      #Modem Status
-        self.wreg(rEP3INFIFO,0x00);      #Line Status
-        self.wreg(rEP3INFIFO,0x00);
-        self.wregAS(rEP3INBC,3);
+        #This would be for FTDI emulation.  Not for Mass Storage.
+        #self.wreg(rEP3INFIFO,0x01);      #Modem 
+        #self.wreg(rEP3INFIFO,0x00);      #Line 
+        #self.wreg(rEP3INFIFO,0x00);
+        self.wregAS(rEP3INBC,0);
+        
+        
     def do_OUT1(self):
         """Handle an OUT1 output event."""
         print "Got an output event, printing the result.";
         l=self.rreg(rEP1OUTBC);
         frame=self.readbytesAS(rEP1OUTFIFO,l);
-        print "Mass OUT: %s" % frame[1:len(frame)];
-        #self.type_IN3();
-
+        self.handleCBW(frame);
+    lastCBW="";
+    def handleCBW(self,cbw):
+        """Handles an incoming Command Block Wrapper.  See USB Mass
+        Storage Class for details."""
+        
+        if len(cbw)!=31:
+            print "Invalid CBW length of %i bytes.  Aborting." % len(cbw);
+        sig=cbw[0:4];
+        if sig!="USBC":
+            print "Invalid CBW signature: %s.  Should be USBC; aborting." % sig;
+            return;
+        self.lastCBW=cbw;
+        
+        dtlen=ord(cbw[8])+(ord(cbw[9])<<8)+(ord(cbw[10])<<16)+(ord(cbw[11])<<24);
+        flags=ord(cbw[12]);
+        dtdir=flags&0x80; # 0x80 for dev->host, 0x00 for host->dev
+        lun=ord(cbw[13])&0x0F; # Should be zero, as we only reported one LUN.
+        cblen=ord(cbw[14])&0x1F;
+        cb=cbw[15:31];
+        self.handleCB(cb,cblen,dtlen,dtdir);
+        
+    def handleCB(self,cb,cblen,dtlen,dtdir):
+        """Handles a command block, then replies with a CSW."""
+        print "Got command block 0x%02x, length %i bytes" % (
+            ord(cb[0]), dtlen);
+        verb=ord(cb[0]);
+        status=00; #good, set to 1 for bad.
+        if verb==0x00: # Test Unit Ready
+            response=[0,0,0,0,0,0];
+            self.writebytes(rEP3INFIFO,
+                       response);
+            self.wregAS(rEP3INBC,len(response));
+            while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
+                #Wait for the packet to complete before sending the next.
+                print "Waiting to complete inquiry."
+                pass;
+        elif verb==0x03: # Request Sense
+            print "Responding to Request Sense.  Needed for Macs.";
+            response=[0x70, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x0A,
+                      0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+                      0x00, 0x00,
+                      0,0,0,0,0];
+            status=1;
+            self.writebytes(rEP3INFIFO,
+                       response);
+            self.wregAS(rEP3INBC,len(response));
+            while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
+                #Wait for the packet to complete before sending the next.
+                print "Waiting to complete inquiry."
+                pass;
+        elif verb==0x12: #Inquiry
+            print "Responding to CB inquiry.";
+            response=[
+                0x00,
+                0x80, # make 0x80 for removable media
+                0x05, # SPC2
+                0x02, # SPC2
+                0x1f, #Additional length.
+                0x00, 0x00, 0x00,
+                #Manufacturer
+                ord('G'),ord('o'),ord('o'),ord('d'),ord('F'),ord('E'),ord('T'),0,
+                #Device name
+                ord('G'),ord('o'),ord('o'),ord('d'),ord('F'),ord('E'),ord('T'),0,
+                0,0,0,0,0,0,0,0,
+                ord('0'),ord('.'),ord('0'),ord('1')]
+            self.writebytes(rEP3INFIFO,
+                            response);
+            self.wregAS(rEP3INBC,len(response));
+            while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ):
+                #Wait for the packet to complete before sending the next.
+                print "Waiting to complete inquiry."
+                pass;
+        else:
+            print "ERROR: Unknown command block verb %02x." % verb;
+            status=1; #Command Failed
+            if dtlen>0:
+                print "Exiting, as %i bytes are expected to be transfered toward %i." % (
+                    dtlen,dtdir);
+                    
+                sys.exit();
+        cbw=self.lastCBW;
+        
+        #Now we need to send the CSW.
+        csw=[
+            #Standard prefix.
+            ord('U'),ord('S'),ord('B'),ord('S'),
+            #CBW key; must be the same as the one we're replying to.
+            ord(cbw[4]),ord(cbw[5]),ord(cbw[6]),ord(cbw[7]),
+            #CSW Data Residue, probably oughtn't be zeroed.
+            0,0,0,
+            #Status byte: 00 for good, 01 for bad.
+            status];
+        self.writebytes(rEP3INFIFO,
+                        csw);
+        self.wregAS(rEP3INBC,len(csw));
+        
+        
+        self.wreg(rEPIRQ,bmIN3BAVIRQ); #Clear the IRQ bit.
+        return;
 #Initialize FET and set baud rate
 client=GoodFETMAXUSBMass();
 client.serInit()
-
 
 client.MAXUSBsetup();
 client.massinit();

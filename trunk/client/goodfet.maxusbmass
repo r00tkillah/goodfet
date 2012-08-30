@@ -14,6 +14,9 @@ from GoodFETMAXUSB import *;
 class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
     """This emulates a USB Mass Storage device."""
     
+    #Too much data to watch everything.
+    usbverbose=False;
+
     def getSectorData(self,lba):
         """Overload this to return data from a given 512-byte sector."""
         print "You forgot to overload getSectorData().  Returning something neighborly.";
@@ -54,8 +57,13 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         return sector;
     def putSectorData(self,lba,block):
         """Overload this to write data to a given 512-byte sector."""
-        
+        print "You forgot to overload putSectorData().  Ignoring sector write.";
         return;
+    
+    def getSectorCount(self):
+        """Returns the number of viable Logical Block Addresses."""
+        print "You forgot to overload getSectorCount().  Guessing 0x200.";
+        return 0x200;
     
     def massinit(self):
         """Initialize a USB Mass Storage device."""
@@ -66,8 +74,9 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         
     def massrun(self):
         """Main loop of the USB Mass Storage emulator."""
-        print "Starting a Mass Storage device.  This doesn't work yet.";
+        print "Starting a Mass Storage device.";
         while 1:
+            sys.stdout.flush();
             self.service_irqs();
     def do_SETUP(self):
         """Handle USB Enumeration"""
@@ -218,7 +227,6 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         
     def do_OUT1(self):
         """Handle an OUT1 output event."""
-        print "Got an output event, printing the result.";
         l=self.rreg(rEP1OUTBC);
         frame=self.readbytes(rEP1OUTFIFO,l);
         self.handleCBW(frame);
@@ -247,8 +255,9 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         
     def handleCB(self,cb,cblen,dtlen,dtdir):
         """Handles a command block, then replies with a CSW."""
-        print "\nGot command block 0x%02x, requesting 0x%02x bytes" % (
-            ord(cb[0]), dtlen);
+        if self.usbverbose:
+            print "Got command block, type 0x%02x requesting 0x%02x bytes" % (
+                ord(cb[0]), dtlen);
         verb=ord(cb[0]);
         status=00; #good, set to 1 for bad.
         if verb==0x00: # Test Unit Ready
@@ -317,8 +326,10 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
             self.wregAS(rEP3INBC,
                         len(response));
         elif verb==0x25: #Read Capacity
+            lastlba=self.getSectorCount();
             response=[
-                0x00, 0,0x0f,0xFF, # Last LBA; might have endianness backward.
+                #0x00, 0, 0x0f, 0xFF, # Last LBA
+                (lastlba>>24)&0xFF, (lastlba>>16)&0xFF, (lastlba>>8)&0xFF, lastlba&0xFF, # Last LBA
                 0x00,0x00,0x02,0x00   # Block length of 512 bytes.
                 ];
             self.writebytes(rEP3INFIFO,
@@ -335,10 +346,15 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
                 );
             count=dtlen/512;
             print "Fetching %i blocks starting at  LBA %i." % (count,baselba);
+            if count>32:
+                count=0;
+                status=1; #Fail if we're asked to read more than 32 blocks.
+                #Now we need to stall EP3.  It's not acceptable to just forget to transmit.
+                self.wreg(rEPSTALLS,0x10);
             for i in range(0,count):
-                data=self.getSectorData(baselba+count);
+                data=self.getSectorData(baselba+i);
                 for j in range(0,8):
-                    print "Sending block fragment %i,%i" % (i,j);
+                    #print "Sending block fragment %i,%i" % (i,j);
                     #Transmit each 64-byte block fragment, then wait for next.
                     while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ): pass;
                     response=data[j*64:j*64+64];
@@ -374,9 +390,72 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         
         
         return;
+
+class GoodFETMAXUSBMassFile(GoodFETMAXUSBMass):
+    """This emulates a USB Mass Storage Device, providing a file as
+    its image.  Writes are not yet supported, and this is very slow.
+    Performance hacks will come after the code stabilizes."""
+    
+    datafile=None;
+    datafilelen=None;
+    def openImage(self,filename):
+        """Opens an image for use.  Call this *before* massinit()."""
+        self.datafile=open(filename,"rb");
+        print "Opened an image with %i blocks." % self.getSectorCount();
+    def putSectorData(self,lba,block):
+        """Writes a 512-byte sector to the lba address."""
+        print "Writes aren't yet supported.";
+        return;
+    
+    def getSectorData(self,lba):
+        """Returns data from a 512-byte sector."""
+        toret="";
+        
+        #Seek to the appropraite block.
+        #print "Seeking to position %i"% (lba*512)
+        self.datafile.seek(lba*512,0);
+        pos=self.datafile.tell();
+        if pos!=lba*512:
+            print "SEEK ERROR: Seeked to %i (lba=%i), but now I'm at %i (lba=%i)" % (
+                lba*512,lba,
+                pos,pos/512);
+            #sys.exit();
+        
+        #Dump the data out, assuming no blocking and filling with nonsense.
+        toret=self.datafile.read(512);
+        if len(toret)<512:
+            print "Holy hell, I only have %i bytes of 512." % len(toret);
+        
+        toretbytes=range(0,len(toret));
+        for b in range(0,len(toret)): toretbytes[b]=ord(toret[b]);
+        return toretbytes;
+        
+    def getSectorCount(self):
+        """Returns the number of viable Logical Block Addresses."""
+        
+        # Python must have a better way to read a file length, but for
+        # now we just read the whole damned thing and then throw it
+        # away.  With present performance, we can't read anything
+        # large enough for this to be a problem.
+        if self.datafilelen==None:
+            self.datafile.seek(0);
+            self.datafilelen=len(self.datafile.read());
+        if self.datafilelen%512!=0:
+            print "ERROR: Image does not have an integer number of blocks!"
+            print "%i \% 512 == %i" % (self.datafilelen,
+                                       self.datafilelen%512);
+            sys.exit();
+        return self.datafilelen/512-1;
+if(len(sys.argv)==1):
+    print "Usage: %s disk.img\n" % sys.argv[0];
+    sys.exit();
+
+
 #Initialize FET and set baud rate
-client=GoodFETMAXUSBMass();
+client=GoodFETMAXUSBMassFile();
 client.serInit()
+
+client.openImage(sys.argv[1]);
 
 client.MAXUSBsetup();
 client.massinit();

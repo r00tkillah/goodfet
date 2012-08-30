@@ -203,6 +203,7 @@ bmHXFRDNIRQ     =0x80
 
 class GoodFETMAXUSB(GoodFET):
     MAXUSBAPP=0x40;
+    usbverbose=True;
     
     def service_irqs(self):
         """Handle USB interrupt events."""
@@ -231,7 +232,7 @@ class GoodFETMAXUSB(GoodFET):
         """Overload this."""
     def do_OUT1(self):
         """Overload this."""
-        print "Ignoring an OUT1 interrupt.";
+        if self.usbverbose: print "Ignoring an OUT1 interrupt.";
     def setup2str(self,SUD):
         """Converts the header of a setup packet to a string."""
         return "bmRequestType=0x%02x, bRequest=0x%02x, wValue=0x%04x, wIndex=0x%04x, wLength=0x%04x" % (
@@ -286,7 +287,7 @@ class GoodFETMAXUSB(GoodFET):
         ashex="";
         for foo in toret:
             ashex=ashex+(" %02x"%ord(foo));
-        print "GET   %02x==%s" % (reg,ashex);
+        if self.usbverbose: print "GET   %02x==%s" % (reg,ashex);
         return toret;
     def readbytesAS(self,reg,length):
         """Peek some bytes from a register, acking prior transfer."""
@@ -296,7 +297,7 @@ class GoodFETMAXUSB(GoodFET):
         ashex="";
         for foo in toret:
             ashex=ashex+(" %02x"%ord(foo));
-        print "GETAS %02x==%s" % (reg,ashex);
+        if self.usbverbose: print "GETAS %02x==%s" % (reg,ashex);
         return toret;
     def ctl_write_nd(self,request):
         """Control Write with no data stage.  Assumes PERADDR is set
@@ -413,13 +414,13 @@ class GoodFETMAXUSB(GoodFET):
         data="";
         if type(tosend)==str:
             data=chr((reg<<3)|3)+tosend;
-            print "PUT %02x:=%s (0x%02x bytes)" % (reg,tosend,len(data))
+            if self.usbverbose: print "PUT %02x:=%s (0x%02x bytes)" % (reg,tosend,len(data))
         else:
             data=[(reg<<3)|3]+tosend;
             ashex="";
             for foo in tosend:
                 ashex=ashex+(" %02x"%foo);
-            print "PUT %02x:=%s (0x%02x bytes)" % (reg,ashex,len(data))
+            if self.usbverbose: print "PUT %02x:=%s (0x%02x bytes)" % (reg,ashex,len(data))
         self.writecmd(self.MAXUSBAPP,0x00,len(data),data);
     def usb_connect(self):
         """Connect the USB port."""

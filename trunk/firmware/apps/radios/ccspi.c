@@ -249,9 +249,9 @@ void ccspi_handle_fn( uint8_t const app,
       SETSS;
       */
       
-      //Only should transmit length of one more than the reported
-      // length of the frame, which holds the length byte:
-      txdata(app,verb,i&0x7F);
+      //Only should transmit a packet if the length is legal.
+      if(cmddata[0]&0x80) i=0;
+      txdata(app,verb,i);
     }else{
       //No packet.
       txdata(app,verb,0);

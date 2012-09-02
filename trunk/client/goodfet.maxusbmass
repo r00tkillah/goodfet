@@ -317,7 +317,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         elif verb==0x23: #Read Format Capacity
             response=[
                 0x00, 0,0x00,0x08, #Capacity list length.
-                0,0x00,x10,0x00,   # Number of sectors, implying 10MB.
+                0,0x00,0x10,0x00,   # Number of sectors, implying 10MB.
                 0x01,0x00,            #reserved/desciptor code.
                 0x02,0x00             # 512 bytes/sector.  Why is this twice?
                 ];
@@ -365,7 +365,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
             #sys.exit();
         elif verb==0x2A: #WRITE SECTOR
             print "Haven't implemented WRITE SECTOR.";
-            sys.exit();
+            #sys.exit();
         else:
             print "ERROR: Unknown SCSI command block verb %02x." % verb;
             status=1; #Command Failed

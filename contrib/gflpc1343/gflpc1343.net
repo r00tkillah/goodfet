@@ -1,0 +1,422 @@
+# EESchema Netlist Version 1.1 created  Sun Sep 16 23:42:46 2012
+(
+ ( /5055F3B2 GSG-0603 C1 18pF
+  ( 1 /XTALOUT )
+  ( 2 GND )
+ )
+ ( /5055F394 GSG-0603 C2 18pF
+  ( 1 /XTALIN )
+  ( 2 GND )
+ )
+ ( /5055FF82 GSG-0603 C3 100nF
+  ( 1 GND )
+  ( 2 3V3 )
+ )
+ ( /5055FF63 GSG-0603 C4 100nF
+  ( 1 3V3 )
+  ( 2 GND )
+ )
+ ( /5055F4F3 GSG-0603 C5 18pF
+  ( 1 /USB_DM )
+  ( 2 GND )
+ )
+ ( /5055F4EF GSG-0603 C6 18pF
+  ( 1 /USB_DP )
+  ( 2 GND )
+ )
+ ( /50560FE5 GSG-0805 C7 10uF
+  ( 1 +5V )
+  ( 2 GND )
+ )
+ ( /50560FF2 GSG-0603 C8 1uF
+  ( 1 3V3 )
+  ( 2 GND )
+ )
+ ( /5056151B GSG-0603D D1 RXLED
+  ( 1 N-000003 )
+  ( 2 GND )
+ )
+ ( /50561521 GSG-0603D D2 TXLED
+  ( 1 N-000004 )
+  ( 2 GND )
+ )
+ ( /50561522 GSG-0603D D3 LED1
+  ( 1 N-000005 )
+  ( 2 GND )
+ )
+ ( /50569E64 GSG-0603D D4 LED2
+  ( 1 N-000057 )
+  ( 2 GND )
+ )
+ ( /5055F32E GSG-USB-MICROB-FCI-10103594 J1 USB-MICRO-B
+  ( 1 +5V )
+  ( 2 /D- )
+  ( 3 /D+ )
+  ( 4 ? )
+  ( 5 GND )
+ )
+ ( /5055E021 GSG-HEADER-SHROUDED-2x7 P1 GOODFET
+  ( 1 /MISO0 )
+  ( 2 3V3 )
+  ( 3 /MOSI0 )
+  ( 4 3V3 )
+  ( 5 /SSEL0 )
+  ( 6 /!DTR )
+  ( 7 /SCK0 )
+  ( 8 /!RTS )
+  ( 9 GND )
+  ( 10 /!CTS )
+  ( 11 /!DSR )
+  ( 12 /RXD )
+  ( 13 /!DCD )
+  ( 14 /TXD )
+ )
+ ( /505629EC GSG-HEADER-1x6-EDGE P2 SWD
+  ( 1 3V3 )
+  ( 2 /SWCLK )
+  ( 3 GND )
+  ( 4 /SWDIO )
+  ( 5 /!RESET )
+  ( 6 /MOSI0 )
+ )
+ ( /50562540 GSG-HEADER-1x6-EDGE P3 ISP
+  ( 1 GND )
+  ( 2 /!ISP )
+  ( 3 ? )
+  ( 4 /RXD )
+  ( 5 /TXD )
+  ( 6 /!RESET )
+ )
+ ( /505685A5 GSG-HEADER-SHROUDED-2x7 P4 EXPANSION
+  ( 1 GND )
+  ( 2 /PIO2_4 )
+  ( 3 /SDA )
+  ( 4 /SCL )
+  ( 5 /PIO2_8 )
+  ( 6 /PIO2_7 )
+  ( 7 /PIO2_6 )
+  ( 8 /PIO2_5 )
+  ( 9 /PIO2_9 )
+  ( 10 /PIO0_11 )
+  ( 11 /PIO1_0 )
+  ( 12 /PIO1_1 )
+  ( 13 /PIO1_2 )
+  ( 14 /PIO2_3 )
+ )
+ ( /5055F650 SOT23EBC Q1 PNP
+  ( 1 3V3 )
+  ( 2 N-000050 )
+  ( 3 N-000044 )
+ )
+ ( /5055F4FF GSG-0603 R1 10k
+  ( 1 /!ISP )
+  ( 2 3V3 )
+ )
+ ( /5055FB4C GSG-0603 R2 10k
+  ( 1 3V3 )
+  ( 2 N-000050 )
+ )
+ ( /5055FFF2 GSG-0603 R3 10k
+  ( 1 /!RESET )
+  ( 2 3V3 )
+ )
+ ( /5055F6BC GSG-0603 R4 1k5
+  ( 1 N-000050 )
+  ( 2 /!USB_CONNECT )
+ )
+ ( /50561413 GSG-0603 R5 10k
+  ( 1 +5V )
+  ( 2 /USB_VBUS )
+ )
+ ( /5055F449 GSG-0603 R6 1k5
+  ( 1 N-000044 )
+  ( 2 /D+ )
+ )
+ ( /5056141B GSG-0603 R7 22k
+  ( 1 /USB_VBUS )
+  ( 2 GND )
+ )
+ ( /5055F436 GSG-0603 R8 33
+  ( 1 /USB_DM )
+  ( 2 /D- )
+ )
+ ( /5055F411 GSG-0603 R9 33
+  ( 1 /USB_DP )
+  ( 2 /D+ )
+ )
+ ( /50561534 GSG-0603 R10 330
+  ( 1 /RXLED )
+  ( 2 N-000003 )
+ )
+ ( /50561540 GSG-0603 R11 330
+  ( 1 /TXLED )
+  ( 2 N-000004 )
+ )
+ ( /50561542 GSG-0603 R12 330
+  ( 1 /LED1 )
+  ( 2 N-000005 )
+ )
+ ( /50569E68 GSG-0603 R13 330
+  ( 1 /LED2 )
+  ( 2 N-000057 )
+ )
+ ( /50569CE6 GSG-0603 R14 2k
+  ( 1 3V3 )
+  ( 2 /SDA )
+ )
+ ( /50569D00 GSG-0603 R15 2k
+  ( 1 3V3 )
+  ( 2 /SCL )
+ )
+ ( /5056A094 GSG-0603 R16 10k
+  ( 1 3V3 )
+  ( 2 /WAKEUP )
+ )
+ ( /5056A08F GSG-0603-SHORT-10MIL R17 R-SHORTED
+  ( 1 /WAKEUP )
+  ( 2 GND )
+ )
+ ( /5055E86B GSG-LQFP48 U1 LPC1343FBD48
+  ( 1 /PIO2_6 )
+  ( 2 /!DTR )
+  ( 3 /!RESET )
+  ( 4 /!ISP )
+  ( 5 GND )
+  ( 6 /XTALIN )
+  ( 7 /XTALOUT )
+  ( 8 3V3 )
+  ( 9 /RXLED )
+  ( 10 /SSEL0 )
+  ( 11 /PIO2_7 )
+  ( 12 /PIO2_8 )
+  ( 13 /!DSR )
+  ( 14 /USB_VBUS )
+  ( 15 /SCL )
+  ( 16 /SDA )
+  ( 17 ? )
+  ( 18 /PIO2_4 )
+  ( 19 /USB_DM )
+  ( 20 /USB_DP )
+  ( 21 /PIO2_5 )
+  ( 22 /!USB_CONNECT )
+  ( 23 /!CTS )
+  ( 24 /PIO2_9 )
+  ( 25 /TXLED )
+  ( 26 /!DCD )
+  ( 27 /MISO0 )
+  ( 28 /MOSI0 )
+  ( 29 /SWCLK )
+  ( 30 /LED2 )
+  ( 31 /SCK0 )
+  ( 32 /PIO0_11 )
+  ( 33 /PIO1_0 )
+  ( 34 /PIO1_1 )
+  ( 35 /PIO1_2 )
+  ( 36 ? )
+  ( 37 ? )
+  ( 38 /PIO2_3 )
+  ( 39 /SWDIO )
+  ( 40 /WAKEUP )
+  ( 41 GND )
+  ( 42 ? )
+  ( 43 ? )
+  ( 44 3V3 )
+  ( 45 /!RTS )
+  ( 46 /RXD )
+  ( 47 /TXD )
+  ( 48 /LED1 )
+ )
+ ( /50560FDF GSG-SOT23-3 U2 AP7333
+  ( 1 +5V )
+  ( 2 3V3 )
+  ( 3 GND )
+ )
+ ( /5055F324 GSG-XTAL3.2x2.5mm X1 XTAL4PIN
+  ( 1 /XTALOUT )
+  ( 2 ? )
+  ( 3 /XTALIN )
+  ( 4 ? )
+ )
+)
+*
+{ Allowed footprints by component:
+$component C1
+ SM*
+ C?
+ C1-1
+$endlist
+$component C2
+ SM*
+ C?
+ C1-1
+$endlist
+$component C3
+ SM*
+ C?
+ C1-1
+$endlist
+$component C4
+ SM*
+ C?
+ C1-1
+$endlist
+$component C5
+ SM*
+ C?
+ C1-1
+$endlist
+$component C6
+ SM*
+ C?
+ C1-1
+$endlist
+$component C7
+ SM*
+ C?
+ C1-1
+$endlist
+$component C8
+ SM*
+ C?
+ C1-1
+$endlist
+$component D1
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D2
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D3
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D4
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R4
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R5
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R6
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R7
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R8
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R9
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R10
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R11
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R12
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R13
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R14
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R15
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R16
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R17
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$endfootprintlist
+}

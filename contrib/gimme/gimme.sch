@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Fri Sep 14 09:25:37 2012
+EESchema Schematic File Version 2  date Tue Sep 18 22:52:17 2012
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -35,11 +35,11 @@ EELAYER END
 $Descr A4 11700 8267
 encoding utf-8
 Sheet 1 1
-Title ""
+Title "GIMME"
 Date "14 sep 2012"
-Rev ""
-Comp ""
-Comment1 ""
+Rev "$Rev$"
+Comp "Copyright 2012 Michael Ossmann"
+Comment1 "License: BSD 3-Clause, http://goodfet.sourceforge.net/"
 Comment2 ""
 Comment3 ""
 Comment4 ""

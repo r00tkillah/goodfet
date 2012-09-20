@@ -158,7 +158,7 @@ endif
 ifneq (,$(findstring $(board),tilaunchpad))
 mcu ?=msp430f1612
 CFLAGS := -DDEBUG_LEVEL=3 -DDEBUG_START=1 -DINBAND_DEBUG
-CFLAGS+= -Werror -Wall
+CFLAGS+= -Wall
 config := monitor chipcon i2c
 endif
 

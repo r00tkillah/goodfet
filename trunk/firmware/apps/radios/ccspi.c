@@ -261,6 +261,60 @@ void ccspi_handle_fn( uint8_t const app,
     txdata(app,NOK,0);
 #endif
     break;
+  case CCSPI_RXDEC:
+#ifdef FIFOP
+    //Has there been an overflow?
+    if((!FIFO)&&FIFOP){
+      debugstr("Clearing overflow");
+      CLRSS;
+      ccspitrans8(0x08); //SFLUSHRX
+      SETSS;
+      txdata(app,verb,0); //no packet
+      return;
+    }
+
+    //Is there a packet?
+    if(FIFOP&&FIFO){
+      //Wait for completion.
+      while(SFD);
+      
+      //Decrypt the packet.
+      CLRSS; ccspitrans8(CCSPI_SRXDEC); SETSS;
+      
+      //Wait for decryption to complete.
+      while(!FIFO);
+      
+      //Get the packet.
+      CLRSS;
+      ccspitrans8(CCSPI_RXFIFO | 0x40);
+      //ccspitrans8(0x3F|0x40);
+      cmddata[0]=0x20; //to be replaced with length
+      
+      
+      /* This reads too far on some CC2420 revisions, but on others it
+	 works fine.  It probably has to do with whether FIFO drops
+	 before or after the SPI clocking.
+	 
+	 A software fix is to reset the CC2420 between packets.  This
+	 works, but a better solution is desired.
+      */
+      for(i=0;i<cmddata[0]+1;i++)
+      //for(i=0;FIFO && i<0x80;i++)
+        cmddata[i]=ccspitrans8(0x00);
+      SETSS;
+      
+      //Only should transmit a packet if the length is legal.
+      if(cmddata[0]&0x80) i=0;
+      txdata(app,verb,i);
+    }else{
+      //No packet.
+      txdata(app,verb,0);
+    }
+#else
+    debugstr("Can't RX a packet with SFD and FIFOP definitions.");
+    txdata(app,NOK,0);
+#endif
+    break;
   case CCSPI_RX_FLUSH:
     //Flush the buffer.
     CLRSS;

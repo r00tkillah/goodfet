@@ -14,6 +14,8 @@
 
 //Grab a packet, if one is available.
 #define CCSPI_RX 0x80
+//Grab and decrypt a packet, if one is available.
+#define CCSPI_RXDEC 0x90
 //Send a packet.
 #define CCSPI_TX 0x81
 //Flush RX
@@ -41,6 +43,8 @@
 #define CCSPI_RXFIFO  0x3F
 #define CCSPI_SFLUSHRX 0x08
 #define CCSPI_SFLUSHTX 0x09
+#define CCSPI_SRXDEC 0x0C
+#define CCSPI_STXENC 0x0D
 
 extern app_t const ccspi_app;
 

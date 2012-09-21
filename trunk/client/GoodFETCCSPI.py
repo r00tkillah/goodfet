@@ -131,6 +131,11 @@ class GoodFETCCSPI(GoodFET):
         self.poke(0x14,sync);
         return;
     
+    def RF_setkey(self,key):
+        """Sets the first key for encryption to the given argument."""
+        print "ERROR: Forgot to set the key.";
+        
+        return;
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         mhz=frequency/1000000;
@@ -171,11 +176,8 @@ class GoodFETCCSPI(GoodFET):
         return rssival^0x80;
     lastpacket=range(0,0xff);
     def RF_rxpacket(self):
-        """Get a packet from the radio.  Returns None if none is waiting.  In
-        order to not require the SFD, FIFO, or FIFOP lines, this
-        implementation works by comparing the buffer to the older
-        contents.
-        """
+        """Get a packet from the radio.  Returns None if none is
+        waiting."""
         
         data="\0";
         self.data=data;
@@ -185,9 +187,23 @@ class GoodFETCCSPI(GoodFET):
         self.lastpacket=buffer;
         if(len(buffer)==0):
             return None;
-        #self.strobe(0x08);         #SFLUSHRX
         
         return buffer;
+    def RF_rxpacketdec(self):
+        """Get and decrypt a packet from the radio.  Returns None if
+        none is waiting."""
+        
+        data="\0";
+        self.data=data;
+        self.writecmd(self.CCSPIAPP,0x90,len(data),data);
+        buffer=self.data;
+        
+        self.lastpacket=buffer;
+        if(len(buffer)==0):
+            return None;
+        
+        return buffer;
+
     def RF_txpacket(self,packet):
         """Send a packet through the radio."""
         self.writecmd(self.CCSPIAPP,0x81,len(packet),packet);

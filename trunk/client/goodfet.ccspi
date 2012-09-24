@@ -28,6 +28,7 @@ if(len(sys.argv)==1):
     
     print "\n%s surf" % sys.argv[0];
     print "%s sniff [chan]" % sys.argv[0];
+    print "%s sniffstrings [chan]" % sys.argv[0];
     print "%s bsniff [chan]" % sys.argv[0];
     print "%s sniffcrypt 0x$key [chan]" % sys.argv[0];
     print "%s sniffdissect" % sys.argv[0];
@@ -186,7 +187,7 @@ if sys.argv[1]=="surf":
         sys.stdout.flush();
         chan=chan+1;
 
-if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
+if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect" or sys.argv[1]=="sniffstrings"):
     #Promiscuous mode.
     client.RF_promiscuity(1);
     client.RF_autocrc(1);
@@ -212,6 +213,8 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect"):
             packet=client.RF_rxpacket();
         if sys.argv[1]=="sniffdissect":
             client.printdissect(packet);
+        elif sys.argv[1]=="sniffstrings":
+            print packet
         else:
             client.printpacket(packet);
         sys.stdout.flush();

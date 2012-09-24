@@ -1,13 +1,14 @@
 //! MSP430F2618 clock and I/O definitions
 
 // Included by other 2xx ports, such as the 2274.
+#include <msp430.h>
+#include <sys/crtld.h>
+
 
 #include "platform.h"
 
 #include "dco_calib.h"
 
-#include <msp430.h>
-#include <sys/crtld.h>
 
 
 //! Receive a byte.
@@ -26,7 +27,7 @@ unsigned char serial0_rx(){
 unsigned char serial1_rx(){
   char c;
 
-#ifdef UC1IFG
+#ifdef useuart1
   while (!(UC1IFG&UCA1RXIFG));               // USCI_A1 TX buffer ready?
   c = UCA1RXBUF;
   UC1IFG&=~UCA1RXIFG;
@@ -43,7 +44,7 @@ void serial0_tx(unsigned char x){
 }
 //! Transmit a byte on the second UART.
 void serial1_tx(unsigned char x){
-#ifdef UC1IFG
+#ifdef useuart1
   while ((UC1IFG & UCA1TXIFG) == 0); //loop until buffer is free
   UCA1TXBUF = x;	/* send the character */
   while(!(UC1IFG & UCA1TXIFG));
@@ -82,7 +83,7 @@ void setbaud0(unsigned char rate){
 
 //! Set the baud rate of the second uart.
 void setbaud1(unsigned char rate){
-#ifdef UC1IFG
+#ifdef useuart1
   //Table 15-4, page 481 of 2xx Family Guide
   switch(rate){
   case 1://9600 baud
@@ -139,7 +140,7 @@ void msp430_init_uart(){
   //IE2 |= UCA0RXIE; //DO NOT UNCOMMENT
   
   
-#ifdef UC1IFG
+  #ifdef useuart1
   // Serial 1 on P3.6, 3.7
   P3SEL    |=  0xC0;
   //UCA1CTL0 = 0x00;
@@ -147,7 +148,7 @@ void msp430_init_uart(){
   setbaud1(5); //115200
   UCA1MCTL  =  0;
   UCA1CTL1 &= ~UCSWRST;                      // Initialize USCI state machine
-#endif
+  #endif
 }
 
 

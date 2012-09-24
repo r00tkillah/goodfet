@@ -111,6 +111,7 @@ int main(void){
 #else
   void (*reboot_function)(void) = (void *) 0xFFFE;
 #endif
+  
   init();
   
   txstring(MONITOR,OK,"http://goodfet.sf.net/");

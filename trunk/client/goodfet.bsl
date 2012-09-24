@@ -1485,7 +1485,7 @@ def main(itest=1):
     if(os.environ.get("board")=='z1' or 
        os.environ.get("board")=='zolertiaz1'):
         bsl.z1 = 1
-    if(os.environ.get("board")=='apimote'):
+    if(os.environ.get("board")=='apimote' or os.environ.get("board")=='apimote1'):
         bsl.swapRSTTEST = 1;
     
     

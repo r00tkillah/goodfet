@@ -17,6 +17,8 @@ if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s info" % sys.argv[0];
     print "%s regs" % sys.argv[0];
+    print "%s ram" % sys.argv[0];
+    print "%s ramtest" % sys.argv[0];
     print "%s test" % sys.argv[0];
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
     print "%s poke 0x$adr 0x$val" % sys.argv[0];
@@ -97,6 +99,32 @@ if(sys.argv[1]=="regs"):
     for adr in range(0x10,0x40): #*1024):
         val=client.peek(adr);
         print "%04x:=0x%04x" % (adr,val);
+if(sys.argv[1]=="ram"):
+    for adr in range(0x0,0x16D,16):
+        row=client.peekram(adr,32);
+        s="";
+        for foo in row:
+            s=s+(" %02x" % ord(foo))
+        print "%04x: %s" % (adr,s);
+if(sys.argv[1]=="ramtest"):
+    client.pokeram(0x00,[0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef,
+                         0xde,0xad,0xbe,0xef]);
+    
+    for adr in range(0x0,0x16D,16):
+        row=client.peekram(adr,32);
+        s="";
+        for foo in row:
+            s=s+(" %02x" % ord(foo))
+        print "%04x: %s" % (adr,s);
 if(sys.argv[1]=="test"):
     data=client.trans([0x20, 0xde, 0xad]);
     print "%02x %02x" % (ord(data[1]), ord(data[2]));

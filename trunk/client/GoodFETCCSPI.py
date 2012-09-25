@@ -115,7 +115,7 @@ class GoodFETCCSPI(GoodFET):
     #Radio stuff begins here.
     def RF_setenc(self,code="802.15.4"):
         """Set the encoding type."""
-        return;
+        return code;
     def RF_getenc(self):
         """Get the encoding type."""
         return "802.15.4";
@@ -174,6 +174,21 @@ class GoodFETCCSPI(GoodFET):
         """Returns the received signal strength, with a weird offset."""
         rssival=self.peek(0x13)&0xFF; #raw RSSI register
         return rssival^0x80;
+
+    def peekram(self,adr,count):
+        """Peeks data from CC2420 RAM."""
+        data=[
+            adr&0xFF,adr>>8,     # Address first.
+            count&0xFF,count>>8  # Then length.
+            ];
+        self.writecmd(self.CCSPIAPP,0x84,len(data),data);
+        return self.data;
+    def pokeram(self,adr,data):
+        """Pokes data into CC2420 RAM."""
+        data=[adr&0xFF, adr>>8]+data;
+        self.writecmd(self.CCSPIAPP,0x85,len(data),data);
+        return;
+    
     lastpacket=range(0,0xff);
     def RF_rxpacket(self):
         """Get a packet from the radio.  Returns None if none is

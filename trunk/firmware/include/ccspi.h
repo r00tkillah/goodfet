@@ -22,18 +22,16 @@
 #define CCSPI_RX_FLUSH 0x82
 //Flush TX
 #define CCSPI_TX_FLUSH 0x83
+//Peek RAM
+#define CCSPI_PEEK_RAM 0x84
+//Poke RAM
+#define CCSPI_POKE_RAM 0x85
+
+
 //Reflexive jam.
 #define CCSPI_REFLEX 0xA0
 //Reflexive jam that sends a forged ACK frame if one was requested
 #define CCSPI_REFLEX_AUTOACK 0xA1
-
-
-//Bit fields for command word.
-#define CCSPI_R_REGISTER 0
-#define CCSPI_W_REGISTER BIT7
-#define CCSPI_R_RAM BIT6
-#define CCSPI_W_RAM (BIT6|BIT7)
-
 
 
 //Register definitions might go here, at least for buffers.

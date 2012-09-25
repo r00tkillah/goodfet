@@ -195,17 +195,17 @@ class GoodFET:
                 #print "'%s'!=\n'%s'" % (self.data,"http://goodfet.sf.net/");
                 if attemptlimit is not None and attempts >= attemptlimit:
                     return
-                elif attempts==2:
+                elif attempts==2 and os.environ.get("board")!='telosb':
                     print "See the GoodFET FAQ about missing info flash.";
                     self.serialport.setTimeout(0.2);
                 #self.serialport.flushInput()
                 #self.serialport.flushOutput()
                 
                 #TelosB reset, prefer software to I2C SPST Switch.
-                if (os.environ.get("platform")=='telosb' or  os.environ.get("board")=='telosb'):
+                if (os.environ.get("board")=='telosb'):
                     #print "TelosB Reset";
                     self.telosBReset();
-                elif (os.environ.get("board")=='zolertiaz1' or  os.environ.get("board")=='z1'):
+                elif (os.environ.get("board")=='z1'):
                     self.bslResetZ1(invokeBSL=0);
                 elif (os.environ.get("board")=='apimote1') or (os.environ.get("board")=='apimote'):
                     #Explicitly set RTS and DTR to halt board.

@@ -154,7 +154,43 @@ void ccspireflexjam(u16 delay){
 #endif
 }
 
+//! Writes bytes into the CC2420's RAM.  Untested.
+void ccspi_pokeram(u8 addr, char *data, int len){
+  CLRSS;
+  //Begin with the start address.
+  ccspitrans8(0x80 | (addr & 0x7F)); 
+  ccspitrans8(((addr>>1)&0xC0) // MSBits are high bits of 9-bit address.
+	                       // Read/!Write bit should be clear to write.
+	      );
+  
+  //Data goes here.
+  while(len--)
+    ccspitrans8(*data++);
+  
+  SETSS;
+}
 
+//! Read bytes from the CC2420's RAM.  Untested.
+void ccspi_peekram(u16 addr, u8 *data, u16 len){
+  CLRSS;
+  
+  //Begin with the start address.
+  ccspitrans8(0x80 | (addr & 0x7F));
+  ccspitrans8(((addr>>1)&0xC0) // MSBits are high bits of 9-bit address.
+	      | BIT5           // Read/!Write bit should be set to read.
+	      ); 
+  
+  //Data goes here.
+  while(len--)
+    *data++=ccspitrans8(0);
+  
+  SETSS;
+}
+
+//! Updates the Nonce's sequence number.
+void ccspi_updaterxnonce(u32 seq){
+  
+}
 
 //! Writes a register
 u8 ccspi_regwrite(u8 reg, const u8 *buf, int len){
@@ -207,6 +243,21 @@ void ccspi_handle_fn( uint8_t const app,
     ccspisetup();
     txdata(app,verb,0);
     break;
+  case CCSPI_PEEK_RAM:
+    i=cmddataword[1]; // Backup length.
+    ccspi_peekram(cmddataword[0], // First word is the address.
+		   cmddata,        // Return in the same buffer.
+		   cmddataword[1]  // Second word is the length.
+		   );
+    txdata(app,verb,i);
+    break;
+  case CCSPI_POKE_RAM:
+    ccspi_pokeram(cmddataword[0], //First word is address
+		  cmddata+2,      //Remainder of buffer is dat.
+		  len-2           //Length implied by packet length.
+		  );
+    txdata(app,verb,0);
+    break;
   case CCSPI_RX:
 #ifdef FIFOP
     //Has there been an overflow?
@@ -249,7 +300,7 @@ void ccspi_handle_fn( uint8_t const app,
       SETSS;
       */
       
-      //Only should transmit a packet if the length is legal.
+      //Only transmit a packet if the length is legal.
       if(cmddata[0]&0x80) i=0;
       txdata(app,verb,i);
     }else{
@@ -278,17 +329,34 @@ void ccspi_handle_fn( uint8_t const app,
       //Wait for completion.
       while(SFD);
       
-      //Decrypt the packet.
-      CLRSS; ccspitrans8(CCSPI_SRXDEC); SETSS;
+      CLRSS;
+      ccspitrans8(CCSPI_RXFIFO | 0x40);
+      // Grab the length.
+      cmddata[0]=ccspitrans8(0x00);
       
-      //Wait for decryption to complete.
-      while(!FIFO);
+      //Read the header first.
+      for(i=1;i<cmddata[0]+1 && i<0x11;i++)
+        cmddata[i]=ccspitrans8(0x00);
+      SETSS;
       
-      //Get the packet.
+      //Is the frame encrypted?
+      if(cmddata[1]&BIT3){
+	//Copy the sequence number to the Nonce.
+	
+	
+	//Decrypt the rest of the packet.
+	CLRSS; ccspitrans8(CCSPI_SRXDEC); SETSS;
+	
+	//Wait for decryption to complete.
+	while(!FIFO);
+      
+      }
+      
+      
+      //Get the packet, which is now decrypted in position.
       CLRSS;
       ccspitrans8(CCSPI_RXFIFO | 0x40);
       //ccspitrans8(0x3F|0x40);
-      cmddata[0]=0x20; //to be replaced with length
       
       
       /* This reads too far on some CC2420 revisions, but on others it
@@ -298,12 +366,11 @@ void ccspi_handle_fn( uint8_t const app,
 	 A software fix is to reset the CC2420 between packets.  This
 	 works, but a better solution is desired.
       */
-      for(i=0;i<cmddata[0]+1;i++)
-      //for(i=0;FIFO && i<0x80;i++)
+      for(;i<cmddata[0]+1;i++)
         cmddata[i]=ccspitrans8(0x00);
       SETSS;
       
-      //Only should transmit a packet if the length is legal.
+      //Only forward a packet if the length is legal.
       if(cmddata[0]&0x80) i=0;
       txdata(app,verb,i);
     }else{

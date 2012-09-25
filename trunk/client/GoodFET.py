@@ -140,6 +140,7 @@ class GoodFET:
         """Open the serial port"""
         # Make timeout None to wait forever, 0 for non-blocking mode.
         import serial;
+        fixserial=False;
         
         if os.name=='nt' and sys.version.find('64 bit')!=-1:
             print "WARNING: PySerial requires a 32-bit Python build in Windows.";
@@ -194,8 +195,9 @@ class GoodFET:
                 #print "'%s'!=\n'%s'" % (self.data,"http://goodfet.sf.net/");
                 if attemptlimit is not None and attempts >= attemptlimit:
                     return
-                elif attempts>2:
-                    print "Resyncing.  See the GoodFET FAQ about missing info flash.";
+                elif attempts==2:
+                    print "See the GoodFET FAQ about missing info flash.";
+                    self.serialport.setTimeout(0.2);
                 #self.serialport.flushInput()
                 #self.serialport.flushOutput()
                 
@@ -573,6 +575,9 @@ class GoodFET:
         self.writecmd(0,0x03,3,self.data);
         return ord(self.data[0]);
     def poke16(self,address,value):
+        """Set a word of memory by the monitor."""
+        self.MONpoke16(address,value);
+    def MONpoke16(self,address,value):
         """Set a word of memory by the monitor."""
         self.pokebyte(address,value&0xFF);
         self.pokebyte(address,(value>>8)&0xFF);

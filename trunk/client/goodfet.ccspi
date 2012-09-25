@@ -13,6 +13,21 @@ import array, time;
 
 from GoodFETCCSPI import GoodFETCCSPI;
 
+
+#Some quick functions for yanking values out of a packet.
+def srcadr(packet):
+    """Returns the source address of a packet as an integer."""
+    return ord(packet[4])+(ord(packet[5])<<8);
+def isencrypted(packet):
+    """Returns true if the packet is encrypted.""";
+    return ord(packet[1])&0x08;
+def pktnonceseq(packet):
+    """Returns the nonce sequence of a packet."""
+    nonce=0;
+    for byte in [0xa,9,8,7]:
+        nonce=(nonce<<8)|ord(packet[byte]);
+    return nonce;
+
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];
     print "%s info" % sys.argv[0];
@@ -34,6 +49,7 @@ if(len(sys.argv)==1):
     print "%s bsniff [chan]" % sys.argv[0];
     print "%s sniffcrypt 0x$key [chan]" % sys.argv[0];
     print "%s sniffdissect" % sys.argv[0];
+    print "%s sniffnonce" % sys.argv[0];
     
     print "\n%s txtoscount [-i|-r]   TinyOS BlinkToLED" % sys.argv[0];
     print "%s reflexjam [channel=11] [delay=0]" % sys.argv[0];
@@ -215,7 +231,8 @@ if sys.argv[1]=="surf":
         sys.stdout.flush();
         chan=chan+1;
 
-if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect" or sys.argv[1]=="sniffstrings"):
+if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect" or sys.argv[1]=="sniffstrings" or
+   sys.argv[1]=="sniffnonce"):
     #Promiscuous mode.
     client.RF_promiscuity(1);
     client.RF_autocrc(1);
@@ -242,7 +259,10 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect" or sys.argv[1]=="sniffstr
         if sys.argv[1]=="sniffdissect":
             client.printdissect(packet);
         elif sys.argv[1]=="sniffstrings":
-            print packet
+            print packet;
+        elif sys.argv[1]=="sniffnonce":
+            if isencrypted(packet):
+                print "%04x: %08x" % (srcadr(packet),pktnonceseq(packet));
         else:
             client.printpacket(packet);
         sys.stdout.flush();
@@ -284,8 +304,12 @@ if(sys.argv[1]=="sniffcrypt"):
     
     if len(sys.argv)>2:
         key=int(sys.argv[2],16);
+        nonce=int(sys.argv[3],16);
+        
         print "Setting KEY0 to %x" % key;
+        print "Setting NONCE to %x" % nonce;
         client.RF_setkey(key);
+        client.RF_setnonce(nonce);
     if len(sys.argv)>3:
         freq=eval(sys.argv[3]);
         if freq>100:

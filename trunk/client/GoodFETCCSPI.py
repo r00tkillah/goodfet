@@ -136,6 +136,12 @@ class GoodFETCCSPI(GoodFET):
         print "ERROR: Forgot to set the key.";
         
         return;
+    def RF_setnonce(self,key):
+        """Sets the first key for encryption to the given argument."""
+        print "ERROR: Forgot to set the nonce.";
+        
+        return;
+    
     def RF_setfreq(self,frequency):
         """Set the frequency in Hz."""
         mhz=frequency/1000000;

@@ -247,8 +247,8 @@ class GoodFET:
                     if self.verbose:
                         print "Comm error on %i try, resyncing out of %s." % (foo,
                                                                               clocking);
-                        connected=0;
-                        break;
+                    connected=0;
+                    break;
         if self.verbose: print "Connected after %02i attempts." % attempts;
         self.mon_connected();
         self.serialport.setTimeout(12);
@@ -671,7 +671,8 @@ class GoodFET:
         data="The quick brown fox jumped over the lazy dog.";
         self.writecmd(self.MONITORAPP,0x81,len(data),data);
         if self.data!=data:
-            print "Comm error recognized by monitorecho(), got:\n%s" % self.data;
+            if self.verbose:
+                print "Comm error recognized by monitorecho(), got:\n%s" % self.data;
             return 0;
         return 1;
 

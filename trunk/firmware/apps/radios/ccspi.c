@@ -265,13 +265,20 @@ void ccspi_handle_fn( uint8_t const app,
       debugstr("Clearing overflow");
       CLRSS;
       ccspitrans8(0x08); //SFLUSHRX
+      ccspitrans8(0x08); //SFLUSHRX
       SETSS;
       txdata(app,verb,0); //no packet
       return;
     }
-
+    
+    /* Uncomment this to wait around a bit for the packet.
+       Might reduce dropped packet count.
+    i=1000; //Number of tries.
+    while(!(FIFOP&&FIFO) && i--);
+    */
+    
     //Is there a packet?
-    if(FIFOP&&FIFO){
+    if (FIFOP && FIFO){
       //Wait for completion.
       while(SFD);
       
@@ -289,8 +296,8 @@ void ccspi_handle_fn( uint8_t const app,
 	 A software fix is to reset the CC2420 between packets.  This
 	 works, but a better solution is desired.
       */
-      for(i=0;i<cmddata[0]+1;i++)
-      //for(i=0;FIFO && i<0x80;i++)
+      //for(i=0;i<cmddata[0]+1;i++)
+      for(i=0;FIFO && i<0x80;i++)
         cmddata[i]=ccspitrans8(0x00);
       SETSS;
 
@@ -301,9 +308,10 @@ void ccspi_handle_fn( uint8_t const app,
       */
       
       //Only transmit a packet if the length is legal.
-      if(cmddata[0]&0x80) i=0;
+      if(cmddata[0]&0x80 || cmddata[0]==0) i=0;
       txdata(app,verb,i);
     }else{
+      
       //No packet.
       txdata(app,verb,0);
     }

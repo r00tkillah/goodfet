@@ -5,7 +5,7 @@
 # Additions 2011-2012 Ryan Speers ryan@rmspeers.com
 
 #N.B.,
-#Might be CC2420 Specific
+#Very CC2420 Specific
 
 import sys;
 import binascii;
@@ -20,7 +20,10 @@ def srcadr(packet):
     return ord(packet[4])+(ord(packet[5])<<8);
 def isencrypted(packet):
     """Returns true if the packet is encrypted.""";
-    return ord(packet[1])&0x08;
+    try:
+        return ord(packet[1])&0x08;
+    except:
+        return False;
 def pktnonceseq(packet):
     """Returns the nonce sequence of a packet."""
     nonce=0;
@@ -45,6 +48,7 @@ if(len(sys.argv)==1):
     
     print "\n%s surf" % sys.argv[0];
     print "%s sniff [chan]" % sys.argv[0];
+    print "%s fastsniff [chan]" % sys.argv[0];
     print "%s sniffstrings [chan]" % sys.argv[0];
     print "%s bsniff [chan]" % sys.argv[0];
     print "%s sniffcrypt 0x$key [chan]" % sys.argv[0];
@@ -53,6 +57,9 @@ if(len(sys.argv)==1):
     
     print "\n%s txtoscount [-i|-r]   TinyOS BlinkToLED" % sys.argv[0];
     print "%s reflexjam [channel=11] [delay=0]" % sys.argv[0];
+    
+    print "\n%s txpiptest" % sys.argv[0];
+    print "%s txpipscapy" % sys.argv[0];
 
     sys.exit();
 
@@ -232,7 +239,7 @@ if sys.argv[1]=="surf":
         chan=chan+1;
 
 if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect" or sys.argv[1]=="sniffstrings" or
-   sys.argv[1]=="sniffnonce"):
+   sys.argv[1]=="sniffnonce" or sys.argv[1]=="fastsniff"):
     #Promiscuous mode.
     client.RF_promiscuity(1);
     client.RF_autocrc(1);
@@ -248,10 +255,13 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect" or sys.argv[1]=="sniffstr
     client.CC_RFST_RX();
     print "Listening as %010x on %i MHz" % (client.RF_getsmac(),
                                             client.RF_getfreq()/10**6);
+    #If fastsniffing, then send that command.
+    if sys.argv[1]=="fastsniff":
+        client.RF_rxpacketrepeat();
+    
     #Now we're ready to get packets.
     while 1:
-        #client.setup(); #Really oughtn't be necessary, but can't hurt.
-        client.CC_RFST_RX();
+        #client.CC_RFST_RX(); # Cop-out that confuses reception!
         
         packet=None;
         while packet==None:
@@ -262,7 +272,13 @@ if(sys.argv[1]=="sniff" or sys.argv[1]=="sniffdissect" or sys.argv[1]=="sniffstr
             print packet;
         elif sys.argv[1]=="sniffnonce":
             if isencrypted(packet):
-                print "%04x: %08x" % (srcadr(packet),pktnonceseq(packet));
+                try:
+                    print "%04x: %08x -- %s" % (srcadr(packet),
+                                            pktnonceseq(packet),
+                                            client.packet2str(packet)
+                                            );
+                except:
+                    pass;
         else:
             client.printpacket(packet);
         sys.stdout.flush();
@@ -393,7 +409,7 @@ if(sys.argv[1]=="txpiptest" or sys.argv[1]=="txpipscapy"):
             client.RF_setfreq(freq);
         else:
             client.RF_setchan(freq);
-    print "Transmitting on as %010x on %i MHz" % (
+    print "Transmitting on PIP injection as %010x on %i MHz" % (
         client.RF_getsmac(),
         client.RF_getfreq()/10**6);
     

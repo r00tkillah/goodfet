@@ -210,6 +210,13 @@ class GoodFETCCSPI(GoodFET):
             return None;
         
         return buffer;
+    def RF_rxpacketrepeat(self):
+        """Gets packets from the radio, ignoring all future requests so as
+        not to waste time.  Call RF_rxpacket() after this."""
+        
+        self.writecmd(self.CCSPIAPP,0x91,0,None);
+        return None;
+    
     def RF_rxpacketdec(self):
         """Get and decrypt a packet from the radio.  Returns None if
         none is waiting."""
@@ -357,11 +364,13 @@ class GoodFETCCSPI(GoodFET):
         self.poke(0x03,choice);
         self.maclen=len;
     def printpacket(self,packet,prefix="#"):
+        print self.packet2str(packet,prefix);
+    def packet2str(self,packet,prefix="#"):
         s="";
         i=0;
         for foo in packet:
             s="%s %02x" % (s,ord(foo));
-        print "%s%s" % (prefix,s);
+        return "%s%s" % (prefix,s);
         
     def printdissect(self,packet):
         try:

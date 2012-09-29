@@ -222,8 +222,6 @@ void ccspi_handle_fn( uint8_t const app,
   unsigned long i;
   u8 j;
 
-  //debugstr("Chipcon SPI handler.");
-
   switch(verb){
   case PEEK:
     cmddata[0]|=0x40; //Set the read bit.
@@ -258,9 +256,25 @@ void ccspi_handle_fn( uint8_t const app,
 		  );
     txdata(app,verb,0);
     break;
+  case CCSPI_REPEAT_RX:
+
+    /* CCSPI_REPEAT_RX repeatedly requests new packets, forwarding
+       them to the server without waiting for the next request.  This
+       allows for sniffing of packets that would otherwise overflow
+       the buffer.
+    */
+
+    //debugstr("Looping CCSPI_RX.");
+    
+    //Loop forever in RX mode.
+    while(1){
+      ccspi_handle_fn(app,CCSPI_RX,0);
+    }
+    break;
   case CCSPI_RX:
 #ifdef FIFOP
     //Has there been an overflow?
+    
     if((!FIFO)&&FIFOP){
       debugstr("Clearing overflow");
       CLRSS;
@@ -270,7 +284,7 @@ void ccspi_handle_fn( uint8_t const app,
       txdata(app,verb,0); //no packet
       return;
     }
-    
+        
     /* Uncomment this to wait around a bit for the packet.
        Might reduce dropped packet count.
     i=1000; //Number of tries.

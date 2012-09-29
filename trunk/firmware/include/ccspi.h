@@ -16,6 +16,8 @@
 #define CCSPI_RX 0x80
 //Grab and decrypt a packet, if one is available.
 #define CCSPI_RXDEC 0x90
+//Keep grabbing packets, ignoring further commands.
+#define CCSPI_REPEAT_RX 0x91
 //Send a packet.
 #define CCSPI_TX 0x81
 //Flush RX

@@ -2,8 +2,8 @@
 ## These are production boards.
 ##################################
 
-#Unset by default, but can be explicitly set later.
-config=undef
+#Unset by default, but can be explicitly overwritten.
+config ?= undef
 
 ifneq (,$(findstring $(board),apimote1 apimote))
 mcu ?= msp430f2618

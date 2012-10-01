@@ -8,8 +8,8 @@
 
 // this is the prototype for all app "handle" functions
 typedef void (*handle_fn)(uint8_t app,
-						  uint8_t verb,
-						  uint32_t len);
+			  uint8_t verb,
+			  uint32_t len);
 
 // Each app must declare one of these
 typedef struct app_

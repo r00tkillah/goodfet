@@ -278,10 +278,10 @@ ifeq ($(filter smartcard, $(config)), smartcard)
 	hdrs+= smartcard.h
 endif
 
-# include ps2 app
-ifeq ($(filter ps2, $(config)), ps2)
-	apps+= apps/plugins/ps2.o
-	hdrs+= ps2.h
+# include plugin app
+ifeq ($(filter plugin, $(config)), plugin)
+	apps+= apps/plugin.o
+	hdrs+= plugin.h
 endif
 
 # include jscan app

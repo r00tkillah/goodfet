@@ -300,9 +300,10 @@ if(len(sys.argv)<3):
     print "Usage: %s VID PID" % sys.argv[0];
     print "";
     print """Example VID/PID pairs:
-\tFFFF 0004 -- Ubertooth               ( Tested )
+\tFFFF 0004 -- Ubertooth               ( Works  )
 \t0483 DF11 -- STM32                   (Untested)
 \t03EB 2F.. -- Atmel DFU               (Untested)
+\t05AC 1227 -- Apple iBoot             (Untested)
 """
     sys.exit();
 

@@ -119,16 +119,16 @@
 <wire x1="29.5275" y1="13.335" x2="27.6225" y2="13.335" width="0.254" layer="25"/>
 <wire x1="27.94" y1="13.6525" x2="27.6225" y2="13.335" width="0.254" layer="25"/>
 <wire x1="27.6225" y1="13.335" x2="27.94" y2="13.0175" width="0.254" layer="25"/>
-<text x="1.905" y="3.81" size="1.27" layer="21" font="vector">GOODTHOPTER11</text>
+<text x="1.5875" y="7.3025" size="1.27" layer="21" font="vector">GOODTHOPTER11</text>
 <text x="31.75" y="32.385" size="0.8128" layer="25" font="vector">MSP430F227X</text>
 <text x="23.8125" y="21.2725" size="0.8128" layer="25" font="fixed" rot="R90">FT232RL</text>
 <text x="1.5875" y="32.385" size="1.778" layer="25" font="fixed">A.Righter</text>
-<text x="1.905" y="1.905" size="1.27" layer="25" font="fixed">http://goodfet.sf.net/</text>
+<text x="1.5875" y="5.3975" size="1.27" layer="25" font="fixed">http://goodfet.sf.net/</text>
 <text x="1.5875" y="30.48" size="1.778" layer="25" font="fixed">T.Goodspeed</text>
-<text x="1.5875" y="28.575" size="1.778" layer="25" font="fixed">R.Barnes</text>
 <text x="56.1975" y="14.9225" size="1.27" layer="25" font="fixed">CANL</text>
 <text x="66.675" y="16.1925" size="1.27" layer="25" font="fixed">CANH</text>
 <text x="60.325" y="17.145" size="0.762" layer="25" font="fixed" rot="R90">GND</text>
+<text x="1.5875" y="3.4925" size="1.27" layer="25" font="fixed">andrew@215lab.com</text>
 </plain>
 <libraries>
 <library name="rcl">

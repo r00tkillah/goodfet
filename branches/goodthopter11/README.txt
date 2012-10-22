@@ -1,25 +1,22 @@
+GoodThopter11 CAN Adapter
+
+The GoodThopter is the sexy GoodFET CAN Adapter, whose purpose is to
+route CAN connection from an automobile or ECU into a laptop
+leveraging the maturing GoodFET firmware and project.  Care has been
+taken to keep the design easy to solder and the code easy to modify.
+
+
+
 If you like this project, the following will humbly accept beer
 donations:
 
-Project Lead:
- Andrew Righter
-
-Design and Schematic:
- Andrew Righter
- Travis Goodspeed
-
-Board and Routing:
- Ryan Barnes
+Andrew Righter, GoodThopter Project Lead
+Travis Goodspeed, Circuit Preacher
 
 CAN Hacking Inspired By:
--Late night drinking in the Midwest with atlas and cutaway
+-Late night drinking in the Midwest with Atlas and Cutaway.
 
-This is the sexy GoodFET CAN Adapter, its purpose is to build an
-adapter that can handle CAN connection from an automobile or ECU into
-a laptop leveraging the maturing GoodFET firmware and project.
-
-Future releases may include radio (RF) hardware appliable to vehicle
-applications and other fun things, if you have any questions/comments:
+If you have any questions/comments:
 
 Andrew Righter <andrew@215LAB.com>
 

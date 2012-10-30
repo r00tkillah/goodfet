@@ -32,8 +32,11 @@ class GoodFETMCPCAN(GoodFETSPI):
         # packets.  It can be manually disabled later.
         self.poke8(0x60,0xFF); #TODO Does this have any unpleasant side effects?
         
-        #Set the default rate of 125kHz.
-        self.MCPsetrate(125);
+        #Set the default rate.
+        self.MCPsetrate();
+    
+    #Array of supported rates.
+    MCPrates=[100,125,250,500,1000];
     
     def MCPsetrate(self,rate=125):
         """Sets the data rate in kHz."""
@@ -79,18 +82,21 @@ class GoodFETMCPCAN(GoodFETSPI):
             CNF1=0x04;
             CNF2=0xB8;
             CNF3=0x05;
-        elif rate==500:
-            #500 kHz, 20 TQ
-            CNF1=0x00;
-            CNF2=0xBA;
-            CNF3=0x07;
-            pass;
         elif rate==100:
             #100 kHz, 20 TQ
             CNF1=0x04;
             CNF2=0xBA;
             CNF3=0x07;
-            pass;
+        elif rate==250:
+            #256 kHz, 20 TQ
+            CNF1=0x01;
+            CNF2=0xBA;
+            CNF3=0x07;
+        elif rate==500:
+            #500 kHz, 20 TQ
+            CNF1=0x00;
+            CNF2=0xBA;
+            CNF3=0x07;
         elif rate==1000:
             #1,000 kHz, 10 TQ
             CNF1=0x00;
@@ -98,7 +104,7 @@ class GoodFETMCPCAN(GoodFETSPI):
             CNF3=0x02;
             print "WARNING: Because of chip errata, this probably won't work."
         else:
-            print "Given unsupported rate of %i kHz.";
+            print "Given unsupported rate of %i kHz." % rate;
             print "Defaulting to 125kHz.";
             CNF1=0x04;
             CNF2=0xB8;

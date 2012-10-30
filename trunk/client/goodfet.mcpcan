@@ -47,7 +47,7 @@ if(sys.argv[1]=="info"):
         print client.packet2str(foo);
 if(sys.argv[1]=="sniff"):
     if len(sys.argv)>2:
-        rate=int(sys.argv[2]);
+        rate=float(sys.argv[2]);
         client.MCPsetrate(rate);
     client.MCPreqstatListenOnly();
     while 1:

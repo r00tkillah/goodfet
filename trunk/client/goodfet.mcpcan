@@ -46,10 +46,10 @@ if(sys.argv[1]=="info"):
     for foo in [packet0, packet1]:
         print client.packet2str(foo);
 if(sys.argv[1]=="sniff"):
-    client.MCPreqstatListenOnly();
     if len(sys.argv)>2:
         rate=int(sys.argv[2]);
         client.MCPsetrate(rate);
+    client.MCPreqstatListenOnly();
     while 1:
         packet=client.rxpacket();
         if packet!=None:

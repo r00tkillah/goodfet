@@ -30,13 +30,15 @@ class GoodFETMCPCAN(GoodFETSPI):
         
         # If we don't enable promiscous mode, we'll miss a lot of
         # packets.  It can be manually disabled later.
-        self.poke8(0x60,0xFF); #TODO Does this have any unpleasant side effects?
+        #self.poke8(0x60,0xFF); #TODO Does this have any unpleasant side effects?
+        self.poke8(0x60,0x66); #Wanted FF, but some bits are reserved.
         
         #Set the default rate.
         self.MCPsetrate();
     
     #Array of supported rates.
-    MCPrates=[100,125,250,500,1000];
+    MCPrates=[83.3, 100, 125,
+              250, 500, 1000];
     
     def MCPsetrate(self,rate=125):
         """Sets the data rate in kHz."""
@@ -75,8 +77,9 @@ class GoodFETMCPCAN(GoodFETSPI):
         #           );
         
         
-        #These are the new examples.
+        print "Setting rate of %i kHz." % rate;
         
+        #These are the new examples.
         if rate==125:
             #125 kHz, 16 TQ, not quite as worked out above.
             CNF1=0x04;
@@ -87,6 +90,12 @@ class GoodFETMCPCAN(GoodFETSPI):
             CNF1=0x04;
             CNF2=0xBA;
             CNF3=0x07;
+        elif rate>83 and rate<83.5:
+            #83+1/3 kHz, 8 TQ
+            # 0.04% error from 83.30
+            CNF1=0x0E;
+            CNF2=0x90;
+            CNF3=0x02;
         elif rate==250:
             #256 kHz, 20 TQ
             CNF1=0x01;
@@ -216,4 +225,8 @@ class GoodFETMCPCAN(GoodFETSPI):
     def poke8(self,adr,val):
         """Poke a value into RAM.  Untested"""
         self.SPItrans([0x02,adr&0xFF,val&0xFF]);
+        newval=self.peek8(adr);
+        if newval!=val:
+            print "Failed to poke %02x to %02x.  Got %02x." % (adr,val,newval);
+            print "Are you not in idle mode?";
         return val;

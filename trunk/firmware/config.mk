@@ -20,7 +20,7 @@ config := monitor spi
 endif
 
 ifneq (,$(findstring $(board),goodfet20 goodfet10 goodfet11))
-mcu ?= msp430f1612
+mcu ?= msp430f1611
 platform := goodfet
 endif
 

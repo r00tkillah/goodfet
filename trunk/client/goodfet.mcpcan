@@ -20,6 +20,7 @@ if(len(sys.argv)==1):
     #print "%s poke 0x$adr 0x$val" % sys.argv[0];
 
     print "\n%s sniff [kHz]" % sys.argv[0];
+    print "\nSupported rates: 83.3, 100, 125, 250, 500, 1000 kHz.";
     sys.exit();
 
 #Initialize FET and set baud rate

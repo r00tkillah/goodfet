@@ -32,6 +32,11 @@ class GoodFETMCPCAN(GoodFETSPI):
         # packets.  It can be manually disabled later.
         self.poke8(0x60,0xFF); #TODO Does this have any unpleasant side effects?
         
+        #Set the default rate of 125kHz.
+        self.MCPsetrate(125);
+    
+    def MCPsetrate(self,rate=125):
+        """Sets the data rate in kHz."""
         # Now we need to set the timing registers.  See chapter 5 of
         # the MCP2515 datasheet to get some clue as to how this
         # arithmetic of this works, as my comments here will likely be
@@ -52,19 +57,39 @@ class GoodFETMCPCAN(GoodFETSPI):
         
         # CNF1 with a prescaler of 4 and a SJW of 1 TQ.  SJW of 4
         # might be more stable.
-        self.poke8(0x2a,0x04);
+        #self.poke8(0x2a,0x04);
         
         # CNF2 with a BLTMODE of 1, SAM of 0, PS1 of 7TQ, and PRSEG of 2TQ
-        self.poke8(0x29,
-                   0x80   |  # BTLMODE=1
-                   (6<<3) |  # 6+1=7TQ for PHSEG1
-                   (1)       # 1+1=2TQ for PRSEG
-                   );
+        #self.poke8(0x29,
+        #           0x80   |  # BTLMODE=1
+        #           (6<<3) |  # 6+1=7TQ for PHSEG1
+        #           (1)       # 1+1=2TQ for PRSEG
+        #           );
         
         #CNF3 with a PS2 length of 6TQ.
-        self.poke8(0x28,
-                   5      #5+1=6TQ
-                   );
+        #self.poke8(0x28,
+        #           5      #5+1=6TQ
+        #           );
+        
+        
+        #These are the new examples.
+        
+        if rate==125:
+            #125 kHz, 16 TQ, not quite as worked out above.
+            CNF1=0x04;
+            CNF2=0xB8;
+            CNF3=0x05;
+        elif rate==500:
+            pass;
+        elif rate==83.3:
+            #What jackass made the rate uneven?
+            pass;
+        elif rate==100:
+            pass;
+        self.poke8(0x2a,CNF1);
+        self.poke8(0x29,CNF2);
+        self.poke8(0x28,CNF3);
+        
     def MCPreset(self):
         """Reset the MCP2515 chip."""
         self.SPItrans([0xC0]);

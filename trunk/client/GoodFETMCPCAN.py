@@ -80,12 +80,29 @@ class GoodFETMCPCAN(GoodFETSPI):
             CNF2=0xB8;
             CNF3=0x05;
         elif rate==500:
-            pass;
-        elif rate==83.3:
-            #What jackass made the rate uneven?
+            #500 kHz, 20 TQ
+            CNF1=0x00;
+            CNF2=0xBA;
+            CNF3=0x07;
             pass;
         elif rate==100:
+            #100 kHz, 20 TQ
+            CNF1=0x04;
+            CNF2=0xBA;
+            CNF3=0x07;
             pass;
+        elif rate==1000:
+            #1,000 kHz, 10 TQ
+            CNF1=0x00;
+            CNF2=0xA0;
+            CNF3=0x02;
+            print "WARNING: Because of chip errata, this probably won't work."
+        else:
+            print "Given unsupported rate of %i kHz.";
+            print "Defaulting to 125kHz.";
+            CNF1=0x04;
+            CNF2=0xB8;
+            CNF3=0x05;
         self.poke8(0x2a,CNF1);
         self.poke8(0x29,CNF2);
         self.poke8(0x28,CNF3);

@@ -19,7 +19,7 @@ if(len(sys.argv)==1):
     print "%s peek 0x$start [0x$stop]" % sys.argv[0];
     #print "%s poke 0x$adr 0x$val" % sys.argv[0];
 
-    print "\n%s sniff" % sys.argv[0];
+    print "\n%s sniff [kHz]" % sys.argv[0];
     sys.exit();
 
 #Initialize FET and set baud rate
@@ -47,6 +47,9 @@ if(sys.argv[1]=="info"):
         print client.packet2str(foo);
 if(sys.argv[1]=="sniff"):
     client.MCPreqstatListenOnly();
+    if len(sys.argv)>2:
+        rate=int(sys.argv[2]);
+        client.MCPsetrate(rate);
     while 1:
         packet=client.rxpacket();
         if packet!=None:

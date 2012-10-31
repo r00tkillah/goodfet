@@ -44,6 +44,7 @@ class GoodFETCC(GoodFET):
             else:
                 print "SmartRF not found for chip 0x%04x." % ident;
     def SRF_chipdom(self,chip="cc1110", doc="register_definition.xml"):
+    #def SRF_chipdom(self,chip="cc1110", doc="workingconfig.xml"):
         """Loads the chip XML definitions from SmartRF7."""
         fn="%s/config/xml/%s/%s" % (self.smartrfpath,chip,doc);
         #print "Opening %s" % fn;
@@ -415,9 +416,15 @@ class GoodFETCC(GoodFET):
         self.pokebysym("SYNC0",0xB0);
         self.pokebysym("ADDR", 0xB0);
         return;
-    def config_ook(self,band="none"):
-        self.pokebysym("FSCTRL1"  , 0x0C) #08   # Frequency synthesizer control.
-        self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
+
+    def config_ademco(self, band="lf"):
+        pass
+        # FIXME Temporary placeholder for me to write the Ademco protocol into the GoodFET Chipcon Application
+        # TODO  Also, write a class that takes in the XML registration files and sets values (not just addresses)
+
+	def config_ook(self,band="none"):
+		self.pokebysym("FSCTRL1"  , 0x0C) #08   # Frequency synthesizer control.
+		self.pokebysym("FSCTRL0"  , 0x00)   # Frequency synthesizer control.
         
         #Don't change these while the radio is active.
         self.pokebysym("FSCAL3"   , 0xEA)   # Frequency synthesizer calibration.

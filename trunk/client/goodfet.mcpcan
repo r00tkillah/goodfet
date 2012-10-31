@@ -60,18 +60,18 @@ if(sys.argv[1]=="sniff"):
 if(sys.argv[1]=="isniff"):
     """ An intelligent sniffer, decodes message format """
     """ More features to be added soon """
-    plist=[];   # packet listing
     client.MCPreqstatListenOnly();
     while 1:
         packet=client.rxpacket();
         if packet!=None:
+            plist=[];
             for byte in packet:
                 plist.append(byte);
             arbid=plist[0:2];
             eid=plist[2:4];
             dlc=plist[4:5];
             data=plist[5:13];         
-            print "ArbID: " + client.packet2str(arbid);
+            print "\nArbID: " + client.packet2str(arbid);
             print "EID: " + client.packet2str(eid);
             print "DLC: " + client.packet2str(dlc);
             print "Data: " + client.packet2str(data);

@@ -31,6 +31,8 @@ all:
 	cp $(fwpath)/goodfet.hex dist/facedancer11.hex >/dev/null
 	cd $(fwpath) && board=goodthopter10 make clean all >/dev/null 2>>/dev/null
 	cp $(fwpath)/goodfet.hex dist/goodthopter10.hex >/dev/null
+	cd $(fwpath) && board=goodthopter11 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/goodthopter11.hex >/dev/null
 	cp $(clientpath)/*.py $(clientpath)/goodfet.* dist
 	cp distreadme.txt dist/README.txt
 	cd dist && zip `date +goodfet-%Y-%m-%d.zip` *

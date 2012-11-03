@@ -1225,19 +1225,29 @@ class BootStrapLoader(LowLevel):
             raise BSLException, "programming without data not possible"
     def actionFromweb(self):
         """Grab GoodFET firmware from the web, then flash it."""
-        print "Grabbing %x firmware." % self.dev_id;
-        print "%s" % firmware[self.dev_id];
-        fn="/tmp/.goodfet.hex"
-        os.system("curl %s >%s" % (firmware[self.dev_id],fn))
+        # print "Grabbing %x firmware." % self.dev_id;
+        # print "%s" % firmware[self.dev_id];
+        # fn="/tmp/.goodfet.hex"
+        # os.system("curl %s >%s" % (firmware[self.dev_id],fn))
         
-        fw=Memory(fn);
-        #fw.loadIhex(open(fn,"rb"));
+        # fw=Memory(fn);
+        # #fw.loadIhex(open(fn,"rb"));
         
-        sys.stderr.write("Program ...\n")
-        sys.stderr.flush()
-        self.programData(fw, self.ACTION_PROGRAM | self.ACTION_VERIFY)
-        sys.stderr.write("%i bytes programmed.\n" % self.byteCtr)
-        sys.stderr.flush()
+        # sys.stderr.write("Program ...\n")
+        # sys.stderr.flush()
+        # self.programData(fw, self.ACTION_PROGRAM | self.ACTION_VERIFY)
+        # sys.stderr.write("%i bytes programmed.\n" % self.byteCtr)
+        # sys.stderr.flush()
+        
+        
+        print """
+The --fromweb feature is temporarily disabled, pending a rewrite.
+Please grab a copy of the appropriate .hex from
+http://goodfet.sf.net/dist/ and flash it like so:
+
+goodfet.bsl -e -p foo.hex        
+"""
+        
         
     def actionVerify(self):
         """Verify programmed data"""

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.2">
+<eagle version="6.3">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -7139,18 +7139,18 @@ Thru-hole RA Female Mini-B USB Connector 4UConnector: 18732&lt;/p&gt;
 <part name="R1" library="rcl" deviceset="R-US_" device="R0603" value="330"/>
 <part name="LED1" library="led" deviceset="LED" device="CHIP-LED0603"/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
-<part name="U2" library="SparkFun" deviceset="FT232RL-BASIC" device="SSOP"/>
+<part name="U2" library="SparkFun" deviceset="FT232RL-BASIC" device="SSOP" value="FT232RL"/>
 <part name="P+3" library="supply1" deviceset="VCC" device=""/>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
-<part name="RXLED" library="led" deviceset="LED" device="CHIP-LED0603"/>
-<part name="TXLED" library="led" deviceset="LED" device="CHIP-LED0603"/>
+<part name="RX" library="led" deviceset="LED" device="CHIP-LED0603"/>
+<part name="TX" library="led" deviceset="LED" device="CHIP-LED0603"/>
 <part name="P+4" library="supply1" deviceset="VCC" device=""/>
 <part name="R2" library="rcl" deviceset="R-US_" device="R0603" value="330"/>
 <part name="C2" library="rcl" deviceset="C-EU" device="C0603" value="0.1µF"/>
 <part name="P+5" library="supply1" deviceset="VCC" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="JTAG" library="con-lstb" deviceset="MA07-2" device=""/>
-<part name="U1" library="TI_MSP430_v13" deviceset="F261X---PM64" device=""/>
+<part name="U1" library="TI_MSP430_v13" deviceset="F261X---PM64" device="" value="MSP430F2618TPM"/>
 <part name="CN1" library="adafruit" deviceset="USB" device="MINIB"/>
 </parts>
 <sheets>
@@ -7174,8 +7174,8 @@ Thru-hole RA Female Mini-B USB Connector 4UConnector: 18732&lt;/p&gt;
 <instance part="U2" gate="G$1" x="-5.08" y="73.66"/>
 <instance part="P+3" gate="VCC" x="-33.02" y="76.2" rot="R90"/>
 <instance part="GND4" gate="1" x="-20.32" y="50.8"/>
-<instance part="RXLED" gate="G$1" x="20.32" y="58.42" rot="R270"/>
-<instance part="TXLED" gate="G$1" x="20.32" y="66.04" rot="R270"/>
+<instance part="RX" gate="G$1" x="20.32" y="58.42" rot="R270"/>
+<instance part="TX" gate="G$1" x="20.32" y="66.04" rot="R270"/>
 <instance part="P+4" gate="VCC" x="22.86" y="78.74"/>
 <instance part="R2" gate="G$1" x="22.86" y="71.12" rot="R90"/>
 <instance part="C2" gate="G$1" x="-5.08" y="43.18" rot="R180"/>
@@ -7379,7 +7379,7 @@ Thru-hole RA Female Mini-B USB Connector 4UConnector: 18732&lt;/p&gt;
 <segment>
 <wire x1="10.16" y1="58.42" x2="15.24" y2="58.42" width="0.1524" layer="91"/>
 <pinref part="U2" gate="G$1" pin="RXLED"/>
-<pinref part="RXLED" gate="G$1" pin="C"/>
+<pinref part="RX" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="N$7" class="0">
@@ -7388,15 +7388,15 @@ Thru-hole RA Female Mini-B USB Connector 4UConnector: 18732&lt;/p&gt;
 <wire x1="12.7" y1="60.96" x2="12.7" y2="66.04" width="0.1524" layer="91"/>
 <wire x1="12.7" y1="66.04" x2="15.24" y2="66.04" width="0.1524" layer="91"/>
 <pinref part="U2" gate="G$1" pin="TXLED"/>
-<pinref part="TXLED" gate="G$1" pin="C"/>
+<pinref part="TX" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="N$8" class="0">
 <segment>
 <wire x1="22.86" y1="58.42" x2="22.86" y2="66.04" width="0.1524" layer="91"/>
 <junction x="22.86" y="66.04"/>
-<pinref part="RXLED" gate="G$1" pin="A"/>
-<pinref part="TXLED" gate="G$1" pin="A"/>
+<pinref part="RX" gate="G$1" pin="A"/>
+<pinref part="TX" gate="G$1" pin="A"/>
 <pinref part="R2" gate="G$1" pin="1"/>
 </segment>
 </net>

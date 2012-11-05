@@ -3,6 +3,12 @@
 # MacPorts
 # FTDI Virtual COM Driver
 
+#For Windows,
+# Python 2.7, 32-bit
+# py-serial for Python 2.7.  Version for 2.6 will not work.
+# FTDI VCP drivers, available in Windows Update
+# Add python to %PATH% and use it to run the scripts in \trunk\client\.
+
 # In Linux, the FTDI driver should be included by default.  Be sure
 # that the user is allowed to use /dev/ttyUSB0, which often requires
 # being a member of the dialout group.

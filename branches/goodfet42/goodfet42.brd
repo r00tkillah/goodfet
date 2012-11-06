@@ -105,7 +105,7 @@
 <text x="39.0525" y="16.1925" size="0.8128" layer="25" font="vector" ratio="10" rot="R90">TDO</text>
 <text x="40.64" y="11.1125" size="0.8128" layer="25" font="vector" ratio="10" rot="R90">TMS</text>
 <text x="40.64" y="8.5725" size="0.8128" layer="25" font="vector" ratio="10" rot="R90">TCK</text>
-<text x="46.6725" y="10.795" size="0.8128" layer="25" font="vector" ratio="10" rot="R270">TST</text>
+<text x="46.355" y="10.795" size="0.8128" layer="25" font="vector" ratio="10" rot="R270">TST</text>
 <text x="40.64" y="5.715" size="0.8128" layer="25" font="vector" ratio="10" rot="R90">GND</text>
 <text x="46.355" y="5.3975" size="0.8128" layer="25" font="vector" ratio="10" rot="R270">RX</text>
 <text x="46.0375" y="0.635" size="0.8128" layer="25" font="vector" ratio="10">TX</text>

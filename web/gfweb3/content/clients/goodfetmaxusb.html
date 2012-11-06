@@ -4,7 +4,10 @@ title: goodfet.maxusb
 <h1>goodfet.maxusb</h1>
 
 <p>The goodfet.maxusb client is a simple proof of concept for talking
-to the MAX3421 and MAX3420 chips.</p>
+to the MAX3421 and MAX3420 chips.  Additional clients exist as goodfet.maxusbftdi
+for emulating the FTDI USB to Serial adapters, goodfet.maxusbhid for emulating
+an HID keyboard, and goodfet.maxusbmass for emulating a mass storage disk.
+</p>
 
 <h2>Client</h2>
 <p><pre>Usage: goodfet.maxusb verb [objects]
@@ -21,14 +24,25 @@ goodfet.maxusbhost allstrings
 
 Usage: goodfet.maxusbhid
 
+Usage: goodfet.maxusbftdi
+
+Usage: /usr/local/bin/goodfet.maxusbmass disk.img
+
 </pre></p>
 
 
 <h2>Pinout</h2>
-<p>See the <a href="/apps/maxusb/">MAXUSB</a> app for wiring diagrams
-or build a <a href="/hardware/facedancer10/">Facedancer10</a> board
-with integrated USB.
-</p>
+<p>The <a href="/apps/maxusb/">MAXUSB</a> app has wiring diagrams for
+connecting a GoodFET to the MAX3421E development kit, but it's easier
+to build a <a href="/hardware/facedancer11/">Facedancer11</a> board
+with integrated USB.</p>
+
+<h2>Further Reading</h2>
+
+<p>The Facedancer board and the MAXUSB module were introduced by
+Travis Goodspeed
+in <a href="http://travisgoodspeed.blogspot.com/2012/07/emulating-usb-devices-with-python.html">Emulating
+USB Devices with Python</a>.</p>
 
 <h2>Notes</h2>
 

@@ -299,6 +299,27 @@ class GoodFETMAXUSB(GoodFET):
             ashex=ashex+(" %02x"%ord(foo));
         if self.usbverbose: print "GETAS %02x==%s" % (reg,ashex);
         return toret;
+    def fifo_ep3in_tx(self,data):
+        """Sends the data out of EP3 in 64-byte chunks."""
+        #Wait for the buffer to be free before starting.
+        while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ): pass;
+        
+        count=len(data);
+        pos=0;
+        while count>0:
+            #Send 64-byte chunks or the remainder.
+            c=min(count,64);
+            self.writebytes(rEP3INFIFO,
+                            data[pos:pos+c]);
+            self.wregAS(rEP3INBC,c);
+            count=count-c;
+            pos=pos+c;
+            
+            #Wait for the buffer to be free before continuing.
+            while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ): pass;
+            
+        return;
+        
     def ctl_write_nd(self,request):
         """Control Write with no data stage.  Assumes PERADDR is set
         and the SUDFIFO contains the 8 setup bytes.  Returns with

@@ -11,6 +11,13 @@ import time;
 
 from GoodFETMAXUSB import *;
 
+def zeros(length):
+    """Returns a list of zeroes of the specified length."""
+    l=range(0,length);
+    for foo in l:
+        l[foo]=0;
+    return l;
+
 class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
     """This emulates a USB Mass Storage device."""
     
@@ -309,11 +316,18 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
             status=0x00;
         elif verb==0x1A: #Mode Sense (6)
             # I should probably send six bytes here.
+            print "Mode Sense (6) requesting %i byte Page Code %02x" % (
+                dtlen,ord(cb[2])&0x3F);
+            #This is completely wrong.
             response=[0x12,0,0,0, 0,0,0,0x1C];
-            self.writebytes(rEP3INFIFO,
-                            response);
-            self.wregAS(rEP3INBC,
-                        len(response));
+            self.fifo_ep3in_tx(response);
+        elif verb==0x5A: #Mode Sense (10)
+            # I should probably send ten bytes here.
+            print "Mode Sense (10) requesting %i byte Page Code %02x" % (
+                dtlen,ord(cb[2])&0x3F);
+            #This is completely wrong.
+            response=[0x12,0x00,0,0, 0,0,0,0x1C]
+            self.fifo_ep3in_tx(response);
         elif verb==0x23: #Read Format Capacity
             response=[
                 0x00, 0,0x00,0x08, #Capacity list length.
@@ -370,8 +384,9 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
             print "ERROR: Unknown SCSI command block verb %02x." % verb;
             status=1; #Command Failed
             if dtlen>0:
-                print "Perhaps I should send %i bytes of dummy data here." % dtlen;
-            sys.exit(1);
+                print "Sending %i bytes of dummy data here." % dtlen;
+                self.fifo_ep3in_tx(zeros(dtlen));
+            #sys.exit(1);
         cbw=self.lastCBW;
         
         #Now we need to send the CSW.

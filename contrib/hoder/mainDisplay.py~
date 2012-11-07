@@ -1,13 +1,17 @@
+import Tkinter, tkFileDialog
+import math
+import random
+import numpy
+import matplotlib as mpl
 
-# Chris Hoder
-# 11/3/2012
+#import threading capabilities
+#import thread;
+import threading;
 
-import Tkinter
 #import the linked list, sniff threading
 from node import *
 from LL import *
-
-from InfoBox import *
+from sniff import *
 
 import csv
 import time
@@ -16,35 +20,35 @@ import sys;
 import binascii;
 import array;
 
-
-
-
-
-sys.path.insert(0,'/Users/chris/svn/goodfet/trunk/client/')
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
-from sniff import *
 
 # create a shorthand object for Tkinter so we don't have to type it all the time
 tk = Tkinter
 
-# This is a simple display class for the GOODTHOPTER10 board. It currently allows you to
-# set the rate, sniff, write and save what is sniffed in 3 different forms. Raw, parsed, pcap.
-# one can also store a time stamp on when a stimulus is added. All data will be written into the 
-# following path ../../contrib/hoder/data/
+# create a class to build and manage the display application
+
+#all callback functions and initialization functions in this class
+
+
+
+
 class DisplayApp:
 
     # init function
-    def __init__(self, width, height):
+    def __init__(self, width, height, filename, filename2, filename3):
         #configure information
         #Initialize FET and set baud rate
         self.client=GoodFETMCPCAN();
         self.client.serInit();
         self.client.MCPsetup();
-        #initial rate, can be changed
-        self.rate = float(125);
-        self.client.MCPsetrate(self.rate)
+
+        #initialize linked list
+        self.LList = LL(filename,filename2)
         
+        #initialize the stimulus timestamp doc
+        writeFile = open(filename3,'wb')
+        writeFile.close()
         
         #store figure
         self.fig = None
@@ -52,8 +56,10 @@ class DisplayApp:
         #stimulus is initial not being conducted
         self.isStimulus = False
         
-        #save the filenames, initialized when sniffing begins
-        self.filenames = []
+        #save the filenames
+        self.filename  = filename
+        self.filename2 = filename2
+        self.filename3 = filename3
 
         # create a tk object, which is the root window
         self.root = tk.Tk()
@@ -145,70 +151,35 @@ class DisplayApp:
     def buildCanvas(self):
         # this makes the canvas the same size as the window, but it could be smaller
         self.canvas = tk.Canvas( self.root, width=self.initDx, height=self.initDy )
+        #expand it to the size of the window and fill
+        self.canvas.pack( expand=tk.YES, fill=tk.BOTH)
         
-    
-        #allows the user to set the rate
+        # this puts in the canvas a text input frame
+        #textFrame = Tkinter.Frame(self.canvas)
+        #size
+        #textFrame["padx"] = 40
+        #textFrame["pady"] = 20
         i = 0
-        entryLabel = Tkinter.Label(self.canvas)
-        entryLabel["text"] = "Set Rate:"
-        entryLabel.grid(row=i,column=0)
-        self.rateChoice = tk.StringVar()
-        self.rateChoice.set("125");
-        self.rateMenu = tk.OptionMenu(self.canvas,self.rateChoice,"83.3","100","125","250","500","1000")
-        self.rateMenu.grid(row=i,column=1)
-        rateButton = tk.Button(self.canvas,text="Set Rate",command=self.setRate,width=10)
-        rateButton.grid(row=i,column=2)
-        i += 1
-        
-        # create options to set the filenames for the various text files saved from
-        # the experimental run
-
-        #filename variables
-        self.fileVars = [];
-        self.checkButtonVar = []
-        labels = ["Raw data file:", "Parsed data file:", "Pcap File:","Stimulus file:"]
-        initialValue = ["test.txt", "test2.txt", "test3.pcap","test4.txt"]
-        for k in range(0,4):
-            varI = IntVar()
-            varI.set(1);
-            c = Checkbutton(self.canvas, variable = varI)
-            c.grid(row=i,column=0)
-            self.checkButtonVar.append(varI)
-            entryLabel = Tkinter.Label(self.canvas)
-            entryLabel["text"] = labels[k]
-            entryLabel.grid(row=i,column=1)
-            var = Tkinter.StringVar();
-            var.set(initialValue[k])
-            entryWidget = Tkinter.Entry(self.canvas, textvariable=var)
-            entryWidget.grid(row=i,column=2)
-            entryWidget["width"] = 10
-            self.fileVars.append(var)
-            i+=1
-
-        
-        #this sets the stimulus textfile start/stop information
         # label before it
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "Stimulus Input:"
         entryLabel.grid(row=i,column=0);
-        
+        #entryLabel.pack(side = Tkinter.LEFT)
         #input stimulus type
         self.entryWidget = Tkinter.Entry(self.canvas)
-        self.entryWidget["width"]  = 20
-        
-        self.entryWidget.grid(row=i,column=1)
+        self.entryWidget["width"]  = 50
+        #self.entryWidget.pack(side = Tkinter.LEFT)
+        self.entryWidtet.grid(row=i,column=1)
         
         #add an entry button
         self.stimString = tk.StringVar();
         self.stimString.set("Stimulus Start")
-        self.stimButton = tk.Button(self.canvas, textvariable=self.stimString ,command=self.handleStim,width=10)
+        self.stimButton = tk.Button(self.canvas, textvariable=self.stimString ,command=self.handleStim,width=40)
         self.stimButton.grid(row=i,column=2)
-        i += 1;
+        #self.stimButton.pack(side=tk.TOP)
+        #add it
+        #textFrame.pack()
         
-        
-       
-        #expand it to the size of the window and fill
-        self.canvas.pack( expand=tk.YES, fill=tk.BOTH)
         return
 
 
@@ -232,11 +203,11 @@ class DisplayApp:
         #width should be in characters. stored in a touple with the first one being a tag
         self.buttons.append( ( 'cmd1', tk.Button( self.cntlframe, textvariable=self.sniffString, command=self.handleCmdButton, width=10 ) ) )
         self.buttons[-1][1].pack(side=tk.TOP)  # default side is top
-        self.buttons.append(  ( 'cmd2', tk.Button( self.cntlframe, text="Write",command=self.handleWriteButton, width = 10)))
-        self.buttons[-1][1].pack(side=tk.TOP)
+        #self.buttons.append( ( 'cmd2', tk.Button( self.cntlframe, text="Clear Axes", command=self.handleCmdButton2, width=10 ) ) )
+        #self.buttons[-1][1].pack(side=tk.TOP)  # default side is top
+        
         return
 
-    #Bind callbacks with the keyboard/keys
     def setBindings(self):
         #self.root.bind( '<Button-1>', self.handleButton1 )
         #self.root.bind( '<Button-2>', self.handleButton2 )
@@ -246,25 +217,24 @@ class DisplayApp:
         #self.root.bind( '<Command-o>', self.handleModO )
         self.root.bind( '<Control-q>', self.handleQuit )
         self.root.bind('<Return>',self.handleStim )
-        #self.root.bind('<Key>',self.handleKeys)
+        self.root.bind('<Key>',self.handleKeys)
 
 
-    # this method handles inputs when the user presses a key
+    
     def handleKeys(self,event):
         print event.char
     
-    #quits the GUI
+
     def handleQuit(self, event=None):
         print 'Terminating'
         self.root.destroy()
 
-    #quits
     def handleModQ(self, event):
         self.handleQuit()
 
-    # writes a row of data to the end of a csv file that is given by filename
-    def writeRow(self,data,filename):
-        writeFile  = open(filename,'a')
+
+    def writeRow(self,data):
+        writeFile  = open(self.filename3,'a')
         dataWriter = csv.writer(writeFile,delimiter=',')
         dataWriter.writerow(data)
         writeFile.close()
@@ -273,7 +243,6 @@ class DisplayApp:
     # this method will start data collection
     def handleCmdButton(self):
         if(self.sniff == False):
-            self.initializeList()
             #set the board to listen
             self.client.MCPreqstatListenOnly();
             #reset stop condition
@@ -286,41 +255,17 @@ class DisplayApp:
             self.sniff = True
             self.sniffString.set("Stop Sniff")
         else:
-            self.stopSniffing()
-    
-    # This metthod intiializes the Linked List as well as clears all files
-    # that are going to be written to during the sniffing process. this ensures
-    # that the files are blank when sniffing begins. BE CAREFUL WITH THIS, there is no 
-    # check
-    def initializeList(self):
-        self.filenames = []
-        #get filenames
-        i = 0;
-        for item in self.fileVars:
-            if( self.checkButtonVar[i].get() == 1):
-                self.filenames.append("../../contrib/hoder/data/" +item.get())
-            else:
-                self.filenames.append(None)
-           	i  += 1
-    
-        #initialize linked list
-        self.LList = LL(filenames = self.filenames, fileBooleans = self.checkButtonVar)
-        
-        #if we are writing a stimulus file
-        if( self.checkButtonVar[-1].get() == 1 ):
-            #initialize the stimulus timestamp doc
-            writeFile = open(self.filenames[-1],'wb')
-            writeFile.close()
-        
-    # stop the program from sniffing the bus
-    def stopSniffing(self):
-        if(self.sniff):
-            #this ends the sniffing thread
-            self.stopSniff.set()
-            self.sniff = False;
+            self.stopSniff.set();
+            self.sniff = False
             self.sniffString.set("Start")
         
-
+        
+#        while(self.sniff):
+#            packet = self.client.rxpacket();
+#            if( packet != None):
+#                node = node(packet,0,None)
+#                self.LList.addNode(node);
+#        return
     
     
     # This will clear our axes and erase all the data
@@ -353,44 +298,23 @@ class DisplayApp:
         print "button motion"
 
 
-    # this method will open a second dialog box that will allow the user to write to the
-    # GOODTHOPTER10. It will also make sure that the board is not sniffing at the same time
-    # by first stopping the sniffing capabilities
-    def handleWriteButton(self):
-        self.stopSniffing();
-        dialog = InfoBox(parent = self.root, client = self.client,title="Write to BUS",rate = self.rate)
-        pass
-
-    # this method is called when the user wants to record a stimulus injection time
-    # a timestamp from python's time.time() is written to a csv file with the note the user input
-    # NOTE: time.time() is not the mnost accurate method for recording a timestamp
     def handleStim(self,event=None):
-        if(self.sniff):
-            if( (self.checkButtonVar[-1].get() == 1)):
-                data = []
-                #get timestamp
-                timeStmp = time.time()
-                data.append(timeStmp)
-                #we are currently injecting stimulus, or starting
-                if( self.isStimulus):
-                    self.stimString.set("Start Stimulus")
-                    self.isStimulus = False
-                    data.append('STOP')
-                else:
-                    self.stimString.set("End Stimulus")
-                    self.isStimulus = True
-                    data.append('START')
-                data.append(self.entryWidget.get())
-                self.writeRow(data,self.filenames[-1])
+        print "stimulus handled"
+        data = []
+        timeStmp = time.time()
+        data.append(timeStmp)
+        #we are currently injecting stimulus
+        if( self.isStimulus):
+            self.stimString.set("Start Stimulus")
+            self.isStimulus = False
+            data.append('STOP')
         else:
-            print "Must be in sniffing mode to write"
-    #set the rate on the MC2515
-    def setRate(self,event=None):
-        self.client.MCPsetrate(float(self.rateChoice.get()))
-        self.rate = float(self.rateChoice.get())
-        print "Rate reset to " + self.rateChoice.get()
+            self.stimString.set("End Stimulus")
+            self.isStimulus = True
+            data.append('START')
+        data.append(self.entryWidget.get())
+        self.writeRow(data)
         
-    #run the method
     def main(self):
         print 'Entering main loop'
         #lets everything just sit and listen
@@ -399,5 +323,5 @@ class DisplayApp:
         
 # executes everything to run
 if __name__ == "__main__":
-    dapp = DisplayApp(500, 200)
+    dapp = DisplayApp(500, 500,'test.txt','test.txt','test3.txt')
     dapp.main()

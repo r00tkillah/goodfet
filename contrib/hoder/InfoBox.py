@@ -90,19 +90,20 @@ class InfoBox(Toplevel):
         
     # This will write the data to the bus
     def handleWrite(self, event = None):
-        self.client.MCPreset();
-        self.client.MCPsetup();
-        self.client.MCPreqstatNormal();
-        packet = [];
+        self.client.MCPreset()
+        self.client.MCPsetup()
+        self.client.MCPreqstatNormal()
+        packet = []
         #gather packet
         for item in self.entries:
-            packet.append(int(item.get(),16));
+            packet.append(int(item.get(),16))
         self.client.txpacket(packet);
         data = self.client.peek8(0x30)
         while(data & 0x08) == 0:
             print "waiting...";
-            data = self.client.peek8(0x30);
+            data = self.client.peek8(0x30)
         print "message successfully sent!"
+        print "wrote message: ", packet
         self.client.MCPreset
     
     

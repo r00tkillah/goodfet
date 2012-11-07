@@ -8,7 +8,7 @@ import sys
 import binascii
 import array
 
-
+sys.path.append('~/svn/goodfet/trunk/client/')
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
 

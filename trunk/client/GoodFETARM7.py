@@ -32,9 +32,10 @@ IR_SHIFT =                  0x80
 DR_SHIFT =                  0x81
 RESETTAP =                  0x82
 RESETTARGET =               0x83
-GET_REGISTER =              0x87
-SET_REGISTER =              0x88
-DEBUG_INSTR =               0x89
+DR_SHIFT_MORE =             0x87
+GET_REGISTER =              0x8d
+SET_REGISTER =              0x8e
+DEBUG_INSTR =               0x8f
 # Really ARM specific stuff
 WAIT_DBG =                  0x91
 CHAIN0 =                    0x93
@@ -228,7 +229,10 @@ class GoodFETARM(GoodFET):
         self.writecmd(0x13,IR_SHIFT,2, [IR, LSB|noretidle])
         return self.data
     def ARMshift_DR(self, data, bits, flags):
-        self.writecmd(0x13,DR_SHIFT,8,[bits&0xff, flags&0xff, 0, 0, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff])
+        self.writecmd(0x13,DR_SHIFT,14,[bits&0xff, flags&0xff, 0, 0, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff, (data>>32)&0xff,(data>>40)&0xff,(data>>48)&0xff,(data>>56)&0xff,(data>>64)&0xff,(data>>72)&0xff])
+        return self.data
+    def ARMshift_DR_more(self, data, bits, flags):
+        self.writecmd(0x13,DR_SHIFT_MORE,14,[bits&0xff, flags&0xff, 0, 0, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff, (data>>32)&0xff,(data>>40)&0xff,(data>>48)&0xff,(data>>56)&0xff,(data>>64)&0xff,(data>>72)&0xff])
         return self.data
     def ARMwaitDBG(self, timeout=0xff):
         self.current_dbgstate = self.ARMget_dbgstate()

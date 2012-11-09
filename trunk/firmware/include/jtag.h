@@ -147,6 +147,7 @@ extern int savedtclk;
 #define JTAG_DETECT_IR_WIDTH 0x84
 #define JTAG_DETECT_CHAIN_LENGTH 0x85
 #define JTAG_GET_DEVICE_ID 0x86
+#define JTAG_DR_SHIFT_MORE 0x87 // used for shiftings > 32bits.  assumes JTAG_DR_SHIFT with NOEND first
 //#define JTAG_DR_SHIFT20 0x91
 
 extern app_t const jtag_app;

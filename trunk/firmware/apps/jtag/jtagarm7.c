@@ -33,7 +33,6 @@ unsigned long last_instr = -1;
 unsigned char last_sysstate = 0;
 unsigned char last_ir = -1;
 unsigned char last_scanchain = -1;
-unsigned char tapstate = 15;
 unsigned char current_dbgstate = -1;
 //unsigned char last_halt_debug_state = -1;
 //unsigned long last_halt_pc = -1;
@@ -92,7 +91,6 @@ u8 jtagarm_shift_ir(u8 ir, u8 flags){
 	jtag_capture_ir();
 	jtag_shift_register();
     retval = jtag_trans_n(ir, 4, LSB|flags); 
-    tapstate = RunTest_Idle;
     last_ir = ir;
   }
   return retval;
@@ -113,7 +111,6 @@ state” to the “Select DR” state each time the “Update” state is reache
 	jtag_capture_dr();
 	jtag_shift_register();
     retval = jtag_trans_n(chain, 4, LSB | NORETIDLE);
-    tapstate = Update_DR;
   }
   jtagarm_shift_ir(testmode, NORETIDLE); 
   return(retval);
@@ -130,7 +127,6 @@ unsigned long eice_write(unsigned char reg, unsigned long data){
   retval = jtag_trans_n(data, 32, LSB| NOEND| NORETIDLE);         // send in the data - 32-bits lsb
   temp = jtag_trans_n(reg, 5, LSB| NOEND| NORETIDLE);             // send in the register address - 5 bits lsb
   jtag_trans_n(1, 1, LSB);                                        // send in the WRITE bit
-  tapstate = RunTest_Idle;
   return(retval); 
 }
 
@@ -145,7 +141,6 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
   jtag_capture_dr();
   jtag_shift_register(); // Now shift out the 32 bits
   retval = jtag_trans_n(0L, 32, LSB);                             // atmel arm jtag docs pp.10-11: LSB first
-  tapstate = RunTest_Idle;
   return(retval);
   
 }
@@ -153,15 +148,19 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
 //! push an instruction into the pipeline
 unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  // PROVEN
   unsigned long retval = 0;
+  //debugstr("jtagarm7tdmi_instr_primitive");
   jtagarm7tdmi_scan(1, ARM7TDMI_IR_INTEST);
 
+  //debugstr("instruction:");
   //debughex32(instr);
-  if (last_instr != instr && last_sysstate != breakpt){
+  //if (!(last_instr == instr && last_sysstate == breakpt))
+  {
 	  jtag_capture_dr();
 	  jtag_shift_register();
     // if the next instruction is to run using MCLK (master clock), set TDI
     if (breakpt)
       {
+      //debugstr("--breakpt flag set");
       SETMOSI;
       } 
     else
@@ -172,16 +171,20 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  
     
     // Now shift in the 32 bits
     retval = jtag_trans_n(instr, 32, 0);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
-    tapstate = RunTest_Idle;
+    //debugstr("hot off the pipeline!");
+    //debughex32(retval);
     last_instr = instr;
     last_sysstate = breakpt;
-  } else
-    jtag_tcktock();
+  }// else
+  //{ // this assumes we don't want retval!  wtfo!?
+  //  jtag_tcktock();
+  //}
   return(retval);
 }
 
 u32 jtagarm7tdmi_nop(u8 brkpt){
     //  WARNING: current_dbgstate must be up-to-date before calling this function!!!!!
+    //debugstr("jtagarm7tdmi_nop");
     if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT)
         return jtagarm7tdmi_instr_primitive(THUMB_INSTR_NOP, brkpt);
     return jtagarm7tdmi_instr_primitive(ARM_INSTR_NOP, brkpt);
@@ -191,6 +194,7 @@ u32 jtagarm7tdmi_nop(u8 brkpt){
 
 //! Retrieve a 32-bit Register value
 unsigned long jtagarm7_get_reg_prim(unsigned long instr){
+  //debugstr("jtagarm7_get_reg_prim");
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_instr_primitive(instr, 0);
   jtagarm7tdmi_nop( 0);
@@ -220,10 +224,8 @@ void jtagarm7_thumb_swap_reg(unsigned char dir, unsigned long reg){             
   jtagarm7tdmi_nop( 0);
   if (dir){
     jtagarm7tdmi_instr_primitive((unsigned long)(THUMB_INSTR_MOV_LoHi | (reg) | (reg<<16)), 0);
-    //debughex32((unsigned long)(THUMB_INSTR_MOV_LoHi | (reg) | (reg<<16)));
   } else {
     jtagarm7tdmi_instr_primitive((unsigned long)(THUMB_INSTR_MOV_HiLo | (reg<<3) | (reg<<19)), 0);
-    //debughex32((unsigned long)(THUMB_INSTR_MOV_HiLo | (reg<<3) | (reg<<19)));
   }
   jtagarm7tdmi_nop( 0);
   jtagarm7tdmi_nop( 0);
@@ -233,6 +235,9 @@ void jtagarm7_thumb_swap_reg(unsigned char dir, unsigned long reg){             
 unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                                // PROVEN - 100827
   unsigned long retval=0L, instr, r0;
   current_dbgstate = eice_read(EICE_DBGSTATUS);
+  //debugstr("current_dbgstate:");
+  //debughex32(current_dbgstate);
+
   if (current_dbgstate & JTAG_ARM7TDMI_DBG_TBIT){
     if (reg > 7){
       //debugstr("debug: jtagarm7tdmi_get_register: thumb reg > 15");
@@ -243,10 +248,14 @@ unsigned long jtagarm7tdmi_get_register(unsigned long reg) {                    
       jtagarm7_set_reg_prim( THUMB_WRITE_REG, 0, r0);       // restore r0
       return retval;
     } else {
+      //debugstr("debug: jtagarm7tdmi_get_register: thumb reg < 15");
       instr = (unsigned long)(THUMB_READ_REG | (unsigned long)reg | (unsigned long)(reg<<16L));
     }
   } else
+  {
+    //debugstr("debug: jtagarm7tdmi_get_register: arm");
     instr = (reg<<12L) | ARM_READ_REG;    // STR Rx, [R14] 
+  }
   return jtagarm7_get_reg_prim(instr);
 }
 
@@ -302,9 +311,37 @@ void jtagarm7_handle_fn( uint8_t const app,
   case JTAG_DR_SHIFT:
 	jtag_capture_dr();
 	jtag_shift_register();
-    cmddatalong[0] = jtag_trans_n(cmddatalong[1],cmddata[0],cmddata[1]);
-    tapstate = (cmddata[1]&NORETIDLE)>0?Update_DR:RunTest_Idle;
-    txdata(app,verb,4);
+    val = cmddata[0];
+    if (cmddata[0] > 32)
+    {
+        debughex32(cmddatalong[0]);
+        debughex32(cmddatalong[1]);
+        cmddatalong[1] = jtag_trans_n(cmddatalong[2], val - 32 ,cmddata[1] | NOEND |NORETIDLE);
+        cmddatalong[0] = jtag_trans_n(cmddatalong[2], 32, cmddata[1]);
+    }
+    else
+    {
+        debughex32(cmddatalong[0]);
+        cmddatalong[0] = jtag_trans_n(cmddatalong[1], val, cmddata[1]);
+    }
+    txdata(app,verb,val/8);
+    break;
+  case JTAG_DR_SHIFT_MORE:
+    // assumes you just executed JTAG_DR_SHIFT with NOEND flag set
+    val = cmddata[0];
+    if (cmddata[0] > 32)
+    {
+        debughex32(cmddatalong[0]);
+        debughex32(cmddatalong[1]);
+        cmddatalong[1] = jtag_trans_n(cmddatalong[2], val - 32 ,cmddata[1] | NOEND |NORETIDLE);
+        cmddatalong[0] = jtag_trans_n(cmddatalong[2], 32, cmddata[1]);
+    }
+    else
+    {
+        debughex32(cmddatalong[0]);
+        cmddatalong[0] = jtag_trans_n(cmddatalong[1], val, cmddata[1]);
+    }
+    txdata(app,verb,val/8);
     break;
   case JTAGARM7_CHAIN0:
     jtagarm7tdmi_scan(0, ARM7TDMI_IR_INTEST);
@@ -318,7 +355,6 @@ void jtagarm7_handle_fn( uint8_t const app,
     cmddatalong[2] = jtag_trans_n(cmddataword[4], 9, MSB| NOEND| NORETIDLE);
     cmddatalong[1] = jtag_trans_n(cmddatalong[1], 32, MSB| NOEND| NORETIDLE);
     cmddatalong[3] = jtag_trans_n(cmddatalong[3], 32, MSB);
-    tapstate = RunTest_Idle;
     txdata(app,verb,16);
     break;
   case JTAGARM7_SCANCHAIN1:
@@ -346,9 +382,9 @@ void jtagarm7_handle_fn( uint8_t const app,
   case JTAG_RESET_TARGET:
     //FIXME: BORKEN
     debugstr("RESET TARGET");
-    CLRTST;
+    CLRRST;
     delay(cmddataword[0]);
-    SETTST;
+    SETRST;
     txdata(app,verb,4);
     break;
 

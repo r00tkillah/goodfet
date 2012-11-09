@@ -37,11 +37,11 @@ CC =$(GCC) -Wall -O1 -fno-strict-aliasing -g   $(CCEXTRA)
 # ALPHA:
 # jtag430 -- 16-bit MSP430 JTAG
 # jtag430x2 -- 20-bit MSP430 JTAG
+# jtagarm7 -- ARM7TDMI JTAG
 
 # PRE-ALPHA:
 #  Bus protocols:
 # i2c -- Turns GF into USB-to-i2c adapter
-# jtagarm7 -- ARM7TDMI JTAG
 # ejtag -- MIPS JTAG
 # jtagxscale -- XScale JTAG
 # openocd -- OpenOCD bitbang device

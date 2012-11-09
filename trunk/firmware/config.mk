@@ -24,7 +24,7 @@ mcu ?= msp430f1611
 platform := goodfet
 endif
 
-ifneq (,$(findstring $(board),goodfet21))
+ifneq (,$(findstring $(board),goodfet21,goodfet22))
 mcu ?= msp430f2618
 platform := goodfet
 endif
@@ -181,7 +181,7 @@ CONFIG_sbw        ?= n
 CONFIG_jtag430    ?= y
 CONFIG_jtag430x2  ?= y
 CONFIG_i2c        ?= n
-CONFIG_jtagarm7   ?= n
+CONFIG_jtagarm7   ?= y
 CONFIG_ejtag      ?= n
 CONFIG_jtagxscale ?= n
 CONFIG_openocd    ?= y

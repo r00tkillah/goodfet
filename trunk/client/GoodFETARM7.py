@@ -217,13 +217,29 @@ class GoodFETARM(GoodFET):
         """Move the FET into the JTAG ARM application."""
         #print "Initializing ARM."
         self.writecmd(0x13,SETUP,0,self.data)
-    def getpc(self):
-        return self.ARMgetPC()
     def flash(self,file):
         """Flash an intel hex file to code memory."""
         print "Flash not implemented.";
-    def dump(self,file,start=0,stop=0xffff):
+    def dump(self,fn,start=0,stop=0xffffffff):
         """Dump an intel hex file from code memory."""
+        
+        print "Dumping from %04x to %04x as %s." % (start,stop,f);
+        # FIXME: get mcu state and return it to that state
+        self.halt()
+
+        h = IntelHex(None);
+        i=start;
+        while i<=stop:
+            data=self.ARMreadChunk(i, 48, verbose=0);
+            print "Dumped %06x."%i;
+            for dword in data:
+                if i<=stop and dword != 0xdeadbeef:
+                    h.puts( i, struct.pack("<I", dword) )
+                i+=4;
+        # FIXME: get mcu state and return it to that state
+        self.resume()
+        h.write_hex_file(fn);
+
         print "Dump not implemented.";
     def ARMshift_IR(self, IR, noretidle=0):
         self.writecmd(0x13,IR_SHIFT,2, [IR, LSB|noretidle])
@@ -288,6 +304,7 @@ class GoodFETARM(GoodFET):
     def ARMgetPC(self):
         """Get an ARM's PC. Note: real PC gets all wonky in debug mode, this is the "saved" PC"""
         return self.storedPC
+    getpc = ARMgetPC
     def ARMsetPC(self, val):
         """Set an ARM's PC.  Note: real PC gets all wonky in debug mode, this changes the "saved" PC which is used when exiting debug mode"""
         self.storedPC = val
@@ -390,9 +407,10 @@ class GoodFETARM(GoodFET):
                 self.ARMsetModeARM()
             # branch to the right address
             self.ARMset_register(15, self.storedPC)
-            print hex(self.storedPC)
-            print hex(self.ARMget_register(15))
-            print hex(self.ARMchain0(self.storedPC,self.flags)[0])
+            #print hex(self.storedPC)
+            #print hex(self.ARMget_register(15))
+            #print hex(self.ARMchain0(self.storedPC,self.flags)[0])
+            self.ARMchain0(self.storedPC,self.flags)
             self.ARM_nop(0)
             self.ARM_nop(1)
             self.ARMdebuginstr(ARM_INSTR_B_IMM | 0xfffff0,0)
@@ -407,8 +425,8 @@ class GoodFETARM(GoodFET):
             self.ARMdebuginstr(THUMB_INSTR_MOV_PC_R0,0)
             self.ARM_nop(0)
             self.ARM_nop(1)
-            print hex(self.storedPC)
-            print hex(self.ARMget_register(15))
+            #print hex(self.storedPC)
+            #print hex(self.ARMget_register(15))
             print hex(self.ARMchain0(self.storedPC,self.flags)[0])
             self.ARMdebuginstr(THUMB_INSTR_B_IMM | (0x7fc07fc),0)
             self.ARM_nop(0)
@@ -482,7 +500,7 @@ class GoodFETARM(GoodFET):
             self.ARM_nop(0)
             self.ARMrestart()
             self.ARMwaitDBG()
-            print hex(self.ARMget_register(1))
+            #print hex(self.ARMget_register(1))
 
             # FIXME: this may end up changing te current debug-state.  should we compare to current_dbgstate?
             #print repr(self.data[4])
@@ -496,7 +514,7 @@ class GoodFETARM(GoodFET):
         self.ARMset_register(1, r1);       # restore R0 and R1 
         self.ARMset_register(0, r0);
         return retval
-    def ARMreadChunk(self, adr, wordcount):         
+    def ARMreadChunk(self, adr, wordcount, verbose=1):         
         """ Only works in ARM mode currently
         WARNING: Addresses must be word-aligned!
         """
@@ -505,7 +523,7 @@ class GoodFETARM(GoodFET):
         output = []
         count = wordcount
         while (wordcount > 0):
-            if (wordcount%64 == 0):  sys.stderr.write(".")
+            if (verbose and wordcount%64 == 0):  sys.stderr.write(".")
             count = (wordcount, 0xe)[wordcount>0xd]
             bitmask = LDM_BITMASKS[count]
             self.ARMset_register(14,adr)
@@ -563,7 +581,7 @@ class GoodFETARM(GoodFET):
             self.ARM_nop(0)
             self.ARMrestart()
             self.ARMwaitDBG()
-            print >>sys.stderr,hex(self.ARMget_register(1))
+            #print >>sys.stderr,hex(self.ARMget_register(1))
         self.ARMset_register(1, r1);       # restore R0 and R1 
         self.ARMset_register(0, r0);
     def writeMemByte(self, adr, byte):
@@ -588,10 +606,11 @@ class GoodFETARM(GoodFET):
         bulk = chop(address,4)
         bulk.extend(chop(bits,8))
         bulk.extend(chop(data,4))
-        print >>sys.stderr,(repr(bulk))
+        #print >>sys.stderr,(repr(bulk))
         self.writecmd(0x13,CHAIN0,16,bulk)
         d1,b1,a1 = struct.unpack("<LQL",self.data)
         return (a1,b1,d1)
+
     def start(self):
         """Start debugging."""
         self.writecmd(0x13,START,0,self.data)

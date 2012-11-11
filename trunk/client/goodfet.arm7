@@ -141,10 +141,11 @@ if(sys.argv[1]=="verify"):
 
 
 if(sys.argv[1]=="peek"):
-    start=0x0000;
+    start = 0x0000;
     if(len(sys.argv)>2):
         start=int(sys.argv[2],16);
-    stop=start;
+
+    stop = start+4;
     if(len(sys.argv)>3):
         stop=int(sys.argv[3],16);
 

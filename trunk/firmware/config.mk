@@ -37,7 +37,7 @@ CONFIG_ccspi = n
 CONFIG_nrf = y
 endif
 
-ifneq (,$(findstring $(board),goodfet40 goodfet41))
+ifneq (,$(findstring $(board),goodfet40 goodfet41 goodfet42))
 mcu ?= msp430f2618
 platform := goodfet
 CONFIG_nrf = y

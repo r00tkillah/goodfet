@@ -396,6 +396,7 @@ class GoodFETARM(GoodFET):
                 self.ARMset_register(15,self.storedPC&0xfffffffc)
         print "CPSR: (%s) %s"%(self.ARMget_regCPSRstr())
     halt = ARMhaltcpu
+
     def ARMreleasecpu(self):
         """Resume the CPU."""
         # restore registers FIXME: DO THIS
@@ -432,8 +433,8 @@ class GoodFETARM(GoodFET):
             self.ARM_nop(0)
             self.ARMrestart()
 
-
     resume = ARMreleasecpu
+    
     def resettap(self):
         self.writecmd(0x13, RESETTAP, 0,[])
     def ARMsetModeARM(self):
@@ -600,8 +601,9 @@ class GoodFETARM(GoodFET):
                   0x02 : "force dbgrq",
                   0x01 : "force dbgack"
                   }
-    def ARMresettarget(self, delay=10):
+    def ARMresettarget(self, delay=1000):
         return self.writecmd(0x13,RESETTARGET,2, [ delay&0xff, (delay>>8)&0xff ] )
+
     def ARMchain0(self, address, bits=0x819684c054, data=0):
         bulk = chop(address,4)
         bulk.extend(chop(bits,8))

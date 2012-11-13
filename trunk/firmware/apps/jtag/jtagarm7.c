@@ -44,9 +44,9 @@ GoodFET  ->  7TDMI 20-pin connector (HE-10 connector)
   3               5  (TDI)
   5               7  (TMS)
   7               9  (TCK)
-  8               15 (nRST)
   9               4,6,8,10,12,14,16,18,20 (GND)
-  11              17/3 (nTRST)  (different sources suggest 17 or 3 alternately)
+  11              15 (nRST)
+  //  no longer...  (11              17/3 (nTRST)  (different sources suggest 17 or 3 alternately))
 ********************************/
 
 /**** 14-pin Connection Information (pin1 is on top-right for both connectors)****
@@ -56,9 +56,9 @@ GoodFET  ->  7TDMI 14-pin connector
   3               5  (TDI)
   5               7  (TMS)
   7               9  (TCK)
-  8               12 (nRST)
   9               2,4,6,8,10,14 (GND)
-  11              3 (nTRST)
+  11              12 (nRST)
+  //  no longer... (11              3 (nTRST))
 
 http://hri.sourceforge.net/tools/jtag_faq_org.html
 ********************************/
@@ -382,9 +382,12 @@ void jtagarm7_handle_fn( uint8_t const app,
   case JTAG_RESET_TARGET:
     //FIXME: BORKEN
     debugstr("RESET TARGET");
+    debughex((P3OUT&RST));
     CLRRST;
+    debughex((P3OUT&RST));
     delay(cmddataword[0]);
     SETRST;
+    debughex((P3OUT&RST));
     txdata(app,verb,4);
     break;
 

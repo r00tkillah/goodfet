@@ -491,7 +491,8 @@ class GoodFETARM(GoodFET):
         self.ARM_nop( 0)        # push nop into pipeline - execute
         self.ARMset_register(0, r0)
         return(val)
-    
+        
+    '''
     def ARMreadMem(self, adr, wrdcount=1):
         retval = [] 
         r0 = self.ARMget_register(0);        # store R0 and R1
@@ -521,6 +522,7 @@ class GoodFETARM(GoodFET):
         self.ARMset_register(1, r1);       # restore R0 and R1 
         self.ARMset_register(0, r0);
         return retval
+        '''
         
     def ARMreadStream(self, addr, bytecount):
         baseaddr    = addr & 0xfffffffc
@@ -530,7 +532,7 @@ class GoodFETARM(GoodFET):
         
         
         out = []
-        data = self.ARMreadChunk( baseaddr, ((endaddr-baseaddr) / 4) )
+        data = [ x for x in self.ARMreadChunk( baseaddr, ((endaddr-baseaddr) / 4) ) ]
         #print data, hex(baseaddr), hex(diffstart), hex(endaddr), hex(diffend)
         if len(data) == 1:
             #print "single dword"
@@ -551,7 +553,6 @@ class GoodFETARM(GoodFET):
                 out.append( struct.pack("<I", data.pop(0)) [:diffend] ) 
                 #print out
         return ''.join(out)        
-    peek = ARMreadMem
 
     def ARMreadChunk(self, adr, wordcount, verbose=True):
         """ Only works in ARM mode currently
@@ -559,7 +560,7 @@ class GoodFETARM(GoodFET):
         """
         regs = self.ARMget_registers()
         self.ARMset_registers([0xdeadbeef for x in xrange(14)], 0xe)
-        output = []
+        #output = []
         count = wordcount
         while (wordcount > 0):
             if (verbose and wordcount%64 == 0):  sys.stderr.write(".")
@@ -571,14 +572,17 @@ class GoodFETARM(GoodFET):
             #FIXME: do we need the extra nop here?
             self.ARMrestart()
             self.ARMwaitDBG()
-            output.extend([self.ARMget_register(x) for x in xrange(count)])
+            for x in range(count):
+                yield self.ARMget_register(x)
             wordcount -= count
             adr += count*4
             #print hex(adr)
         # FIXME: handle the rest of the wordcount here.
         self.ARMset_registers(regs,0xe)
-        return output
+        #return output
         
+    ARMreadMem = ARMreadChunk
+    peek = ARMreadMem
     '''def ARMreadStream(self, adr, bytecount):
         data = [struct.unpack("<L", x) for x in self.ARMreadChunk(adr, (bytecount-1/4)+1)]
         return "".join(data)[:bytecount]
@@ -606,7 +610,7 @@ class GoodFETARM(GoodFET):
             adr += count*4
             #print hex(adr)
         # FIXME: handle the rest of the wordcount here.
-        
+        '''
     def ARMwriteMem(self, adr, wordarray, instr=ARM_WRITE_MEM):
         r0 = self.ARMget_register(0);        # store R0 and R1
         r1 = self.ARMget_register(1);
@@ -625,6 +629,8 @@ class GoodFETARM(GoodFET):
             #print >>sys.stderr,hex(self.ARMget_register(1))
         self.ARMset_register(1, r1);       # restore R0 and R1 
         self.ARMset_register(0, r0);
+        '''
+    ARMwriteMem = ARMwriteChunk
         
     def ARMwriteStream(self, addr, datastr):
         #bytecount = len(datastr)

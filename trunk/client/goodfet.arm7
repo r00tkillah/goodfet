@@ -134,7 +134,7 @@ if(sys.argv[1]=="verify"):
     h = IntelHex16bit(f)
     for i in h._buf.keys():
         if(i>=start and i<stop and i&1==0):
-            peek=client.ARMreadMem(i)
+            peek=client.peek(i)
             if(h[i>>1]!=peek):
                 print "ERROR at %04x, found %04x not %04x"%(i,peek,h[i>>1])
             if(i%0x100==0):

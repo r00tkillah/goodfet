@@ -681,6 +681,8 @@ class GoodFETMAXUSBHID(GoodFETMAXUSBDevice):
         #Parse the SETUP packet
         print "Handling a setup packet of %s" % self.setup2str(SUD);
         
+	self.OsLastConfigType=ord(SUD[bmRequestType]);
+	self.typepos=0;
         setuptype=(ord(SUD[bmRequestType])&0x60);
         if setuptype==0x00:
             self.std_request(SUD);
@@ -721,6 +723,7 @@ class GoodFETMAXUSBHID(GoodFETMAXUSBDevice):
         else:
             self.STALL_EP0(SUD);
     
+    OsLastConfigType=-1;
 #Device Descriptor
     DD=[0x12,	       		# bLength = 18d
         0x01,			# bDescriptorType = Device (1)
@@ -853,45 +856,86 @@ class GoodFETMAXUSBHID(GoodFETMAXUSBDevice):
         else:
             self.STALL_EP0(SUD);
 
-    
-    
-    typephase=0;
-    typestring="                      Python does USB HID!";
     typepos=0;
-    
+    typestrings={
+	-1   : "Python does USB HID!\n",		# Unidentified OS.  This is the default typestring.
+	0x00 : "OSX Hosts don't recognize Maxim keyboards.\n",	# We have to identify as an Apple keyboard to get arround the unknown keyboard error.
+	0xA1 : "Python does USB HID on Linux!\n",
+	0x81 : "                                                                                             Python does USB HID on Windows!\n",	# Windows requires a bit of a delay.  Maybe we can watch for a keyboard reset command?
+    }
+    def typestring(self):
+	if self.typestrings.has_key(self.OsLastConfigType):
+	    return self.typestrings[self.OsLastConfigType];
+	else:
+	    return self.typestrings[-1];
+    # http://www.win.tue.nl/~aeb/linux/kbd/scancodes-14.html
+    # Escape=0x29 Backsp=0x2A Space=0x2C CapsLock=0x39 Menu=0x65
+    keymaps={
+	'en_US'  :[ '    abcdefghijklmnopqrstuvwxyz1234567890\n\t -=[]\\\\;\'`,./',
+		    '''        ''',	 # LeftCtrl
+		    '    ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()     {}?+||:"~<>?', # LeftShift
+		    '', # LeftCtrl & LeftShift
+		    '    abc'], # LeftAlt
+	'Dvorak' :[ '    axje.uidchtnmbrl\'poygk,qf;1234567890\n\t []/=\\\\s-`wvz',
+		    '''                                   ''',	 # LeftCtrl
+		    '    AXJE UIDCHTNMBRL"POYGK<QF:!@#$%^&*()     {}?+||S_~WVZ', # LeftShift
+		    '', # LeftCtrl & LeftShift
+		    '    axj'], # LeftAlt
+    }
+    layout='en_US';
+    def keymap(self):
+	return self.keymaps[self.layout];
+    modifiers={
+	'None':		0b00000000,
+	'LeftCtrl':	0b00000001,
+	'LeftShift':	0b00000010,
+	'LeftAlt':	0b00000100,
+	'LeftGUI':	0b00001000,
+	'RightCtrl':	0b00010000,
+	'RightShift':	0b00100000,
+	'RightAlt':	0b01000000,
+	'RightGUI':	0b10000000
+    }
+
     def asc2hid(self,ascii):
         """Translate ASCII to an USB keycode."""
-        a=ascii;
-        if a>='a' and a<='z':
-            return ord(a)-ord('a')+4;
-        elif a>='A' and a<='Z':
-            return ord(a)-ord('A')+4;
-        elif a==' ':
-            return 0x2C; #space
-        else:
-            return 0; #key-up
+	if type(ascii)!=str:
+	    return (0,0);		# Send NoEvent if not passed a character
+        if ascii==' ':
+            return (0,0x2C);		# space
+	for modset in self.keymap():
+	    keycode=modset.find(ascii);
+	    if keycode != -1:
+		modifier = self.keymap().index(modset)
+		return (modifier, keycode);
+	return (0,0);
     def type_IN3(self):
-        """Type next letter in buffer."""
-        if self.typepos>=len(self.typestring):
-            self.typeletter(0);
-        elif self.typephase==0:
-            self.typephase=1;
-            self.typeletter(0);
-        else:
-            typephase=0;
-            self.typeletter(self.typestring[self.typepos]);
-            self.typepos=self.typepos+1;
-        return;
+	"""Type next letter in buffer."""
+	string=self.typestring();
+	if self.typepos>=len(string):
+	    self.typeletter(0);		# Send NoEvent to indicate key-up
+	    exit(0);
+	    self.typepos=0;		# Repeat typestring forever!
+	    # This would be a great place to enable a typethrough mode so the host operator can control the target
+	else:
+	    if self.usbverbose:
+		sys.stdout.write(string[self.typepos]);
+		sys.stdout.flush();
+	    self.typeletter(string[self.typepos]);
+	    self.typepos+=1;
+	return;
     def typeletter(self,key):
         """Type a letter on IN3.  Zero for keyup."""
-        #if type(key)==str: key=ord(key);
-        #Send a key-up.
+	mod=0;
+	if type(key)==str:
+	    (mod, key) = self.asc2hid(key);
+	self.wreg(rEP3INFIFO,mod);
         self.wreg(rEP3INFIFO,0);
-        self.wreg(rEP3INFIFO,0);
-        self.wreg(rEP3INFIFO,self.asc2hid(key));
+        self.wreg(rEP3INFIFO,key);
         self.wreg(rEP3INBC,3);
     def do_IN3(self):
         """Handle IN3 event."""
         #Don't bother clearing interrupt flag, that's done by sending the reply.
-        self.type_IN3();
+	if self.OsLastConfigType != -1:	# Wait for some configuration before stuffing keycodes down the pipe
+	    self.type_IN3();
         

@@ -32,6 +32,8 @@ VERB_CMDLIST = 0x88
 # include: PIC24FJxxx{DA1,DA2,GB2,GA3}xx
 tblpag = 0x32
 
+WRITE_MAX_POLL_ATTEMPTS = 100
+
 dev_table = { 0x00EE : "dsPIC33FJ128GP708",
               0x00EF : "dsPIC33FJ128GP710",
               0x080A : "PIC24HJ12GP201",
@@ -53,6 +55,30 @@ dev_table = { 0x00EE : "dsPIC33FJ128GP708",
               0x0407 : "PIC24FJ128GA006",
               0x040A : "PIC24FJ128GA008",
               0x040D : "PIC24FJ128GA010",
+              0x1000 : "PIC24FJ64GA106",
+              0x1008 : "PIC24FJ128GA106",
+              0x1010 : "PIC24FJ192GA106",
+              0x1018 : "PIC24FJ256GA106",
+              0x1002 : "PIC24FJ64GA108",
+              0x100A : "PIC24FJ128GA108",
+              0x1012 : "PIC24FJ192GA108",
+              0x101A : "PIC24FJ256GA108",
+              0x1006 : "PIC24FJ64GA110",
+              0x100E : "PIC24FJ128GA110",
+              0x1016 : "PIC24FJ192GA110",
+              0x101E : "PIC24FJ256GA110",
+              0x1001 : "PIC24FJ64GB106",
+              0x1009 : "PIC24FJ128GB106",
+              0x1011 : "PIC24FJ192GB106",
+              0x1019 : "PIC24FJ256GB106",
+              0x1003 : "PIC24FJ64GB108",
+              0x100B : "PIC24FJ128GB108",
+              0x1013 : "PIC24FJ192GB108",
+              0x101B : "PIC24FJ256GB108",
+              0x1007 : "PIC24FJ64GB110",
+              0x100F : "PIC24FJ128GB110",
+              0x1017 : "PIC24FJ192GB110",
+              0x101F : "PIC24FJ256GB110",
               0x4109 : "PIC24FJ128DA106",
               0x410D : "PIC24FJ256DA106",
               0x410B : "PIC24FJ128DA110",
@@ -548,6 +574,8 @@ elif sys.argv[1] == "program":
         #else:
         #    stop_addr = addr+126
 
+        print "Writing address 0x%06X" % (addr)
+
         runlist( wr_pm64_li_setaddr[:4]
                  + [0x200000 + ((addr>>12)&0xff0),
                     wr_pm64_li_setaddr[5],
@@ -572,13 +600,23 @@ elif sys.argv[1] == "program":
                      + wr_pm64_li_wrlat )
         
         runlist( wr_pm64_li_wr )
+        attempts = 0
         status = readNVMCON()
         while status & 0x8000:
+            attempts += 1
+            #print " Status was 0x%04X for address 0x%06X" % (status, addr)
+            if attempts >= WRITE_MAX_POLL_ATTEMPTS:
+                print "Error writing to address 0x%06X (Status: 0x%04X)\nTry erase and program again." % (addr, status)
+                stopICSP()
+                exit(-1)
             client.writecmd( PICAPP, 0x82, 3, [0x00,0x00,0x00] )
             status = readNVMCON()
 
     # Configuration registers must be treated separately
     for addr in ph_addrs[ph_addrs.index(last_code_addr):]:
+
+        print "Configuration register 0x%06X" % ( addr )
+  
         if addr%4 != 0:
             continue
         if (addr>>1) > 0xf80017:
@@ -600,8 +638,15 @@ elif sys.argv[1] == "program":
                      0x000000, # NOP
                      0x000000] # NOP
         runlist( wr_cfg_li )
+        attempts = 0
         status = readNVMCON()
         while status & 0x8000:
+            attempts += 1
+            #print " Status was 0x%04X for address 0x%06X" % (status, addr)
+            if attempts >= WRITE_MAX_POLL_ATTEMPTS:
+                print "Error writing to address 0x%06X (Status: 0x%04X)\nTry erase and program again." % (addr, status)
+                stopICSP()
+                exit(-1)
             client.writecmd( PICAPP, 0x82, 3, [0x00,0x00,0x00] )
             status = readNVMCON()
 

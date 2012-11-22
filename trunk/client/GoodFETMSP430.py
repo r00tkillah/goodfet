@@ -153,6 +153,8 @@ class GoodFETMSP430(GoodFET):
         0xf26f: "MSP430F261x",
         0xf237: "MSP430F23x0",
         0xf201: "MSP430F201x",
+        #Are G's and F's distinct?
+        0x2553: "MSP430G2553",
         
         #MSP430F1xx
         0xf16c: "MSP430F161x",

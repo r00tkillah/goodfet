@@ -11,6 +11,17 @@ import time;
 
 from GoodFETMAXUSB import *;
 
+
+# This constant is kinda complicated and very ugly.  The idea is that
+# if we take too long in any given transaction, the host will abort.
+# How many blocks we can send depends upon timeouts on both sides,
+# with (at least in Linux) the behavior that aborting early causes the
+# disk to reset with only warning and no real errors.  Somewhere
+# there's a way to provide this constant to the host, in which case
+# stalling and waiting for a reset will no longer be necessary.
+
+MAXBLOCKSPERTRANSFER=128
+
 def zeros(length):
     """Returns a list of zeroes of the specified length."""
     l=range(0,length);
@@ -316,25 +327,26 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
         elif verb==0x1e: #Prevent/Allow Removal
             # Give a good status to pretend we understand.
             status=0x00;
-        elif verb==0x1A: #Mode Sense (6)
+        elif verb==0x1A or verb==0x5A: #Mode Sense (6 or 10)
             # I should probably send six bytes here.
+            page=ord(cb[2])&0x3F;
             print "Mode Sense (6) requesting %i byte Page Code %02x" % (
-                dtlen,ord(cb[2])&0x3F);
+                dtlen,page);
             #This is completely wrong.
-            response=[0x12,0,0,0, 0,0,0,0x1C];
-            self.fifo_ep3in_tx(response);
-        elif verb==0x5A: #Mode Sense (10)
-            # I should probably send ten bytes here.
-            print "Mode Sense (10) requesting %i byte Page Code %02x" % (
-                dtlen,ord(cb[2])&0x3F);
-            #This is completely wrong.
-            response=[0x12,0x00,0,0, 0,0,0,0x1C]
+            response=[0x07,0,0,0, 0,0,0,0x1C];
+            # response=[0x37,0x00,0x00,0x08,0x00,0x00,0x00,0x00, 0x00,0x00,0x02,0x00,0x01,0x0a,0x80,0x00,
+            #           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x08,0x12,0x04,0x00,0x00,0x00,0x00,0x00,
+            #           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x0a,0x0a,0x02,0x00,
+            #           0x00,0x00,0x00,0x00,0xff,0xff,0x00,0x1e];
+            if page!=0x3f:
+                print "Unknown page, returning empty page.";
+                response=[0x07,0,0,0, 0,0,0,0];
             self.fifo_ep3in_tx(response);
         elif verb==0x23: #Read Format Capacity
             response=[
-                0x00, 0,0x00,0x08, #Capacity list length.
-                0,0x00,0x10,0x00,   # Number of sectors, implying 10MB.
-                0x01,0x00,            #reserved/desciptor code.
+                0x00, 0,0x00,0x08,    # Capacity list length.
+                0,0x00,0x10,0x00,     # Number of sectors, implying 10MB.  Should come from image.
+                0x01,0x00,            # reserved/desciptor code.
                 0x02,0x00             # 512 bytes/sector.  Why is this twice?
                 ];
             self.writebytes(rEP3INFIFO,
@@ -362,22 +374,25 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
                 );
             count=dtlen/512;
             print "Fetching %i blocks starting at  LBA %i." % (count,baselba);
-            if count>32:
+            if count>MAXBLOCKSPERTRANSFER:
                 count=0;
-                status=1; #Fail if we're asked to read more than 32 blocks.
+                #status=1; #Fail if we're asked to read more than 32 blocks.
                 #Now we need to stall EP3.  It's not acceptable to just forget to transmit.
                 self.wreg(rEPSTALLS,0x10);
+                return;
             for i in range(0,count):
                 data=self.getSectorData(baselba+i);
-                for j in range(0,8):
-                    #print "Sending block fragment %i,%i" % (i,j);
-                    #Transmit each 64-byte block fragment, then wait for next.
-                    while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ): pass;
-                    response=data[j*64:j*64+64];
-                    self.writebytes(rEP3INFIFO,
-                                    response);
-                    self.wregAS(rEP3INBC,
-                                64);
+                self.fifo_ep3in_tx(data);
+                
+                # for j in range(0,8):
+                #     #print "Sending block fragment %i,%i" % (i,j);
+                #     #Transmit each 64-byte block fragment, then wait for next.
+                #     while not(self.rreg(rEPIRQ)&bmIN3BAVIRQ): pass;
+                #     response=data[j*64:j*64+64];
+                #     self.writebytes(rEP3INFIFO,
+                #                     response);
+                #     self.wregAS(rEP3INBC,
+                #                 64);
             #sys.exit();
         elif verb==0x2A: #WRITE SECTOR
             print "Haven't implemented WRITE SECTOR.";
@@ -388,7 +403,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
             #sys.exit();
         else:
             print "ERROR: Unknown SCSI command block verb %02x." % verb;
-            status=1; #Command Failed
+            status=0x02; #Command Failed
             if dtlen>0:
                 print "Sending %i bytes of dummy data here." % dtlen;
                 self.fifo_ep3in_tx(zeros(dtlen));

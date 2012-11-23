@@ -9287,11 +9287,16 @@ We've spent an enormous amount of time creating and checking these footprints an
 <label x="200.66" y="55.88" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$9" class="0">
+<net name="GPX" class="0">
 <segment>
 <pinref part="U4" gate="G$1" pin="GPX"/>
 <wire x1="210.82" y1="43.18" x2="200.66" y2="43.18" width="0.1524" layer="91"/>
 <label x="200.66" y="43.18" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="43"/>
+<wire x1="127" y1="55.88" x2="134.62" y2="55.88" width="0.1524" layer="91"/>
+<label x="129.54" y="55.88" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="D-" class="0">
@@ -9391,21 +9396,12 @@ We've spent an enormous amount of time creating and checking these footprints an
 <approved hash="104,1,43.18,68.58,U1,1,VCC,,,"/>
 <approved hash="202,1,43.18,50.8,U1,8,,,,"/>
 <approved hash="104,1,5.08,109.22,CN1,VBUS,5VCC,,,"/>
-<approved hash="104,1,66.04,177.8,U3,VL,VCC,,,"/>
-<approved hash="202,1,76.2,134.62,U3,GPIN3,,,,"/>
-<approved hash="202,1,73.66,134.62,U3,GPIN2,,,,"/>
-<approved hash="202,1,71.12,134.62,U3,GPIN1,,,,"/>
-<approved hash="202,1,68.58,134.62,U3,GPIN0,,,,"/>
-<approved hash="104,1,68.58,177.8,U3,VL,VCC,,,"/>
-<approved hash="104,1,15.24,149.86,CN2,VBUS,VBCOMP,,,"/>
-<approved hash="205,1,127,38.1,INT,,,,,"/>
-<approved hash="205,1,109.22,167.64,INT,,,,,"/>
-<approved hash="207,1,43.18,114.3,VCC,sup,,,,"/>
-<approved hash="207,1,-20.32,76.2,VCC,out,,,,"/>
-<approved hash="207,1,-30.48,76.2,VCC,sup,,,,"/>
-<approved hash="207,1,22.86,76.2,VCC,sup,,,,"/>
-<approved hash="207,1,-5.08,48.26,VCC,sup,,,,"/>
-<approved hash="207,1,66.04,185.42,VCC,sup,,,,"/>
+<approved hash="208,1,43.18,114.3,VCC,sup,,,,"/>
+<approved hash="208,1,-20.32,76.2,VCC,out,,,,"/>
+<approved hash="208,1,-30.48,76.2,VCC,sup,,,,"/>
+<approved hash="208,1,22.86,76.2,VCC,sup,,,,"/>
+<approved hash="208,1,-5.08,48.26,VCC,sup,,,,"/>
+<approved hash="208,1,205.74,76.2,VCC,sup,,,,"/>
 <approved hash="115,1,33.3417,26.67,LED1,,,,,"/>
 <approved hash="115,1,19.05,58.0983,RXLED,,,,,"/>
 <approved hash="115,1,19.05,65.7183,TXLED,,,,,"/>

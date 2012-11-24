@@ -327,6 +327,10 @@ erase:
 	$(JTAG) -e $(app).hex
 else
 install: $(app).hex
+	#Note that 'make install' no longer erases the chip.
+	#Use 'make reinstall' if you want that.
+	$(MSP430BSL) -p $(app).hex
+reinstall: $(app).hex
 	$(MSP430BSL) -e -p $(app).hex
 installinfo:
 	$(MSP430BSL) -P $(app).hex -p info.txt || true  #MSP430F2xx targets only, inelegant.

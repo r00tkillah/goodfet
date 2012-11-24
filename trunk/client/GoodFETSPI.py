@@ -10,6 +10,7 @@ import sys, time, string, cStringIO, struct, glob, os;
 from GoodFET import GoodFET;
 
 class GoodFETSPI(GoodFET):
+    APP=0x01;
     def SPIsetup(self):
         """Move the FET into the SPI application."""
         self.writecmd(0x01,0x10,0,self.data); #SPI/SETUP

@@ -74,21 +74,19 @@ void donbfet_init_uart0(){
   _delay_ms(500); //takes a bit to stabilize
 }
 
-void 
-led_on()
-{
+void led_init(){
+  
+}
+
+void  led_on() {
 	PLEDOUT |= (1 << PLEDPIN);
 }
 
-void
-led_off()
-{
+void led_off() {
 	PLEDOUT &= ~(1 << PLEDPIN);
 }
 
-void 
-donbfet_init()
-{
+void donbfet_init(){
         uint8_t x;
 
         /* explicitly clear interrupts */

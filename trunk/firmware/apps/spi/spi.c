@@ -10,10 +10,10 @@
 
 #ifdef __MSPGCC__
 #include <msp430.h>
-#else
-#include <signal.h>
-#include <msp430.h>
-#include <iomacros.h>
+/* #else */
+/* #include <signal.h> */
+/* #include <msp430.h> */
+/* #include <iomacros.h> */
 #endif
 
 #include "spi.h"

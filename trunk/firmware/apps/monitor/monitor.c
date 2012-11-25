@@ -7,18 +7,20 @@
 #include "platform.h"
 #include "monitor.h"
 #include "builddate.h"
+
+
 #if (platform == tilaunchpad)
 #include <setjmp.h>
 extern jmp_buf warmstart;
-
 #endif
+
 
 #define MONITOR_APP
 
 //! Handles a monitor command.
 void monitor_handle_fn(uint8_t const app,
-					   uint8_t const verb,
-					   uint32_t const len);
+		       uint8_t const verb,
+		       uint32_t const len);
 
 //! Overwrite all of RAM with 0xBEEF, then reboot.
 void monitor_ram_pattern();
@@ -223,9 +225,13 @@ unsigned int monitor_ram_depth()
 //! Call a function by address.
 int fncall(unsigned int adr)
 {
+  #ifdef MSP430
 	int (*machfn)() = 0;
 	machfn = (int (*)()) adr;
 	return machfn();
+  #else
+	debugstr("fncall() not supported on this platform.");
+  #endif
 }
 
 

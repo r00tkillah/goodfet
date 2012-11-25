@@ -150,8 +150,8 @@ endif
 ifneq (,$(findstring $(board),zigduino))
 GCC := avr-gcc
 CC := avr-gcc
-mcu ?= atmega1284p
-platform = donbfet
+mcu ?= atmega128rfa1
+platform = zigduino
 CFLAGS=$(DEBUG) -Iinclude -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitialized -fpack-struct -fshort-enums -funsigned-bitfields
 config := monitor #avr spi
 endif

@@ -30,7 +30,7 @@ with gerbers as
 
 <p>Resistor values can be approximated.</p>
 
-<p><b>N.B., The BOM including Digi-Key part numbers can be found in SVN /branches/goodthopter11/bom</b></p>
+<p><b>N.B., The BOM including Digi-Key part numbers can be found in SVN branches/goodthopter10/bom/ (GoodThopter11 uses the same components)</b></p>
 
 <p><table border="1">
 <tr><td>Quantity</td><td>Package</td><td></td></tr>
@@ -44,8 +44,8 @@ with gerbers as
 <tr><td>5</td><td>0603</td><td>0603 LED</td></tr>
 <tr><td>4</td><td>0603</td><td>330R LED Series Resistors</td></tr>
 <tr><td>1</td><td>0603</td><td>10K Pull-up Resistor</td></tr>
-<tr><td>1</td><td></td><td>USB Type B</td></tr>
-<tr><td>1</td><td></td><td>D-SUB 9 Position Mountable Conn. - 1734351-1</td></tr>
+<tr><td>1</td><td></td><td>USB Type B - TE 292304-2 or FCI 61729-1011BLF</td></tr>
+<tr><td>1</td><td></td><td>D-SUB 9 Position Mountable Conn. - TE 1734351-1</td></tr>
 </table>
 </p>
 
@@ -71,7 +71,7 @@ need for an external programmer.</p>
 
 <p><pre>export board=goodthopter11
 make clean install
-goodfet.can info
+goodfet.mcpcan info
 </pre></p>
 
 <p>See the <a href="http://goodfet.sourceforge.net/tutorial/">GoodFET
@@ -92,5 +92,6 @@ we test both.</p>
 
 <h2>Errata</h2>
 
-<p>None that we've yet found.</p>
-
+<p>The MCP2551 pads do not extend past the legs. Shorten the legs by
+clipping them at their knees or use an SMD rework station to heat the
+solder without an iron or use an iron with extra flux and care.</p>

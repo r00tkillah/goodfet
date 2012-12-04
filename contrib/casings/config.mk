@@ -15,7 +15,5 @@ config=-D l=23.5 -D w=71 -D h=6 -D cutsecondusb=1
 endif
 
 #The CONFIG_foo vars are only interpreted if $(config) is "unset".
-ifeq ($(config),undef)
-echo "Please set define board to your PCB style."
-false
-endif
+#ifeq ($(config),undef)
+#endif

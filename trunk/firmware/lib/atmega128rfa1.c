@@ -9,10 +9,6 @@ unsigned char serial0_rx(){
   return UDR0;
 }
 
-//! Receive a byte.
-unsigned char serial1_rx(){
-  return 0;
-}
 
 //! Transmit a byte.
 void serial0_tx(unsigned char x){
@@ -20,52 +16,44 @@ void serial0_tx(unsigned char x){
   UDR0 = x;
 }
 
-//! Transmit a byte on the second UART.
-void serial1_tx(unsigned char x){
-}
 
 //! Set the baud rate.
 void setbaud0(unsigned char rate){
-        /* disable briefly */
-        UCSR0B = 0;
+  /* disable everything briefly */
+  UCSR0B = 0;
 
-        UBRR0L = 4;   /* 500,000 baud at 20MHz */
-        //UBRR0L = 1;   /* 500,000 baud at 8MHz */
-        //UBRR0L = 103; /* 9600 baud */
-        // XXX UBRR0L = 8;     /* 115200 baud ERROR RATE TOO HIGH */
-        UBRR0H = 0;
-
-        UCSR0A = (1 << U2X0);   /* double the baud rate */
-        UCSR0C = (3 << UCSZ00); /* 8N1 */
-
-        /* enabling rx/tx must be done after frame/baud setup */
-        UCSR0B = ((1 << TXEN0) | (1 << RXEN0));
-
-  return;
-  
-}
-
-//! Set the baud rate of the second uart.
-void setbaud1(unsigned char rate){
-  //http://mspgcc.sourceforge.net/baudrate.html
+  int32_t r;
   switch(rate){
   case 1://9600 baud
-    
+    r = 9600;
     break;
   case 2://19200 baud
-    
+    r = 19200;
     break;
   case 3://38400 baud
-    
+    r = 38400;
     break;
   case 4://57600 baud
-    
+    r = 57600;
     break;
+
   default:
   case 5://115200 baud
-    
+    r = 115200;
     break;
   }
+
+  /* enabling rx/tx must be done before frame/baud setup */
+  UCSR0B = ((1 << TXEN0) | (1 << RXEN0));
+
+  UCSR0A = (1 << U2X0);   /* double the baud rate */
+  UCSR0C = (3 << UCSZ00); /* 8N1 */
+
+  UBRR0L = (int8_t) (F_CPU/(r*8L)-1);
+  UBRR0H = (F_CPU/(r*8L)-1) >> 8;
+
+  return;
+
 }
 
 
@@ -75,97 +63,87 @@ void zigduino_init_uart0(){
 }
 
 void led_init(){
-  
+
+  PLEDDIR |= (1 << PLEDPIN);
 }
 
 void  led_on() {
-	PLEDOUT |= (1 << PLEDPIN);
+  PLEDOUT |= (1 << PLEDPIN);
 }
 
 void led_off() {
-	PLEDOUT &= ~(1 << PLEDPIN);
+  PLEDOUT &= ~(1 << PLEDPIN);
 }
 
 void zigduino_init(){
-        uint8_t x;
+  uint8_t x;
 
-        /* explicitly clear interrupts */
-        cli();
+  /* explicitly clear interrupts */
+  cli();
 
-        /* move the vectors */
+  /* move the vectors */
 
-        /* move interrupts from boot flash section */
-        /* NB */
-        /* you MUST use a variable during this process. even highly optimized,
-         * masking the bit, shifting, ANDing, and setting MCUCR will exceed
-         * 4 CPU cycles! set a variable with the desired value for MCUCR and
-         * then set the register once IVCE is enabled
-         */
-        x = MCUCR & ~(1 << IVSEL);
+  /* move interrupts from boot flash section */
+  /* NB */
+  /* you MUST use a variable during this process. even highly optimized,
+   * masking the bit, shifting, ANDing, and setting MCUCR will exceed
+   * 4 CPU cycles! set a variable with the desired value for MCUCR and
+   * then set the register once IVCE is enabled
+   */
+  x = MCUCR & ~(1 << IVSEL);
 
-        /* enable change of interrupt vectors */
-        /* NOTE: setting IVCE disables interrupts until the bit is auto-unset 
-         * 4 cycles after being set or after IVSEL is written
-         */
-        MCUCR |= (1 << IVCE);
-        MCUCR = x;
+  /* enable change of interrupt vectors */
+  /* NOTE: setting IVCE disables interrupts until the bit is auto-unset
+   * 4 cycles after being set or after IVSEL is written
+   */
+  MCUCR |= (1 << IVCE);
+  MCUCR = x;
 
-        /* disable the watchdog timer; this macro will disable interrupts for us */
-        /* NOTE: ensure that the WDRF flag is unset in the MCUSR or we will spinlock
-         * when the watchdog times out
-         */
-        MCUSR &= ~(1 << WDRF);
-        wdt_disable();
+  /* disable the watchdog timer; this macro will disable interrupts for us */
+  /* NOTE: ensure that the WDRF flag is unset in the MCUSR or we will spinlock
+   * when the watchdog times out
+   */
+  MCUSR &= ~(1 << WDRF);
+  wdt_disable();
 
-        /* init the USART */
-        zigduino_init_uart0();
+  /* init the USART */
+  zigduino_init_uart0();
 
-	/* set the LED as an output */
-	PLEDDIR |= (1 << PLEDPIN);
-	PLEDOUT |= (1 << PLEDPIN);
+  /* set the LED as an output */
+  led_init();
 
-        /* explicitly enable interrupts */
-        sei();
+  /* enable internal internal pull-up resister
+        in order to supress line noise that prevents
+        bootloader from timing out */
+  SPIDIR &= ~(1 << SPIPIN);
+  SPIOUT |= (1 << SPIPIN);
+
+  /* explicitly enable interrupts */
+  sei();
+
 }
 
 void
 zigduino_reboot()
 {
-	MCUSR &= ~(1 << WDRF);
-	wdt_enable(WDTO_15MS);
-	while(1)
-		_delay_ms(127);
+  MCUSR &= ~(1 << WDRF);
+  wdt_enable(WDTO_15MS);
+  while(1)
+    _delay_ms(127);
 }
 
-void zigduino_init_uart1(){
-}
-
-uint8_t
-zigduino_get_byte(uint16_t v)
-{
-	/* NB */
-	/* we are only passed in a 16bit word. should 
-	 * be increased to 32bit if we want to handle
-	 * far reads as well
-	 */
-/* XXX should be far on the 1284P, but there are bugs with flash reads using _far */
-/* XXX until the bugs are figured out (probably my fault?) use _near */
-	return pgm_read_byte_near(v);
-}
-
-int * 
+int *
 zigduino_ramend(void)
 {
-	/* NB */
-	/* ATmega1284P has 16K SRAM */
-	return (int * )0x4000; 
+  /* NB */
+  /* ATmega128rfa1 has 16K SRAM */
+  return (int * )0x4000;
 }
 
 void
 led_toggle(void)
 {
-	led_on();
-	_delay_ms(30);
-	led_off();
+  led_on();
+  _delay_ms(30);
+  led_off();
 }
-

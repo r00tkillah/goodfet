@@ -108,6 +108,9 @@ int main(void){
 #if (platform == donbfet)
   extern void donbfet_reboot(void);
   void (*reboot_function)(void) = donbfet_reboot;
+#elif (platform == zigduino)
+  extern void zigduino_reboot(void);
+  void (*reboot_function)(void) = zigduino_reboot;
 #else
   void (*reboot_function)(void) = (void *) 0xFFFE;
 #endif

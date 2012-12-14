@@ -153,7 +153,8 @@ CC := avr-gcc
 mcu ?= atmega128rfa1
 platform = zigduino
 CFLAGS=$(DEBUG) -Iinclude -mmcu=$(mcu) -W -Os -mcall-prologues -Wall -Wextra -Wuninitialized -fpack-struct -fshort-enums -funsigned-bitfields
-config := monitor #avr spi
+config := monitor atmel_radio #avr spi
+AVR_PLATFORM := m128rfa1
 endif
 
 
@@ -180,7 +181,7 @@ $(error Please define board, as explained in the README)
 endif
 #platform := $(board)
 
-AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2  maxusb
+AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2  maxusb atmel_radio
 
 # defaults
 CONFIG_monitor    ?= y
@@ -205,6 +206,7 @@ CONFIG_glitch     ?= n
 CONFIG_smartcard  ?= n
 CONFIG_ps2        ?= n
 CONFIG_slc2       ?= n
+CONFIG_atmel_radio ?=n
 
 #The CONFIG_foo vars are only interpreted if $(config) is "unset".
 ifeq ($(config),undef)

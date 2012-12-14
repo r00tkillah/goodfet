@@ -52,9 +52,10 @@ CC =$(GCC) -Wall -O1 -fno-strict-aliasing -g   $(CCEXTRA)
 # pic -- PIC24H/dsPIC33F debugger
 # adc -- ADC10 (still specific to x2274, GoodFET32)
 
-#  Radios:
+#  Radions:
 # nrf -- Nordic RF SPI
 # ccspi -- Chipcon SPI
+# atmel_radio -- Atmel radio
 
 # Miscelaneous:
 # glitch -- Glitch research tool
@@ -266,6 +267,12 @@ ifeq ($(filter nrf, $(config)), nrf)
 	hdrs+= nrf.h
 endif
 
+# include atmel_radio app
+ifeq ($(filter atmel_radio, $(config)), atmel_radio)
+	apps+= apps/radios/atmel_radio.o
+	hdrs+= atmel_radio.h
+endif
+
 # include glitch app
 ifeq ($(filter glitch, $(config)), glitch)
 	apps+= apps/glitch/glitch.o
@@ -316,7 +323,11 @@ run:
 
 avrinstall: $(app).hex
 	#to be merged
+ifdef AVR_PLATFORM
+	avrdude -V -F -c stk500v1 -p $(AVR_PLATFORM) -b 57600 -P $(GOODFET) -U flash:w:$(app).hex
+else
 	avrdude -V -F -c stk500v1 -p m328p -b 57600 -P $(GOODFET) -U flash:w:$(app).hex
+endif
 
 ifeq ($(platform),tilaunchpad)
 install: $(app).hex

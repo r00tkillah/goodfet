@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+#GoodFET zigduino client
+#forked from code by neighbor Travis Goodspeed by bx
+
+import sys, binascii, os, array, time, glob
+
+from GoodFETatmel128 import GoodFETatmel128rfa1
+from intelhex import IntelHex;
+
+
+def printpacket(packet):
+    s="";
+    i=0;
+    for foo in packet:
+        i=i+1;
+        if i>client.packetlen: break;
+        s="%s %02x" % (s,ord(foo));
+    print "%s" % s;
+
+
+mskbstring="";
+oldseq=-1;
+
+#def printconfig():
+#    print "Encoding %s" % client.RF_getenc();
+#    print "Freq    %10i MHz" % (client.RF_getfreq()/10**6);
+#    print "Rate    %10i kbps" % (client.RF_getrate()/1000);
+#    print "PacketLen %02i bytes" % client.RF_getpacketlen();
+#    #print "MacLen    %2i bytes" % client.RF_getmaclen();
+#    print "SMAC  0x%010x" % client.RF_getsmac();
+#    print "TMAC  0x%010x" % client.RF_gettmac();
+
+
+if(len(sys.argv)==1):
+    print "Usage: %s verb [objects]\n" % sys.argv[0];
+    #print "%s info" % sys.argv[0];
+    print "%s sniff [channel]\n\tSniffs packets." % sys.argv[0];
+    print "%s beaconreq [channel]\n\tSends out beacons requests" % sys.argv[0];
+    sys.exit();
+
+#Initialize FET and set baud rate
+client=GoodFETatmel128rfa1()
+#client.verbose = True
+client.serInit()
+
+#if(sys.argv[1ce]=="info"):
+#    printconfig();
+
+if(sys.argv[1]=="sniff"):
+    client.RF_setup()
+    if len(sys.argv)>2:
+        print "Set channel to %s" % sys.argv[2];
+        client.RF_setchannel(int(sys.argv[2]));
+    #Now we're ready to get packets.
+
+    while 1:
+        packet=None;
+        while packet==None:
+            packet=client.RF_rxpacket();
+            time.sleep(0.4)
+        printpacket(packet);
+        sys.stdout.flush();
+
+if (sys.argv[1]=="beaconreq"):
+    client.RF_setup()
+    if len(sys.argv)>2:
+        print "Set channel to %s" % sys.argv[2];
+        client.RF_setchannel(int(sys.argv[2]));
+    packet="\x03\x08\x46\xff\xff\xff\xff\x07\x13\x33"
+    while 1:
+        client.RX_txpacket(packet)
+        time.sleep(1)

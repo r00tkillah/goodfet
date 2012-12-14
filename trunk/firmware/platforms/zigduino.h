@@ -1,11 +1,10 @@
-/*! \file donbfet.h
-  \author Don A. Bailey
-  \brief Port descriptions for the DonbFET platform.
+/*! \file zigduino.h
+  \author bx, forked from donbfet.h by Don A. Bailey
+  \brief Port descriptions for the Zigduino platform.
 */
 
 /* NB: define default CPU frequency */
-//XXX #define F_CPU 8000000UL
-#define F_CPU 20000000UL
+#define F_CPU 16000000UL
 
 #include <avr/io.h>
 #include <avr/wdt.h>
@@ -22,8 +21,6 @@
 #include <stdio.h>
 #include <ctype.h>
 
-/* all AVR SRAM starts after I/O mapped memory and registers */
-#define RAMSTART 0x100
 
 #ifndef PB0
 # define PB0 PORTB0
@@ -50,7 +47,8 @@
 //LED on P1.0
 #define PLEDOUT PORTB
 #define PLEDDIR DDRB
-#define PLEDPIN PB0
+#define PLEDPIN PINB1
+//#define LEDPIN PINB
 
 //Use P3 instead of P5 for target I/O on chips without P5.
 #ifdef msp430f2274
@@ -67,10 +65,10 @@
 #else
 
 # if (platform == zigduino)
-#  define SPIOUT PORTA
-#  define SPIDIR DDRA
-#  define SPIIN  PINA
-//# define SPIREN P5REN
+#  define SPIOUT PORTE
+#  define SPIDIR DDRE
+#  define SPIIN  PINE
+#  define SPIPIN PINE0
 # endif
 #endif
 
@@ -97,14 +95,13 @@
 
 // network byte order converters
 #define htons(x) ((((uint16_t)(x) & 0xFF00) >> 8) | \
-				 (((uint16_t)(x) & 0x00FF) << 8))
+                  (((uint16_t)(x) & 0x00FF) << 8))
 #define htonl(x) ((((uint32_t)(x) & 0xFF000000) >> 24) | \
-				  (((uint32_t)(x) & 0x00FF0000) >> 8) | \
-				  (((uint32_t)(x) & 0x0000FF00) << 8) | \
-				  (((uint32_t)(x) & 0x000000FF) << 24))
+  (((uint32_t)(x) & 0x00FF0000) >> 8) | \
+  (((uint32_t)(x) & 0x0000FF00) << 8) | \
+                  (((uint32_t)(x) & 0x000000FF) << 24))
 
 #define ntohs htons
 #define ntohl htonl
-
+#define INITCHIP zigduino_init();
 extern uint8_t zigduino_get_byte(uint16_t);
-

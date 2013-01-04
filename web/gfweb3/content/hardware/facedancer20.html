@@ -3,14 +3,15 @@ title: Facedancer20
 ---
 <h1>Facedancer20</h1>
 
-<p>The Facedancer20 is the twenty-third hardware revision of the GoodFET,
-owing its heritage to the <a href="/hardware/goodfet41/">GoodFET41</a>
+<p>The Facedancer20 is the twenty-third hardware revision of the
+GoodFET, owing its heritage to
+the <a href="/hardware/goodfet41/">GoodFET41</a>
 and <a href="/hardware/facedancer11/">Facedancer11</a>.  Unlike the
 general-purpose GoodFET boards, the only purpose of this board is to
 allow USB devices to be written in host-side Python, so that one
 workstation can fuzz-test the USB device drivers of another host.
 This board replaces the MAX3420E of earlier Facedancers with a
-MAX3421E, allowing for optional host mode.
+MAX3421E, allowing for optional host mode through a USB A receptacle.
 </p>
 
 <p>See the <a href="/orders/">Orders</a> page for details on ordering
@@ -62,14 +63,17 @@ MSP430F2618, as 80-pin versions are also manufactured.
 <tr><td>2</td><td>0603</td><td>330R LED Series Resistors</td></tr>
 <tr><td>2</td><td>0603</td><td>33R USB Series Resistors</td></tr>
 <tr><td>2</td><td></td><td>USB Mini Receptacle Kobiconn 154-15320-E or FCI 10033526-N3212MLF or On Shore USB-M26FTR</td></tr>
+<tr><td>1</td><td></td><td>USB TYPE A SMT CONN RECEPT</td></tr>
+
 </table></p>
 
 <p>* These should match the required capacitance of the crystal.  18pF is wrong, but close enough to work.</p>
 <p>** The /US SMD package works as an alternative.</p>
 
-<p>If you need help selecting parts, you can follow this <a
-href="http://www.reddit.com/r/netsec/comments/10g7f0/goodfetfacedancer_parts_list/">example
-Digi-Key order</a>, but be sure to replace the MAX3420  with a MAX3421.</p>
+<p>If you need help selecting parts, you can follow
+this <a href="http://www.reddit.com/r/netsec/comments/10g7f0/goodfetfacedancer_parts_list/">example
+Digi-Key order</a>, but be sure to replace the MAX3420 with a MAX3421.
+You will also need the USB Type A receptacle for Host Mode</p>
 
 
 <h2>Construction</h2>

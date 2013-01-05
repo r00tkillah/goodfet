@@ -15,15 +15,19 @@
 
 # This WIP is intended to save the info flash when using --fromweb.
 # DONE:
-#  - saveinfo before actionMassErase
+#  - Save info flash before actionMassErase
 #  - Make actionFromweb use board name to get the right firmware image
 #  - Program saved info after other programming is complete
+#  - Make saveinfo detect missing info (all 0xFF)
 # TODO:
+#  - Trim unnecessary BSL unlocks
 #  - Download image from web before erasing
-#  - Make saveflash detect missing (all 0xFF)
-#  - Add flag to override saveflash with a provided info.txt
-#  - Figure out better way to saveflash when -P is required
-#  - Maybe use the best guess info from contrib when nothing better is provided?
+#  - Add param to override saveinfo with a provided info.txt
+#  - Figure out better way to saveinfo when -P is required
+#  - Maybe use the best guess from contrib/infos/ when nothing better is provided?
+#  - If saveinfo gets something interesting, request a copy
+# BUGS:
+#  - dumpinfo with wrong/default password erases the chip
 
 import sys, time, string, cStringIO, struct
 #sys.path.append("/usr/lib/tinyos")  #We no longer require TinyOS.
@@ -957,15 +961,11 @@ class BootStrapLoader(LowLevel):
         self.data           = None
         self.maxData        = self.MAXDATA
         self.cpu            = None
+	self.info           = None
 
     def fetchinfo(self):
         data=self.uploadData(0x1000,256);
 	return data;
-
-    def saveinfo(self):
-	data = self.fetchinfo();
-	self.info = Memory();
-	self.info.loadString(0x1000,data);
 
     def dumpinfo(self):
 	data = self.fetchinfo();
@@ -974,6 +974,26 @@ class BootStrapLoader(LowLevel):
             hex+=("%02x "%ord(c));
         hex+="\nq\n";
         print hex;
+	return data;
+
+    def saveinfo(self):
+	sys.stderr.write('Checking for info flash...')
+	sys.stderr.flush()
+	data = self.fetchinfo();
+	good_data = False;
+	for c in data:
+	    if ord(c) is not 255:
+		good_data=True;
+		break;
+	if good_data:
+	    sys.stderr.write('  Saved!\n')
+	    sys.stderr.flush()
+	    self.info = Memory();
+	    self.info.loadString(0x1000,data);
+	else:
+	    sys.stderr.write('  None.\n')
+	    sys.stderr.write('Look at contrib/infos/README.txt for better performance.\n')
+	    sys.stderr.flush()
 
     def preparePatch(self):
         """prepare to download patch"""
@@ -1831,14 +1851,8 @@ def main(itest=1):
     bsl.comInit(comPort)                            #init port
 
     if bsl.actionMassErase in deviceinit:
-        bsl.actionStartBSL(
-            usepatch=not unpatched,
-            replacementBSL=bslrepl,
-            forceBSL=forceBSL,
-            mayuseBSL=mayuseBSL,
-            speed=speed,
-        )
-	bsl.saveinfo();
+        bsl.actionStartBSL()
+	bsl.saveinfo()
 
     #initialization list
     if deviceinit:  #erase and erase check
@@ -1869,8 +1883,11 @@ def main(itest=1):
                 except AttributeError:
                     sys.stderr.write("   %r\n" % f)
         for f in todo: f()                          #work through todo list
-	if bsl.info is not None:
-            bsl.programData(bsl.info, bsl.ACTION_PROGRAM)
+
+    if bsl.info is not None:
+	sys.stderr.write('Programming info flash...\n')
+	sys.stderr.flush()
+	bsl.programData(bsl.info, bsl.ACTION_PROGRAM)
 
     if reset:                                       #reset device first if desired
         bsl.actionReset()
@@ -1882,14 +1899,8 @@ def main(itest=1):
             hex+=("%02x "%ord(c));
         print hex;
     if dumpinfo:
-        bsl.actionStartBSL(
-            usepatch=not unpatched,
-            replacementBSL=bslrepl,
-            forceBSL=forceBSL,
-            mayuseBSL=mayuseBSL,
-            speed=speed,
-        )
-        bsl.dumpinfo();
+        bsl.actionStartBSL()
+        bsl.dumpinfo()
     
     if goaddr is not None:                          #start user programm at specified address
         bsl.actionRun(goaddr)                       #load PC and execute

@@ -26,8 +26,8 @@
 #  - Figure out better way to saveinfo when -P is required
 #  - Maybe use the best guess from contrib/infos/ when nothing better is provided?
 #  - If saveinfo gets something interesting, request a copy
-# BUGS:
-#  - dumpinfo with wrong/default password erases the chip
+#  - Use FTDI Serial Number to archive info text and/or password (dragorn's idea)
+#      /sys/bus/usb-serial/devices/ttyUSB0/../../serial
 
 import sys, time, string, cStringIO, struct
 #sys.path.append("/usr/lib/tinyos")  #We no longer require TinyOS.
@@ -1899,7 +1899,12 @@ def main(itest=1):
             hex+=("%02x "%ord(c));
         print hex;
     if dumpinfo:
-        bsl.actionStartBSL()
+	# I don't know what bslreset is all about, but if it is enabled and
+	# the wrong password is provided, the chip gets erased.
+	reset = True
+	if not bsl.passwd:
+	    reset = False
+        bsl.actionStartBSL(bslreset=reset)
         bsl.dumpinfo()
     
     if goaddr is not None:                          #start user programm at specified address

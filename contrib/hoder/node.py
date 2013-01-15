@@ -4,8 +4,10 @@
 import sys, time, string, cStringIO, struct, glob, os;
 import csv
 
-# This is a node for a single linked list. this will store the data packet read off of the GOODTHOPTER10
-# the data will then be parsed and printed to the terminal. The data can also be saved to csv files or pcap file using
+# This is a node for a single linked list. this will store the data packet 
+# read off of the GOODTHOPTER10
+# the data will then be parsed and printed to the terminal. 
+# The data can also be saved to csv files or pcap file using
 # the appropriate methods below
 class node:
     
@@ -80,9 +82,10 @@ class node:
             toprint=toprint+("%02x "%ord(bar))
         return toprint;
     
-    # this method will print out the packet as is, unparsed with the time stamp (added via python
-    # time.time(). NOTE: this is not a very accurate method of recording timestamps and could lead to 
-    # inconsistencies
+    # this method will print out the packet as is, unparsed 
+    # with the time stamp (added via python
+    # time.time(). NOTE: this is not a very accurate method of 
+    # recording timestamps and could lead to inconsistencies
     def writeToFile(self,filename):
         writeFile = open(filename,'a')
         dataWriter = csv.writer(writeFile,delimiter=',')
@@ -96,7 +99,8 @@ class node:
         writeFile.close()
         return
     
-    # This method will write out a parsed packet to the end of a csv file included as filename2.
+    # This method will write out a parsed packet to the end of a csv
+    # file included as filename2.
     # the format will be [timestamp , arbID, data length, data ] 
     def writeParsed(self,filename2):
         writeFile = open(filename2,'a')
@@ -111,35 +115,47 @@ class node:
         return
     
     
-    # This method will write out the packet into a pcap file which is wireshark compatible
-    def writePcap(self,filename):
-        f = open(filename,'ab')
+    # This method will write out the packet into a pcap file which 
+    # is wireshark compatible
+    def writePcap(self,filehandle):
+        #f = open(filename,'ab')
         ph = ''
-        # this time may be inaccurate, using python time.time() and some systems
-        # may not record precision greater than 1s despite floating output of the method
-        t = time.time()
+        # this time may be inaccurate, using python time.time() and 
+        # some systems
+        # may not record precision greater than 1s despite 
+        # floating output of the method
+        t = self.timestamp
         #get microseconds
-        us = 0
         us = int(t*(10**6))-int(t)*(10**6);
-        # faking the pcap header. -- see wiki.wireshark.org/Development/LibpcapFileFormat
+        #us = 0x00
+        # faking the pcap header. -- 
+        # see wiki.wireshark.org/Development/LibpcapFileFormat
         # for more information on the header format
-        ph += struct.pack("<L",t)
-        ph += struct.pack("<L", us)
+        ph += struct.pack("<L",int(t))
+        #ph += struct.pack("<L", us)
+        ph += struct.pack("<L",us)
         ph += struct.pack("<L", 13)
         ph += struct.pack("<L", 13)
-        f.write(ph)
-        f.write(self.packet2strNoSpace())
-        f.close()
+        filehandle.write(ph)
+        filehandle.write(self.packet2strNoSpace())
+       
         
     # This method returns a string of hex with no spaces
     def packet2strNoSpace(self):
         packetstr = ""
         for bar in self.packet:
-            packetstr += ("%02x"%ord(bar))
+            #packetstr += ("\x%02x"%ord(bar))
+            packetstr += chr(ord(bar))
+        #print packetstr
         return packetstr
 
         
     # this method sets the next pointer in the node for the single linked list    
     def setNext(self,node):
         self.nextNode = node
+    
+    def getNext(self):
+        return self.nextNode
         
+    def getPacket(self):
+        return self.packet

@@ -17,9 +17,6 @@ import binascii;
 import array;
 
 
-
-
-
 sys.path.insert(0,'/Users/chris/svn/goodfet/trunk/client/')
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
@@ -234,6 +231,8 @@ class DisplayApp:
         self.buttons[-1][1].pack(side=tk.TOP)  # default side is top
         self.buttons.append(  ( 'cmd2', tk.Button( self.cntlframe, text="Write",command=self.handleWriteButton, width = 10)))
         self.buttons[-1][1].pack(side=tk.TOP)
+        self.buttons.append( ('cmd3', tk.Button(self.cntlframe, text="pcapSave",command=self.savepcap, width = 10)))
+        self.buttons[-1][1].pack(side=tk.TOP)
         return
 
     #Bind callbacks with the keyboard/keys
@@ -298,7 +297,7 @@ class DisplayApp:
         i = 0;
         for item in self.fileVars:
             if( self.checkButtonVar[i].get() == 1):
-                self.filenames.append("../../contrib/hoder/data/" +item.get())
+                self.filenames.append("./data/" +item.get())
             else:
                 self.filenames.append(None)
            	i  += 1
@@ -321,7 +320,9 @@ class DisplayApp:
             self.sniffString.set("Start")
         
 
-    
+    def savepcap(self):
+        print "saving..."
+        self.LList.writeToPcap()
     
     # This will clear our axes and erase all the data
     def handleCmdButton2(self):

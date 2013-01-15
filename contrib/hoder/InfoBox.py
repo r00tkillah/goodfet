@@ -1,4 +1,5 @@
-#created with help from the following website: http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
+#created with help from the following website: 
+#http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 
 # Chris Hoder
 # 11/3/2012
@@ -52,7 +53,8 @@ class InfoBox(Toplevel):
         self.client.MCPsetrate(self.rate)
         self.client.MCPreqstatNormal();
         
-    # this method will setup all of the options that will be used for graphing and the labels and buttons.
+    # this method will setup all of the options that will be used for 
+    # graphing and the labels and buttons.
     def body(self,master):
         #create dialog body. return widget that should have
         #initial focus. this method should be overriden

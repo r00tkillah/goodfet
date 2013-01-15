@@ -12,9 +12,12 @@ sys.path.append('~/svn/goodfet/trunk/client/')
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
 
-# This method will be run as a separate thread from the mainDisplay. It will sniff the GOODTHOPTER10
-# for CAN traffic and add all the data to the provided linked list (LList). client is the MCP controller
-# the thread will terminate when the Threading.Event() stop_cond is set. 
+# This method will be run as a separate thread from the mainDisplay. 
+# It will sniff the GOODTHOPTER10
+# for CAN traffic and add all the data to the provided 
+# linked list (LList). client is the MCP controller
+# the thread will terminate when the 
+#Threading.Event() stop_cond is set. 
 class sniff(threading.Thread):
     
     def __init__(self, stop_cond,LList,client):

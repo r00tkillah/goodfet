@@ -1,10 +1,11 @@
-# Chris Hoder
+# 
 # 1/11/2012
 
 import MySQLdb
 import sys
 import csv
-
+import argparse;
+import time
 #data parsing assumes an extended ID!!
 
 class DataManage:
@@ -93,7 +94,7 @@ class DataManage:
        
     
     #Creates a SQl command to upload data packet to the database
-    def getCmd(self,packet,time,error):
+    def getCmd(self,packet,time,error, comment=None):
         length = packet['length']
         
         cmd = "INSERT INTO %s ( time, stdID" % self.table
@@ -111,7 +112,12 @@ class DataManage:
         #add in only data bytes written to
         for i in range(0,length):
             cmd +=" db" + str(i) + ","
-        cmd += ' error, remoteFrame, msg) VALUES (%f, %d' % (time, packet['sID'])
+        cmd += ' error, remoteFrame'
+
+        if( comment != None):
+            cmd += ", comment"
+
+        cmd+= ', msg) VALUES (%f, %d' % (time, packet['sID'])
         
         #if there is an extended id include it
         if(packet.get('eID')):
@@ -123,15 +129,62 @@ class DataManage:
         for i in range(0,length):
             cmd += ", %d" % (packet['db'+str(i)])
         
-        cmd += ', %d, %d, "%s")' % (error, packet['rtr'], packet['msg'])
+        cmd += ', %d, %d' %(error,packet['rtr'])
+
+        if(comment != None):
+            cmd += ',"%s"' %comment
+
+        cmd += ', "%s")' %(packet['msg'])
          
         return cmd
     
     def writeDataCsv(self,data, filename):
         pass
     
-    def writePcap(self,data,filename):
-        pass
+    def writePcapUpload(self,filenameUp,filenameWriteTo):
+        #load the data from the csv file
+        try:
+            fileObj = open(filenameUp,'rU')
+            data = self.opencsv(fileObj)
+        except:
+            print "Unable to open file!"
+            return
+        self.writeToPcap(filename, data)
+        return
+        
+    def writeToPcap(self,filename, data):
+        f.open(filenameWriteTo,"wb")
+        # write global header to file
+        # d4c3 b2a1 0200 0400 0000 0000 0000 0000 0090 0100 be00 0000
+        f.write("\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\xe3\x00\x00\x00")
+        
+        # write to pcap file
+        for line in data:
+            # packet header creation
+            ph = ''
+            t = time.time()
+            #get microseconds
+            us = int(t*(10**6))-int(t)*(10**6);
+            ph += struct.pack("<L", int(t))
+            ph += struct.pack("<L", us)
+            ph += struct.pack("<L", 16)
+            ph += struct.pack("<L", 16)
+            
+            # write packet header
+            f.write(ph)
+            
+            # create a message of characters from the integers created above
+            # first 5 bytes
+            msg = '%s%s%s%s%s' % (chr(line[3]), chr(line[4]), chr(line[5]), chr(line[6]), chr(line[7]))
+            # 3 bytes to provide stuffing for Wireshark
+            msg += '%s%s%s' % (chr(int('00', 16)), chr(int('00', 16)), chr(int('00', 16)))
+            # 8 data bytes
+            msg += '%s%s%s%s%s%s%s%s' % (chr(line[8]), chr(line[9]), chr(line[10]), chr(line[11]), chr(line[12]), chr(line[13]), chr(line[14]), chr(line[15]))
+            # write message
+            f.write(msg)
+        f.close()
+
+
 
     
     # This method converts the data to integers and then passes it into parseMessageInt.
@@ -244,11 +297,13 @@ class DataManage:
         for packet in data:
             time = packet[0]
             error = packet[1]
+            #could be None
+            comment = packet[2]
             # parse the message
             print "packet \n", packet
-            parsedP = self.parseMessageInt(packet[2:])
+            parsedP = self.parseMessageInt(packet[3:])
             # generate the command
-            cmd = self.getCmd(parsedP, time, error)
+            cmd = self.getCmd(parsedP, time, error,comment)
             try:
                 #execute the SQL command
                 cursor.execute(cmd)
@@ -292,6 +347,8 @@ class DataManage:
                 #error flag
                 elif(colnum == 1):
                     packet.append(int(col))
+                elif(colnum ==2):
+                    packet.append(col)
                 #data packets
                 else:
                     packet.append(int(col,16))
@@ -300,21 +357,40 @@ class DataManage:
             data.append(packet)
             rownum += 1
         #print data
+        fileObj.close()
         return data
 
 # executes everything to run, inputs of the command lines
 if __name__ == "__main__":
-    if( len(sys.argv) != 3):
-        print len(sys.argv)
-        print sys.argv
-        print "Error. Invalid Arguments! \n \
-This will upload the given csv file \n \
-to the SQL database table chosen \n \
-USAGE: >> python DataManage.py [SQLtable] [filename] \n" 
-                      
-        exit()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,description='''\
     
-    table = sys.argv[1]
-    filename = sys.argv[2]
-    dataM = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
-    dataM.uploadData(filename)
+        Data Management Program. The following options are available:
+        
+        upload csv file to MYSQL table
+        write csv file to .pcap format
+        ''')
+        
+    parser.add_argument('verb', choices=['upload','pcap'])
+    parser.add_argument('-f','--filename1', help="Filename to upload from")
+    parser.add_argument('-s','--filename2', help='Filename to save to')
+    parser.add_argument('-t','--table', help="table to upload to SQL")
+    
+    args = parser.parse_args();
+    verb = args.verb;
+   
+    # upload data to SQL server from csv file provided
+    if( verb == "upload"):
+        filename = args.filename1
+        table = args.table
+        dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
+        dm.uploadData(filename)
+    
+    # create a .pcap file from the csv file provided
+    if( verb == "pcpa"):
+        filename = args.filename1
+        filename2 = args.filename2
+        table = "placeHolder"
+        dm - DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
+        dm.writePcapUpload(filenameUp=filename1, filenameWriteTo=filename2)
+        
+    

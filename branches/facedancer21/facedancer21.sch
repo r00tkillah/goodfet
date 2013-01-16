@@ -8882,6 +8882,7 @@ We've spent an enormous amount of time creating and checking these footprints an
 <part name="CN3" library="SparkFun-Connectors" deviceset="USB" device="-A-S"/>
 <part name="C4" library="rcl" deviceset="C-EU" device="C0603" value="0.1µF"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
+<part name="GND8" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -8889,7 +8890,7 @@ We've spent an enormous amount of time creating and checking these footprints an
 <text x="27.94" y="20.32" size="1.778" layer="91" rot="R90">Mode LED</text>
 <text x="0" y="15.24" size="1.778" layer="91">Travis Goodspeed</text>
 <text x="0" y="12.7" size="1.778" layer="91">&lt;Travis at RadiantMachines.com&gt;</text>
-<text x="0" y="7.62" size="1.778" layer="91">Facedancer20</text>
+<text x="0" y="7.62" size="1.778" layer="91">Facedancer21</text>
 <text x="0" y="5.08" size="1.778" layer="91">A GoodFET for Exploiting USB</text>
 </plain>
 <instances>
@@ -8936,6 +8937,7 @@ We've spent an enormous amount of time creating and checking these footprints an
 <instance part="CN3" gate="G$1" x="-10.16" y="127" rot="R180"/>
 <instance part="C4" gate="G$1" x="203.2" y="73.66" rot="R270"/>
 <instance part="GND7" gate="1" x="198.12" y="63.5"/>
+<instance part="GND8" gate="1" x="208.28" y="20.32"/>
 </instances>
 <busses>
 </busses>
@@ -9141,6 +9143,16 @@ We've spent an enormous amount of time creating and checking these footprints an
 <pinref part="C4" gate="G$1" pin="2"/>
 <pinref part="GND7" gate="1" pin="GND"/>
 <wire x1="198.12" y1="66.04" x2="198.12" y2="73.66" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="GND8" gate="1" pin="GND"/>
+<pinref part="U4" gate="G$1" pin="GND@3"/>
+<wire x1="208.28" y1="22.86" x2="208.28" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="208.28" y1="27.94" x2="208.28" y2="30.48" width="0.1524" layer="91"/>
+<wire x1="208.28" y1="30.48" x2="210.82" y2="30.48" width="0.1524" layer="91"/>
+<pinref part="U4" gate="G$1" pin="GND@19"/>
+<wire x1="210.82" y1="27.94" x2="208.28" y2="27.94" width="0.1524" layer="91"/>
+<junction x="208.28" y="27.94"/>
 </segment>
 </net>
 <net name="N$1" class="0">

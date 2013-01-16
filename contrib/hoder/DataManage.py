@@ -6,6 +6,7 @@ import sys
 import csv
 import argparse;
 import time
+import struct
 #data parsing assumes an extended ID!!
 
 class DataManage:
@@ -25,26 +26,28 @@ class DataManage:
     # UNTESTED 
     def createTable(self, table):
         self.table = table
-        cmd = "CREATE TABLE `%s` (\
-              `id` int(11) unsigned NOT NULL AUTO_INCREMENT, \
-              `time` float unsigned NOT NULL, \
-              `stdID` int(5) unsigned NOT NULL, \
-              `exID` int(5) unsigned DEFAULT NULL, \
-              `length` int(1) unsigned NOT NULL, \
-              `error` bit(1) NOT NULL, \
-              `remote frame` bit(1) NOT NULL DEFAULT b'0', \
-              `msg` varchar(30) NOT NULL DEFAULT '', \
-              `db0` int(3) unsigned DEFAULT NULL, \
-              `db1` int(3) unsigned DEFAULT NULL, \
-              `db2` int(3) unsigned DEFAULT NULL, \
-              `db3` int(3) unsigned DEFAULT NULL, \
-              `db4` int(3) unsigned DEFAULT NULL, \
-              `db5` int(3) unsigned DEFAULT NULL, \
-              `db6` int(3) unsigned DEFAULT NULL, \
-              `db7` int(3) unsigned DEFAULT NULL, \
-              PRIMARY KEY (`id`)  \
-              ) ENGINE=MyISAM DEFAULT CHARSET=utf8;" % (table)
+        cmd = "CREATE TABLE `%s` ( \
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,\
+  `time` double(20,5) unsigned NOT NULL,\
+  `stdID` int(5) unsigned NOT NULL,\
+  `exID` int(5) unsigned DEFAULT NULL,\
+  `length` int(1) unsigned NOT NULL,\
+  `error` bit(1) NOT NULL,\
+  `remoteframe` bit(1) NOT NULL DEFAULT b'0',\
+  `db0` int(3) unsigned DEFAULT NULL,\
+  `db1` int(3) unsigned DEFAULT NULL,\
+  `db2` int(3) unsigned DEFAULT NULL,\
+  `db3` int(3) unsigned DEFAULT NULL,\
+  `db4` int(3) unsigned DEFAULT NULL,\
+  `db5` int(3) unsigned DEFAULT NULL,\
+  `db6` int(3) unsigned DEFAULT NULL,\
+  `db7` int(3) unsigned DEFAULT NULL,\
+  `msg` varchar(30) NOT NULL,\
+  `comment` varchar(500) DEFAULT NULL,\
+  PRIMARY KEY (`id`)\
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;"% (table)
         self.addData(cmd)
+        self.table = table
         
     def changeTable(self,table):
         self.table = table
@@ -139,7 +142,13 @@ class DataManage:
         return cmd
     
     def writeDataCsv(self,data, filename):
-        pass
+        outputfile = open(filename,'a')
+        dataWriter = csv.writer(outputfile,delimiter=',')
+        dataWriter.writerow(['# Time     Error        Bytes 1-13']);
+        for row in data:
+            dataWriter.writerow(row)
+        outputfile.close()
+            
     
     def writePcapUpload(self,filenameUp,filenameWriteTo):
         #load the data from the csv file
@@ -149,11 +158,11 @@ class DataManage:
         except:
             print "Unable to open file!"
             return
-        self.writeToPcap(filename, data)
+        self.writeToPcap(filenameWriteTo, data)
         return
         
-    def writeToPcap(self,filename, data):
-        f.open(filenameWriteTo,"wb")
+    def writeToPcap(self,filenameWriteTo, data):
+        f = open(filenameWriteTo,"wb")
         # write global header to file
         # d4c3 b2a1 0200 0400 0000 0000 0000 0000 0090 0100 be00 0000
         f.write("\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\xe3\x00\x00\x00")
@@ -162,7 +171,7 @@ class DataManage:
         for line in data:
             # packet header creation
             ph = ''
-            t = time.time()
+            t = line[0]
             #get microseconds
             us = int(t*(10**6))-int(t)*(10**6);
             ph += struct.pack("<L", int(t))
@@ -170,9 +179,9 @@ class DataManage:
             ph += struct.pack("<L", 16)
             ph += struct.pack("<L", 16)
             
+            
             # write packet header
             f.write(ph)
-            
             # create a message of characters from the integers created above
             # first 5 bytes
             msg = '%s%s%s%s%s' % (chr(line[3]), chr(line[4]), chr(line[5]), chr(line[6]), chr(line[7]))
@@ -293,6 +302,7 @@ class DataManage:
             print "Unable to open file!"
             return
         
+        print "uploading data to SQL table, %s" % (self.table)
         #upload the data to the SQL database
         for packet in data:
             time = packet[0]
@@ -300,7 +310,6 @@ class DataManage:
             #could be None
             comment = packet[2]
             # parse the message
-            print "packet \n", packet
             parsedP = self.parseMessageInt(packet[3:])
             # generate the command
             cmd = self.getCmd(parsedP, time, error,comment)
@@ -315,6 +324,7 @@ class DataManage:
                 
                 #unable to add, raise an exception
                 raise Exception, "Error inserting into db, %s with the command %s" % (self.db, cmd)
+        print "data uplaod successful!"
         db_conn.close()
         
         
@@ -327,7 +337,6 @@ class DataManage:
         data = []
         # for every row
         for row in reader:
-            print row
             packet = []
             #this is the header row, we can ignore
             if rownum == 0:
@@ -370,10 +379,12 @@ if __name__ == "__main__":
         write csv file to .pcap format
         ''')
         
-    parser.add_argument('verb', choices=['upload','pcap'])
+    parser.add_argument('verb', choices=['upload','pcap','getDataPcap', 'getDataCSV'])
     parser.add_argument('-f','--filename1', help="Filename to upload from")
     parser.add_argument('-s','--filename2', help='Filename to save to')
     parser.add_argument('-t','--table', help="table to upload to SQL")
+    parser.add_argument('--sql',help="SQL command to execute")
+    
     
     args = parser.parse_args();
     verb = args.verb;
@@ -382,15 +393,39 @@ if __name__ == "__main__":
     if( verb == "upload"):
         filename = args.filename1
         table = args.table
+        if( filename == None or table  == None):
+            print " Error: must supply filename(-f) and table to upload to(-t)!"
+            exit()
         dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
         dm.uploadData(filename)
     
     # create a .pcap file from the csv file provided
-    if( verb == "pcpa"):
-        filename = args.filename1
+    if( verb == "pcap"):
+        filename1 = args.filename1
         filename2 = args.filename2
         table = "placeHolder"
-        dm - DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
+        dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
         dm.writePcapUpload(filenameUp=filename1, filenameWriteTo=filename2)
-        
     
+    #input sql command and get data. saved as a pcap file
+    if( verb == "getDataPcap"):
+        sql = args.sql
+        filename2 = args.filename2
+        if( sql == None or fileanem2 == None):
+            print "ERROR: Must enter SQL command as well as filename to save to"
+            exit()
+        dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=None)
+        data = dm.getData(sql)
+        dm.writeDataCsv(data=data, filename=filename2)
+    
+    #input SQl command and get data.
+    if( verb == "getDataCSV" ):
+        sql = args.sql
+        filename2 = args.filename2
+        if( sql == None or fileanem2 == None):
+            print "ERROR: Must enter SQL command as well as filename to save to"
+            exit()
+        dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=None)
+        data = dm.getData(sql)
+        dm.writeToPcap(filenameWriteTo=filename2, data=data)
+        

@@ -411,21 +411,22 @@ if __name__ == "__main__":
     if( verb == "getDataPcap"):
         sql = args.sql
         filename2 = args.filename2
-        if( sql == None or fileanem2 == None):
+        if( sql == None or filename2 == None):
             print "ERROR: Must enter SQL command as well as filename to save to"
             exit()
         dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=None)
         data = dm.getData(sql)
-        dm.writeDataCsv(data=data, filename=filename2)
+        print data
+        dm.writeToPcap(filenameWriteTo=filename2, data=data)
     
     #input SQl command and get data.
     if( verb == "getDataCSV" ):
         sql = args.sql
         filename2 = args.filename2
-        if( sql == None or fileanem2 == None):
+        if( sql == None or filename2 == None):
             print "ERROR: Must enter SQL command as well as filename to save to"
             exit()
         dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=None)
         data = dm.getData(sql)
-        dm.writeToPcap(filenameWriteTo=filename2, data=data)
+        dm.writeDataCsv(data=data, filename=filename2)
         

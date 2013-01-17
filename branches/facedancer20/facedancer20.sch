@@ -8891,6 +8891,7 @@ We've spent an enormous amount of time creating and checking these footprints an
 <text x="0" y="12.7" size="1.778" layer="91">&lt;Travis at RadiantMachines.com&gt;</text>
 <text x="0" y="7.62" size="1.778" layer="91">Facedancer20</text>
 <text x="0" y="5.08" size="1.778" layer="91">A GoodFET for Exploiting USB</text>
+<text x="193.04" y="10.16" size="1.778" layer="91">ERRATUM: These should've been wired to GND.</text>
 </plain>
 <instances>
 <instance part="P+2" gate="VCC" x="43.18" y="116.84"/>
@@ -9374,6 +9375,15 @@ We've spent an enormous amount of time creating and checking these footprints an
 <pinref part="R4" gate="G$1" pin="1"/>
 <wire x1="187.96" y1="45.72" x2="193.04" y2="45.72" width="0.1524" layer="91"/>
 <wire x1="193.04" y1="45.72" x2="193.04" y2="58.42" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$3" class="0">
+<segment>
+<wire x1="190.5" y1="10.16" x2="182.88" y2="10.16" width="0.1524" layer="91"/>
+<wire x1="182.88" y1="10.16" x2="182.88" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="182.88" y1="27.94" x2="203.2" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="200.66" y1="30.48" x2="203.2" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="203.2" y1="27.94" x2="200.66" y2="25.4" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>

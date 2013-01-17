@@ -6,9 +6,9 @@ title: Maxim USB Controllers
 <p>This is a driver for the MAX342x USB chips from Maxim.  The pinout
 is SPI except that pin 8 becomes INT and pin 11 becomes !RST.</p>
 
-<p>Until the <a href="/hardware/facedancer10/">Facedancer10</a> prototypes arrive, we
-recommend purchasing the Maxim MAX3421 EVK, then wiring it up with the
-following configuration.</p>
+<p>You can use the <a href="/hardware/facedancer11/">Facedancer11</a> device,
+or you could purchase the Maxim MAX3421 EVK, then wiring it up with the
+following configuration:</p>
 
 <a href="http://www.flickr.com/photos/travisgoodspeed/6813696484/" title="GoodFET wiring for Max3421 EVK by Travis Goodspeed, on Flickr"><img src="http://farm8.staticflickr.com/7205/6813696484_d4d1a8daf1.jpg" width="282" height="500" alt="GoodFET wiring for Max3421 EVK"></a>
 
@@ -17,9 +17,16 @@ following configuration.</p>
 
 <h2>Clients</h2>
 
-<p>A Python
-client, <a href="/clients/goodfetmaxusb/">goodfet.maxusb</a>, is a
+<p>A Python client, <a href="/clients/goodfetmaxusb/">goodfet.maxusb</a>, is a
 doodle for simple experimentation.</p>
+<ul>
+    <li>goodfet.maxusb</li>
+    <li>goodfet.maxusbdfu</li>
+    <li>goodfet.maxusbftdi</li>
+    <li>goodfet.maxusbhid</li>
+    <li>goodfet.maxusbhost</li>
+    <li>goodfet.maxusbmass</li>
+</ul>
 
 <h2>Development</h2>
 
@@ -46,3 +53,29 @@ by those that write flash memory, such as POKE and SPI_ERASE.</p>
 <tr><td>0x81</td><td>SPI_ERASE</td><td>Erase a Flash EEPROM.</td></tr>
 -->
 </table>
+
+<h2>Example Usage</h2>
+
+<p>
+On the host side, run goodfet.maxusbmass.
+On a target machine, you will see it appear as a thumb drive, and you
+can mount it like a read-only USB device as shown below:
+</p>
+<pre>
+$ sudo mount /dev/sdc /mnt/gf
+mount: warning: /mnt/gf seems to be mounted read-only.
+$ ls /mnt/gf/
+add-ons  autorun.inf  cdsample  drivers  readme.txt  setup.exe  setuptip.txt  tools  win98
+$ head /mnt/gf/readme.txt 
+		   ------------------------------------------
+			Microsoft Windows 98 Second Edition
+                           README for Microsoft Windows  
+		    (c) Copyright Microsoft Corporation, 1999
+		   ------------------------------------------
+
+
+
+------------------------
+HOW TO USE THIS DOCUMENT
+</pre>
+

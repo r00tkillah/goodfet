@@ -22,18 +22,15 @@ from intelhex import IntelHex;
 
 class GoodFETMCPCANCommunication:
     
-    def __init__(self, filename=None):
+    def __init__(self):
        self.client=GoodFETMCPCAN();
        self.client.serInit()
        self.client.MCPsetup();
-       
-       if( filname == None):
-           # create a filename with today's date
-           now = datetime.datetime.now()
-           self.filename = "../../contrib/ThayerData/"
-           self.filename += now.strftime("%Y%m%d")
-       else:
-           self.filename=filename
+    
+       # create a filename with today's date
+       now = datetime.datetime.now()
+       self.filename = "../../contrib/ThayerData/"
+       self.filename += now.strftime("%Y%m%d")
     
     ##########################
     #   INFO
@@ -65,9 +62,11 @@ class GoodFETMCPCANCommunication:
     def reset(self):
         self.client.MCPsetup();
          
-    def sniff(self,freq,duration,description, verbose=True, comment=None):
+    def sniff(self,freq,duration,filename,description, verbose=True, comment=None):
+        if(filename=None):
+            filename=self.filename
         self.client.MCPsetrate(freq);
-        outfile = open(self.filename,'a');
+        outfile = open(filename,'a');
         dataWriter = csv.writer(outfile,delimiter=',');
         dataWriter.writerow(['# Time     Error        Bytes 1-13']);
         dataWriter.writerow(['#' + description])
@@ -264,7 +263,7 @@ if __name__ == "__main__":
     parser.add_argument('verb', choices=['info', 'test','peek', 'reset', 'sniff', 'freqtest','snifftest', 'spit']);
     parser.add_argument('-f', '--freq', type=int, default=500, help='The desired frequency (kHz)', choices=[100, 125, 250, 500, 1000]);
     parser.add_argument('-t','--time', type=int, default=15, help='The duration to run the command (s)');
-    parser.add_argument('-o', '--output', default="../../contrib/ted/sniff_out.csv",help='Output file');
+    parser.add_argument('-o', '--output', default=None, elp='Output file');
     parser.add_argument("-d", "--description", help='Description of experiment (included in the output file)', default="");
     parser.add_argument('-v',"--verbose",action='store_false',help='-v will stop packet output to terminal', default=True);
     parser.add_argument('-c','--comment', help='Comment attached to ech packet uploaded',default=None);

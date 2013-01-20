@@ -62,8 +62,8 @@ class GoodFETMCPCANCommunication:
     def reset(self):
         self.client.MCPsetup();
          
-    def sniff(self,freq,duration,filename,description, verbose=True, comment=None):
-        if(filename=None):
+    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None,):
+        if(filename==None):
             filename=self.filename
         self.client.MCPsetrate(freq);
         outfile = open(filename,'a');
@@ -306,7 +306,7 @@ if __name__ == "__main__":
     #
     
     if(args.verb=="sniff"):
-        comm.sniff(freq=freq,duration=duration,filename=filename,description=description,verbose=verbose,comment=comments)
+        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename)
         
     
                     

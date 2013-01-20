@@ -15,17 +15,25 @@ import sys;
 import binascii;
 import array;
 import csv, time, argparse;
+import datetime
 
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
 
 class GoodFETMCPCANCommunication:
     
-    def __init__(self):
+    def __init__(self, filename=None):
        self.client=GoodFETMCPCAN();
        self.client.serInit()
        self.client.MCPsetup();
        
+       if( filname == None):
+           # create a filename with today's date
+           now = datetime.datetime.now()
+           self.filename = "../../contrib/ThayerData/"
+           self.filename += now.strftime("%Y%m%d")
+       else:
+           self.filename=filename
     
     ##########################
     #   INFO
@@ -57,9 +65,9 @@ class GoodFETMCPCANCommunication:
     def reset(self):
         self.client.MCPsetup();
          
-    def sniff(self,freq,duration,filename,description, verbose=True, comment=None):
+    def sniff(self,freq,duration,description, verbose=True, comment=None):
         self.client.MCPsetrate(freq);
-        outfile = open(filename,'a');
+        outfile = open(self.filename,'a');
         dataWriter = csv.writer(outfile,delimiter=',');
         dataWriter.writerow(['# Time     Error        Bytes 1-13']);
         dataWriter.writerow(['#' + description])

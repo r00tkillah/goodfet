@@ -16,4 +16,6 @@ dataM = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thaye
 
 #print parsed
 
-dataM.uploadData("./data/brights_on_off.csv")
+dataM.uploadData("./test.csv")
+
+print  "connected"

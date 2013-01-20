@@ -7,6 +7,9 @@ import csv
 import argparse;
 import time
 import struct
+import glob
+import os
+import datetime
 #data parsing assumes an extended ID!!
 
 class DataManage:
@@ -20,6 +23,7 @@ class DataManage:
         self.username = username
         self.password = password
         self.table = table
+        self.DATALOCATION = "../ThayerData/"
        
        
     #Creates a new MySQL table in the database with the given table name
@@ -54,6 +58,7 @@ class DataManage:
     
     def getTable(self):
         return self.table
+    
     def addData(self,cmd):
         db_conn = MySQLdb.connect(self.host, self.username, self.password, self.db)
         cursor = db_conn.cursor()
@@ -369,6 +374,27 @@ class DataManage:
         fileObj.close()
         return data
 
+    # will upload all the csv files in the self.DATALOCATION to the MySQL database
+    # the files uploaded will be moved to a folder named as today's date and a tag _Uploaded will
+    # be appended to the end of the filename
+    def uploadFiles(self):
+        #get all files in the ThayerData folder
+        files = glob.glob(self.DATALOCATION+"*.csv")
+        for file in files:
+            #upload the file to the db
+            self.uploadData(filename=file)
+            
+            #see if there is a folder with today's date
+            now = datetime.datetime.now()
+            datestr = now.strftime("%Y%m%d")
+            if( os.path.exists(self.DATALOCATION + "/" + datestr)):
+            #folder does not exists, create it
+            else:
+                os.mkdir(self.DATALOCATION+"/"+datestr)
+            
+            #change the name so to register that it has been uploaded
+            os.rename(file,"/"+datestr+"/"+file[:-4]+"_Uploaded.csv")        
+        
 # executes everything to run, inputs of the command lines
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,description='''\
@@ -379,7 +405,7 @@ if __name__ == "__main__":
         write csv file to .pcap format
         ''')
         
-    parser.add_argument('verb', choices=['upload','pcap','getDataPcap', 'getDataCSV'])
+    parser.add_argument('verb', choices=['upload','pcap','getDataPcap', 'getDataCSV', 'autoUpload'])
     parser.add_argument('-f','--filename1', help="Filename to upload from")
     parser.add_argument('-s','--filename2', help='Filename to save to')
     parser.add_argument('-t','--table', help="table to upload to SQL")
@@ -398,6 +424,15 @@ if __name__ == "__main__":
             exit()
         dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
         dm.uploadData(filename)
+        
+    # This will automatically upload all the csv files in the ../ThayerData/ folder. The uploaded files will be moved inot a
+    # different folder so that they will not be uploaded more than once.
+    if( verb == "autoUpload"):
+        if( filename == None or table  == None):
+            print " Error: must supply filename(-f) and table to upload to(-t)!"
+            exit()
+         dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
+         dm.uploadFiles()
     
     # create a .pcap file from the csv file provided
     if( verb == "pcap"):

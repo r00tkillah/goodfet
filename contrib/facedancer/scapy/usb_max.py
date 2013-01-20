@@ -14,12 +14,12 @@ import re, struct
 from scapy.packet import *
 from scapy.fields import *
 
-# Get Descriptor codes	
-GD_DEVICE		    =0x01	# Get device descriptor: Device
-GD_CONFIGURATION	=0x02	# Get device descriptor: Configuration
-GD_STRING		    =0x03	# Get device descriptor: String
-GD_HID	            =0x21	# Get descriptor: HID
-GD_REPORT	        =0x22	# Get descriptor: Report
+# Get Descriptor codes  
+GD_DEVICE           =0x01   # Get device descriptor: Device
+GD_CONFIGURATION    =0x02   # Get device descriptor: Configuration
+GD_STRING           =0x03   # Get device descriptor: String
+GD_HID              =0x21   # Get descriptor: HID
+GD_REPORT           =0x22   # Get descriptor: Report
 _gd_descriptor_codes = {
     GD_DEVICE:          "Device",
     GD_CONFIGURATION:   "Configuration",
@@ -29,17 +29,17 @@ _gd_descriptor_codes = {
 }
 
 # Standard USB Requests
-SR_GET_STATUS		=0x00	# Get Status
-SR_CLEAR_FEATURE	=0x01	# Clear Feature
-SR_RESERVED		    =0x02	# Reserved
-SR_SET_FEATURE		=0x03	# Set Feature
-SR_SET_ADDRESS		=0x05	# Set Address
-SR_GET_DESCRIPTOR	=0x06	# Get Descriptor
-SR_SET_DESCRIPTOR	=0x07	# Set Descriptor
-SR_GET_CONFIGURATION	=0x08	# Get Configuration
-SR_SET_CONFIGURATION	=0x09	# Set Configuration
-SR_GET_INTERFACE	=0x0a	# Get Interface
-SR_SET_INTERFACE	=0x0b	# Set Interface
+SR_GET_STATUS       =0x00   # Get Status
+SR_CLEAR_FEATURE    =0x01   # Clear Feature
+SR_RESERVED         =0x02   # Reserved
+SR_SET_FEATURE      =0x03   # Set Feature
+SR_SET_ADDRESS      =0x05   # Set Address
+SR_GET_DESCRIPTOR   =0x06   # Get Descriptor
+SR_SET_DESCRIPTOR   =0x07   # Set Descriptor
+SR_GET_CONFIGURATION    =0x08   # Get Configuration
+SR_SET_CONFIGURATION    =0x09   # Set Configuration
+SR_GET_INTERFACE    =0x0a   # Get Interface
+SR_SET_INTERFACE    =0x0b   # Set Interface
 _sr_request_codes = {
     SR_GET_STATUS:          "Get Status",
     #TODO if needed
@@ -337,16 +337,16 @@ class USBStringDescriptorLanguage(USBStringDescriptor):
 import unittest
 
 class TestDeviceDescriptor(unittest.TestCase):
-    DD=[0x12,	    # bLength = 18d
-    0x01,			# bDescriptorType = Device (1)
-    0x00,0x01,		# bcdUSB(L/H) USB spec rev (BCD)
-	0x00,0x00,0x00, # bDeviceClass, bDeviceSubClass, bDeviceProtocol
-	0x40,			# bMaxPacketSize0 EP0 is 64 bytes
-	0x6A,0x0B,		# idVendor(L/H)--Maxim is 0B6A
-	0x46,0x53,		# idProduct(L/H)--5346
-	0x34,0x12,		# bcdDevice--1234
-	1,2,3,			# iManufacturer, iProduct, iSerialNumber
-	1];
+    DD=[0x12,       # bLength = 18d
+    0x01,           # bDescriptorType = Device (1)
+    0x00,0x01,      # bcdUSB(L/H) USB spec rev (BCD)
+    0x00,0x00,0x00, # bDeviceClass, bDeviceSubClass, bDeviceProtocol
+    0x40,           # bMaxPacketSize0 EP0 is 64 bytes
+    0x6A,0x0B,      # idVendor(L/H)--Maxim is 0B6A
+    0x46,0x53,      # idProduct(L/H)--5346
+    0x34,0x12,      # bcdDevice--1234
+    1,2,3,          # iManufacturer, iProduct, iSerialNumber
+    1];
 
     def test_default(self):
         pkt = USBDeviceDescriptor()
@@ -356,38 +356,38 @@ class TestDeviceDescriptor(unittest.TestCase):
 
 class TestConfigurationDescriptor(unittest.TestCase):
     #Configuration Descriptor
-    CD=[0x09,			# bLength
-	0x02,			# bDescriptorType = Config
-	0x22,0x00,		# wTotalLength(L/H) = 34 bytes
-	0x01,			# bNumInterfaces
-	0x01,			# bConfigValue
-	0x00,			# iConfiguration
-	0xE0,			# bmAttributes. b7=1 b6=self-powered b5=RWU supported
-	0x01,			# MaxPower is 2 ma
+    CD=[0x09,           # bLength
+    0x02,           # bDescriptorType = Config
+    0x22,0x00,      # wTotalLength(L/H) = 34 bytes
+    0x01,           # bNumInterfaces
+    0x01,           # bConfigValue
+    0x00,           # iConfiguration
+    0xE0,           # bmAttributes. b7=1 b6=self-powered b5=RWU supported
+    0x01,           # MaxPower is 2 ma
     # INTERFACE Descriptor
-	0x09,			# length = 9
-	0x04,			# type = IF
-	0x00,			# IF #0
-	0x00,			# bAlternate Setting
-	0x01,			# bNum Endpoints
-	0x03,			# bInterfaceClass = HID
-	0x00,0x00,		# bInterfaceSubClass, bInterfaceProtocol
-	0x00,			# iInterface
+    0x09,           # length = 9
+    0x04,           # type = IF
+    0x00,           # IF #0
+    0x00,           # bAlternate Setting
+    0x01,           # bNum Endpoints
+    0x03,           # bInterfaceClass = HID
+    0x00,0x00,      # bInterfaceSubClass, bInterfaceProtocol
+    0x00,           # iInterface
     # HID Descriptor--It's at CD[18]
-	0x09,			# bLength
-	0x21,			# bDescriptorType = HID
-	0x10,0x01,		# bcdHID(L/H) Rev 1.1
-	0x00,			# bCountryCode (none)
-	0x01,			# bNumDescriptors (one report descriptor)
-	0x22,			# bDescriptorType	(report)
-	43,0,                   # CD[25]: wDescriptorLength(L/H) (report descriptor size is 43 bytes)
+    0x09,           # bLength
+    0x21,           # bDescriptorType = HID
+    0x10,0x01,      # bcdHID(L/H) Rev 1.1
+    0x00,           # bCountryCode (none)
+    0x01,           # bNumDescriptors (one report descriptor)
+    0x22,           # bDescriptorType   (report)
+    43,0,                   # CD[25]: wDescriptorLength(L/H) (report descriptor size is 43 bytes)
     # Endpoint Descriptor
-	0x07,			# bLength
-	0x05,			# bDescriptorType (Endpoint)
-	0x83,			# bEndpointAddress (EP3-IN)		
-	0x03,			# bmAttributes	(interrupt)
-	64,0,                   # wMaxPacketSize (64)
-	10];
+    0x07,           # bLength
+    0x05,           # bDescriptorType (Endpoint)
+    0x83,           # bEndpointAddress (EP3-IN)     
+    0x03,           # bmAttributes  (interrupt)
+    64,0,                   # wMaxPacketSize (64)
+    10];
 
     def test_default(self):
         pkt = USBConfigurationDescriptor()

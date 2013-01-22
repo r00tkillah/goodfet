@@ -176,9 +176,6 @@ if(sys.argv[1]=="peek"):
     while start<=stop:
         print "%04x: %02x" % (start,client.peek8(start));
         start=start+1;
-        
-# AWWW YEAAAA CODIN THAT SHIT
-# as written, this should
 
 if(sys.argv[1]=="spit"):
 

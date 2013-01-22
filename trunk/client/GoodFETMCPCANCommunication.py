@@ -15,6 +15,8 @@ import sys;
 import binascii;
 import array;
 import csv, time, argparse;
+import datetime
+import os
 
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
@@ -25,7 +27,9 @@ class GoodFETMCPCANCommunication:
        self.client=GoodFETMCPCAN();
        self.client.serInit()
        self.client.MCPsetup();
+       self.DATALOCATION = "../../contrib/ThayerData/"
        
+
     
     def printInfo(self):
         
@@ -67,7 +71,7 @@ class GoodFETMCPCANCommunication:
     #   SNIFF
     ##########################
          
-    def sniff(self,freq,duration,filename,description, verbose=True, comment=None, standardid=None):
+    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug = False):
         
         #### ON-CHIP FILTERING
         if(standardid != None):
@@ -112,11 +116,20 @@ class GoodFETMCPCANCommunication:
                self.client.poke8(RXFSIDL, SIDlow);
         
                if (verbose == True):
-                   print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
-                comment = comment + "%d " %(ID);
+                print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
+            comment = comment + ("%d " %(ID))
         
         
         self.client.MCPsetrate(freq);
+        
+        # This will handle the files so that we do not loose them. each day we will create a new csv file
+        if( filename==None):
+            #get folder information (based on today's date)
+            now = datetime.datetime.now()
+            datestr = now.strftime("%Y%m%d")
+            path = self.DATALOCATION+datestr+".csv"
+            filename = path
+            
         
         outfile = open(filename,'a');
         dataWriter = csv.writer(outfile,delimiter=',');
@@ -346,7 +359,7 @@ if __name__ == "__main__":
     parser.add_argument('verb', choices=['info', 'test','peek', 'reset', 'sniff', 'freqtest','snifftest', 'spit']);
     parser.add_argument('-f', '--freq', type=int, default=500, help='The desired frequency (kHz)', choices=[100, 125, 250, 500, 1000]);
     parser.add_argument('-t','--time', type=int, default=15, help='The duration to run the command (s)');
-    parser.add_argument('-o', '--output', default="../../contrib/ted/sniff_out.csv",help='Output file');
+    parser.add_argument('-o', '--output', default=None,help='Output file');
     parser.add_argument("-d", "--description", help='Description of experiment (included in the output file)', default="");
     parser.add_argument('-v',"--verbose",action='store_false',help='-v will stop packet output to terminal', default=True);
     parser.add_argument('-c','--comment', help='Comment attached to ech packet uploaded',default=None);
@@ -394,7 +407,7 @@ if __name__ == "__main__":
     #
     
     if(args.verb=="sniff"):
-        comm.sniff(freq=freq,duration=duration,filename=filename,description=description,verbose=verbose,comment=comments, standardid=standardid)    
+        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename, standardid=standardid)    
                     
     ##########################
     #   SNIFF TEST

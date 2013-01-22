@@ -6,18 +6,18 @@ import Tkinter
 #import the linked list, sniff threading
 from node import *
 from LL import *
-
 from InfoBox import *
-
 import csv
 import time
-
 import sys;
 import binascii;
 import array;
+from DataManage import DataManage
+import datetime
+import os
 
-
-sys.path.insert(0,'/Users/chris/svn/goodfet/trunk/client/')
+sys.path.insert(0,'../../trunk/client/')
+from GoodFETMCPCANCommunication import *
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
 from sniff import *
@@ -32,16 +32,14 @@ tk = Tkinter
 class DisplayApp:
 
     # init function
-    def __init__(self, width, height):
+    def __init__(self, width, height, rate=500):
         #configure information
-        #Initialize FET and set baud rate
-        self.client=GoodFETMCPCAN();
-        self.client.serInit();
-        self.client.MCPsetup();
-        #initial rate, can be changed
-        self.rate = float(125);
-        self.client.MCPsetrate(self.rate)
+        #Initialize communication class
+        self.comm = GoodFETMCPCANCommunication()
         
+        # Initialize the data manager
+        self.table = "ford_2004"
+        self.dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=None)
         
         #store figure
         self.fig = None
@@ -89,14 +87,6 @@ class DisplayApp:
         # yAxis data is plotted
         self.colorList = ["r","g","b","y"]
         
-        #save threading capabilities
-        #this will be the event to stop data gathering
-        self.stopSniff = threading.Event();
-        self.stopSniff.clear()
-        #hold the thread
-        self.sniffThread = None;
-        #this will tell us if we are sniffing
-        self.sniff = False;
         
         
     
@@ -150,60 +140,120 @@ class DisplayApp:
         entryLabel["text"] = "Set Rate:"
         entryLabel.grid(row=i,column=0)
         self.rateChoice = tk.StringVar()
-        self.rateChoice.set("125");
+        self.rateChoice.set("500");
         self.rateMenu = tk.OptionMenu(self.canvas,self.rateChoice,"83.3","100","125","250","500","1000")
         self.rateMenu.grid(row=i,column=1)
         rateButton = tk.Button(self.canvas,text="Set Rate",command=self.setRate,width=10)
         rateButton.grid(row=i,column=2)
         i += 1
         
-        # create options to set the filenames for the various text files saved from
-        # the experimental run
-
-        #filename variables
-        self.fileVars = [];
-        self.checkButtonVar = []
-        labels = ["Raw data file:", "Parsed data file:", "Pcap File:","Stimulus file:"]
-        initialValue = ["test.txt", "test2.txt", "test3.pcap","test4.txt"]
-        for k in range(0,4):
-            varI = IntVar()
-            varI.set(1);
-            c = Checkbutton(self.canvas, variable = varI)
-            c.grid(row=i,column=0)
-            self.checkButtonVar.append(varI)
-            entryLabel = Tkinter.Label(self.canvas)
-            entryLabel["text"] = labels[k]
-            entryLabel.grid(row=i,column=1)
-            var = Tkinter.StringVar();
-            var.set(initialValue[k])
-            entryWidget = Tkinter.Entry(self.canvas, textvariable=var)
-            entryWidget.grid(row=i,column=2)
-            entryWidget["width"] = 10
-            self.fileVars.append(var)
-            i+=1
-
         
-        #this sets the stimulus textfile start/stop information
-        # label before it
+        #filters
         entryLabel = Tkinter.Label(self.canvas)
-        entryLabel["text"] = "Stimulus Input:"
-        entryLabel.grid(row=i,column=0);
+        entryLabel["text"] = "Filters:"
+        entryLabel.grid(row=i,column=0)
+        self.filterIDs = []
+        for j in range(0,4):
+            stdID = Tkinter.StringVar()
+            stdID.set("")
+            entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
+            self.filterIDs.append(stdID)
+            entryWidget["width"] = 10
+            entryWidget.grid(row=i,column=j+1)
         
-        #input stimulus type
-        self.entryWidget = Tkinter.Entry(self.canvas)
-        self.entryWidget["width"]  = 20
+        i+=1
         
-        self.entryWidget.grid(row=i,column=1)
+        #sniff button
+        sniffButton = tk.Button( self.canvas, text="Sniff", command=self.sniff, width=10 )
+        sniffButton.grid(row=i,column=0)
+        i += 1
         
-        #add an entry button
-        self.stimString = tk.StringVar();
-        self.stimString.set("Stimulus Start")
-        self.stimButton = tk.Button(self.canvas, textvariable=self.stimString ,command=self.handleStim,width=10)
-        self.stimButton.grid(row=i,column=2)
-        i += 1;
+        #time to sniff for
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "Time (s):"
+        entryLabel.grid(row=i,column=1)
+        self.time = Tkinter.StringVar();
+        self.time.set("10")
+        entryWidget = Tkinter.Entry(self.canvas, textvariable=self.time)
+        entryWidget.grid(row=i,column=2)
+        entryWidget["width"] = 10
+        i += 1
         
+        #comment
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "comment (sql):"
+        entryLabel.grid(row=i,column=1)
+        self.comment = Tkinter.StringVar();
+        self.comment.set("")
+        entryWidget = Tkinter.Entry(self.canvas, textvariable=self.comment)
+        entryWidget.grid(row=i,column=2)
+        entryWidget["width"] = 10
+        i += 1
+        
+        #description
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "description:"
+        entryLabel.grid(row=i,column=1)
+        self.description = Tkinter.StringVar();
+        self.description.set("")
+        entryWidget = Tkinter.Entry(self.canvas, textvariable=self.description)
+        entryWidget.grid(row=i,column=2)
+        entryWidget["width"] = 10
+        i += 1
+        
+        self.fileBool = IntVar()
+        self.fileBool.set(0)
+        c = Checkbutton(self.canvas, variable = self.fileBool, command = self.fileCallback)
+        c.grid(row=i, column = 0)
+        i += 1
+        
+        #writing
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "Write"
+        entryLabel.grid(row=i,column=0)
+        i += 1
         
        
+        #sql
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "SQL Query"
+        entryLabel.grid(row=i,column=0)
+        i+= 1
+        
+        #text query box
+        self.text = Tkinter.Text(self.canvas,borderwidth=10,insertborderwidth=10,padx=5,pady=2, width=50,height=10, highlightbackground="black")
+        self.text.grid(row=i,column=0, columnspan=8,rowspan=5)
+        i += 9
+        self.pcapBool = IntVar()
+        self.pcapBool.set(0)
+        c = Checkbutton(self.canvas, variable = self.pcapBool)
+        c.grid(row=i,column=0)
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "pcap"
+        entryLabel.grid(row=i, column = 1)
+                        
+        self.csvBool = IntVar()
+        self.csvBool.set(1)
+        c = Checkbutton(self.canvas,variable=self.csvBool)
+        c.grid(row=i,column=2)
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "csv"
+        entryLabel.grid(row=i, column = 3)
+        i += 1
+        
+        #relative filename input
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "Filename:"
+        entryLabel.grid(row=i, column = 0)
+        self.queryFilename = Tkinter.StringVar()
+        self.queryFilename.set("1.csv")
+        entryWidget = Tkinter.Entry(self.canvas, textvariable=self.queryFilename)
+        entryWidget.grid(row=i,column=1,columnspan=2)
+        
+        sqlButton = tk.Button( self.canvas, text="Query", command=self.sqlQuery, width=10 )
+        sqlButton.grid(row=i,column=0)
+        i += 1
+        
         #expand it to the size of the window and fill
         self.canvas.pack( expand=tk.YES, fill=tk.BOTH)
         return
@@ -220,19 +270,12 @@ class DisplayApp:
         sep = tk.Frame( self.root, height=self.initDy, width=2, bd=1, relief=tk.SUNKEN )
         sep.pack( side=tk.RIGHT, padx = 2, pady = 2, fill=tk.Y)
 
-        #startbuttonString
-        self.sniffString = tk.StringVar();
-        self.sniffString.set("Start");
-
         # make a cmd 1 button in the frame
         self.buttons = []
         #width should be in characters. stored in a touple with the first one being a tag
-        self.buttons.append( ( 'cmd1', tk.Button( self.cntlframe, textvariable=self.sniffString, command=self.handleCmdButton, width=10 ) ) )
+        self.buttons.append( ( 'cmd1', tk.Button( self.cntlframe, text="Upload to db", command=self.uploaddb, width=10 ) ) )
         self.buttons[-1][1].pack(side=tk.TOP)  # default side is top
-        self.buttons.append(  ( 'cmd2', tk.Button( self.cntlframe, text="Write",command=self.handleWriteButton, width = 10)))
-        self.buttons[-1][1].pack(side=tk.TOP)
-        self.buttons.append( ('cmd3', tk.Button(self.cntlframe, text="pcapSave",command=self.savepcap, width = 10)))
-        self.buttons[-1][1].pack(side=tk.TOP)
+        
         return
 
     #Bind callbacks with the keyboard/keys
@@ -244,9 +287,8 @@ class DisplayApp:
         self.root.bind( '<Command-q>', self.handleModQ )
         #self.root.bind( '<Command-o>', self.handleModO )
         self.root.bind( '<Control-q>', self.handleQuit )
-        self.root.bind('<Return>',self.handleStim )
+        #self.root.bind('<Return>',self.handleStim )
         #self.root.bind('<Key>',self.handleKeys)
-
 
     # this method handles inputs when the user presses a key
     def handleKeys(self,event):
@@ -268,129 +310,61 @@ class DisplayApp:
         dataWriter.writerow(data)
         writeFile.close()
         return
+   
+    def fileCallback(self):
+        if( self.fileBool == 0):
+            pass
 
-    # this method will start data collection
-    def handleCmdButton(self):
-        if(self.sniff == False):
-            self.initializeList()
-            #set the board to listen
-            self.client.MCPreqstatListenOnly();
-            #reset stop condition
-            self.stopSniff.clear();
-            #create thread
-            self.sniffThread = sniff(self.stopSniff,self.LList,self.client)
-            #start thread
-            self.sniffThread.start()
-            #reset button to now allow the user to stop threading
-            self.sniff = True
-            self.sniffString.set("Stop Sniff")
-        else:
-            self.stopSniffing()
-    
-    # This metthod intiializes the Linked List as well as clears all files
-    # that are going to be written to during the sniffing process. this ensures
-    # that the files are blank when sniffing begins. BE CAREFUL WITH THIS, there is no 
-    # check
-    def initializeList(self):
-        self.filenames = []
-        #get filenames
-        i = 0;
-        for item in self.fileVars:
-            if( self.checkButtonVar[i].get() == 1):
-                self.filenames.append("./data/" +item.get())
-            else:
-                self.filenames.append(None)
-           	i  += 1
-    
-        #initialize linked list
-        self.LList = LL(filenames = self.filenames, fileBooleans = self.checkButtonVar)
-        
-        #if we are writing a stimulus file
-        if( self.checkButtonVar[-1].get() == 1 ):
-            #initialize the stimulus timestamp doc
-            writeFile = open(self.filenames[-1],'wb')
-            writeFile.close()
-        
-    # stop the program from sniffing the bus
-    def stopSniffing(self):
-        if(self.sniff):
-            #this ends the sniffing thread
-            self.stopSniff.set()
-            self.sniff = False;
-            self.sniffString.set("Start")
-        
-
-    def savepcap(self):
-        print "saving..."
-        self.LList.writeToPcap()
-    
-    # This will clear our axes and erase all the data
-    def handleCmdButton2(self):
-        return
-        
-
-    def handleCmd1(self):
-        print 'handling command 1'
-        return
-
-    def handleCmd2(self):
-        print 'handling command 2'
-        return
-    
-    def handleCmd3(self):
-        print "handling command 3"
-        return
-
-    def handleButton1(self, event):
-        print 'handle button 1: %d %d' % (event.x, event.y)
-        self.baseClick = (event.x, event.y)
-
-    def handleButton2(self, event):
-        print 'handle button 2: %d %d' % (event.x, event.y)
-        # create an object
-        return
-
-    def handleButton1Motion(self, event):
-        print "button motion"
-
-
-    # this method will open a second dialog box that will allow the user to write to the
-    # GOODTHOPTER10. It will also make sure that the board is not sniffing at the same time
-    # by first stopping the sniffing capabilities
-    def handleWriteButton(self):
-        self.stopSniffing();
-        dialog = InfoBox(parent = self.root, client = self.client,title="Write to BUS",rate = self.rate)
-        pass
-
-    # this method is called when the user wants to record a stimulus injection time
-    # a timestamp from python's time.time() is written to a csv file with the note the user input
-    # NOTE: time.time() is not the mnost accurate method for recording a timestamp
-    def handleStim(self,event=None):
-        if(self.sniff):
-            if( (self.checkButtonVar[-1].get() == 1)):
-                data = []
-                #get timestamp
-                timeStmp = time.time()
-                data.append(timeStmp)
-                #we are currently injecting stimulus, or starting
-                if( self.isStimulus):
-                    self.stimString.set("Start Stimulus")
-                    self.isStimulus = False
-                    data.append('STOP')
-                else:
-                    self.stimString.set("End Stimulus")
-                    self.isStimulus = True
-                    data.append('START')
-                data.append(self.entryWidget.get())
-                self.writeRow(data,self.filenames[-1])
-        else:
-            print "Must be in sniffing mode to write"
     #set the rate on the MC2515
     def setRate(self,event=None):
-        self.client.MCPsetrate(float(self.rateChoice.get()))
-        self.rate = float(self.rateChoice.get())
-        print "Rate reset to " + self.rateChoice.get()
+        pass
+    
+    def sniff(self):
+        # get time and check that it is correct
+        try:
+            time = int(self.time.get())
+        except:
+            print "time in seconds as an integer"
+        comment = self.comment.get()
+        description = self.description.get()
+        standardid = []
+        # Get the filter ids and check to see if they are correctly an integer
+        for element in self.filterIDs:
+            if(element==""):
+                pass
+            try:
+                standardid.append(int(element))
+            except:
+                print "Incorrectly formatted filters!"
+                return
+        if( len(standardid) == 0):
+            standardid = None
         
+        #sniff
+        self.comm.sniff(freq=self.freq,duration=time,filename=None,
+                  description=description,verbose=verbose,comment=comments,
+                   standardid=standardid)    
+        
+    def uploaddb(self):
+        print "uploading all files"
+        self.dm.uploadFiles()
+        print "uploaded files successfully!"
+        
+    def sqlQuery(self):
+        cmd = self.text.get(1.0,END)
+        data = self.dm.getData(cmd)
+        filename = self.queryFilename.get()
+        #make sure there is a directory for the file
+        DATALOCATION = self.dm.getSQLLocation()
+        datestr = now.strftime("%Y%m%d")
+        path = DATALOCATION + datestr
+        if(not os.path.exists(path)): 
+            #folder does not exists, create it
+            os.mkdir(self.DATALOCATION+"/"+datestr)
+        #create full path relative to this folder
+        filename = DATALOCATION + filename
+        dm.writeDataCsv(data,filename)
+    
     #run the method
     def main(self):
         print 'Entering main loop'
@@ -400,5 +374,5 @@ class DisplayApp:
         
 # executes everything to run
 if __name__ == "__main__":
-    dapp = DisplayApp(500, 200)
+    dapp = DisplayApp(600, 500)
     dapp.main()

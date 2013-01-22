@@ -24,8 +24,14 @@ class DataManage:
         self.password = password
         self.table = table
         self.DATALOCATION = "../ThayerData/"
+        self.SQLDDATALOCATION = self.DATALOCATION+"/SQLData/"
        
-       
+    def getSQLLocation(self):
+        return self.SQLDDATALOCATION
+    
+    def getDataLocation(self):
+        return self.DATALOCATION
+    
     #Creates a new MySQL table in the database with the given table name
     # UNTESTED 
     def createTable(self, table):
@@ -149,7 +155,7 @@ class DataManage:
     def writeDataCsv(self,data, filename):
         outputfile = open(filename,'a')
         dataWriter = csv.writer(outputfile,delimiter=',')
-        dataWriter.writerow(['# Time     Error        Bytes 1-13']);
+        #dataWriter.writerow(['# Time     Error        Bytes 1-13']);
         for row in data:
             dataWriter.writerow(row)
         outputfile.close()
@@ -387,13 +393,13 @@ class DataManage:
             #see if there is a folder with today's date
             now = datetime.datetime.now()
             datestr = now.strftime("%Y%m%d")
-            if( os.path.exists(self.DATALOCATION + "/" + datestr)):
-            #folder does not exists, create it
-            else:
-                os.mkdir(self.DATALOCATION+"/"+datestr)
+            path = self.DATALOCATION + datestr
+            if( not os.path.exists(path)):
+                #folder does not exists, create it
+                os.mkdir(self.DATALOCATION+datestr)
             
             #change the name so to register that it has been uploaded
-            os.rename(file,"/"+datestr+"/"+file[:-4]+"_Uploaded.csv")        
+            os.rename(file, path+"/"+file[:-4]+"_Uploaded.csv")        
         
 # executes everything to run, inputs of the command lines
 if __name__ == "__main__":
@@ -431,8 +437,8 @@ if __name__ == "__main__":
         if( filename == None or table  == None):
             print " Error: must supply filename(-f) and table to upload to(-t)!"
             exit()
-         dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
-         dm.uploadFiles()
+        dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=table)
+        dm.uploadFiles()
     
     # create a .pcap file from the csv file provided
     if( verb == "pcap"):

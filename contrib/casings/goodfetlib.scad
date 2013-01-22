@@ -93,6 +93,13 @@ module goodfetcase(l,w,h){
 	cube(size=[l-6,6,2*h],
 	     center=true);
     
+    //Cut out the third USB plug for a Facedancer2x.
+    if(cutthirdusb==1) //6.25/2
+      #color("green") translate([6.25/2-wallthickness,(w/2-14.6/2+wallthickness/2),-h*1.4])
+	cube(size=[14.5,14.7+wallthickness,2*h],
+	     center=true);
+    
+    
     //Cut out a slit for the 14-pin ribbon.
     //Might be apropriate to increase PCB height.
     if(cutribbonslit==1)

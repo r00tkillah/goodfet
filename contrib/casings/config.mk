@@ -13,10 +13,14 @@ endif
 ifneq (,$(findstring $(board),facedancer10 facedancer11))
 config=-D l=23.5 -D w=71 -D h=6 -D cutsecondusb=1
 endif
+ifneq (,$(findstring $(board),facedancer20 facedancer21))
+config=-D l=23.5 -D w=71 -D h=6 -D cutsecondusb=1 -D cutthirdusb=1
+endif
 
 ifneq (,$(findstring $(board),goodthopter10 goodthopter11))
 config=-D l=35.45 -D w=73.05 -D h=16.3 -D cutsecondusb=1
 endif
+
 
 
 

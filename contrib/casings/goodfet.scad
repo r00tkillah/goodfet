@@ -35,6 +35,7 @@ l=23.5;
 w=71;
 h=6;
 cutsecondusb=1;
+cutthirdusb=1;
 
 //Include the library, but don't run its code.
 include<goodfetlib.scad>

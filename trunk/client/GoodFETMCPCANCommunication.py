@@ -15,7 +15,6 @@ import sys;
 import binascii;
 import array;
 import csv, time, argparse;
-import datetime
 
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
@@ -26,24 +25,18 @@ class GoodFETMCPCANCommunication:
        self.client=GoodFETMCPCAN();
        self.client.serInit()
        self.client.MCPsetup();
+       
     
-       # create a filename with today's date
-       now = datetime.datetime.now()
-       self.filename = "../../contrib/ThayerData/"
-       self.filename += now.strftime("%Y%m%d")
-    
-    ##########################
-    #   INFO
-    ##########################
-    #
-    # Prints MCP state info
-    #
     def printInfo(self):
+        
+        self.client.MCPreqstatConfiguration();
+        
         print "MCP2515 Info:\n\n";
         
         print "Mode: %s" % self.client.MCPcanstatstr();
         print "Read Status: %02x" % self.client.MCPreadstatus();
         print "Rx Status:   %02x" % self.client.MCPrxstatus();
+        print "Error Flags:  %02x" % self.client.peek8(0x2D);
         print "Tx Errors:  %3d" % self.client.peek8(0x1c);
         print "Rx Errors:  %3d\n" % self.client.peek8(0x1d);
         
@@ -53,6 +46,14 @@ class GoodFETMCPCANCommunication:
         print "CNF3: %02x\n" %self.client.peek8(0x28);
         print "RXB0 CTRL: %02x" %self.client.peek8(0x60);
         print "RXB1 CTRL: %02x" %self.client.peek8(0x70);
+        
+        print "RX Info:";
+        print "RXB0: %02x" %self.client.peek8(0x60);
+        print "RXB1: %02x" %self.client.peek8(0x70);
+        print "RXB0 masks: %02x, %02x, %02x, %02x" %(self.client.peek8(0x20), self.client.peek8(0x21), self.client.peek8(0x22), self.client.peek8(0x23));
+        print "RXB1 masks: %02x, %02x, %02x, %02x" %(self.client.peek8(0x24), self.client.peek8(0x25), self.client.peek8(0x26), self.client.peek8(0x27));
+
+        
         print "RX Buffers:"
         packet0=self.client.readrxbuffer(0);
         packet1=self.client.readrxbuffer(1);
@@ -61,50 +62,129 @@ class GoodFETMCPCANCommunication:
            
     def reset(self):
         self.client.MCPsetup();
+    
+    ##########################
+    #   SNIFF
+    ##########################
          
-    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None,):
-        if(filename==None):
-            filename=self.filename
+    def sniff(self,freq,duration,filename,description, verbose=True, comment=None, standardid=None):
+        
+        #### ON-CHIP FILTERING
+        if(standardid != None):
+            self.client.MCPreqstatConfiguration();  
+            self.client.poke8(0x60,0x26); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1, BUKT=1)
+            self.client.poke8(0x20,0xFF); #set buffer 0 mask 1 (SID 10:3) to FF
+            self.client.poke8(0x21,0xE0); #set buffer 0 mask 2 bits 7:5 (SID 2:0) to 1s
+            if(len(standardid)>2):
+               self.client.poke8(0x70,0x20); # set RXB1 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1)
+               self.client.poke8(0x24,0xFF); #set buffer 1 mask 1 (SID 10:3) to FF
+               self.client.poke8(0x25,0xE0); #set buffer 1 mask 2 bits 7:5 (SID 2:0) to 1s 
+            
+            for filter,ID in enumerate(standardid):
+        
+               if (filter==0):
+                RXFSIDH = 0x00;
+                RXFSIDL = 0x01;
+               elif (filter==1):
+                RXFSIDH = 0x04;
+                RXFSIDL = 0x05;
+               elif (filter==2):
+                RXFSIDH = 0x08;
+                RXFSIDL = 0x09;
+               elif (filter==3):
+                RXFSIDH = 0x10;
+                RXFSIDL = 0x11;
+               elif (filter==4):
+                RXFSIDH = 0x14;
+                RXFSIDL = 0x15;
+               else:
+                RXFSIDH = 0x18;
+                RXFSIDL = 0x19;
+        
+               #### split SID into different regs
+               SIDlow = (ID & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+               SIDhigh = (ID >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+               
+               #write SID to regs 
+               self.client.poke8(RXFSIDH,SIDhigh);
+               self.client.poke8(RXFSIDL, SIDlow);
+        
+               if (verbose == True):
+                   print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
+        
+        
         self.client.MCPsetrate(freq);
+        
         outfile = open(filename,'a');
         dataWriter = csv.writer(outfile,delimiter=',');
         dataWriter.writerow(['# Time     Error        Bytes 1-13']);
         dataWriter.writerow(['#' + description])
-            
-        self.client.MCPreqstatListenOnly();
+        
+        self.client.MCPreqstatNormal();
         print "Listening...";
         packetcount = 0;
         starttime = time.time();
-    
+        
         while((time.time()-starttime < duration)):
             packet=self.client.rxpacket();
+            
+            if(debug == True):
+                #check packet status
+                MCPstatusReg = self.client.MCPrxstatus();
+                messagestat=MCPstatusReg&0xC0;
+                messagetype=MCPstatusReg&0x18;
+                if(messagestat == 0xC0):
+                    print "Message in both buffers; message type is %02x (0x00 is standard data, 0x08 is standard remote)." %messagetype
+                elif(messagestat == 0x80):
+                    print "Message in RXB1; message type is %02x (0x00 is standard data, 0x08 is standard remote)." %messagetype
+                elif(messagestat == 0x40):
+                    print "Message in RXB0; message type is %02x (0x00 is standard data, 0x08 is standard remote)." %messagetype
+                elif(messagestat == 0x00):
+                    print "No messages in buffers."
+            
             if packet!=None:
-                if( verbose==True):
-                    print self.client.packet2str(packet)   
+                
                 packetcount+=1;
                 row = [];
                 row.append("%f"%time.time());
-                if (self.client.peek8(0x2C) & 0x80):
-                    self.client.MCPbitmodify(0x2C,0x80,0x00);
-                    print "ERROR: Malformed packet recieved: " + self.client.packet2str(packet);
-                    row.append(1);
+                
+                if( verbose==True):
+                    print self.client.packet2str(packet)
+                
+                if(debug == True):
+                    
+                    #check overflow
+                    MCPeflgReg=self.client.peek8(0x2D);
+                    print"EFLG register equals: %x" %MCPeflgReg;
+                    if((MCPeflgReg & 0xC0)==0xC0):
+                        print "WARNING: BOTH overflow flags set. Missed a packet. Clearing and proceeding."
+                    elif(MCPeflgReg & 0x80):
+                        print "WARNING: RXB1 overflow flag set. A packet has been missed. Clearing and proceeding."
+                    elif(MCPeflgReg & 0x40):
+                        print "WARNING: RXB0 overflow flag set. A packet has been missed. Clearing and proceeding."
+                    self.client.MCPbitmodify(0x2D,0xC0,0x00);
+                    print"EFLG register set to: %x" % self.client.peek(0x2D);
+                
+                    #check for errors
+                    if (self.client.peek8(0x2C) & 0x80):
+                        self.client.MCPbitmodify(0x2C,0x80,0x00);
+                        print "ERROR: Malformed packet recieved: " + self.client.packet2str(packet);
+                        row.append(1);
+                    else:
+                        row.append(0);
                 else:
-                    row.append(0);
-
-                #write comment
+                    row.append(0);  #since we don't check for errors if we're not in debug mode...
+                            
                 row.append(comment)
                 for byte in packet:
                     row.append("%02x"%ord(byte));
                 dataWriter.writerow(row);
         
         outfile.close()
-        print "Listened for %x seconds, captured %x packets." %(duration,packetcount);
-        
-        
-        
+        print "Listened for %d seconds, captured %d packets." %(duration,packetcount);
+     
     def sniffTest(self, freq):
-        self.client.MCPsetup();
-    
+        
         rate = freq;
         
         print "Calling MCPsetrate for %i." %rate;
@@ -263,10 +343,13 @@ if __name__ == "__main__":
     parser.add_argument('verb', choices=['info', 'test','peek', 'reset', 'sniff', 'freqtest','snifftest', 'spit']);
     parser.add_argument('-f', '--freq', type=int, default=500, help='The desired frequency (kHz)', choices=[100, 125, 250, 500, 1000]);
     parser.add_argument('-t','--time', type=int, default=15, help='The duration to run the command (s)');
-    parser.add_argument('-o', '--output', default=None, elp='Output file');
+    parser.add_argument('-o', '--output', default="../../contrib/ted/sniff_out.csv",help='Output file');
     parser.add_argument("-d", "--description", help='Description of experiment (included in the output file)', default="");
     parser.add_argument('-v',"--verbose",action='store_false',help='-v will stop packet output to terminal', default=True);
     parser.add_argument('-c','--comment', help='Comment attached to ech packet uploaded',default=None);
+    parser.add_argument('-b', '--debug', action='store_true', help='-b will turn on debug mode, printing packet status', default=False);
+    parser.add_argument('-a', '--standardid', type=int, action='append', help='Standard ID to accept with filter 0 [1, 2, 3, 4, 5]', default=None);
+
     
     args = parser.parse_args();
     freq = args.freq
@@ -275,6 +358,8 @@ if __name__ == "__main__":
     description = args.description
     verbose = args.verbose
     comments = args.comment
+    debug = args.debug
+    standardid = args.standardid
 
     comm = GoodFETMCPCANCommunication();
     
@@ -306,9 +391,7 @@ if __name__ == "__main__":
     #
     
     if(args.verb=="sniff"):
-        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename)
-        
-    
+        comm.sniff(freq=freq,duration=duration,filename=filename,description=description,verbose=verbose,comment=comments, standardid=standardid)    
                     
     ##########################
     #   SNIFF TEST
@@ -356,7 +439,6 @@ if __name__ == "__main__":
     if(args.verb=="test"):
         comm.test()
         
-        
     if(args.verb=="peek"):
         start=0x0000;
         if(len(sys.argv)>2):
@@ -381,6 +463,8 @@ if __name__ == "__main__":
     #   and thus not generating an ack bit on the recieving board)
     if(args.verb=="spit"):
         comm.spit(freq=freq)
+
+
     
     
     

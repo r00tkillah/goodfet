@@ -3,7 +3,14 @@
 # 
 # (C) 2012 Travis Goodspeed <travis at radiantmachines.com>
 #
-# This code is being rewritten and refactored.  You've been warned!
+# WORKING COPY
+# Currently being updated by Siege Technology's ENGS89 team
+# Primary contact: Theodore Sumers <ted.sumers at gmail.com>
+# ADDED FUNCTIONALITY:
+#   10.4/41.6/83.3 kHz sniffing
+#   setbitrate
+#   debugs on TX and RX packet
+#   int-based state change reqs for preserving state
 #
 
 # The MCP2515 is a CAN Bus to SPI adapter from Microchip Technology,
@@ -19,11 +26,11 @@ class GoodFETMCPCAN(GoodFETSPI):
     adapter on the Goodthopter10 hardware."""
     MCPMODES=["Normal","Sleep","Loopback","Listen-only","Configuration",
               "UNKNOWN","UNKNOWN","PowerUp"];
+    
     def MCPsetup(self):
         """Sets up the ports."""
         self.SPIsetup();
         self.MCPreset(); #Reset the chip.
-        
         # We're going to set some registers, so we must be in config
         # mode.
         self.MCPreqstatConfiguration();
@@ -32,55 +39,46 @@ class GoodFETMCPCAN(GoodFETSPI):
         # packets.  It can be manually disabled later.
         #self.poke8(0x60,0xFF); #TODO Does this have any unpleasant side effects?
         self.poke8(0x60,0x66); #Wanted FF, but some bits are reserved.
-        
-        #Set the default rate.
-        self.MCPsetrate();
-    
+
     #Array of supported rates.
-    MCPrates=[83.3, 100, 125,
-              250, 500, 1000];
+    MCPrates=[10.4, 41.6, 83.3, 100, 125, 250, 500, 1000];
+    
+    def MCPreset(self):
+        """Reset the MCP2515 chip."""
+        self.SPItrans([0xC0]);
+    
+      
+    ################    SETTING BAUD RATE   ################
+    
     
     def MCPsetrate(self,rate=125):
         """Sets the data rate in kHz."""
         # Now we need to set the timing registers.  See chapter 5 of
         # the MCP2515 datasheet to get some clue as to how this
-        # arithmetic of this works, as my comments here will likely be
-        # rambling, incoherent, and unchanged after I get the infernal
-        # thing working.
+        # arithmetic of this works.
+
         
-        # First, we must chose a Time Quanta (QT) which is used to
-        # define the durations of these segments.  Section 5.3
-        # suggests setting BRP<5:0> to 0x04 to get a TQ=500ns, as a 20
-        # MHz crystal gives a clock period of 50ns.  This way, for 125
-        # kHz communication, the bit time must be 16 TQ.
-        
-        # A bit consists of four parts:
-        # 1: SyncSeg             1 TQ
-        # 2: PropSeg             2 TQ
-        # 3: PhaseSeg1 (PS1)     7 TQ
-        # 4: PhaseSeg2 (PS2)     6 TQ
-        
-        # CNF1 with a prescaler of 4 and a SJW of 1 TQ.  SJW of 4
-        # might be more stable.
-        #self.poke8(0x2a,0x04);
-        
-        # CNF2 with a BLTMODE of 1, SAM of 0, PS1 of 7TQ, and PRSEG of 2TQ
-        #self.poke8(0x29,
-        #           0x80   |  # BTLMODE=1
-        #           (6<<3) |  # 6+1=7TQ for PHSEG1
-        #           (1)       # 1+1=2TQ for PRSEG
-        #           );
-        
-        #CNF3 with a PS2 length of 6TQ.
-        #self.poke8(0x28,
-        #           5      #5+1=6TQ
-        #           );
-        
-        
+        #STORE the prior status
+        oldstatus=self.MCPcanstatint();
         print "Setting rate of %i kHz." % rate;
+        #print "Current state is %s." % self.MCPcanstatstr();
+        self.MCPreqstatConfiguration();
+        # print "Switched to %s state." % self.MCPcanstatstr();
         
-        #These are the new examples.
-        if rate==125:
+        
+        if rate>41 and rate<42:
+            # NOT CHECKED: based on kvaser website.
+            # Sets baud rate for 41.6 kbps
+            CNF1=0x8e;
+            CNF2=0xa3;
+            CNF3=0x05;
+        elif rate>10 and rate<11:
+            # NOT CHECKED: based on kvaser website.
+            # Sets baud rate for 10.4 kbps
+            CNF1=0xbb;
+            CNF2=0xa3;
+            CNF3=0x05;  
+        elif rate==125:
             #125 kHz, 16 TQ, not quite as worked out above.
             CNF1=0x04;
             CNF2=0xB8;
@@ -121,13 +119,41 @@ class GoodFETMCPCAN(GoodFETSPI):
         self.poke8(0x2a,CNF1);
         self.poke8(0x29,CNF2);
         self.poke8(0x28,CNF3);
-        
-    def MCPreset(self):
-        """Reset the MCP2515 chip."""
-        self.SPItrans([0xC0]);
+
+        # and now return to whatever state we were in before
+        self.MCPreqstat(oldstatus);
+        #print "Reverted to %s." % self.MCPcanstatstr();
+
+    
+    #################   STATE MANAGEMENT   ##################
+
     def MCPcanstat(self):
         """Get the CAN Status."""
         return self.peek8(0x0E);
+    def MCPcanstatstr(self):
+        """Read the present status as a string."""
+        opmod=self.MCPcanstatint();
+        return self.MCPMODES[opmod];
+    def MCPcanstatint(self):
+        """Read present status as an int."""
+        return self.MCPcanstat()>>5;
+
+            
+    def MCPreqstat(self, state):
+        """Set the CAN state."""
+        if state==0:
+            self.MCPreqstatNormal();
+        elif state==1:
+            self.MCPreqstatSleep();
+        elif state==2:
+            self.MCPreqstatLoopback();
+        elif state==3:
+            self.MCPreqstatListenOnly();
+        elif state==4:
+            self.MCPreqstatConfiguration();
+        else:
+            print "Invalid state entered; defaulting to Listen-Only"
+            self.MCPreqstatListenOnly();
     def MCPreqstatNormal(self):
         """Set the CAN state."""
         state=0x0;
@@ -149,11 +175,8 @@ class GoodFETMCPCAN(GoodFETSPI):
         state=0x4;
         self.MCPbitmodify(0x0F,0xE0,(state<<5));
     
-    def MCPcanstatstr(self):
-        """Read the present status as a string."""
-        status=self.MCPcanstat();
-        opmod=(status&0xE0)>>5;
-        return self.MCPMODES[opmod];
+    ####################     RX MANAGEMENT     #####################
+    
     def MCPrxstatus(self):
         """Reads the RX Status by the SPI verb of the same name."""
         data=self.SPItrans([0xB0,0x00]);
@@ -161,38 +184,25 @@ class GoodFETMCPCAN(GoodFETSPI):
 
     def MCPreadstatus(self):
         """Reads the Read Status by the SPI verb of the same name."""
-        #See page 67 of the datasheet for the flag names.
+        #See page 69 of the datasheet for the flag names.
         data=self.SPItrans([0xA0,0x00]);
         return ord(data[1]);
-
-    def MCPrts(self,TXB0=False,TXB1=False,TXB2=False):
-        """Requests to send one of the transmit buffers."""
-        flags=0;
-        if TXB0: flags=flags|1;
-        if TXB1: flags=flags|2;
-        if TXB2: flags=flags|4;
-        
-        if flags==0:
-            print "Warning: Requesting to send no buffer.";
-        
-        self.SPItrans([0x80|flags]);
+            
     def readrxbuffer(self,packbuf=0):
         """Reads the RX buffer.  Might have old data."""
         data=self.SPItrans([0x90|(packbuf<<2),
-                       0x00,0x00, #SID
-                       0x00,0x00, #EID
-                       0x00,      #DLC
-                       0x00, 0x00, 0x00, 0x00,
-                       0x00, 0x00, 0x00, 0x00
-                       ]);
-        return data[1:len(data)];
-    def writetxbuffer(self,packet,packbuf=0):
-        """Writes the transmit buffer."""
-        self.SPItrans([0x40|(packbuf<<1)]+packet);
+                            0x00,0x00, #SID
+                            0x00,0x00, #EID
+                            0x00,      #DLC
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00
+                            ]);
         
+        return data[1:len(data)];
+    
     def rxpacket(self):
         """Reads the next incoming packet from either buffer.
-        Returns None immediately if no packet is waiting."""
+            Returns None immediately if no packet is waiting."""
         status=self.MCPrxstatus()&0xC0;
         if status&0x40:
             #Buffer 0 has higher priority.
@@ -202,12 +212,49 @@ class GoodFETMCPCAN(GoodFETSPI):
             return self.readrxbuffer(1);
         else:
             return None;
+
+    #################      TX MANAGEMENT    ##################
+            
+    def MCPrts(self,TXB0=False,TXB1=False,TXB2=False):
+        """Requests to send one of the transmit buffers."""
+        flags=0;
+        if TXB0: flags=flags|1;
+        if TXB1: flags=flags|2;
+        if TXB2: flags=flags|4;
+        
+        if flags==0:
+            print "Warning: Requesting to send no buffer.";
+        if self.MCPcanstat()>>5!=0:
+            print "Warning: currently in %s mode. NOT in normal mode! May not transmit." %self.MCPcanstatstr();
+        self.SPItrans([0x80|flags]);
+    
+    def writetxbuffer(self,packet,packbuf=0):
+        """Writes the transmit buffer."""
+        
+        self.SPItrans([0x40|(packbuf<<1)]+packet);
+        #READ BACK BUFFER 0 to check what we're about to send out
+        data=self.SPItrans([0x03, 0x31,                        
+                            0x00,0x00, #SID
+                            0x00,0x00, #EID
+                            0x00,      #DLC
+                            0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00
+                            ]);
+        print "about to transmit:" + self.packet2str(data[2:len(data)]);
+        
     def txpacket(self,packet):
         """Transmits a packet through one of the outbound buffers.
         As usual, the packet should begin with SIDH.
         For now, only TXB0 is supported."""
+
         self.writetxbuffer(packet,0);
+
+        #self.SPItrans([0x81]);
         self.MCPrts(TXB0=True);
+
+                
+    ###############   UTILITY FUNCTIONS  #################
+            
     def packet2str(self,packet):
         """Converts a packet from the internal format to a string."""
         toprint="";
@@ -218,10 +265,6 @@ class GoodFETMCPCAN(GoodFETSPI):
         """Read a byte from the given address.  Untested."""
         data=self.SPItrans([0x03,adr&0xFF,00]);
         return ord(data[2]);
-    def MCPbitmodify(self,adr,mask,data):
-        """Writes a byte with a mask.  Doesn't work for many registers."""
-        data=self.SPItrans([0x05,adr&0xFF,mask&0xFF,data&0xFF]);
-        return ord(data[2]);
     def poke8(self,adr,val):
         """Poke a value into RAM.  Untested"""
         self.SPItrans([0x02,adr&0xFF,val&0xFF]);
@@ -230,3 +273,34 @@ class GoodFETMCPCAN(GoodFETSPI):
             print "Failed to poke %02x to %02x.  Got %02x." % (adr,val,newval);
             print "Are you not in idle mode?";
         return val;
+    def MCPbitmodify(self,adr,mask,data):
+        """Writes a byte with a mask.  Doesn't work for many registers."""
+        data=self.SPItrans([0x05,adr&0xFF,mask&0xFF,data&0xFF]);
+        return ord(data[2]);
+
+############### DEBUG UTILITIES: STATUS MESSAGES ##############
+
+#    def MCPrxstatusmessage(self):
+#        """Returns string indicating status of RX buffers"""
+#        status = self.MCPrxstatus();
+#
+#        if status < 64:
+#            print "No RX message";
+#        elif status < 128:
+#            print "Message in RXB0";
+#        elif status < 192:
+#            print "Message in RXB1";
+#        else:
+#            print "Messages in both buffers";
+
+
+
+# TXB0TRL = 0x30
+# RXB0CTRL = 0x60
+# CNF3/2/1 = 0x28, 29, 2a
+# CANINTE = 0x2b
+# CANINTF = 0x2c
+# TXRTSCTRL = x0D
+
+
+    

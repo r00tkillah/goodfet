@@ -367,8 +367,6 @@ if __name__ == "__main__":
     #   checking TX error flags--> currently throwing error flags on every
     #   transmission (travis thinks this is because we're sniffing in listen-only
     #   and thus not generating an ack bit on the recieving board)
-    
-    
     if(args.verb=="spit"):
         comm.spit(freq=freq)
     

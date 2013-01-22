@@ -36,10 +36,12 @@ class DisplayApp:
         #configure information
         #Initialize communication class
         self.comm = GoodFETMCPCANCommunication()
+        self.freq = 500
+        self.verbose = True
         
         # Initialize the data manager
-        self.table = "ford_2004"
-        self.dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=None)
+        self.table = "vue2"
+        self.dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=self.table)
         
         #store figure
         self.fig = None
@@ -201,12 +203,12 @@ class DisplayApp:
         entryWidget["width"] = 10
         i += 1
         
-        self.fileBool = IntVar()
-        self.fileBool.set(0)
-        c = Checkbutton(self.canvas, variable = self.fileBool, command = self.fileCallback)
-        c.grid(row=i, column = 0)
-        i += 1
-        
+#        self.fileBool = IntVar()
+#        self.fileBool.set(0)
+#        c = Checkbutton(self.canvas, variable = self.fileBool, command = self.fileCallback)
+#        c.grid(row=i, column = 0)
+#        i += 1
+#        
         #writing
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "Write"
@@ -325,15 +327,15 @@ class DisplayApp:
             time = int(self.time.get())
         except:
             print "time in seconds as an integer"
-        comment = self.comment.get()
+        comments = self.comment.get()
         description = self.description.get()
         standardid = []
         # Get the filter ids and check to see if they are correctly an integer
         for element in self.filterIDs:
-            if(element==""):
-                pass
+            if(element.get()==""):
+                continue
             try:
-                standardid.append(int(element))
+                standardid.append(int(element.get()))
             except:
                 print "Incorrectly formatted filters!"
                 return
@@ -341,29 +343,50 @@ class DisplayApp:
             standardid = None
         
         #sniff
-        self.comm.sniff(freq=self.freq,duration=time,filename=None,
-                  description=description,verbose=verbose,comment=comments,
-                   standardid=standardid)    
+        self.comm.sniff(freq=self.freq,duration=time,
+                  description=description,verbose=self.verbose,comment=comments,filename = None,
+                   standardid=standardid, debug = False)    
         
     def uploaddb(self):
-        print "uploading all files"
+        print "Uploading all files"
         self.dm.uploadFiles()
-        print "uploaded files successfully!"
         
     def sqlQuery(self):
         cmd = self.text.get(1.0,END)
+        print cmd
         data = self.dm.getData(cmd)
+        print data
         filename = self.queryFilename.get()
         #make sure there is a directory for the file
         DATALOCATION = self.dm.getSQLLocation()
+        now = datetime.datetime.now()
         datestr = now.strftime("%Y%m%d")
         path = DATALOCATION + datestr
         if(not os.path.exists(path)): 
             #folder does not exists, create it
-            os.mkdir(self.DATALOCATION+"/"+datestr)
+            os.mkdir(DATALOCATION+datestr)
         #create full path relative to this folder
-        filename = DATALOCATION + filename
-        dm.writeDataCsv(data,filename)
+        filename = path + "/" + filename
+        if( os.path.exists(filename)):
+            filename2 = filename[:-4]+"_1"+filename[-4:]
+            i=2
+            #find the first unused filename
+            while( os.path.exists(filename2)):
+                filename2=filename[:-4]+("_%d" %i)+filename[-4:]
+                i+=1
+            filename=filename2
+            print "file already exists name changed to %s" % filename
+        self.dm.writeDataCsv(data,filename)
+    
+    def handleCmd1(self):
+        print "handling cmd1"
+        return
+    def handleCmd2(self):
+        print "handling cmd2"
+        return
+    def handleCmd3(self):
+        print "handling cmd3"
+        return
     
     #run the method
     def main(self):
@@ -374,5 +397,5 @@ class DisplayApp:
         
 # executes everything to run
 if __name__ == "__main__":
-    dapp = DisplayApp(600, 500)
+    dapp = DisplayApp(650, 500)
     dapp.main()

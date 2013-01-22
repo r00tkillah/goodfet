@@ -24,7 +24,7 @@ class DataManage:
         self.password = password
         self.table = table
         self.DATALOCATION = "../ThayerData/"
-        self.SQLDDATALOCATION = self.DATALOCATION+"/SQLData/"
+        self.SQLDDATALOCATION = self.DATALOCATION+"SQLData/"
        
     def getSQLLocation(self):
         return self.SQLDDATALOCATION
@@ -92,7 +92,8 @@ class DataManage:
             #Fetch all the rows in a list of lists.
             results = cursor.fetchall()
         except:
-            raise Exception, "Error fetching data from db, %s with the command, %s" % self.db, cmd
+            error = "Error fetching data from db, %s with the command, %s" % (self.db, cmd)
+            raise Exception( error )
         
         db_conn.close()
         return results
@@ -157,7 +158,15 @@ class DataManage:
         dataWriter = csv.writer(outputfile,delimiter=',')
         #dataWriter.writerow(['# Time     Error        Bytes 1-13']);
         for row in data:
-            dataWriter.writerow(row)
+            rowTemp = []
+            for col in row:
+                if( isinstance(col,str)):
+                    rowTemp.append(col)
+                elif(isinstance(col,float)):
+                    rowTemp.append("%f" % col)
+                else:
+                    rowTemp.append(col)
+            dataWriter.writerow(rowTemp)
         outputfile.close()
             
     
@@ -386,6 +395,10 @@ class DataManage:
     def uploadFiles(self):
         #get all files in the ThayerData folder
         files = glob.glob(self.DATALOCATION+"*.csv")
+        if( len(files) == 0):
+            print "No new files to upload"
+            return
+        print files
         for file in files:
             #upload the file to the db
             self.uploadData(filename=file)
@@ -397,9 +410,20 @@ class DataManage:
             if( not os.path.exists(path)):
                 #folder does not exists, create it
                 os.mkdir(self.DATALOCATION+datestr)
-            
+            baseName = os.path.basename(file)
+            root = file[:-len(baseName)]
+            filename = root+datestr+"/"+baseName[:-4]+"_Uploaded.csv"
+            print root
+            print filename
+            i=1
+            #make sure the name is unique
+            while( os.path.exists(filename)):
+                filename = root+datestr+"/"+baseName[:-4]+"_Uploaded_%d.csv" %i
+                i+=1 
             #change the name so to register that it has been uploaded
-            os.rename(file, path+"/"+file[:-4]+"_Uploaded.csv")        
+            print "file ",file
+            print "filename ", filename
+            os.rename(file, filename)        
         
 # executes everything to run, inputs of the command lines
 if __name__ == "__main__":

@@ -71,6 +71,8 @@ class GoodFETMCPCANCommunication:
         
         #### ON-CHIP FILTERING
         if(standardid != None):
+            comment = comment+"Filtering for SID ";
+            
             self.client.MCPreqstatConfiguration();  
             self.client.poke8(0x60,0x26); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1, BUKT=1)
             self.client.poke8(0x20,0xFF); #set buffer 0 mask 1 (SID 10:3) to FF
@@ -111,6 +113,7 @@ class GoodFETMCPCANCommunication:
         
                if (verbose == True):
                    print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
+                comment = comment + "%d " %(ID);
         
         
         self.client.MCPsetrate(freq);

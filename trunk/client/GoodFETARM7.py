@@ -809,8 +809,8 @@ def arm7_cli_handler(client, argv):
     if(argv[1]=="info"):
         client.halt()
         print >>sys.stderr,"Identifying Target:"
-        print >>sys.stderr, self.ARMidentstr()
-        print >>sys.stderr,"Debug Status:\t%s\n" % self.statusstr()
+        print >>sys.stderr, client.ARMidentstr()
+        print >>sys.stderr,"Debug Status:\t%s\n" % client.statusstr()
         client.resume()
 
 

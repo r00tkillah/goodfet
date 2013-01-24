@@ -386,7 +386,7 @@ class GoodFETARM7(GoodFET):
         self.storedPC = self.ARMget_register(15) + pcoffset
         self.last_dbg_state = self.ARMget_dbgstate()
         self.cpsr = self.ARMget_regCPSR()
-        print "ARMcapture_system_state: stored pc: 0x%x  last_dbg_state: 0x%x" % (self.storedPC, self.last_dbg_state)
+        #print "ARMcapture_system_state: stored pc: 0x%x  last_dbg_state: 0x%x" % (self.storedPC, self.last_dbg_state)
 
     #def ARMhaltcpu(self):
     def halt(self):
@@ -404,7 +404,7 @@ class GoodFETARM7(GoodFET):
         self.ARMset_dbgctrl(0)
 
         self.ARMcapture_system_state(PCOFF_DBGRQ)
-        print "storedPC: %x (%x)      flags: %x    nothing: %x" % (self.storedPC, self.c0Data, self.flags, self.c0Addr)
+        #print "storedPC: %x (%x)      flags: %x    nothing: %x" % (self.storedPC, self.c0Data, self.flags, self.c0Addr)
         if self.ARMget_dbgstate() & DBG_TBIT:
             self.ARMsetModeARM()
             if self.storedPC ^ 4:
@@ -412,7 +412,7 @@ class GoodFETARM7(GoodFET):
         self.stored_regs = self.ARMget_registers()[:15]
         #print "stored regs: " + repr(self.stored_regs)
         #print self.print_stored_registers()
-        print "CPSR: (%s) %s"%(self.ARMget_regCPSRstr())
+        #print "CPSR: (%s) %s"%(self.ARMget_regCPSRstr())
     #halt = ARMhaltcpu
 
     #def ARMreleasecpu(self):
@@ -585,11 +585,11 @@ class GoodFETARM7(GoodFET):
                 #print out
         return ''.join(out)        
 
-    def ARMprintChunk(self, adr, wordcount, verbose=False, width=8):
+    def ARMprintChunk(self, adr, wordcount=1, verbose=False, width=8):
         for string in self.ARMreprChunk(adr, wordcount, verbose=False, width=8):
             sys.stdout.write(string)
 
-    def ARMreprChunk(self, adr, wordcount, verbose=False, width=8):
+    def ARMreprChunk(self, adr, wordcount=1, verbose=False, width=8):
         adr &= 0xfffffffc
         endva = adr + (4*wordcount)
         output = [ "Dwords from 0x%x through 0x%x" % (adr, endva) ]
@@ -602,7 +602,7 @@ class GoodFETARM7(GoodFET):
 
         yield("\n")
 
-    def ARMreadChunk(self, adr, wordcount, verbose=True):
+    def ARMreadChunk(self, adr, wordcount=1, verbose=True):
         """ Only works in ARM mode currently
         WARNING: Addresses must be word-aligned!
         """
@@ -808,9 +808,9 @@ def arm7_main():
 def arm7_cli_handler(client, argv):
     if(argv[1]=="info"):
         client.halt()
-        print >>sys.stderr,"Identifying Target:"
         print >>sys.stderr, client.ARMidentstr()
-        print >>sys.stderr,"Debug Status:\t%s\n" % client.statusstr()
+        print >>sys.stderr,"Debug Status:\t%s" % client.statusstr()
+        print >>sys.stderr,"CPSR: (%s) %s\n"%(client.ARMget_regCPSRstr())
         client.resume()
 
 

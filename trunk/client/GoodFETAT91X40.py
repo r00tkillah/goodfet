@@ -265,7 +265,7 @@ def mcr_decode(mcr):
     #print hex(drp)
     if drp and drp != 1:
         drp = 2
-	return (validAddrBits, maxAddrSpace, validCS, codeLabel, drp)
+    return (validAddrBits, maxAddrSpace, validCS, codeLabel, drp)
 
 def mcr_decode_str(mcr):
     ( validAddrBits, maxAddrSpace, validCS, codeLabel, drp) = mcr_decode(mcr)
@@ -330,10 +330,10 @@ class GoodFETAT91X40(GoodFETARM7):
         addr = EBI_BASE + (chipnum*4)
         self.ARMwriteChunk(addr,[value])
 
-    def getEBIMemoryMap(self):
+    def getEBIMemoryMapstr(self):
         keys = ebi_memory_map_items.keys()
         keys.sort()
-        output = [ "EBI Memory Map"]
+        output = [ "===EBI Memory Map==="]
         for x in xrange(8):
             desc,name,rw,default = ebi_memory_map_items[x*4]
             output.append("\nMAP: %s (%s) - default: %x\n%s"%(name,desc,default,self.getChipSelectRegstr(x)))
@@ -345,9 +345,8 @@ class GoodFETAT91X40(GoodFETARM7):
         return mcr
     def getMemoryControlRegisterstr(self):
         return mcr_decode_str(self.getMemoryControlRegister())
-    def getEBIMCR(self):
-        print "EBI Memory Control Register\n"
-        print self.getMemoryControlRegisterstr()
+    def getEBIMCRstr(self):
+        return  "EBI Memory Control Register\n" + self.getMemoryControlRegisterstr()
 
     def getInterruptSourceModeReg(self, regnum):
         regval = self.ARMreadMem(AIC_SMR[regnum][0])
@@ -655,14 +654,15 @@ def at91x40_cli_handler(client, argv):
 
     if(argv[1]=="memorymap"):
         client.halt()
-        print client.getEBIMCR()
+        print "=============================================="
+        print client.getEBIMCRstr()
         print ""
-        print client.getEBIMemoryMap()
+        print client.getEBIMemoryMapstr()
         client.resume()
 
     if(argv[1]=="memorycontrolreg"):
         client.halt()
-        print client.getEBIMCR()
+        print client.getEBIMCRstr()
         client.resume()
 
 

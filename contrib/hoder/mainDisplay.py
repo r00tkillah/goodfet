@@ -32,7 +32,7 @@ tk = Tkinter
 class DisplayApp:
 
     # init function
-    def __init__(self, width, height, rate=500):
+    def __init__(self, width, height, rate=500, table):
         #configure information
         #Initialize communication class
         self.comm = GoodFETMCPCANCommunication()
@@ -40,7 +40,7 @@ class DisplayApp:
         self.verbose = True
         
         # Initialize the data manager
-        self.table = "vue2"
+        self.table = table
         self.dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table=self.table)
         
         #store figure
@@ -397,5 +397,5 @@ class DisplayApp:
         
 # executes everything to run
 if __name__ == "__main__":
-    dapp = DisplayApp(650, 500)
+    dapp = DisplayApp(650, 500, "ford_2004")
     dapp.main()

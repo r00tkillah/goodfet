@@ -120,23 +120,23 @@ state” to the “Select DR” state each time the “Update” state is reache
 /************************* EmbeddedICE Primitives ****************************/
 //! shifter for writing to chain2 (EmbeddedICE). 
 unsigned long eice_write(unsigned char reg, unsigned long data){
-  unsigned long retval, temp;
+  unsigned long retval;
   jtagarm7tdmi_scan(2, ARM7TDMI_IR_INTEST);
   jtag_capture_dr();
   jtag_shift_register();
   retval = jtag_trans_n(data, 32, LSB| NOEND| NORETIDLE);         // send in the data - 32-bits lsb
-  temp = jtag_trans_n(reg, 5, LSB| NOEND| NORETIDLE);             // send in the register address - 5 bits lsb
+  jtag_trans_n(reg, 5, LSB| NOEND| NORETIDLE);             // send in the register address - 5 bits lsb
   jtag_trans_n(1, 1, LSB);                                        // send in the WRITE bit
   return(retval); 
 }
 
 //! shifter for reading from chain2 (EmbeddedICE).
 unsigned long eice_read(unsigned char reg){               // PROVEN
-  unsigned long temp, retval;
+  unsigned long retval;
   jtagarm7tdmi_scan(2, ARM7TDMI_IR_INTEST);
   jtag_capture_dr();
   jtag_shift_register(); // send in the register address - 5 bits LSB
-  temp = jtag_trans_n(reg, 5, LSB| NOEND| NORETIDLE);
+  jtag_trans_n(reg, 5, LSB| NOEND| NORETIDLE);
   jtag_trans_n(0L, 1, LSB);                                       // clear TDI to select "read only"
   jtag_capture_dr();
   jtag_shift_register(); // Now shift out the 32 bits
@@ -314,25 +314,26 @@ void jtagarm7_handle_fn( uint8_t const app,
     val = cmddata[0];
     if (cmddata[0] > 32)
     {
-        debughex32(cmddatalong[0]);
-        debughex32(cmddatalong[1]);
+        //debughex32(cmddatalong[0]);
+        //debughex32(cmddatalong[1]);
         cmddatalong[1] = jtag_trans_n(cmddatalong[2], val - 32 ,cmddata[1] | NOEND |NORETIDLE);
         cmddatalong[0] = jtag_trans_n(cmddatalong[2], 32, cmddata[1]);
     }
     else
     {
-        debughex32(cmddatalong[0]);
+        //debughex32(cmddatalong[0]);
         cmddatalong[0] = jtag_trans_n(cmddatalong[1], val, cmddata[1]);
     }
     txdata(app,verb,val/8);
     break;
   case JTAG_DR_SHIFT_MORE:
     // assumes you just executed JTAG_DR_SHIFT with NOEND flag set
+    debugstr("JTAG_DR_SHIFT_MORE");
     val = cmddata[0];
     if (cmddata[0] > 32)
     {
-        debughex32(cmddatalong[0]);
-        debughex32(cmddatalong[1]);
+        //debughex32(cmddatalong[0]);
+        //debughex32(cmddatalong[1]);
         cmddatalong[1] = jtag_trans_n(cmddatalong[2], val - 32 ,cmddata[1] | NOEND |NORETIDLE);
         cmddatalong[0] = jtag_trans_n(cmddatalong[2], 32, cmddata[1]);
     }
@@ -382,12 +383,12 @@ void jtagarm7_handle_fn( uint8_t const app,
   case JTAG_RESET_TARGET:
     //FIXME: BORKEN
     debugstr("RESET TARGET");
-    debughex((P3OUT&RST));
+    //debughex((P3OUT&RST));
     CLRRST;
-    debughex((P3OUT&RST));
+    //debughex((P3OUT&RST));
     delay(cmddataword[0]);
     SETRST;
-    debughex((P3OUT&RST));
+    //debughex((P3OUT&RST));
     txdata(app,verb,4);
     break;
 

@@ -19,6 +19,8 @@ all:
 	cp $(fwpath)/goodfet.hex dist/goodfet11.hex >/dev/null
 	cd $(fwpath) && board=goodfet41 make clean all >/dev/null 2>>/dev/null
 	cp $(fwpath)/goodfet.hex dist/goodfet41.hex >/dev/null
+	cd $(fwpath) && board=goodfet42 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/goodfet42.hex >/dev/null
 	cd $(fwpath) && board=goodfet31 make clean all >/dev/null 2>>/dev/null
 	cp $(fwpath)/goodfet.hex dist/goodfet31.hex >/dev/null
 	cd $(fwpath) && board=telosb make clean all >/dev/null 2>>/dev/null
@@ -29,6 +31,10 @@ all:
 	cp $(fwpath)/goodfet.hex dist/facedancer10.hex >/dev/null
 	cd $(fwpath) && board=facedancer11 make clean all >/dev/null 2>>/dev/null
 	cp $(fwpath)/goodfet.hex dist/facedancer11.hex >/dev/null
+	cd $(fwpath) && board=facedancer20 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/facedancer20.hex >/dev/null
+	cd $(fwpath) && board=facedancer21 make clean all >/dev/null 2>>/dev/null
+	cp $(fwpath)/goodfet.hex dist/facedancer21.hex >/dev/null
 	cd $(fwpath) && board=goodthopter10 make clean all >/dev/null 2>>/dev/null
 	cp $(fwpath)/goodfet.hex dist/goodthopter10.hex >/dev/null
 	cd $(fwpath) && board=goodthopter11 make clean all >/dev/null 2>>/dev/null

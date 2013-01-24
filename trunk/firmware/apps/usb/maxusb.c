@@ -43,6 +43,7 @@ void maxusb_setup(){
   SPIDIR|=MOSI+SCK+BIT0; //BIT0 might be SS
   SPIDIR&=~MISO;
   P4DIR&=~TST; //TST line becomes interrupt input.
+  P4DIR&=~BIT7; //GPX pin.
   P2DIR|=RST;
   DIRSS;
   

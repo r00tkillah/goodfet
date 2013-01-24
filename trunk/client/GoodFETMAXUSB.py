@@ -245,6 +245,8 @@ class GoodFETMAXUSB(GoodFET):
     def MAXUSBsetup(self):
         """Move the FET into the MAXUSB application."""
         self.writecmd(self.MAXUSBAPP,0x10,0,self.data); #MAXUSB/SETUP
+        self.writecmd(self.MAXUSBAPP,0x10,0,self.data); #MAXUSB/SETUP
+        self.writecmd(self.MAXUSBAPP,0x10,0,self.data); #MAXUSB/SETUP
         print "Connected to MAX342x Rev. %x" % (self.rreg(rREVISION));
         self.wreg(rPINCTL,0x18); #Set duplex and negative INT level.
         

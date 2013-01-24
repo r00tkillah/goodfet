@@ -323,23 +323,26 @@ class GoodFETMCPCANCommunication:
                 break;
     
         
-    def spit(self,freq):
+    def spit(self,freq, standardid,debug):
+        
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
         
-        print "Tx Errors:  %3d" % self.client.peek8(0x1c);
-        print "Rx Errors:  %3d" % self.client.peek8(0x1d);
-        print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
-        print "TXB0CTRL: %02x" %self.client.peek8(0x30);
-        print "CANINTF: %02x"  %self.client.peek8(0x2C);
+        if(debug==true):
+            print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+            print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+            print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
+            print "TXB0CTRL: %02x" %self.client.peek8(0x30);
+            print "CANINTF: %02x"  %self.client.peek8(0x2C);
     
+        #### split SID into different regs
+        SIDlow = (standardid & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (standardid >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
         
-        packet = [0x00, 
-                   0x08, # LOWER nibble must be 8 or greater to set EXTENDED ID 
-                   0x00, 0x00,
-                   0x08, # UPPER nibble must be 0 to set RTR bit for DATA FRAME
-                      # LOWER nibble is DLC
-                   0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF]    
+        packet = [SIDhigh, SIDlow,
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                  0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF]    
         
         self.client.txpacket(packet);
     
@@ -351,11 +354,12 @@ class GoodFETMCPCANCommunication:
             print "TXB0CTRL: %02x" %self.client.peek8(0x30);
             self.client.MCPbitmodify(0x30,0x08,0x00);
             print "TXB0CTRL modified to: %02x\n" %self.client.peek8(0x30);
-    
-        print "message sending attempted.";
-        print "Tx Errors:  %02x" % self.client.peek8(0x1c);
-        print "Rx Errors:  %02x" % self.client.peek8(0x1d);
-        print "Error Flags:  %02x" % self.client.peek8(0x2d);        
+        
+        if (debug==true):
+            print "message sending attempted.";
+            print "Tx Errors:  %02x" % self.client.peek8(0x1c);
+            print "Rx Errors:  %02x" % self.client.peek8(0x1d);
+            print "Error Flags:  %02x" % self.client.peek8(0x2d);        
         
 
 
@@ -502,7 +506,7 @@ if __name__ == "__main__":
     #   transmission (travis thinks this is because we're sniffing in listen-only
     #   and thus not generating an ack bit on the recieving board)
     if(args.verb=="spit"):
-        comm.spit(freq=freq)
+        comm.spit(freq=freq, standardid=standardid, debug=debug)
 
 
     

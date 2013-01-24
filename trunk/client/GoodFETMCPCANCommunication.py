@@ -72,7 +72,7 @@ class GoodFETMCPCANCommunication:
     #   SNIFF
     ##########################
          
-    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug = False):
+    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False):
         
         #### ON-CHIP FILTERING
         if(standardid != None):
@@ -203,9 +203,8 @@ class GoodFETMCPCANCommunication:
         return packetcount
         
         
-    def filterStdSweep(self, freq = freq, time = 5):
+    def filterStdSweep(self, freq, time = 5):
         msgIDs = []
-       niff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug = False):
         for i in range(0, 2047, 6):
             print "sniffing id: %d, %d, %d, %d, %d, %d" % (i,i+1,i+2,i+3,i+4,i+5)
             comment = "sweepFilter_%d_%d_%d_%d_%d_%d" % (i,i+1,i+2,i+3,i+4,i+5)
@@ -328,7 +327,7 @@ class GoodFETMCPCANCommunication:
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
         
-        if(debug==true):
+        if(debug==True):
             print "Tx Errors:  %3d" % self.client.peek8(0x1c);
             print "Rx Errors:  %3d" % self.client.peek8(0x1d);
             print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
@@ -336,8 +335,8 @@ class GoodFETMCPCANCommunication:
             print "CANINTF: %02x"  %self.client.peek8(0x2C);
     
         #### split SID into different regs
-        SIDlow = (standardid & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5
-        SIDhigh = (standardid >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        SIDlow = (standardid[0] & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
         
         packet = [SIDhigh, SIDlow,
                   0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
@@ -355,7 +354,7 @@ class GoodFETMCPCANCommunication:
             self.client.MCPbitmodify(0x30,0x08,0x00);
             print "TXB0CTRL modified to: %02x\n" %self.client.peek8(0x30);
         
-        if (debug==true):
+        if (debug==True):
             print "message sending attempted.";
             print "Tx Errors:  %02x" % self.client.peek8(0x1c);
             print "Rx Errors:  %02x" % self.client.peek8(0x1d);
@@ -432,7 +431,7 @@ if __name__ == "__main__":
     #
     
     if(args.verb=="sniff"):
-        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename, standardid=standardid)    
+        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename, standardid=standardid, debug=debug)    
                     
     ##########################
     #   SNIFF TEST

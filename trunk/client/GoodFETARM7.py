@@ -9,7 +9,10 @@
 #  * flash manipulation (probably need to get the specific chip for this one)
 #  * set security (chip-specific)
 
-import sys, binascii, struct, time
+import sys
+import time
+import struct
+
 from GoodFET import GoodFET
 from intelhex import IntelHex
 
@@ -95,6 +98,7 @@ PM_svc = 0b10011
 PM_abt = 0b10111
 PM_und = 0b11011
 PM_sys = 0b11111
+
 proc_modes = {
     0:      ("UNKNOWN, MESSED UP PROCESSOR MODE","fsck", "This should Never happen.  MCU is in funky state!"),
     PM_usr: ("User Processor Mode", "usr", "Normal program execution mode"),
@@ -187,6 +191,7 @@ PCOFF_BREAK = 4 * 4
 
 def debugstr(strng):
     print >>sys.stderr,(strng)
+
 def PSRdecode(psrval):
     output = [ "(%s mode)"%proc_modes[psrval&0x1f][1] ]
     for x in xrange(5,32):
@@ -195,11 +200,12 @@ def PSRdecode(psrval):
     return " ".join(output)
    
 fmt = [None, "B", "<H", None, "<L", None, None, None, "<Q"]
+
 def chop(val,byts):
     s = struct.pack(fmt[byts], val)
     return [ord(b) for b in s ]
         
-class GoodFETARM(GoodFET):
+class GoodFETARM7(GoodFET):
     """A GoodFET variant for use with ARM7TDMI microprocessor."""
     def __init__(self):
         GoodFET.__init__(self)
@@ -207,6 +213,7 @@ class GoodFETARM(GoodFET):
         self.current_dbgstate = 0xffffffff
         self.flags =            0xffffffff
         self.nothing =          0xffffffff
+        self.stored_regs = []
     def __del__(self):
         try:
             if (self.ARMget_dbgstate()&9) == 9:
@@ -267,7 +274,7 @@ class GoodFETARM(GoodFET):
         ver     = (ident >> 28)
         partno  = (ident >> 12) & 0xffff
         mfgid   = (ident >> 1)  & 0x7ff
-        return "Chip IDCODE: 0x%x\n\tver: %x\n\tpartno: %x\n\tmfgid: %x\n" % (ident, ver, partno, mfgid); 
+        return "Chip IDCODE:    0x%x\tver: %x\tpartno: %x\tmfgid: %x" % (ident, ver, partno, mfgid); 
     def ARMeice_write(self, reg, val):
         data = chop(val,4)
         data.extend([reg])
@@ -371,38 +378,58 @@ class GoodFETARM(GoodFET):
         self.ARMset_register(0,r0)
         return retval
     def ARMcapture_system_state(self, pcoffset):
+        self.c0Data, self.flags, self.c0Addr = self.ARMchain0(0)
         if self.ARMget_dbgstate() & DBG_TBIT:
             pcoffset += 8
         else:
             pcoffset += 4
         self.storedPC = self.ARMget_register(15) + pcoffset
         self.last_dbg_state = self.ARMget_dbgstate()
-    def ARMhaltcpu(self):
+        self.cpsr = self.ARMget_regCPSR()
+        print "ARMcapture_system_state: stored pc: 0x%x  last_dbg_state: 0x%x" % (self.storedPC, self.last_dbg_state)
+
+    #def ARMhaltcpu(self):
+    def halt(self):
         """Halt the CPU."""
-        if not(self.ARMget_dbgstate()&1):
-            self.ARMset_dbgctrl(2)
-            if (self.ARMwaitDBG() == 0):
-                raise Exception("Timeout waiting to enter DEBUG mode on HALT")
-            self.ARMset_dbgctrl(0)
-            self.ARMcapture_system_state(PCOFF_DBGRQ)
-            if self.last_dbg_state&0x10:
-                self.storedPC = self.THUMBgetPC()
-            else:
-                self.storedPC = self.ARMget_register(15)
-        self.storedPC, self.flags, self.nothing = self.ARMchain0(0)
+        if self.ARMget_dbgstate()&DBG_DBGACK:
+            if not len(self.stored_regs):
+                #print "stored regs: " + repr(self.stored_regs)
+                self.stored_regs = self.ARMget_registers()[:15]
+                print self.print_stored_registers()
+            return
+        print "halting cpu"
+        self.ARMset_dbgctrl(2)
+        if (self.ARMwaitDBG() == 0):
+            raise Exception("Timeout waiting to enter DEBUG mode on HALT")
+        self.ARMset_dbgctrl(0)
+
+        self.ARMcapture_system_state(PCOFF_DBGRQ)
+        print "storedPC: %x (%x)      flags: %x    nothing: %x" % (self.storedPC, self.c0Data, self.flags, self.c0Addr)
         if self.ARMget_dbgstate() & DBG_TBIT:
             self.ARMsetModeARM()
             if self.storedPC ^ 4:
                 self.ARMset_register(15,self.storedPC&0xfffffffc)
+        self.stored_regs = self.ARMget_registers()[:15]
+        #print "stored regs: " + repr(self.stored_regs)
+        #print self.print_stored_registers()
         print "CPSR: (%s) %s"%(self.ARMget_regCPSRstr())
-    halt = ARMhaltcpu
+    #halt = ARMhaltcpu
 
-    def ARMreleasecpu(self):
+    #def ARMreleasecpu(self):
+    def resume(self):
         """Resume the CPU."""
-        # restore registers FIXME: DO THIS
-        if self.ARMget_dbgstate()&1 == 0:
+        # FIXME: restore CPSR
+        # FIXME: true up PC to exactly where we left off...
+        if not self.ARMget_dbgstate()&DBG_DBGACK:
             return
-        currentPC, self.currentflags, nothing = self.ARMchain0(self.storedPC,self.flags)
+        print "resume"
+        if len(self.stored_regs):
+            #print self.print_stored_registers()
+            self.ARMset_registers(self.stored_regs, 0x7fff)
+        else:
+            print "skipping restore of stored registers due to empty list ?  WTFO?"
+
+        currentPC, self.currentflags, nothing = self.ARMchain0(self.storedPC,self.flags, self.c0Addr)
         if not(self.flags & F_TBIT):                                    # need to be in arm mode
             if self.currentflags & F_TBIT:                              # currently in thumb mode
                 self.ARMsetModeARM()
@@ -428,12 +455,16 @@ class GoodFETARM(GoodFET):
             self.ARM_nop(1)
             #print hex(self.storedPC)
             #print hex(self.ARMget_register(15))
-            print hex(self.ARMchain0(self.storedPC,self.flags)[0])
+            #print hex(self.ARMchain0(self.storedPC,self.flags)[0])
+            self.ARMchain0(self.storedPC,self.flags)[0]
             self.ARMdebuginstr(THUMB_INSTR_B_IMM | (0x7fc07fc),0)
             self.ARM_nop(0)
             self.ARMrestart()
 
-    resume = ARMreleasecpu
+        #print >>sys.stderr,"Debug Status:\t%s\n" % self.statusstr()
+        #print >>sys.stderr,"CPSR: (%s) %s"%(self.ARMget_regCPSRstr())
+
+    #resume = ARMreleasecpu
     
     def resettap(self):
         self.writecmd(0x13, RESETTAP, 0,[])
@@ -441,7 +472,7 @@ class GoodFETARM(GoodFET):
     def ARMsetModeARM(self):
         r0 = None
         if ((self.current_dbgstate & DBG_TBIT)):
-            debugstr("=== Switching to ARM mode ===")
+            #debugstr("=== Switching to ARM mode ===")
             self.ARM_nop(0)
             self.ARMdebuginstr(THUMB_INSTR_BX_PC,0)
             self.ARM_nop(0)
@@ -452,7 +483,7 @@ class GoodFETARM(GoodFET):
 
     def ARMsetModeThumb(self):                               # needs serious work and truing
         self.resettap()
-        debugstr("=== Switching to THUMB mode ===")
+        #debugstr("=== Switching to THUMB mode ===")
         if ( not (self.current_dbgstate & DBG_TBIT)):
             self.storedPC |= 1
             r0 = self.ARMget_register(0)
@@ -554,13 +585,29 @@ class GoodFETARM(GoodFET):
                 #print out
         return ''.join(out)        
 
+    def ARMprintChunk(self, adr, wordcount, verbose=False, width=8):
+        for string in self.ARMreprChunk(adr, wordcount, verbose=False, width=8):
+            sys.stdout.write(string)
+
+    def ARMreprChunk(self, adr, wordcount, verbose=False, width=8):
+        adr &= 0xfffffffc
+        endva = adr + (4*wordcount)
+        output = [ "Dwords from 0x%x through 0x%x" % (adr, endva) ]
+        idx = 0
+        for data in self.ARMreadChunk(adr, wordcount, verbose):
+            if (idx % width) == 0:
+                yield ( "\n0x%.8x\t" % (adr + (4*idx)) )
+            yield ( "%.8x   " % (data) )
+            idx += 1
+
+        yield("\n")
+
     def ARMreadChunk(self, adr, wordcount, verbose=True):
         """ Only works in ARM mode currently
         WARNING: Addresses must be word-aligned!
         """
         regs = self.ARMget_registers()
         self.ARMset_registers([0xdeadbeef for x in xrange(14)], 0xe)
-        #output = []
         count = wordcount
         while (wordcount > 0):
             if (verbose and wordcount%64 == 0):  sys.stderr.write(".")
@@ -579,14 +626,17 @@ class GoodFETARM(GoodFET):
             #print hex(adr)
         # FIXME: handle the rest of the wordcount here.
         self.ARMset_registers(regs,0xe)
-        #return output
-        
+
+    '''def ARMreadStream(self, adr, bytecount):
+        #data = [struct.unpack("<L", x) for x in self.ARMreadChunk(adr, (bytecount-1/4)+1)]
+        diff = adr % 4
+        address = adr - diff
+        data = [ struct.pack("<L", x) for x in self.ARMreadChunk(address, (bytecount-1/4)+1) ]
+        return "".join(data)[diff:bytecount]'''
+    
     ARMreadMem = ARMreadChunk
     peek = ARMreadMem
-    '''def ARMreadStream(self, adr, bytecount):
-        data = [struct.unpack("<L", x) for x in self.ARMreadChunk(adr, (bytecount-1/4)+1)]
-        return "".join(data)[:bytecount]
-       ''' 
+
     def ARMwriteChunk(self, adr, wordarray):         
         """ Only works in ARM mode currently
         WARNING: Addresses must be word-aligned!
@@ -696,13 +746,13 @@ class GoodFETARM(GoodFET):
         d1,b1,a1 = struct.unpack("<LQL",self.data)
         return (a1,b1,d1)
 
-    def start(self):
+    def start(self, ident=False):
         """Start debugging."""
         self.writecmd(0x13,START,0,self.data)
-        print >>sys.stderr,"Identifying Target:"
-        ident=self.ARMidentstr()
-        print >>sys.stderr,ident
-        print >>sys.stderr,"Debug Status:\t%s\n" % self.statusstr()
+        if ident:
+            print >>sys.stderr,"Identifying Target:"
+            print >>sys.stderr, self.ARMidentstr()
+            print >>sys.stderr,"Debug Status:\t%s\n" % self.statusstr()
 
     def stop(self):
         """Stop debugging."""
@@ -719,4 +769,209 @@ class GoodFETARM(GoodFET):
     #    print "Flashing buffer to 0x%06x" % adr
     #    self.writecmd(0x13,MASS_FLASH_PAGE,4,data)
 
+    def print_registers(self):
+        return [ hex(x) for x in self.ARMget_registers() ]
+
+    def print_stored_registers(self):
+        return [ hex(x) for x in self.stored_regs ]
+
+
+
+######### command line stuff #########
+from intelhex import IntelHex16bit, IntelHex
+
+def arm7_syntax():
+    print "Usage: %s verb [objects]\n" % sys.argv[0]
+    print "%s info" % sys.argv[0]
+    print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0]
+    print "%s erase" % sys.argv[0]
+    print "%s eraseinfo" % sys.argv[0]
+    print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0]
+    print "%s verify $foo.hex [0x$start 0x$stop]" % sys.argv[0]
+    print "%s poke 0x$adr 0x$val" % sys.argv[0]
+    print "%s peek 0x$start [0x$stop]" % sys.argv[0]
+    print "%s reset" % sys.argv[0]
+    sys.exit()
+
+def arm7_main():
+    ''' this function should be called from command line app '''
+
+    #Initialize FET and set baud rate
+    client=GoodFETARM7()
+    client.serInit()
+
+    client.setup()
+    client.start()
+
+    arm7_cli_handler(client, sys.argv)
+
+def arm7_cli_handler(client, argv):
+    if(argv[1]=="info"):
+        client.halt()
+        print >>sys.stderr,"Identifying Target:"
+        print >>sys.stderr, self.ARMidentstr()
+        print >>sys.stderr,"Debug Status:\t%s\n" % self.statusstr()
+        client.resume()
+
+
+    if(argv[1]=="dump"):
+        f = sys.argv[2]
+        start=0x00000000
+        stop=0xFFFFFFFF
+        if(len(sys.argv)>3):
+            start=int(sys.argv[3],16)
+        if(len(sys.argv)>4):
+            stop=int(sys.argv[4],16)
+        
+        print "Dumping from %04x to %04x as %s." % (start,stop,f)
+        #h = IntelHex16bit(None)
+        # FIXME: get mcu state and return it to that state
+        client.halt()
+
+        try:
+            h = IntelHex(None)
+            i=start
+            while i<=stop:
+                #data=client.ARMreadMem(i, 48)
+                data=client.ARMreadChunk(i, 48, verbose=0)
+                print "Dumped %06x."%i
+                for dword in data:
+                    if i<=stop and dword != 0xdeadbeef:
+                        h.puts( i, struct.pack("<I", dword) )
+                    i+=4
+            # FIXME: get mcu state and return it to that state
+        except:
+            print "Unknown error during read. Writing results to output file."
+            print "Rename file with last address dumped %06x."%i
+            pass
+
+        client.resume()
+        h.write_hex_file(f)
+
+    '''
+    if(sys.argv[1]=="erase"):
+        print "Erasing main flash memory."
+        client.ARMmasserase()
+
+    if(sys.argv[1]=="eraseinfo"):
+        print "Erasing info memory."
+        client.ARMinfoerase()
+
+        
+    '''
+    if(sys.argv[1]=="ivt"):
+        client.halt()
+        client.ARMprintChunk(0x0,0x20)
+        client.resume()
+
+    if(sys.argv[1]=="regs"):
+        client.halt()
+        for i in range(0,16):
+            print "r%i=%04x" % (i,client.ARMget_register(i))
+        client.resume()
+
+    if(sys.argv[1]=="flash"):
+        f=sys.argv[2]
+        start=0
+        stop=0x10000
+        if(len(sys.argv)>3):
+            start=int(sys.argv[3],16)
+        if(len(sys.argv)>4):
+            stop=int(sys.argv[4],16)
+        
+        client.halt()
+        h = IntelHex16bit(f)
+        
+        #Should this be default?
+        #Makes flashing multiple images inconvenient.
+        #client.ARMmasserase()
+        
+        count=0; #Bytes in commit.
+        first=0
+        vals=[]
+        last=0;  #Last address committed.
+        for i in h._buf.keys():
+            if((count>0x40 or last+2!=i) and count>0 and i&1==0):
+                #print "%i, %x, %x" % (len(vals), last, i)
+                client.ARMpokeflashblock(first,vals)
+                count=0
+                first=0
+                last=0
+                vals=[]
+            if(i>=start and i<stop  and i&1==0):
+                val=h[i>>1]
+                if(count==0):
+                    first=i
+                last=i
+                count+=2
+                vals+=[val&0xff,(val&0xff00)>>8]
+                if(i%0x100==0):
+                    print "%04x" % i
+        if count>0: #last commit, ivt
+            client.ARMpokeflashblock(first,vals)
+        client.resume()
+
+    if(sys.argv[1]=="verify"):
+        f=sys.argv[2]
+        start=0
+        stop=0xFFFF
+        if(len(sys.argv)>3):
+            start=int(sys.argv[3],16)
+        if(len(sys.argv)>4):
+            stop=int(sys.argv[4],16)
+        
+        client.halt()
+        h = IntelHex16bit(f)
+        for i in h._buf.keys():
+            if(i>=start and i<stop and i&1==0):
+                peek=client.peek(i)
+                if(h[i>>1]!=peek):
+                    print "ERROR at %04x, found %04x not %04x"%(i,peek,h[i>>1])
+                if(i%0x100==0):
+                    print "%04x" % i
+        client.resume()
+
+
+    if(sys.argv[1]=="peek"):
+        start = 0x0000
+        if(len(sys.argv)>2):
+            start=int(sys.argv[2],16)
+
+        stop = start+4
+        if(len(sys.argv)>3):
+            stop=int(sys.argv[3],16)
+
+        print "Peeking from %04x to %04x." % (start,stop)
+        client.halt()
+        for dword in client.ARMreadChunk(start, (stop-start)/4, verbose=0):
+            print "%.4x: %.8x" % (start, dword)
+            start += 4
+        client.resume()
+
+    if(sys.argv[1]=="poke"):
+        start=0x0000
+        val=0x00
+        if(len(sys.argv)>2):
+            start=int(sys.argv[2],16)
+        if(len(sys.argv)>3):
+            val=int(sys.argv[3],16)
+        
+        print "Poking %06x to become %04x." % (start,val)
+        client.halt()
+        #???while client.ARMreadMem(start)[0]&(~val)>0:
+        client.ARMwriteChunk(start, [val])
+        print "Poked to %.8x" % client.ARMreadMem(start)[0]
+        client.resume()
+
+
+    if(sys.argv[1]=="reset"):
+        #Set PC to RESET vector's value.
+        
+        #client.ARMsetPC(0x00000000)
+        #client.ARMset_regCPSR(0)
+        #client.ARMreleasecpu()
+        client.ARMresettarget(1000)
+
+    #client.ARMreleasecpu()
+    #client.ARMstop()
 

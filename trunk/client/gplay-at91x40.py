@@ -18,6 +18,7 @@ def init():
     print >>sys.stderr,"Starting JTAG ARM on goodfet...\n"
     client.start()
     print "STARTUP: %s\n"%repr(client.data)
+    client.disableWatchDog()
     #
 
 def print_registers():

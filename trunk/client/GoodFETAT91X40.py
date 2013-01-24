@@ -225,6 +225,17 @@ def ebi_csr_decode(reg):
     wse =  (reg>>5)&1
     nws =  (reg>>2)&7
     dbw =  (reg&3)
+    return [ addr, csen, bat, tdf, pages, wse, nws, dbw]
+
+def ebi_csr_decode_str(reg):
+    (addr,
+    csen,
+    bat,
+    tdf,
+    pages,
+    wse,
+    nws,
+    dbw) = ebi_csr_decode(reg)
     output = ["(register: %x)"%reg,
             "Base Address: %s"%hex(addr<<20),
             "Chip Select: %s"%("False","True")[csen],
@@ -251,21 +262,36 @@ mcr_ale = {
 def mcr_decode(mcr):
     validAddrBits,maxAddrSpace,validCS,codeLabel = mcr_ale[mcr&7]
     drp = mcr>>4
-    output = ["Valid Address Bits: %s"%validAddrBits,
-            "Maximum Address Space: %xMB"%maxAddrSpace,
+    #print hex(drp)
+    if drp and drp != 1:
+        drp = 2
+	return (validAddrBits, maxAddrSpace, validCS, codeLabel, drp)
+
+def mcr_decode_str(mcr):
+    ( validAddrBits, maxAddrSpace, validCS, codeLabel, drp) = mcr_decode(mcr)
+    output = [ 
+            "(register: %x)"%mcr,
+            "Valid Address Bits: %s"%validAddrBits,
+            "Maximum Address Space: 0x%x MB"%maxAddrSpace,
             "Valid Chip Select: %s"%validCS,
             "Code Label:  %s"%codeLabel,
-            ("Standard Read Protocol for all external memory devices enabled (EBI_DRP_STANDARD)","Early Read Protocol for all external memory devices enabled (EBI_DRP_EARLY)")[drp]
+            ("Standard Read Protocol for all external memory devices enabled (EBI_DRP_STANDARD)","Early Read Protocol for all external memory devices enabled (EBI_DRP_EARLY)","Invalid mcr")[drp]
             ]
     return "\n".join(output)
 
 def wd_omr_decode(omr):
-    return "\n".join(["External Signal: %s"%("disabled","enabled")[(omr>>3)&1],
-            "External Signal: %s"%("disabled","enabled")[(omr>>3)&1],
-            "Interrupt: %s"%("disabled","enabled")[(omr>>2)&1],
-            "Reset: %s"%("disabled","enabled")[(omr>>1)&1],
-            "Watch Dog: %s"%("disabled","enabled")[(omr)&1],
+	return (omr>>4, (omr>>3)&1, (omr>>2)&1, (omr>>1)&1, omr&1)
+
+def wd_omr_decode_str(omr):
+    ( okey, esig, int, rst, wdog ) = wd_omr_decode(omr)
+    return "\n".join([
+            "Overflow Access Key (OKEY): %x"%(okey),
+            "External Signal (EXTEN): %s"%("disabled","enabled")[esig],
+            "Interrupt (IRQEN): %s"%("disabled","enabled")[int],
+            "Reset (RSTEN): %s"%("disabled","enabled")[rst],
+            "Watch Dog (WDEN): %s"%("disabled","enabled")[wdog],
             ])
+
 def wd_cmr_decode(cmr):
     return "MCK/%d"%(8,32,128,1024)[(cmr>>2)&0xf]
 
@@ -273,16 +299,32 @@ def wd_cmr_decode(cmr):
 
 
 
-class GoodFETAT91X40(GoodFETARM):
+class GoodFETAT91X40(GoodFETARM7):
     def __init__(self):
-        GoodFETARM.__init__(self)
+        GoodFETARM7.__init__(self)
         self.usart0 = usart.USART(usart.USART0_BASE)
         self.usart1 = usart.USART(usart.USART1_BASE)
+
+    def halt(self, disableWD=True):
+        GoodFETARM7.halt(self)
+        if not disableWD: return
+
+        #Disable Watch Dog
+        self.disableWatchDog()
+
+    def resume(self, enableWD=False):
+        GoodFETARM7.resume(self)
+        if not enableWD: return
+
+        self.enableWatchDog()
+
     def getChipSelectReg(self, chipnum):
         addr = EBI_BASE + (chipnum*4)
         reg, = self.ARMreadChunk(addr,1)
         return reg
     def getChipSelectRegstr(self, chipnum):
+        return ebi_csr_decode_str(self.getChipSelectReg(chipnum))
+    def getChipSelectReglist(self, chipnum):
         return ebi_csr_decode(self.getChipSelectReg(chipnum))
     def setChipSelectReg(self, chipnum, value):
         addr = EBI_BASE + (chipnum*4)
@@ -302,7 +344,10 @@ class GoodFETAT91X40(GoodFETARM):
         mcr, = self.ARMreadMem(EBI_MCR)
         return mcr
     def getMemoryControlRegisterstr(self):
-        return mcr_decode(self.getMemoryControlRegister())
+        return mcr_decode_str(self.getMemoryControlRegister())
+    def getEBIMCR(self):
+        print "EBI Memory Control Register\n"
+        print self.getMemoryControlRegisterstr()
 
     def getInterruptSourceModeReg(self, regnum):
         regval = self.ARMreadMem(AIC_SMR[regnum][0])
@@ -380,17 +425,36 @@ class GoodFETAT91X40(GoodFETARM):
     def getWatchDogOverflowModeReg(self):
         return self.ARMreadMem(WD_OMR)
     def getWatchDogOverflowModeStr(self):
-        return wd_omr_decode(self.getWatchDogOverflowModeReg())
-    def setWatchDogOverflowModeReg(self, mode=0x2340):
-        self.ARMwriteMem(WD_OMR, mode)
+        return wd_omr_decode_str(self.getWatchDogOverflowModeReg()[0])
+    def setWatchDogOverflowModeReg(self, mode=0x00002340):
+        self.ARMwriteMem(WD_OMR, [mode])
     def getWatchDogClockModeReg(self):
-        return self.ARMreadMem(WD_CMR)
+        return self.ARMreadMem(WD_CMR)[0]
     def setWatchDogClockModeReg(self, mode=0x06e):
-        self.ARMwriteMem(WD_CMR, mode)
+        self.ARMwriteMem(WD_CMR, [mode])
     def setWatchDogControlReg(self, mode=0xC071):
-        self.ARMwriteMem(WD_CR, mode)
+        self.ARMwriteMem(WD_CR, [mode])
     def getWatchDogStatusReg(self):
-        return self.ARMreadMem(WD_SR)
+        return self.ARMreadMem(WD_SR)[0]
+    def disableWatchDog(self):
+        # 0x234 in OKEY enables writing and 0 in lowest nibble disables
+        self.setWatchDogOverflowModeReg()
+    def enableWatchDog(self):
+        # Initialize the WD Clock Mode Register
+        self.setWatchDogClockModeReg(mode=0x0000373c)
+        # Restart the timer
+        self.setWatchDogControlReg(mode=0x0000c071)
+        # Enable the watchdog
+        self.setWatchDogOverflowModeReg(mode=0x00002340)
+    def statWatchDog(self):
+        print "Status Watch Dog:"
+        print "Register Value: 0b%s" % '{0:032b}'.format(self.getWatchDogOverflowModeReg()[0])
+        print self.getWatchDogOverflowModeStr()
+        print "Clock Mode Reg: %x" % self.getWatchDogClockModeReg()
+        print "Status Reg: %x" % self.getWatchDogStatusReg()
+    def checkWatchDog(self):
+        return self.getWatchDogOverflowModeStr()
+        
 
     def getChipID(self):
         chipid = self.ARMreadMem(SF_CIDR,1)
@@ -439,4 +503,203 @@ class GoodFETAT91X40(GoodFETARM):
         for page in xrange(pagecount):
             pages.append(self.ARMreadChunk(addr+(pagesz*page), pagesz))
         return pages
-                                
+
+
+######### command line stuff #########
+
+from GoodFETARM7 import *
+
+def at91x40_main():
+    ''' this function should be called from command line app '''
+    #Initialize FET and set baud rate
+    client=GoodFETAT91X40()
+    client.serInit()
+
+    client.setup()
+    client.start()
+
+    at91x40_cli_handler(client, sys.argv)
+
+def at91x40_cli_handler(client, argv):
+
+    if(argv[1]=="chipRegStr"):
+        client.halt()
+        print "#####"
+        print client.getChipSelectRegstr(int(argv[2]))
+        print "#####"
+        client.resume()
+
+    if(argv[1]=="chipRegList"):
+        client.halt()
+        print "#####"
+        print client.getChipSelectReglist(int(argv[2]))
+        print "#####"
+        client.resume()
+
+    if(argv[1]=="chipRegValue"):
+        client.halt()
+        print "#####"
+        print "Chip Register Value:",hex(client.getChipSelectReg(int(argv[2])))
+        print "#####"
+
+    if(argv[1]=="ecdump"):
+        f = argv[2]
+        start=0x00000000
+        stop=0xFFFFFFFF
+        if(len(argv)>3):
+            start=int(argv[3],16)
+        if(len(argv)>4):
+            stop=int(argv[4],16)
+
+        ##############################3
+        # Error checking requires a special register
+        # Should an error occur while reading from the chip's memory
+        # These values will help to test if the chip is working and 
+        # the memory is mapped properly before continuing
+        # Use the chipRegStr verb to determine the value of the 
+        # Special Register when the chip is operating normally
+        # Example: ./goodfet.at91x40 chipRegValue 1
+        ##############################3
+        # user$ ./goodfet.at91x40 chipRegValue 1
+        # Identifying Target:
+        # # DEBUG 0x120
+        # Chip IDCODE: 0x1f0f0f0f
+        #     ver: 1
+        #     partno: f0f0
+        #     mfgid: 787
+        #
+        # Debug Status:   Interrupts Enabled (or not?) 
+        #
+        # #####
+        # Chip Register Value: 0x10000000
+        # #####
+        ##############################
+        special_reg_num=1
+        special_addr=0x010000000
+        if(len(argv)>5):
+            # Yes, this requires that you set the start and stop addresses
+            special_reg_num=int(argv[5])
+            special_addr=int(argv[6],16)
+        
+        print "Dumping from %04x to %04x as %s." % (start,stop,f)
+        #h = IntelHex16bit(None)
+        # FIXME: get mcu state and return it to that state
+        client.halt()
+
+        h = IntelHex(None)
+        i=start
+        while i<=stop:
+            err_cnt = 0
+            #data=client.ARMreadMem(i, 48)
+            try:
+                data=client.ARMreadChunk(i, 48, verbose=0)
+                print "Dumped %06x."%i
+                for dword in data:
+                    if i<=stop and dword != 0xdeadbeef:
+                        h.puts( i, struct.pack("<I", dword) )
+                        err_cnt = 0
+                    i+=4
+            # FIXME: get mcu state and return it to that state
+            except:
+                # Handle exceptions by counting errors after pausing to let ARM settle
+                err_cnt = 1
+                fail = 0
+                while err_cnt:
+                    time.sleep(.25)
+                    if err_cnt == 100:
+                        print "Unknown error occurred at least 100 times. Resync did not work. Writing incomplete data to file."
+                        fail = 1
+                        break
+                    else:
+                        try:
+                            print "Unknown error during read. Resync and retry."
+
+                            # If we error out several times then reset the chip and restart
+                            # This uses a special register value from a Chip Select Register
+                            # to test that the chip is in the operation state we expect
+                            if not ((err_cnt+1) % 2):
+                                reset_cnt = 0
+                                while True:
+                                    print "    Reset:",reset_cnt
+                                    check_addr = client.getChipSelectReg(special_reg_num)
+                                    print "    Special Addr:",hex(special_addr)
+                                    print "    Check Addr:",hex(check_addr)
+                                    if (special_addr == check_addr):
+                                        break
+                                    if reset_cnt == 10:
+                                        reset_cnt = 0
+                                        print "    Resetting Target"
+                                        client.ARMresettarget(1000)
+                                        client.halt()
+                                    reset_cnt += 1
+                                    time.sleep(.25)
+                            else:
+                                #Resync ARM and Watch Dog
+                                client.resume()
+                                client.halt()
+
+                            #Disable Watch Dog
+                            if client.checkWatchDog():
+                                client.disableWatchDog()
+                            err_cnt = 0
+                        except:
+                            err_cnt += 1
+                            pass
+                if fail:
+                    break
+
+        client.resume()
+        h.write_hex_file(f)
+
+
+
+    if(argv[1]=="memorymap"):
+        client.halt()
+        print client.getEBIMCR()
+        print ""
+        print client.getEBIMemoryMap()
+        client.resume()
+
+    if(argv[1]=="memorycontrolreg"):
+        client.halt()
+        print client.getEBIMCR()
+        client.resume()
+
+
+
+    if(argv[1]=="stat_watchdog"):
+        client.halt()
+        print "Watch Dog Status:"
+        print "--"
+        client.statWatchDog()
+        client.resume()
+
+    if(argv[1]=="test_disable_watchdog"):
+        client.halt()
+        print "Status Watch Dog:"
+        client.statWatchDog()
+        print "--"
+        print "Disabling Watchdog Timer:"
+        client.disableWatchDog()
+        time.sleep(2) # pause to settle
+        print "\nChecking:"
+        client.statWatchDog()
+        print "--"
+        print "Done. Resume may re-enable Watch Dog."
+        client.resume()
+
+    # anything we didn't provide from arm7:        
+    arm7_cli_handler(client, argv)
+
+    #client.ARMreleasecpu()
+    #client.ARMstop()
+
+
+if __name__ == "__main__":
+    if(len(sys.argv)==1):
+        at91x40_syntax()
+
+    else: 
+        at91x40_main()
+
+

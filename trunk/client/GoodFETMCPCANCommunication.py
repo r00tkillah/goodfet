@@ -67,6 +67,7 @@ class GoodFETMCPCANCommunication:
     def reset(self):
         self.client.MCPsetup();
     
+    
     ##########################
     #   SNIFF
     ##########################
@@ -192,13 +193,33 @@ class GoodFETMCPCANCommunication:
                     row.append(0);  #since we don't check for errors if we're not in debug mode...
                             
                 row.append(comment)
+                #write packet to file
                 for byte in packet:
                     row.append("%02x"%ord(byte));
                 dataWriter.writerow(row);
         
         outfile.close()
         print "Listened for %d seconds, captured %d packets." %(duration,packetcount);
-     
+        return packetcount
+        
+        
+    def filterStdSweep(self, freq = freq, time = 5):
+        msgIDs = []
+       niff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug = False):
+        for i in range(0, 2047, 6):
+            print "sniffing id: %d, %d, %d, %d, %d, %d" % (i,i+1,i+2,i+3,i+4,i+5)
+            comment = "sweepFilter_%d_%d_%d_%d_%d_%d" % (i,i+1,i+2,i+3,i+4,i+5)
+            description = "Running a sweep filer for all the possible standard IDs. This run filters for: %d, %d, %d, %d, %d, %d" % (i,i+1,i+2,i+3,i+4,i+5)
+            count = self.sniff(freq=freq, duration = time, description = description,comment = comment, standardid = [i, i+1, i+2, i+3, i+4, i+5])
+            if( count != 0):
+                for j in range(i,i+5):
+                    comment = "sweepFilter: %d" % (j)
+                    description = "Running a sweep filer for all the possible standard IDs. This run filters for: %d " % j
+                    count = self.sniff(freq=freq, duration = time, description = description,comment = comment, standardid = [j])
+                    if( count != 0):
+                        msgIDs.append(j)
+        return msgIDs
+    
     def sniffTest(self, freq):
         
         rate = freq;
@@ -420,6 +441,7 @@ if __name__ == "__main__":
     if(args.verb=="snifftest"):
         comm.sniffTest(freq=freq)
         
+        
     ##########################
     #   FREQ TEST
     ##########################
@@ -432,6 +454,8 @@ if __name__ == "__main__":
     
     if(args.verb=="freqtest"):
         comm.freqtest(freq=freq)
+
+
 
     ##########################
     #   iSniff

@@ -72,8 +72,8 @@ class GoodFETMCPCANCommunication:
     #   SNIFF
     ##########################
          
-    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False):
-        
+    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False):
+                
         #### ON-CHIP FILTERING
         if(standardid != None):
             comment = comment+"Filtering for SID ";
@@ -143,7 +143,11 @@ class GoodFETMCPCANCommunication:
         starttime = time.time();
         
         while((time.time()-starttime < duration)):
-            packet=self.client.rxpacket();
+            
+            if(faster):
+                packet=self.client.fastrxpacket();
+            else:
+                packet=self.client.rxpacket();
             
             if(debug == True):
                 #check packet status
@@ -324,42 +328,44 @@ class GoodFETMCPCANCommunication:
         
     def spit(self,freq, standardid,debug):
         
+        comm.reset();
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
         
         if(debug==True):
+            print "\n\nATTEMPTING TRANSMISSION!!!"
             print "Tx Errors:  %3d" % self.client.peek8(0x1c);
             print "Rx Errors:  %3d" % self.client.peek8(0x1d);
             print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
             print "TXB0CTRL: %02x" %self.client.peek8(0x30);
-            print "CANINTF: %02x"  %self.client.peek8(0x2C);
+            print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
     
         #### split SID into different regs
         SIDlow = (standardid[0] & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
         
-        packet = [SIDhigh, SIDlow,
+        packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                   0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                   # lower nibble is DLC                   
                   0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF]    
         
         self.client.txpacket(packet);
-    
-        if(self.client.peek8(0x2C)&0x80)==0x80:
-            print "Error flag raised on transmission. Clearing this flag and proceeding.\n"
-            print "INT Flags:  %02x" % self.client.peek8(0x2c);
-            self.client.MCPbitmodify(0x2C,0x80,0x00);
-            print "INT Flags modified to:  %02x\n" % self.client.peek8(0x2c);
-            print "TXB0CTRL: %02x" %self.client.peek8(0x30);
-            self.client.MCPbitmodify(0x30,0x08,0x00);
-            print "TXB0CTRL modified to: %02x\n" %self.client.peek8(0x30);
         
-        if (debug==True):
-            print "message sending attempted.";
-            print "Tx Errors:  %02x" % self.client.peek8(0x1c);
-            print "Rx Errors:  %02x" % self.client.peek8(0x1d);
-            print "Error Flags:  %02x" % self.client.peek8(0x2d);        
+        TXB0CTRL = self.client.peek8(0x30);
         
+        print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+        print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+        print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
+        print "TXB0CTRL: %02x" %self.client.peek8(0x30);
+        self.client.MCPbitmodify(0x30,0x08,0x00);
+        print "TXB0CTRL modified to: %02x\n" %self.client.peek8(0x30);
+        
+        print "CANINTF: %02x"  %self.client.peek8(0x2C);
+        self.client.MCPbitmodify(0x2C,0x80,0x00);
+        print "INT Flags modified to:  %02x\n" % self.client.peek8(0x2c);
+
+        
+
 
 
 if __name__ == "__main__":  
@@ -389,6 +395,7 @@ if __name__ == "__main__":
     parser.add_argument('-c','--comment', help='Comment attached to ech packet uploaded',default=None);
     parser.add_argument('-b', '--debug', action='store_true', help='-b will turn on debug mode, printing packet status', default=False);
     parser.add_argument('-a', '--standardid', type=int, action='append', help='Standard ID to accept with filter 0 [1, 2, 3, 4, 5]', default=None);
+    parser.add_argument('-x', '--faster', action='store_true', help='-x will use "fast packet recieve," which may duplicate packets and/or cause other weird behavior', default=False);
 
     
     args = parser.parse_args();
@@ -400,6 +407,7 @@ if __name__ == "__main__":
     comments = args.comment
     debug = args.debug
     standardid = args.standardid
+    faster=args.faster
 
     comm = GoodFETMCPCANCommunication();
     
@@ -431,7 +439,7 @@ if __name__ == "__main__":
     #
     
     if(args.verb=="sniff"):
-        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename, standardid=standardid, debug=debug)    
+        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename, standardid=standardid, debug=debug, faster=faster)    
                     
     ##########################
     #   SNIFF TEST

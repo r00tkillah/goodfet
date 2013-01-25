@@ -200,6 +200,9 @@ class GoodFETMCPCAN(GoodFETSPI):
         
         return data[1:len(data)];
     
+    def fastrxpacket(self):
+        return self.readrxbuffer(0);
+    
     def rxpacket(self):
         """Reads the next incoming packet from either buffer.
             Returns None immediately if no packet is waiting."""

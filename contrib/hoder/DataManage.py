@@ -109,7 +109,7 @@ class DataManage:
        
     
     #Creates a SQl command to upload data packet to the database
-    def getCmd(self,packet,time,error, comment=None):
+    def getCmd(self,packet,time,error,duration,filter, comment=None):
         length = packet['length']
         
         cmd = "INSERT INTO %s ( time, stdID" % self.table
@@ -132,7 +132,7 @@ class DataManage:
         if( comment != None):
             cmd += ", comment"
 
-        cmd+= ', msg) VALUES (%f, %d' % (time, packet['sID'])
+        cmd+= ', msg, filter, readTime) VALUES (%f, %d' % (time, packet['sID'])
         
         #if there is an extended id include it
         if(packet.get('eID')):
@@ -149,7 +149,7 @@ class DataManage:
         if(comment != None):
             cmd += ',"%s"' %comment
 
-        cmd += ', "%s")' %(packet['msg'])
+        cmd += ', "%s", %d, %f)' %(packet['msg'], filter, duration)
          
         return cmd
     
@@ -329,10 +329,14 @@ class DataManage:
             error = packet[1]
             #could be None
             comment = packet[2]
+            #get duration
+            duration = packet[3]
+            #get filterbit
+            filter = packet[4]
             # parse the message
-            parsedP = self.parseMessageInt(packet[3:])
+            parsedP = self.parseMessageInt(packet[5:])
             # generate the command
-            cmd = self.getCmd(parsedP, time, error,comment)
+            cmd = self.getCmd(parsedP, time, error,duration,filter,comment)
             try:
                 #execute the SQL command
                 cursor.execute(cmd)

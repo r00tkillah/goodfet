@@ -73,10 +73,11 @@ class GoodFETMCPCANCommunication:
     ##########################
          
     def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False):
-                
+        #reset eveything on the chip
+        self.reset()
+        self.client.serInit()   
         #### ON-CHIP FILTERING
         if(standardid != None):
-            comment = comment+"Filtering for SID ";
             
             self.client.MCPreqstatConfiguration();  
             self.client.poke8(0x60,0x26); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1, BUKT=1)
@@ -117,8 +118,8 @@ class GoodFETMCPCANCommunication:
                self.client.poke8(RXFSIDL, SIDlow);
         
                if (verbose == True):
-                print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
-            comment = comment + ("%d " %(ID))
+                   print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
+               comment = comment + ("f%d" %(ID))
         
         
         self.client.MCPsetrate(freq);
@@ -197,6 +198,13 @@ class GoodFETMCPCANCommunication:
                     row.append(0);  #since we don't check for errors if we're not in debug mode...
                             
                 row.append(comment)
+                #how long the sniff was for
+                row.append(duration)
+                #boolean that tells us if there was filtering. 0 == no filters, 1 == filters
+                if(standardid != None):
+                    row.append(0)
+                else:
+                    row.append(1)
                 #write packet to file
                 for byte in packet:
                     row.append("%02x"%ord(byte));

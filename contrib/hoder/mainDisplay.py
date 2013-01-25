@@ -20,7 +20,7 @@ sys.path.insert(0,'../../trunk/client/')
 from GoodFETMCPCANCommunication import *
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
-from sniff import *
+
 
 # create a shorthand object for Tkinter so we don't have to type it all the time
 tk = Tkinter

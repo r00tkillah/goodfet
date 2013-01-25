@@ -33,7 +33,7 @@ class DataManage:
         return self.DATALOCATION
     
     #Creates a new MySQL table in the database with the given table name
-    # UNTESTED 
+    # NEEEDS TO BE UPDATED
     def createTable(self, table):
         self.table = table
         cmd = "CREATE TABLE `%s` ( \

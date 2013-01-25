@@ -17,7 +17,7 @@ import array;
 import csv, time, argparse;
 import datetime
 import os
-
+from random import randrange
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
 
@@ -233,6 +233,29 @@ class GoodFETMCPCANCommunication:
                     if( count != 0):
                         msgIDs.append(j)
         return msgIDs
+    
+    def sweepRandom(self, freq, time = 5, number):
+        msgIDs = []
+        ids = []
+        for i in range(0,number,6):
+            idsTemp = []
+            comment = "sweepFilter"
+            for j in range(0,6,1):
+                id = randrange(2047)
+                comment += "_%d" % id
+                idsTemp.append(id)
+                ids.append(id)
+            print comment
+            description = "Running a sweep filer for all the possible standard IDs. This runs the following : " + comment
+            count = self.sniff(freq=freq, duration=time, description=description, comment = comment, filename, standardid = idsTemp)
+            if( count != 0):
+                for element in idsTemp:
+                    comment = "sweepFilter: %d" % (element)
+                    description = "Running a sweep filer for all the possible standard IDs. This run filters for: %d " % element
+                    count = self.sniff(freq=freq, duration = time, description = description,comment = comment, standardid = [element, element, element])
+                    if( count != 0):
+                        msgIDs.append(j)
+        return msgIDs, ids
     
     def sniffTest(self, freq):
         

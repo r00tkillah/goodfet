@@ -25,7 +25,7 @@ def at91x40_syntax():
     print "Usage: %s verb [objects]\n" % sys.argv[0]
     print "%s info" % sys.argv[0]
     print "%s dump $foo.hex [0x$start 0x$stop]" % sys.argv[0]
-    print "%s ecdump $foo.hex [0x$start 0x$stop]   - exception-handling dump" % sys.argv[0]
+    print "%s ecdump $foo.hex [0x$start 0x$stop] [$chipselectregnum 0x$chipselectregvalue] - exception-handling dump" % sys.argv[0]
     print "%s erase" % sys.argv[0]
     print "%s eraseinfo" % sys.argv[0]
     print "%s flash $foo.hex [0x$start 0x$stop]" % sys.argv[0]

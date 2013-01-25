@@ -579,17 +579,17 @@ def at91x40_cli_handler(client, argv):
             # Yes, this requires that you set the start and stop addresses
             special_reg_num=int(argv[5])
             special_addr=int(argv[6],16)
+        err_list = []
         
         print "Dumping from %04x to %04x as %s." % (start,stop,f)
-        #h = IntelHex16bit(None)
         # FIXME: get mcu state and return it to that state
         client.halt()
 
         h = IntelHex(None)
         i=start
+        err_cnt = 0
+        reset_cnt = 0
         while i<=stop:
-            err_cnt = 0
-            #data=client.ARMreadMem(i, 48)
             try:
                 data=client.ARMreadChunk(i, 48, verbose=0)
                 print "Dumped %06x."%i
@@ -612,12 +612,12 @@ def at91x40_cli_handler(client, argv):
                     else:
                         try:
                             print "Unknown error during read. Resync and retry."
+                            err_list.append("0x%06x"%i)
 
                             # If we error out several times then reset the chip and restart
                             # This uses a special register value from a Chip Select Register
                             # to test that the chip is in the operation state we expect
                             if not ((err_cnt+1) % 2):
-                                reset_cnt = 0
                                 while True:
                                     print "    Reset:",reset_cnt
                                     check_addr = client.getChipSelectReg(special_reg_num)
@@ -637,9 +637,6 @@ def at91x40_cli_handler(client, argv):
                                 client.resume()
                                 client.halt()
 
-                            #Disable Watch Dog
-                            if client.checkWatchDog():
-                                client.disableWatchDog()
                             err_cnt = 0
                         except:
                             err_cnt += 1
@@ -649,6 +646,12 @@ def at91x40_cli_handler(client, argv):
 
         client.resume()
         h.write_hex_file(f)
+        print "Addresses that required resync:"
+        if err_list:
+            for e in err_list:
+                print "   ",e
+        else:
+            print "   None"
 
 
 

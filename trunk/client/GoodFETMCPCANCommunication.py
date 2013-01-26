@@ -282,6 +282,7 @@ class GoodFETMCPCANCommunication:
    
     
     def freqtest(self,freq):
+        
         self.client.MCPsetup();
 
         self.client.MCPsetrate(freq);
@@ -330,49 +331,35 @@ class GoodFETMCPCANCommunication:
                 print "Data: " + self.client.packet2str(data);
 
     def test(self):
-        print "\nMCP2515 Self Test:";
         
-        #Switch to config mode and try to rewrite TEC.
         self.client.MCPreqstatConfiguration();
-        self.client.poke8(0x00,0xde);
-        if self.client.peek8(0x00)!=0xde:
-            print "ERROR: Poke to TEC failed.";
-        else:
-            print "SUCCESS: Register read/write.";
-        
-        #Switch to Loopback mode and try to catch our own packet.
-        self.client.MCPreqstatLoopback();
-    
-        packet1 = [0x00, 
-                   0x08, # LOWER nibble must be 8 or greater to set EXTENDED ID 
-                   0x00, 0x00,
-                   0x08, # UPPER nibble must be 0 to set RTR bit for DATA FRAME
-                         # LOWER nibble is DLC
-                   0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF]
-        self.client.txpacket(packet1);
-        self.client.txpacket(packet1);
-        print "Waiting on loopback packets.";
+        self.client.poke8(0x60,0x66);
+        self.client.MCPsetrate(500);
+        self.client.MCPreqstatNormal();
+        print "Waiting on packets.";
         packet=None;
         while(1):
             packet=self.client.rxpacket();
             if packet!=None:
                 print "Message recieved: %s" % self.client.packet2str(packet);
-                break;
+    
+                    
     
         
-    def spit(self,freq, standardid,debug):
+    def spit(self,freq=500, standardid,debug):
         
         comm.reset();
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
         
-        if(debug==True):
-            print "\n\nATTEMPTING TRANSMISSION!!!"
-            print "Tx Errors:  %3d" % self.client.peek8(0x1c);
-            print "Rx Errors:  %3d" % self.client.peek8(0x1d);
-            print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
-            print "TXB0CTRL: %02x" %self.client.peek8(0x30);
-            print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
+        print "initial state:"
+        print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+        print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+        print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
+        print "TXB0CTRL: %02x" %self.client.peek8(0x30);
+        print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
+        print "\n\nATTEMPTING TRANSMISSION!!!"
+
     
         #### split SID into different regs
         SIDlow = (standardid[0] & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5

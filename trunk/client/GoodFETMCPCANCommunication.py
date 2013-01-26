@@ -234,7 +234,7 @@ class GoodFETMCPCANCommunication:
                         msgIDs.append(j)
         return msgIDs
     
-    def sweepRandom(self, freq, time = 5, number):
+    def sweepRandom(self, freq, number = 5, time = 5,):
         msgIDs = []
         ids = []
         for i in range(0,number,6):
@@ -247,7 +247,7 @@ class GoodFETMCPCANCommunication:
                 ids.append(id)
             print comment
             description = "Running a sweep filer for all the possible standard IDs. This runs the following : " + comment
-            count = self.sniff(freq=freq, duration=time, description=description, comment = comment, filename, standardid = idsTemp)
+            count = self.sniff(freq=freq, duration=time, description=description, comment = comment, standardid = idsTemp)
             if( count != 0):
                 for element in idsTemp:
                     comment = "sweepFilter: %d" % (element)
@@ -346,7 +346,7 @@ class GoodFETMCPCANCommunication:
                     
     
         
-    def spit(self,freq=500, standardid,debug):
+    def spit(self,freq, standardid,debug):
         
         comm.reset();
         self.client.MCPsetrate(freq);

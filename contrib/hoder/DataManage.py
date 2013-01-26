@@ -382,6 +382,8 @@ class DataManage:
                     packet.append(int(col))
                 elif(colnum ==2):
                     packet.append(col)
+                elif(colnum == 3):
+                    packet.append(int(col))
                 #data packets
                 else:
                     packet.append(int(col,16))

@@ -32,7 +32,7 @@ tk = Tkinter
 class DisplayApp:
 
     # init function
-    def __init__(self, width, height, rate=500, table):
+    def __init__(self, width, height, rate=500, table="ford_test"):
         #configure information
         #Initialize communication class
         self.comm = GoodFETMCPCANCommunication()

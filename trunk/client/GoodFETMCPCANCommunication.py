@@ -332,7 +332,7 @@ class GoodFETMCPCANCommunication:
 
     def test(self):
         
-        self.client.MCPreqstatConfiguration();
+        self.client.MCPreqstatListenOnly();
         self.client.poke8(0x60,0x66);
         self.client.MCPsetrate(500);
         self.client.MCPreqstatNormal();
@@ -376,14 +376,9 @@ class GoodFETMCPCANCommunication:
         
         print "Tx Errors:  %3d" % self.client.peek8(0x1c);
         print "Rx Errors:  %3d" % self.client.peek8(0x1d);
-        print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
+        print "EFLG register:  %02x\n" % self.client.peek8(0x2d);
         print "TXB0CTRL: %02x" %self.client.peek8(0x30);
-        self.client.MCPbitmodify(0x30,0x08,0x00);
-        print "TXB0CTRL modified to: %02x\n" %self.client.peek8(0x30);
-        
         print "CANINTF: %02x"  %self.client.peek8(0x2C);
-        self.client.MCPbitmodify(0x2C,0x80,0x00);
-        print "INT Flags modified to:  %02x\n" % self.client.peek8(0x2c);
 
         
 

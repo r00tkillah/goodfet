@@ -332,18 +332,36 @@ class GoodFETMCPCANCommunication:
 
     def test(self):
         
-        self.client.MCPreqstatListenOnly();
+        comm.reset();
+        print "Just reset..."
+        print "EFLG register:  %02x" % self.client.peek8(0x2d);
+        print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+        print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+        print "CANINTF: %02x"  %self.client.peek8(0x2C);
+        self.client.MCPreqstatConfiguration();
         self.client.poke8(0x60,0x66);
         self.client.MCPsetrate(500);
         self.client.MCPreqstatNormal();
+        print "In normal mode now"
+        print "EFLG register:  %02x" % self.client.peek8(0x2d);
+        print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+        print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+        print "CANINTF: %02x"  %self.client.peek8(0x2C);
         print "Waiting on packets.";
+        checkcount = 0;
         packet=None;
         while(1):
             packet=self.client.rxpacket();
             if packet!=None:
                 print "Message recieved: %s" % self.client.packet2str(packet);
-    
-                    
+            else:
+                checkcount=checkcount+1;
+                if (checkcount%30==0):
+                    print "EFLG register:  %02x" % self.client.peek8(0x2d);
+                    print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+                    print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+                    print "CANINTF: %02x"  %self.client.peek8(0x2C);
+
     
         
     def spit(self,freq, standardid,debug):
@@ -370,15 +388,27 @@ class GoodFETMCPCANCommunication:
                   # lower nibble is DLC                   
                   0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF]    
         
-        self.client.txpacket(packet);
+        packetE = [SIDhigh, SIDlow | 0x80, 0x00,0x00, # pad out EID regs
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF] 
+   
         
+        self.client.txpacket(packetE);
+        
+        checkcount = 0;
         TXB0CTRL = self.client.peek8(0x30);
         
-        print "Tx Errors:  %3d" % self.client.peek8(0x1c);
-        print "Rx Errors:  %3d" % self.client.peek8(0x1d);
-        print "EFLG register:  %02x\n" % self.client.peek8(0x2d);
-        print "TXB0CTRL: %02x" %self.client.peek8(0x30);
-        print "CANINTF: %02x"  %self.client.peek8(0x2C);
+        while(TXB0CTRL | 0x00 != 0x00):
+            checkcount+=1;
+            TXB0CTRL = self.client.peek8(0x30);
+            if (checkcount %30 ==0):
+                print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+                print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+                print "EFLG register:  %02x" % self.client.peek8(0x2d);
+                print "TXB0CTRL: %02x" %TXB0CTRL;
+                print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
+
 
         
 

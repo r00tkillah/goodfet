@@ -72,7 +72,7 @@ class GoodFETMCPCANCommunication:
     #   SNIFF
     ##########################
          
-    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False):
+    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True):
         
         #reset eveything on the chip
         self.client.serInit() 
@@ -174,7 +174,23 @@ class GoodFETMCPCANCommunication:
                 row.append("%f"%time.time());
                 
                 if( verbose==True):
-                    print self.client.packet2str(packet)
+                    #if we want to print a parsed message
+                    if( parsed == True):
+                        sId = packet['sID']
+                        msg = "sID: %d" %sID
+                        if( packet.get('eID')):
+                            msg += " eID: %d" %packet.get('eID')
+                        msg += " rtr: %d"%packet['rtr']
+                        length = packet['length']
+                        msg += " length: %d"%length
+                        msg += "data:"
+                        for i in range(0,length):
+                            dbidx = 'db%d'%i
+                            msg +=" %d"% packet[dbidx]
+                        print msg
+                    # if we want to print just the message as it is read off the chip
+                    else:
+                        print self.client.packet2str(packet)
                 
                 if(debug == True):
                     

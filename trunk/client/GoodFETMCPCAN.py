@@ -264,6 +264,59 @@ class GoodFETMCPCAN(GoodFETSPI):
         for bar in packet:
             toprint=toprint+("%02x "%ord(bar))
         return toprint;
+    
+    def packet2parsed(self,packet):
+        dp1 = ord(data[0])
+        dp2 = ord(data[1])
+        dp5 = ord(data[4])
+        
+        #converts the CAN message to a string
+        msg="";
+        for bar in data:
+            msg=msg+("%02x"%bar)
+        
+        packet = {'msg':msg}
+        
+        #get the ide bit. allows us to check to see if we have an extended
+        #frame
+        packet['ide'] = (dp2 & 0x0f)>>3
+        #we have an extended frame
+        if( packet['ide'] != 0):
+            #get lower nibble, last 2 bits
+            eId = dp2 & 0x03
+            eId = eId<<8 | ord(data[2])
+            packet['eID'] = eId<<8 | ord(data[3])
+            packet['rtr'] = dp5>>6 & 0x01
+    
+        else:
+            packet['rtr'] = dp2>>4 & 0x01
+        
+        #error check, 2nd msb of the lower nibble of byte 2 should be 0
+        if( (dp2 & 0x04) == 4 ):
+            packet['error'] = 1
+        #error check an always 0 bit
+        if( (dp5 & 0xf0) == 240):
+            packet['error'] = 1
+        
+        # Create the standard ID. from the message
+        packet['sID'] = dp1<<3 | dp2>>5
+        
+ 
+        length = dp5 & 0x0f
+        packet['length'] = length
+        
+        if( length > 8):
+            packet['error'] = 1
+        
+        #generate the data section
+        for i in range(0,length):
+            idx = 5+i
+            dbidx = 'db%d' % i
+            packet[dbidx] = data[idx]   
+        return packet
+        
+        
+        
     def peek8(self,adr):
         """Read a byte from the given address.  Untested."""
         data=self.SPItrans([0x03,adr&0xFF,00]);

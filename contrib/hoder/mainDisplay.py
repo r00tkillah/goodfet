@@ -35,7 +35,11 @@ class DisplayApp:
     def __init__(self, width, height, rate=500, table="ford_test"):
         #configure information
         #Initialize communication class
-        self.comm = GoodFETMCPCANCommunication()
+        try:
+            self.comm = GoodFETMCPCANCommunication()
+        except:
+            print "Board not properly connected. please connect and reset"
+            self.comm = None
         self.freq = 500
         self.verbose = True
         
@@ -154,17 +158,26 @@ class DisplayApp:
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "Filters:"
         entryLabel.grid(row=i,column=0)
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "Buffer 0:"
+        entryLabel.grid(row=i,column =1 )
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "Buffer 1:"
+        entryLabel.grid(row=i,column =2 )
+        i += 1
         self.filterIDs = []
-        for j in range(0,4):
-            stdID = Tkinter.StringVar()
-            stdID.set("")
-            entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
-            self.filterIDs.append(stdID)
-            entryWidget["width"] = 10
-            entryWidget.grid(row=i,column=j+1)
+        for k in range(0,2):
+            for j in range(0,3):
+                stdID = Tkinter.StringVar()
+                stdID.set("")
+                entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
+                self.filterIDs.append(stdID)
+                entryWidget["width"] = 10
+                entryWidget.grid(row=i+k,column=j+1)
+            print k
+            i += 1
         
-        i+=1
-        
+        i += 1
         #sniff button
         sniffButton = tk.Button( self.canvas, text="Sniff", command=self.sniff, width=10 )
         sniffButton.grid(row=i,column=0)
@@ -178,7 +191,7 @@ class DisplayApp:
         self.time.set("10")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.time)
         entryWidget.grid(row=i,column=2)
-        entryWidget["width"] = 10
+        entryWidget["width"] = 5
         i += 1
         
         #comment
@@ -188,8 +201,8 @@ class DisplayApp:
         self.comment = Tkinter.StringVar();
         self.comment.set("")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.comment)
-        entryWidget.grid(row=i,column=2)
-        entryWidget["width"] = 10
+        entryWidget.grid(row=i,column=2, columnspan = 3)
+        entryWidget["width"] = 30
         i += 1
         
         #description
@@ -199,8 +212,8 @@ class DisplayApp:
         self.description = Tkinter.StringVar();
         self.description.set("")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.description)
-        entryWidget.grid(row=i,column=2)
-        entryWidget["width"] = 10
+        entryWidget.grid(row=i,column=2, columnspan = 3)
+        entryWidget["width"] = 30
         i += 1
         
 #        self.fileBool = IntVar()

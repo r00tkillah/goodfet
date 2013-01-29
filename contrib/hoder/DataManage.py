@@ -33,10 +33,9 @@ class DataManage:
         return self.DATALOCATION
     
     #Creates a new MySQL table in the database with the given table name
-    # NEEEDS TO BE UPDATED
     def createTable(self, table):
         self.table = table
-        cmd = "CREATE TABLE `%s` ( \
+        cmd = "CREATE TABLE %s (\
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,\
   `time` double(20,5) unsigned NOT NULL,\
   `stdID` int(5) unsigned NOT NULL,\
@@ -54,8 +53,10 @@ class DataManage:
   `db7` int(3) unsigned DEFAULT NULL,\
   `msg` varchar(30) NOT NULL,\
   `comment` varchar(500) DEFAULT NULL,\
+  `filter` bit(1) NOT NULL DEFAULT b'0',\
+  `readTime` int(11) unsigned NOT NULL DEFAULT '0',\
   PRIMARY KEY (`id`)\
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;"% (table)
+) ENGINE=MyISAM AUTO_INCREMENT=114278 DEFAULT CHARSET=utf8"% (table)
         self.addData(cmd)
         self.table = table
         

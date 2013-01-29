@@ -265,7 +265,7 @@ class GoodFETMCPCAN(GoodFETSPI):
             toprint=toprint+("%02x "%ord(bar))
         return toprint;
     
-    def packet2parsed(self,packet):
+    def packet2parsed(self,data):
         dp1 = ord(data[0])
         dp2 = ord(data[1])
         dp5 = ord(data[4])
@@ -273,7 +273,7 @@ class GoodFETMCPCAN(GoodFETSPI):
         #converts the CAN message to a string
         msg="";
         for bar in data:
-            msg=msg+("%02x"%bar)
+            msg=msg+("%02x"%ord(bar))
         
         packet = {'msg':msg}
         

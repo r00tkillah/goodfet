@@ -122,7 +122,7 @@ class GoodFETMCPCANCommunication:
         
                if (verbose == True):
                    print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
-               comment = comment + ("f%d" %(ID))
+               comment += ("f%d" %(ID))
         
         
         self.client.MCPsetrate(freq);
@@ -176,17 +176,18 @@ class GoodFETMCPCANCommunication:
                 if( verbose==True):
                     #if we want to print a parsed message
                     if( parsed == True):
-                        sId = packet['sID']
-                        msg = "sID: %d" %sID
-                        if( packet.get('eID')):
-                            msg += " eID: %d" %packet.get('eID')
-                        msg += " rtr: %d"%packet['rtr']
-                        length = packet['length']
+                        packetParsed = self.client.packet2parsed(packet)
+                        sId = packetParsed.get('sID')
+                        msg = "sID: %04d" %sId
+                        if( packetParsed.get('eID')):
+                            msg += " eID: %d" %packetParsed.get('eID')
+                        msg += " rtr: %d"%packetParsed['rtr']
+                        length = packetParsed['length']
                         msg += " length: %d"%length
-                        msg += "data:"
+                        msg += " data:"
                         for i in range(0,length):
                             dbidx = 'db%d'%i
-                            msg +=" %d"% packet[dbidx]
+                            msg +=" %03d"% ord(packetParsed[dbidx])
                         print msg
                     # if we want to print just the message as it is read off the chip
                     else:
@@ -236,29 +237,35 @@ class GoodFETMCPCANCommunication:
         
     def filterStdSweep(self, freq, time = 5):
         msgIDs = []
-        for i in range(0, 2047, 6):
+        self.client.serInit()
+        self.client.MCPsetup()
+        for i in range(3013, 4096, 6):
             print "sniffing id: %d, %d, %d, %d, %d, %d" % (i,i+1,i+2,i+3,i+4,i+5)
-            comment = "sweepFilter_%d_%d_%d_%d_%d_%d" % (i,i+1,i+2,i+3,i+4,i+5)
+            comment= "sweepFilter: "
+            #comment = "sweepFilter_%d_%d_%d_%d_%d_%d" % (i,i+1,i+2,i+3,i+4,i+5)
             description = "Running a sweep filer for all the possible standard IDs. This run filters for: %d, %d, %d, %d, %d, %d" % (i,i+1,i+2,i+3,i+4,i+5)
             count = self.sniff(freq=freq, duration = time, description = description,comment = comment, standardid = [i, i+1, i+2, i+3, i+4, i+5])
             if( count != 0):
                 for j in range(i,i+5):
-                    comment = "sweepFilter: %d" % (j)
+                    comment = "sweepFilter: "
+                    #comment = "sweepFilter: %d" % (j)
                     description = "Running a sweep filer for all the possible standard IDs. This run filters for: %d " % j
-                    count = self.sniff(freq=freq, duration = time, description = description,comment = comment, standardid = [j])
+                    count = self.sniff(freq=freq, duration = time, description = description,comment = comment, standardid = [j, j, j, j])
                     if( count != 0):
                         msgIDs.append(j)
         return msgIDs
     
-    def sweepRandom(self, freq, number = 5, time = 5,):
+    def sweepRandom(self, freq, number = 5, time = 200):
         msgIDs = []
         ids = []
+        self.client.serInit()
+        self.client.MCPsetup()
         for i in range(0,number,6):
             idsTemp = []
-            comment = "sweepFilter"
+            comment = "sweepFilter: "
             for j in range(0,6,1):
                 id = randrange(2047)
-                comment += "_%d" % id
+                #comment += "_%d" % id
                 idsTemp.append(id)
                 ids.append(id)
             print comment
@@ -266,7 +273,8 @@ class GoodFETMCPCANCommunication:
             count = self.sniff(freq=freq, duration=time, description=description, comment = comment, standardid = idsTemp)
             if( count != 0):
                 for element in idsTemp:
-                    comment = "sweepFilter: %d" % (element)
+                    #comment = "sweepFilter: %d" % (element)
+                    comment="sweepFilter: "
                     description = "Running a sweep filer for all the possible standard IDs. This run filters for: %d " % element
                     count = self.sniff(freq=freq, duration = time, description = description,comment = comment, standardid = [element, element, element])
                     if( count != 0):

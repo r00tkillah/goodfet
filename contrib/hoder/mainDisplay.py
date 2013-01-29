@@ -20,6 +20,7 @@ sys.path.insert(0,'../../trunk/client/')
 from GoodFETMCPCANCommunication import *
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
+import thread
 
 
 # create a shorthand object for Tkinter so we don't have to type it all the time
@@ -240,7 +241,7 @@ class DisplayApp:
         
         
         self.rtr = IntVar()
-        self.rtr.set(1)
+        self.rtr.set(0)
         c = Checkbutton(self.canvas,variable=self.rtr, text="rtr")
         c.grid(row=i,column=4, sticky = tk.E)
         
@@ -427,9 +428,11 @@ class DisplayApp:
             standardid = None
         
         #sniff
-        self.comm.sniff(freq=self.freq,duration=time,
-                  description=description,verbose=self.verbose,comment=comments,filename = None,
-                   standardid=standardid, debug = False)    
+        #self.comm.sniff(freq=self.freq,duration=time,
+        #          description=description,verbose=self.verbose,comment=comments,filename = None,
+        #           standardid=standardid, debug = False)    
+        
+        thread.start_new_thread(self.comm.sniff, (self.freq, time, True, comments, None, None, False, False, True ))
         
     def write(self):
         print "write Packet?"
@@ -673,7 +676,6 @@ class settingsDialog(Toplevel):
         database =self.sqlDB[5].get() 
         self.dClass.setDataManage(table = table, name = name, host = host, \
                                   username = username, password = password, database = database )
-        
         
         self.withdraw()
         self.update_idletasks()

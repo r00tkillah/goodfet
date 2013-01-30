@@ -438,15 +438,15 @@ class GoodFETMCPCANCommunication:
         checkcount = 0;
         TXB0CTRL = self.client.peek8(0x30);
         
-      #  while(TXB0CTRL | 0x00 != 0x00):
-      #      checkcount+=1;
-      #      TXB0CTRL = self.client.peek8(0x30);
-      #      if (checkcount %30 ==0):
-      #          print "Tx Errors:  %3d" % self.client.peek8(0x1c);
-      #          print "Rx Errors:  %3d" % self.client.peek8(0x1d);
-      #          print "EFLG register:  %02x" % self.client.peek8(0x2d);
-      #          print "TXB0CTRL: %02x" %TXB0CTRL;
-      #          print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
+        while(TXB0CTRL | 0x00 != 0x00):
+            checkcount+=1;
+            TXB0CTRL = self.client.peek8(0x30);
+            if (checkcount %30 ==0):
+                print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+                print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+                print "EFLG register:  %02x" % self.client.peek8(0x2d);
+                print "TXB0CTRL: %02x" %TXB0CTRL;
+                print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
 
 
     def setRate(self,freq):

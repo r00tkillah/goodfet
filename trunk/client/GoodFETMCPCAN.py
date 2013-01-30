@@ -245,6 +245,45 @@ class GoodFETMCPCAN(GoodFETSPI):
                             ]);
         print "about to transmit:" + self.packet2str(data[2:len(data)]);
         
+
+    def simpleParse(self,packet):
+        dataPt = ord(packet[0]);
+        dataPt2 = ord(packet[1]);
+        # check if we have a standard frame, the msb of the second
+        # nibble will be 1. otherwise it is an extended rame
+        stdCheck = dataPt2 & 0x0f
+        if( stdCheck == 16 ):
+            #arb id is first byte + 3 msb of the 2nd byte
+            dataPt = dataPt<<3 | dataPt2>>5
+            print "Standard Packet \n Arb ID: "+("%d"%dataPt)
+        else:
+            #arb id is first byte + 3 msb + 2 lsb of 2nd byte +
+            # 3rd byte + 4th byte
+            dataPt = dataPt<<3 | dataPt2>>5
+            dataPt = dataPt<<2 | (dataPt2 & 0x03)
+            dataPt = dataPt<<8 | ord(packet[2])
+            dataPt = dataPt<<8 | ord(packet[3])
+            print "Extended Data Frame \n Arb ID: "+("%d"%dataPt)
+        
+        #find the dataLength
+        dataPt5 = packet[4]
+        dataLength = dataPt5 & 0x0e
+        print "Data Length: "+("%d"%dataLength)
+        # Print the data packet
+        print "Data:"
+        # Temporary, until correct packets are read
+        if( dataLength > 8 ):
+            dataLength = 8
+        toprint = self.pcket2str(packet[5:12])
+        print toprint
+        # For reading correct packets
+       # if (dataLength > 8 ):
+        #    print "Acceptable Length Exceeded"
+            # Data length value should never exceed 8
+       # else:
+       # toprint =  self.pcket2str(packet[5:(5+dataLength)])
+       # print toprint
+
     def txpacket(self,packet):
         """Transmits a packet through one of the outbound buffers.
         As usual, the packet should begin with SIDH.

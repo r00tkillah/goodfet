@@ -467,7 +467,7 @@ class DisplayApp:
         #          description=description,verbose=self.verbose,comment=comments,filename = None,
         #           standardid=standardid, debug = False)    
         
-        thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, None, False, False, True ))
+        thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True ))
         
     def write(self):
         if( not self.checkComm()):

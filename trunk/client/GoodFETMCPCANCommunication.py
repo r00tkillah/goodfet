@@ -235,11 +235,11 @@ class GoodFETMCPCANCommunication:
         return packetcount
         
         
-    def filterStdSweep(self, freq, time = 5):
+    def filterStdSweep(self, freq, low, high, time = 5):
         msgIDs = []
         self.client.serInit()
         self.client.MCPsetup()
-        for i in range(3013, 4096, 6):
+        for i in range(low, high, 6):
             print "sniffing id: %d, %d, %d, %d, %d, %d" % (i,i+1,i+2,i+3,i+4,i+5)
             comment= "sweepFilter: "
             #comment = "sweepFilter_%d_%d_%d_%d_%d_%d" % (i,i+1,i+2,i+3,i+4,i+5)
@@ -388,11 +388,16 @@ class GoodFETMCPCANCommunication:
 
     
         
-    def spit(self,freq, standardid,debug):
-        
+    def spitSetup(self,freq):
         comm.reset();
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
+        
+    def spit(self,freq, standardid,debug, packet = None):
+        
+        #comm.reset();
+        #self.client.MCPsetrate(freq);
+        #self.client.MCPreqstatNormal();
         
         print "initial state:"
         print "Tx Errors:  %3d" % self.client.peek8(0x1c);
@@ -407,16 +412,21 @@ class GoodFETMCPCANCommunication:
         SIDlow = (standardid[0] & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
         
-        packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
-                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-                  # lower nibble is DLC                   
-                  0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF]    
+        #packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+        #          0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+        #          # lower nibble is DLC                   
+        #          0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF]    
         
-        packetE = [SIDhigh, SIDlow | 0x80, 0x00,0x00, # pad out EID regs
-                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-                  # lower nibble is DLC                   
-                0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF] 
-   
+        if(packet == None):
+            packetE = [SIDhigh, SIDlow | 0x80, 0x00,0x00, # pad out EID regs
+                      0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                      # lower nibble is DLC                   
+                    0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF] 
+        else:
+            packetE = [SIDhigh, SIDlow | 0x80, 0x00,0x00, # pad out EID regs
+                      0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                      # lower nibble is DLC    
+                      packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7],packet[8]]
         
         self.client.txpacket(packetE);
         
@@ -434,6 +444,8 @@ class GoodFETMCPCANCommunication:
                 print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
 
 
+    def setRate(self,freq):
+        self.client.MCPsetrate(freq);
         
 
 

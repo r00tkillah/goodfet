@@ -3,24 +3,22 @@
 # 11/3/2012
 
 import Tkinter
-#import the linked list, sniff threading
-from node import *
-from LL import *
-from InfoBox import *
 import csv
 import time
 import sys;
 import binascii;
 import array;
 from DataManage import DataManage
+from experiments import *
 import datetime
 import os
+import thread
 
 sys.path.insert(0,'../../trunk/client/')
 from GoodFETMCPCANCommunication import *
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from intelhex import IntelHex;
-import thread
+
 
 
 # create a shorthand object for Tkinter so we don't have to type it all the time
@@ -49,6 +47,7 @@ class DisplayApp:
         except:
             print "Board not properly connected. please connect and reset"
             self.comm = None
+        self.running = False
         self.freq = 500
         self.verbose = True
         
@@ -152,7 +151,7 @@ class DisplayApp:
         entryLabel.grid(row=i,column=0, sticky=tk.W)
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "Buffer 0:"
-        entryLabel.grid(row=i,column =1, sticky=tk.W )
+        entryLabel.grid(row=i,column =1, sticky=tk.E )
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "Buffer 1:"
         entryLabel.grid(row=i,column =2 ,sticky=tk.W)
@@ -165,10 +164,11 @@ class DisplayApp:
                 entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
                 self.filterIDs.append(stdID)
                 entryWidget["width"] = 5
-                entryWidget.grid(row=i+k,column=j+1, sticky=tk.W)
+                entryWidget.grid(row=i+k,column=j+1, sticky=tk.E)
             print k
             i += 1
-        
+        clearButton = tk.Button( self.canvas, text="Clear", command=self.clearFilters, width=5)
+        clearButton.grid(row=i,column=j+2,sticky=tk.W)
         i += 1
         
         #sniff button
@@ -186,7 +186,7 @@ class DisplayApp:
         self.time = Tkinter.StringVar();
         self.time.set("10")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.time)
-        entryWidget.grid(row=i,column=2, sticky=tk.W)
+        entryWidget.grid(row=i,column=2, sticky=tk.E)
         entryWidget["width"] = 5
         i += 1
         
@@ -203,7 +203,7 @@ class DisplayApp:
         
         #description
         entryLabel = Tkinter.Label(self.canvas)
-        entryLabel["text"] = "description:"
+        entryLabel["text"] = "description (csv):"
         entryLabel.grid(row=i,column=1, sticky= tk.E)
         self.description = Tkinter.StringVar();
         self.description.set("")
@@ -226,9 +226,24 @@ class DisplayApp:
         writeButton = tk.Button( self.canvas, text="Start", command=self.write, width=5 )
         writeButton.grid(row=i,column=1, sticky= tk.W)
         
+        self.writeData = {}
+        
+        self.rtr = IntVar()
+        self.rtr.set(0)
+        c = Checkbutton(self.canvas,variable=self.rtr, text="rtr")
+        c.grid(row=i,column=4, sticky = tk.W)
+        
+        entryLabel = Tkinter.Label(self.canvas, text="Attempts: ")
+        entryLabel.grid(row=i,column=5,sticky=tk.W)
+        
+        varTemp = Tkinter.StringVar()
+        self.writeData["attemps"] = varTemp
+        varTemp.set(10)
+        entryWidget = Tkinter.Entry(self.canvas, width=5, textvariable=varTemp)
+        entryWidget.grid(row=i, column=6, sticky=tk.W)
         i += 1
         
-        self.writeData = {}
+        
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "sID:"
         entryLabel.grid(row=i,column=1, sticky= tk.E)
@@ -238,19 +253,10 @@ class DisplayApp:
         entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
         entryWidget.grid(row=i,column=2, sticky=tk.W)
         entryWidget["width"] = 5
-        
-        
-        self.rtr = IntVar()
-        self.rtr.set(0)
-        c = Checkbutton(self.canvas,variable=self.rtr, text="rtr")
-        c.grid(row=i,column=4, sticky = tk.E)
-        
-        
-    
         i += 1
         
+        
         for j in range (0, 8, 2):
-            self.writeData = {}
             entryLabel = Tkinter.Label(self.canvas)
             entryLabel["text"] = "db%d:" %(j/2)
             entryLabel.grid(row=i,column=j+1, sticky= tk.E)
@@ -391,21 +397,45 @@ class DisplayApp:
         if( self.fileBool == 0):
             pass
 
+    def setRunning(self):
+        self.running = True
+    
+    def unsetRunning(self):
+        self.running = False
+
     def connectBus(self):
+        if( self.running):
+            return
         try:
             self.comm = GoodFETMCPCANCommunication()
         except:
             print "Board not properly connected. please plug in the GoodThopter10 and re-attempt"
             self.comm = None
 
+    #This method will check to see if we can do anything on the bus (i.e. if the chip is connected or being used)
+    def checkComm(self):
+        if(not self.isConnected() ):
+            print "GoodThopter10 not connected. Please connect board"
+            return False
+        
+        elif( self.running ):
+            return False
+    
     #set the rate on the MC2515
     def setRate(self,freq):
+        if( not self.checkComm()):
+            return
         self.comm.setRate(freq)
-        pass
+        
+        
+    # This method will clear all the filter inputs for the user
+    def clearFilters(self):
+        for element in self.filterIDs:
+            element.set("")
+    
     
     def sniff(self):
-        if(not self.isConnected() ):
-            print "please connect board"
+        if( not self.checkComm() ):
             return
         # get time and check that it is correct
         try:
@@ -432,17 +462,38 @@ class DisplayApp:
         #          description=description,verbose=self.verbose,comment=comments,filename = None,
         #           standardid=standardid, debug = False)    
         
-        thread.start_new_thread(self.comm.sniff, (self.freq, time, True, comments, None, None, False, False, True ))
+        thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, None, False, False, True ))
         
     def write(self):
-        print "write Packet?"
+        if( not self.checkComm()):
+            return
+        packet = []
+        try:
+            sID = int(self.writeData["sID"].get())
+            attempts = int()
+            for j in range(1,9):
+                packet.append(int(self.writeData.get("db%d"%j).get))
+        except:
+            print "Invalid input!"
+            return
+            
+        
+        self.comm.spitSetup(self.freq)
+        for i in range(0,attempts):
+            self.comm.spit(freq,standardid,debug=True,packet=packet)
+            
+            
+        #print "write Packet?"
         
     def uploaddb(self):
         print "Uploading all files"
         self.dm.uploadFiles()
         
     def experiments(self):
-        pass
+        data = {}
+        exp = experiments(self.root, self, comm=self.comment, data = data, title = "Experiments")
+        
+        
         
     def sqlQuery(self):
         cmd = self.text.get(1.0,END)
@@ -492,8 +543,7 @@ class DisplayApp:
         #lets everything just sit and listen
         self.root.mainloop()
         
-        
-#this class will create a dialog window for plotting pca data on the main program.
+
 class settingsDialog(Toplevel):
     
     #constructor method
@@ -636,9 +686,6 @@ class settingsDialog(Toplevel):
         i += 1
         
     def setRate(self):
-        if(not self.dClass.isConnected() ):
-            print "please connect board"
-            return
         rate = self.rateChoice.get()
         self.dClass.setRate(rate)
         

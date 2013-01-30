@@ -237,7 +237,7 @@ class DisplayApp:
         entryLabel.grid(row=i,column=5,sticky=tk.W)
         
         varTemp = Tkinter.StringVar()
-        self.writeData["attemps"] = varTemp
+        self.writeData["attempts"] = varTemp
         varTemp.set(10)
         entryWidget = Tkinter.Entry(self.canvas, width=5, textvariable=varTemp)
         entryWidget.grid(row=i, column=6, sticky=tk.W)
@@ -255,28 +255,31 @@ class DisplayApp:
         entryWidget["width"] = 5
         i += 1
         
-        
+        k = 0
         for j in range (0, 8, 2):
             entryLabel = Tkinter.Label(self.canvas)
-            entryLabel["text"] = "db%d:" %(j/2)
+            entryLabel["text"] = "db%d:" %k
             entryLabel.grid(row=i,column=j+1, sticky= tk.E)
             varTemp = Tkinter.StringVar()
-            self.writeData['db%d'%(j/2)] = varTemp
+            self.writeData['db%d'%(k)] = varTemp
             varTemp.set("")
             entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
             entryWidget.grid(row=i,column=j+2, sticky=tk.W)
             entryWidget["width"] = 5
+            k += 1
+            print k
             
         for j in range(0,8,2):
             entryLabel = Tkinter.Label(self.canvas)
-            entryLabel["text"] = "db%d:" %((j+8)/2)
+            entryLabel["text"] = "db%d:" %((k))
             entryLabel.grid(row=i+1,column=j+1, sticky= tk.E)
             varTemp = Tkinter.StringVar()
-            self.writeData['db%d'%((j+8)/2)] = varTemp
+            self.writeData['db%d'%((k))] = varTemp
             varTemp.set("")
             entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
             entryWidget.grid(row=i+1,column=j+2, sticky=tk.W)
             entryWidget["width"] = 5
+            k +=1
     
         i += 2
        
@@ -420,6 +423,8 @@ class DisplayApp:
         
         elif( self.running ):
             return False
+        
+        return True
     
     #set the rate on the MC2515
     def setRate(self,freq):
@@ -470,9 +475,14 @@ class DisplayApp:
         packet = []
         try:
             sID = int(self.writeData["sID"].get())
-            attempts = int()
-            for j in range(1,9):
-                packet.append(int(self.writeData.get("db%d"%j).get))
+            #print "sid"
+            attempts = int(self.writeData["attempts"].get())
+            #print "attempts"
+            #print self.writeData
+            for j in range(0,8):
+                #print "db%d"%j
+                var = self.writeData.get("db%d"%j)
+                packet.append(int(var.get()))
         except:
             print "Invalid input!"
             return
@@ -480,7 +490,7 @@ class DisplayApp:
         
         self.comm.spitSetup(self.freq)
         for i in range(0,attempts):
-            self.comm.spit(freq,standardid,debug=True,packet=packet)
+            self.comm.spit(self.freq,[sID],debug=True,packet=packet)
             
             
         #print "write Packet?"

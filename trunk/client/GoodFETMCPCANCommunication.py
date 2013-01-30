@@ -389,7 +389,7 @@ class GoodFETMCPCANCommunication:
     
         
     def spitSetup(self,freq):
-        comm.reset();
+        self.reset();
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
         
@@ -423,25 +423,30 @@ class GoodFETMCPCANCommunication:
                       # lower nibble is DLC                   
                     0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF] 
         else:
-            packetE = [SIDhigh, SIDlow | 0x80, 0x00,0x00, # pad out EID regs
-                      0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-                      # lower nibble is DLC    
-                      packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7],packet[8]]
+            #packetE = [SIDhigh, SIDlow | 0x80, 0x00,0x00, # pad out EID regs
+            #          0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+            #          # lower nibble is DLC    
+            #          packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
+            packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                 packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
         
-        self.client.txpacket(packetE);
+        
+        self.client.txpacket(packet);
         
         checkcount = 0;
         TXB0CTRL = self.client.peek8(0x30);
         
-        while(TXB0CTRL | 0x00 != 0x00):
-            checkcount+=1;
-            TXB0CTRL = self.client.peek8(0x30);
-            if (checkcount %30 ==0):
-                print "Tx Errors:  %3d" % self.client.peek8(0x1c);
-                print "Rx Errors:  %3d" % self.client.peek8(0x1d);
-                print "EFLG register:  %02x" % self.client.peek8(0x2d);
-                print "TXB0CTRL: %02x" %TXB0CTRL;
-                print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
+      #  while(TXB0CTRL | 0x00 != 0x00):
+      #      checkcount+=1;
+      #      TXB0CTRL = self.client.peek8(0x30);
+      #      if (checkcount %30 ==0):
+      #          print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+      #          print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+      #          print "EFLG register:  %02x" % self.client.peek8(0x2d);
+      #          print "TXB0CTRL: %02x" %TXB0CTRL;
+      #          print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
 
 
     def setRate(self,freq):

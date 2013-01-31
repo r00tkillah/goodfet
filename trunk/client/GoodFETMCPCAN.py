@@ -227,24 +227,12 @@ class GoodFETMCPCAN(GoodFETSPI):
         
         if flags==0:
             print "Warning: Requesting to send no buffer.";
-        if self.MCPcanstat()>>5!=0:
-            print "Warning: currently in %s mode. NOT in normal mode! May not transmit." %self.MCPcanstatstr();
         self.SPItrans([0x80|flags]);
     
     def writetxbuffer(self,packet,packbuf=0):
         """Writes the transmit buffer."""
         
         self.SPItrans([0x40|(packbuf<<1)]+packet);
-        #READ BACK BUFFER 0 to check what we're about to send out
-        data=self.SPItrans([0x03, 0x31,                        
-                            0x00,0x00, #SID
-                            0x00,0x00, #EID
-                            0x00,      #DLC
-                            0x00, 0x00, 0x00, 0x00,
-                            0x00, 0x00, 0x00, 0x00
-                            ]);
-        print "about to transmit:" + self.packet2str(data[2:len(data)]);
-        
 
     def simpleParse(self,packet):
         dataPt = ord(packet[0]);
@@ -290,8 +278,6 @@ class GoodFETMCPCAN(GoodFETSPI):
         For now, only TXB0 is supported."""
 
         self.writetxbuffer(packet,0);
-
-        #self.SPItrans([0x81]);
         self.MCPrts(TXB0=True);
 
                 

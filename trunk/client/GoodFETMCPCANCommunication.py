@@ -113,7 +113,7 @@ class GoodFETMCPCANCommunication:
                 RXFSIDL = 0x19;
         
                #### split SID into different regs
-               SIDlow = (ID & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+               SIDlow = (ID & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
                SIDhigh = (ID >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
                
                #write SID to regs 
@@ -393,60 +393,85 @@ class GoodFETMCPCANCommunication:
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
         
-    def spit(self,freq, standardid,debug, packet = None):
-        
-        #comm.reset();
-        #self.client.MCPsetrate(freq);
-        #self.client.MCPreqstatNormal();
-        
-        print "initial state:"
-        print "Tx Errors:  %3d" % self.client.peek8(0x1c);
-        print "Rx Errors:  %3d" % self.client.peek8(0x1d);
-        print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
-        print "TXB0CTRL: %02x" %self.client.peek8(0x30);
-        print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
-        print "\n\nATTEMPTING TRANSMISSION!!!"
-
+    def spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
     
+        self.spitSetup(freq);
+        
         #### split SID into different regs
-        SIDlow = (standardid[0] & 0x03) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
         
-        #packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
-        #          0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-        #          # lower nibble is DLC                   
-        #          0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF]    
-        
         if(packet == None):
-            packetE = [SIDhigh, SIDlow | 0x80, 0x00,0x00, # pad out EID regs
-                      0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-                      # lower nibble is DLC                   
-                    0x01,0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0xFF] 
+            
+            # if no packet, RTR for inputted arbID
+            # so packet to transmit is SID + padding out EID registers + RTR request (set bit 6, clear lower nibble of DLC register)
+            packet = [SIDhigh, SIDlow, 0x00,0x00,0x40] 
+        
+        
+                #packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                #         0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                #        # lower nibble is DLC                   
+                #        0x00,0x01,0x02,0x03,0x04,0x05,0x06,0xFF]
         else:
-            #packetE = [SIDhigh, SIDlow | 0x80, 0x00,0x00, # pad out EID regs
-            #          0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-            #          # lower nibble is DLC    
-            #          packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
+
+            # if we do have a packet, packet is SID + padding out EID registers + DLC of 8 + packet
+            #
+            #    TODO: allow for variable-length packets
+            #
             packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                   0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                   # lower nibble is DLC                   
                  packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
+            
         
+        if(debug):
+            if self.client.MCPcanstat()>>5!=0:
+                print "Warning: currently in %s mode. NOT in normal mode! May not transmit.\n" %self.client.MCPcanstatstr();
+            print "\nInitial state:"
+            print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+            print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+            print "Error Flags:  %02x\n" % self.client.peek8(0x2d);
+            print "TXB0CTRL: %02x" %self.client.peek8(0x30);
+            print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
+            print "\n\nATTEMPTING TRANSMISSION!!!"
         
+                
+        print "Transmitting packet: "
+        for byte in packet:
+            print "%02x " %byte,
+                
         self.client.txpacket(packet);
-        
-        checkcount = 0;
-        TXB0CTRL = self.client.peek8(0x30);
-        
-        while(TXB0CTRL | 0x00 != 0x00):
-            checkcount+=1;
+            
+        if repeat:
+            print "\nNow looping on transmit. "
+            if duration!= None:
+                starttime = time.time();
+                while((time.time()-starttime < duration)):
+                    self.client.MCPrts(TXB0=True);
+            else:
+                while(1): 
+                    self.client.MCPrts(TXB0=True);
+    
+        # MORE DEBUGGING        
+        if(debug): 
+            checkcount = 0;
             TXB0CTRL = self.client.peek8(0x30);
-            if (checkcount %30 ==0):
-                print "Tx Errors:  %3d" % self.client.peek8(0x1c);
-                print "Rx Errors:  %3d" % self.client.peek8(0x1d);
-                print "EFLG register:  %02x" % self.client.peek8(0x2d);
-                print "TXB0CTRL: %02x" %TXB0CTRL;
-                print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
+        
+            print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+            print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+            print "EFLG register:  %02x" % self.client.peek8(0x2d);
+            print "TXB0CTRL: %02x" %TXB0CTRL;
+            print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
+        
+            while(TXB0CTRL | 0x00 != 0x00):
+                checkcount+=1;
+                TXB0CTRL = self.client.peek8(0x30);
+                if (checkcount %30 ==0):
+                    print "Tx Errors:  %3d" % self.client.peek8(0x1c);
+                    print "Rx Errors:  %3d" % self.client.peek8(0x1d);
+                    print "EFLG register:  %02x" % self.client.peek8(0x2d);
+                    print "TXB0CTRL: %02x" %TXB0CTRL;
+                    print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
 
 
     def setRate(self,freq):
@@ -482,8 +507,9 @@ if __name__ == "__main__":
     parser.add_argument('-c','--comment', help='Comment attached to ech packet uploaded',default=None);
     parser.add_argument('-b', '--debug', action='store_true', help='-b will turn on debug mode, printing packet status', default=False);
     parser.add_argument('-a', '--standardid', type=int, action='append', help='Standard ID to accept with filter 0 [1, 2, 3, 4, 5]', default=None);
-    parser.add_argument('-x', '--faster', action='store_true', help='-x will use "fast packet recieve," which may duplicate packets and/or cause other weird behavior', default=False);
-
+    parser.add_argument('-x', '--faster', action='store_true', help='-x will use "fast packet recieve," which may duplicate packets and/or cause other weird behavior.', default=False);
+    parser.add_argument('-r', '--repeat', action='store_true', help='-r with "spit" will continuously send the inputted packet. This will put the GoodTHOPTHER into an infinite loop.', default=False);
+    
     
     args = parser.parse_args();
     freq = args.freq
@@ -495,6 +521,7 @@ if __name__ == "__main__":
     debug = args.debug
     standardid = args.standardid
     faster=args.faster
+    repeat = args.repeat
 
     comm = GoodFETMCPCANCommunication();
     
@@ -600,7 +627,7 @@ if __name__ == "__main__":
     #   transmission (travis thinks this is because we're sniffing in listen-only
     #   and thus not generating an ack bit on the recieving board)
     if(args.verb=="spit"):
-        comm.spit(freq=freq, standardid=standardid, debug=debug)
+        comm.spit(freq=freq, standardid=standardid,duration=duration, repeat=repeat, debug=debug)
 
 
     

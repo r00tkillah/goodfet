@@ -332,7 +332,7 @@ class GoodFETMCPCAN(GoodFETSPI):
         
         msg = "sID: %04d"%sID
         msg += eIDmsg + rtrmsg
-        msg += "length: %d"%(length)
+        msg += " length: %d"%(length)
         msg +=  dbmsg 
     
         return msg

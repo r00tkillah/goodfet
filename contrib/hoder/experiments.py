@@ -174,7 +174,8 @@ class experiments(Toplevel):
             print "Values are not integers. Please check inputs and try again."
             return
         self.dClass.setRunning()
-        thread.start_new_thread(self.comm.rtrSweep,(self.dClass.getRate(), lowI, highI, attemptsI, sT, verbose))
+        #thread.start_new_thread(self.comm.rtrSweep,(self.dClass.getRate(), lowI, highI, attemptsI, sT, verbose))
+        self.comm.rtrSweep(self.dClass.getRate(), lowI, highI, attemptsI, sT, verbose)
         self.dClass.unsetRunning()
  
     def sweepID(self):

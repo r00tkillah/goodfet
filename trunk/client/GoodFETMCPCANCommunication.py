@@ -447,16 +447,19 @@ class GoodFETMCPCANCommunication:
         self.client.serInit()
         self.spitSetup(freq)
         for i in range(lowID,highID+1, 1):
-            
-            standardid = [i, i, i]
+            self.spitSetup(freq)
+            standardid = [i, i, i, i]
             #set filters
             self.addFilter(standardid, verbose = True)
+            self.client.MCPreqstatNormal();
             #### split SID into different areas
             SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
             SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
             #create RTR packet
             packet = [SIDhigh, SIDlow, 0x00,0x00,0x40]
-            self.client.poke8(0x2C,0x00);  #clear the CANINTF register; we care about bits 0 and 1 (RXnIF flags) which indicate a message is being held 
+            #self.client.poke8(0x2C,0x00);  #clear the CANINTF register; we care about bits 0 and 1 (RXnIF flags) which indicate a message is being held 
+            packet1 = self.client.rxpacket();
+            packet2 = self.client.rxpacket();
             self.client.txpacket(packet)
             ## listen for 2 packets. one should be the rtr we requested the other should be
             ## a new packet response
@@ -467,6 +470,10 @@ class GoodFETMCPCANCommunication:
                 print self.client.packet2parsedstr(packet1);
                 print self.client.packet2parsedstr(packet2);
                 continue
+            elif( packet1 != None):
+                print self.client.packet2parsedstr(packet1)
+            elif( packet2 != None):
+                print self.client.packet2parsedstr(packet2)
             trial= 2;
             # for each trial
             while( trial <= attempts):
@@ -478,12 +485,18 @@ class GoodFETMCPCANCommunication:
                 while( (time.time()-starttime) < duration):
                     packet1=self.client.rxpacket();
                     packet2=self.client.rxpacket();
-            
+                    
                     if( packet1 != None and packet2 != None):
                         print "packets recieved :\n "
                         print self.client.packet2parsedstr(packet1);
                         print self.client.packet2parsedstr(packet2);
                         #break
+                    elif( packet1 != None):
+                        print "just packet1"
+                        print self.client.packet2parsedstr(packet1)
+                    elif( packet2 != None):
+                        print "just packet2"
+                        print self.client.packet2parsedstr(packet2)
                 trial += 1
         print "sweep complete"
         

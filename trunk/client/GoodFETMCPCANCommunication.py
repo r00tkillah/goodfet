@@ -435,7 +435,7 @@ class GoodFETMCPCANCommunication:
                if (verbose == True):
                    print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
                
-    
+        self.client.MCPreqstatNormal();
     
     
     # this will sweep through the given ids to request a packet and then sniff on that
@@ -451,15 +451,17 @@ class GoodFETMCPCANCommunication:
             standardid = [i, i, i, i]
             #set filters
             self.addFilter(standardid, verbose = True)
-            self.client.MCPreqstatNormal();
+            
             #### split SID into different areas
             SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
             SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
             #create RTR packet
             packet = [SIDhigh, SIDlow, 0x00,0x00,0x40]
             #self.client.poke8(0x2C,0x00);  #clear the CANINTF register; we care about bits 0 and 1 (RXnIF flags) which indicate a message is being held 
+            #clear buffer
             packet1 = self.client.rxpacket();
             packet2 = self.client.rxpacket();
+            #send in rtr request
             self.client.txpacket(packet)
             ## listen for 2 packets. one should be the rtr we requested the other should be
             ## a new packet response

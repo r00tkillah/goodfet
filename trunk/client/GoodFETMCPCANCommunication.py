@@ -396,7 +396,7 @@ class GoodFETMCPCANCommunication:
     
     def spitSingle(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
         self.spitSetup(freq);
-        spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
+        spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None)
 
     def spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
     
@@ -452,10 +452,11 @@ class GoodFETMCPCANCommunication:
                 starttime = time.time();
                 while((time.time()-starttime < duration)):
                     self.client.MCPrts(TXB0=True);
+                    print "MSG printed"
             else:
                 while(1): 
                     self.client.MCPrts(TXB0=True);
-    
+        print "messages injected"
         # MORE DEBUGGING        
         if(debug): 
             checkcount = 0;

@@ -486,7 +486,7 @@ class DisplayApp:
             #print "attempts"
             #print self.writeData
             if( self.rtr.get() == 1):
-                packet = None:
+                packet = None
             else:
                 for j in range(0,8):
                     #print "db%d"%j
@@ -500,7 +500,7 @@ class DisplayApp:
         
         self.comm.spitSetup(self.freq)
         #for i in range(0,attempts):
-        self.comm.spit(self.freq,[sID],repeat, duration=time, debug=True, packet=packet)
+        self.comm.spit(self.freq,[sID],repeat, duration=time, debug=False, packet=packet)
             
             
         #print "write Packet?"

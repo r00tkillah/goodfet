@@ -31,7 +31,7 @@ tk = Tkinter
 class DisplayApp:
 
     # init function
-    def __init__(self, width, height, rate=500, table="ford_test"):
+    def __init__(self, width, height, rate=500, table="ford_2004"):
         
         self.SQL_NAME = "thayersc_canbus"
         self.SQL_HOST = "thayerschool.org"
@@ -233,11 +233,11 @@ class DisplayApp:
         c = Checkbutton(self.canvas,variable=self.rtr, text="rtr")
         c.grid(row=i,column=4, sticky = tk.W)
         
-        entryLabel = Tkinter.Label(self.canvas, text="Attempts: ")
+        entryLabel = Tkinter.Label(self.canvas, text="Time: ")
         entryLabel.grid(row=i,column=5,sticky=tk.W)
         
         varTemp = Tkinter.StringVar()
-        self.writeData["attempts"] = varTemp
+        self.writeData["Time"] = varTemp
         varTemp.set(10)
         entryWidget = Tkinter.Entry(self.canvas, width=5, textvariable=varTemp)
         entryWidget.grid(row=i, column=6, sticky=tk.W)
@@ -476,21 +476,31 @@ class DisplayApp:
         try:
             sID = int(self.writeData["sID"].get())
             #print "sid"
-            attempts = int(self.writeData["attempts"].get())
+            timeStr = self.writeData["Time"].get()
+            if( timeStr == ""):
+                time = None
+                repeat = False
+            else:
+                time = int(timeStr)
+                repeat = True
             #print "attempts"
             #print self.writeData
-            for j in range(0,8):
-                #print "db%d"%j
-                var = self.writeData.get("db%d"%j)
-                packet.append(int(var.get()))
+            if( self.rtr.get() == 1):
+                packet = None:
+            else:
+                for j in range(0,8):
+                    #print "db%d"%j
+                    var = self.writeData.get("db%d"%j)
+                    packet.append(int(var.get()))
         except:
             print "Invalid input!"
             return
+        
             
         
         self.comm.spitSetup(self.freq)
-        for i in range(0,attempts):
-            self.comm.spit(self.freq,[sID],debug=True,packet=packet)
+        #for i in range(0,attempts):
+        self.comm.spit(self.freq,[sID],repeat, duration=time, debug=True, packet=packet)
             
             
         #print "write Packet?"

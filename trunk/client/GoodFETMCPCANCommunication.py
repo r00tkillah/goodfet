@@ -393,10 +393,14 @@ class GoodFETMCPCANCommunication:
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
         
+    
+    def spitSingle(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
+        self.spitSetup(freq);
+        spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
+
     def spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
     
-        self.spitSetup(freq);
-        
+
         #### split SID into different regs
         SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0

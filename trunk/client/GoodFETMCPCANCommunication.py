@@ -631,7 +631,7 @@ if __name__ == "__main__":
     #   transmission (travis thinks this is because we're sniffing in listen-only
     #   and thus not generating an ack bit on the recieving board)
     if(args.verb=="spit"):
-        comm.spit(freq=freq, standardid=standardid,duration=duration, repeat=repeat, debug=debug)
+        comm.spitSingle(freq=freq, standardid=standardid,duration=duration, repeat=repeat, debug=debug)
 
 
     

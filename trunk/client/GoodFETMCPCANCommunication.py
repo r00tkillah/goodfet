@@ -394,8 +394,6 @@ class GoodFETMCPCANCommunication:
         comment = None
         ### ON-CHIP FILTERING
         if(standardid != None):
-            if( comment == None):
-                comment = ""
             self.client.MCPreqstatConfiguration();  
             self.client.poke8(0x60,0x26); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1, BUKT=1)
             self.client.poke8(0x20,0xFF); #set buffer 0 mask 1 (SID 10:3) to FF
@@ -436,7 +434,7 @@ class GoodFETMCPCANCommunication:
         
                if (verbose == True):
                    print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
-               comment += ("f%d" %(ID))
+               
     
     
     
@@ -448,16 +446,17 @@ class GoodFETMCPCANCommunication:
         print "started"
         self.client.serInit()
         self.spitSetup(freq)
-        
         for i in range(lowID,highID+1, 1):
+            
             standardid = [i, i, i]
             #set filters
             self.addFilter(standardid, verbose = True)
-            #### split SID into different regs
+            #### split SID into different areas
             SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
             SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
             #create RTR packet
-            packet = [SIDhigh, SIDlow, 0x00,0x00,0x40] 
+            packet = [SIDhigh, SIDlow, 0x00,0x00,0x40]
+            self.client.poke8(0x2C,0x00);  #clear the CANINTF register; we care about bits 0 and 1 (RXnIF flags) which indicate a message is being held 
             self.client.txpacket(packet)
             ## listen for 2 packets. one should be the rtr we requested the other should be
             ## a new packet response
@@ -484,8 +483,9 @@ class GoodFETMCPCANCommunication:
                         print "packets recieved :\n "
                         print self.client.packet2parsedstr(packet1);
                         print self.client.packet2parsedstr(packet2);
-                        break
+                        #break
                 trial += 1
+        print "sweep complete"
         
     def spitSetup(self,freq):
         self.reset();

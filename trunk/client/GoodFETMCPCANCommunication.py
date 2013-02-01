@@ -176,18 +176,19 @@ class GoodFETMCPCANCommunication:
                 if( verbose==True):
                     #if we want to print a parsed message
                     if( parsed == True):
-                        packetParsed = self.client.packet2parsed(packet)
-                        sId = packetParsed.get('sID')
-                        msg = "sID: %04d" %sId
-                        if( packetParsed.get('eID')):
-                            msg += " eID: %d" %packetParsed.get('eID')
-                        msg += " rtr: %d"%packetParsed['rtr']
-                        length = packetParsed['length']
-                        msg += " length: %d"%length
-                        msg += " data:"
-                        for i in range(0,length):
-                            dbidx = 'db%d'%i
-                            msg +=" %03d"% ord(packetParsed[dbidx])
+#                        packetParsed = self.client.packet2parsed(packet)
+#                        sId = packetParsed.get('sID')
+#                        msg = "sID: %04d" %sId
+#                        if( packetParsed.get('eID')):
+#                            msg += " eID: %d" %packetParsed.get('eID')
+#                        msg += " rtr: %d"%packetParsed['rtr']
+#                        length = packetParsed['length']
+#                        msg += " length: %d"%length
+#                        msg += " data:"
+#                        for i in range(0,length):
+#                            dbidx = 'db%d'%i
+#                            msg +=" %03d"% ord(packetParsed[dbidx])
+                        msg = self.client.packet2parsedstr(packet)
                         print msg
                     # if we want to print just the message as it is read off the chip
                     else:
@@ -239,7 +240,7 @@ class GoodFETMCPCANCommunication:
         msgIDs = []
         self.client.serInit()
         self.client.MCPsetup()
-        for i in range(low, high, 6):
+        for i in range(low, high+1, 6):
             print "sniffing id: %d, %d, %d, %d, %d, %d" % (i,i+1,i+2,i+3,i+4,i+5)
             comment= "sweepFilter: "
             #comment = "sweepFilter_%d_%d_%d_%d_%d_%d" % (i,i+1,i+2,i+3,i+4,i+5)
@@ -260,7 +261,7 @@ class GoodFETMCPCANCommunication:
         ids = []
         self.client.serInit()
         self.client.MCPsetup()
-        for i in range(0,number,6):
+        for i in range(0,number+1,6):
             idsTemp = []
             comment = "sweepFilter: "
             for j in range(0,6,1):
@@ -387,6 +388,100 @@ class GoodFETMCPCANCommunication:
                     print "CANINTF: %02x"  %self.client.peek8(0x2C);
 
     
+    
+    
+    def addFilter(self,standardid,comment, verbose= True):
+        ### ON-CHIP FILTERING
+        if(standardid != None):
+            if( comment == None):
+                comment = ""
+            self.client.MCPreqstatConfiguration();  
+            self.client.poke8(0x60,0x26); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1, BUKT=1)
+            self.client.poke8(0x20,0xFF); #set buffer 0 mask 1 (SID 10:3) to FF
+            self.client.poke8(0x21,0xE0); #set buffer 0 mask 2 bits 7:5 (SID 2:0) to 1s
+            if(len(standardid)>2):
+               self.client.poke8(0x70,0x20); # set RXB1 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1)
+               self.client.poke8(0x24,0xFF); #set buffer 1 mask 1 (SID 10:3) to FF
+               self.client.poke8(0x25,0xE0); #set buffer 1 mask 2 bits 7:5 (SID 2:0) to 1s 
+            
+            for filter,ID in enumerate(standardid):
+        
+               if (filter==0):
+                RXFSIDH = 0x00;
+                RXFSIDL = 0x01;
+               elif (filter==1):
+                RXFSIDH = 0x04;
+                RXFSIDL = 0x05;
+               elif (filter==2):
+                RXFSIDH = 0x08;
+                RXFSIDL = 0x09;
+               elif (filter==3):
+                RXFSIDH = 0x10;
+                RXFSIDL = 0x11;
+               elif (filter==4):
+                RXFSIDH = 0x14;
+                RXFSIDL = 0x15;
+               else:
+                RXFSIDH = 0x18;
+                RXFSIDL = 0x19;
+        
+               #### split SID into different regs
+               SIDlow = (ID & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+               SIDhigh = (ID >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+               
+               #write SID to regs 
+               self.client.poke8(RXFSIDH,SIDhigh);
+               self.client.poke8(RXFSIDL, SIDlow);
+        
+               if (verbose == True):
+                   print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
+               comment += ("f%d" %(ID))
+    
+    
+    
+    # this will sweep through the given ids to request a packet and then sniff on that
+    # id for a given amount duration. This will be repeated the number of attempts time
+    
+    #at the moment this is set to switch to the next id once  a message is identified
+    def rtrSweep(self,freq,lowID,highID, attempts = 2,duration = 1, verbose = True):
+        self.client.serInit()
+        self.spitSetup(freq)
+        
+        for i in range(lowID,highID+1, 1):
+            standardid = [i, i, i]
+            #set filters
+            self.addFilter(standardid, comment, verbose = True)
+            #### split SID into different regs
+            SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+            SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+            #create RTR packet
+            packet = [SIDhigh, SIDlow, 0x00,0x00,0x40] 
+            self.client.txpacket(packet)
+            ## listen for 2 packets. one should be the rtr we requested the other should be
+            ## a new packet response
+            packet1=self.client.rxpacket();
+            packet2=self.client.rxpacket();
+            if( packet1 != None and packet2 != None):
+                print "packets recieved :\n "
+                print self.client.packet2parsedstr(packet1);
+                print self.client.packet2parsedstr(packet2);
+                continue
+            trial= 1;
+            # for each trial
+            while( trial <= attempts):
+                self.client.MCPrts(TXB0=True);
+                starttime = time.time()
+                # this time we will sniff for the given amount of time to see if there is a
+                # time till the packets come in
+                while( time.time()-starttime < duration):
+                    packet1=self.client.rxpacket();
+                    packet2=self.client.rxpacket();
+            
+                    if( packet1 != None and packet2 != None):
+                        print "packets recieved :\n "
+                        print self.client.packet2parsedstr(packet1);
+                        print self.client.packet2parsedstr(packet2);
+                        break
         
     def spitSetup(self,freq):
         self.reset();
@@ -441,8 +536,7 @@ class GoodFETMCPCANCommunication:
         
                 
         print "Transmitting packet: "
-        for byte in packet:
-            print "%02x " %byte,
+        print self.client.packet2str(packet)
                 
         self.client.txpacket(packet);
             
@@ -457,6 +551,7 @@ class GoodFETMCPCANCommunication:
                 while(1): 
                     self.client.MCPrts(TXB0=True);
         print "messages injected"
+        
         # MORE DEBUGGING        
         if(debug): 
             checkcount = 0;

@@ -406,6 +406,9 @@ class DisplayApp:
     def unsetRunning(self):
         self.running = False
 
+    def getRate(self):
+        return self.freq
+
     def connectBus(self):
         if( self.running):
             return
@@ -466,8 +469,9 @@ class DisplayApp:
         #self.comm.sniff(freq=self.freq,duration=time,
         #          description=description,verbose=self.verbose,comment=comments,filename = None,
         #           standardid=standardid, debug = False)    
-        
+        self.running = True
         thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True ))
+        self.runnin = False
         
     def write(self):
         if( not self.checkComm()):

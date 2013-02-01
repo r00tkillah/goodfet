@@ -24,6 +24,7 @@ class experiments(Toplevel):
         Toplevel.__init__(self, parent)
         self.transient(parent)
         #top = self.top = Toplevel(parent)
+        self.BOLDFONT = "Helvetica 16 bold italic"
         if title:
             self.title(title)
         #set parent
@@ -57,86 +58,124 @@ class experiments(Toplevel):
     def body(self,master):
         i=0
         #Sweep all ids experiments
-        entryLabel = Tkinter.Label(master, font = "Helvetica 16 bold italic")
+        j = 0
+        entryLabel = Tkinter.Label(master, font = self.BOLDFONT)
         entryLabel["text"] = "Sweep Std IDs:"
-        entryLabel.grid(row=i,column=0,columnspan=3, sticky = tk.W)
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        
         i+=1
+        j = 0
         entryLabel=Tkinter.Label(master)
         entryLabel["text"] = "Time (s):"
-        entryLabel.grid(row=i,column=0,sticky=tk.W)
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
         self.sniffTime = Tkinter.StringVar();
         self.sniffTime.set("20")
         entryWidget = Tkinter.Entry(master, textvariable=self.sniffTime)
         entryWidget["width"] = 5
-        entryWidget.grid(row=i,column=1, sticky=tk.W)
-
+        entryWidget.grid(row=i,column=j, sticky=tk.W)
+        j+=1
+        #align with lower exp
+        j += 2
         entryLabel = Tkinter.Label(master)
         entryLabel["text"] = "From: "
-        entryLabel.grid(row=i,column=2,sticky=tk.W)
-        
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
         self.lowSweep = Tkinter.StringVar();
         self.lowSweep.set("0")
         entryWidget = Tkinter.Entry(master, textvariable=self.lowSweep)
         entryWidget["width"] = 5
-        entryWidget.grid(row=i,column=3,sticky=tk.W)
-        
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+=1
         entryLabel = Tkinter.Label(master)
         entryLabel["text"] = "To "
-        entryLabel.grid(row=i,column=4,sticky=tk.W)
-        
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
         self.HighSweep = Tkinter.StringVar();
         self.HighSweep.set("4095")
         entryWidget = Tkinter.Entry(master, textvariable=self.HighSweep)
         entryWidget["width"] = 5
-        entryWidget.grid(row=i,column=5,sticky=tk.W)
-
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
         sweepButton = Button(master, text="Start", width=5, command=self.sweepID)
-        sweepButton.grid(row=i, column=6,sticky=tk.W)
-        i += 1
+        sweepButton.grid(row=i, column=j,sticky=tk.W)
         
-        entryLabel = Tkinter.Label(master, font = "Helvetica 16 bold italic")
+        i += 1
+        j = 0
+        entryLabel = Tkinter.Label(master, font = self.BOLDFONT)
         entryLabel["text"] = "RTR sweep response:"
-        entryLabel.grid(row=i,column=0,columnspan=3, sticky = tk.W)
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        
         i+=1
+        j = 0 
         entryLabel=Tkinter.Label(master)
         entryLabel["text"] = "Time (s):"
-        entryLabel.grid(row=i,column=0,sticky=tk.W)
-        self.sniffTime = Tkinter.StringVar();
-        self.sniffTime.set("20")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        #self.sniffTime = Tkinter.StringVar();
+        #self.sniffTime.set("20")
         entryWidget = Tkinter.Entry(master, textvariable=self.sniffTime)
         entryWidget["width"] = 5
-        entryWidget.grid(row=i,column=1, sticky=tk.W)
-
+        entryWidget.grid(row=i,column=j, sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(master, text = "Attempts: ")
+        entryLabel.grid(row=i, column = j, sticky=tk.W)
+        j += 1
+        self.attempts = Tkinter.StringVar();
+        self.attempts.set("2")
+        entryWidget = Tkinter.Entry(master, textvariable = self.attempts)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
         entryLabel = Tkinter.Label(master)
         entryLabel["text"] = "From: "
-        entryLabel.grid(row=i,column=2,sticky=tk.W)
-        
-        self.lowSweep = Tkinter.StringVar();
-        self.lowSweep.set("0")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        #self.lowSweep = Tkinter.StringVar();
+        #self.lowSweep.set("0")
         entryWidget = Tkinter.Entry(master, textvariable=self.lowSweep)
         entryWidget["width"] = 5
-        entryWidget.grid(row=i,column=3,sticky=tk.W)
-        
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
         entryLabel = Tkinter.Label(master)
         entryLabel["text"] = "To "
-        entryLabel.grid(row=i,column=4,sticky=tk.W)
-        
-        self.HighSweep = Tkinter.StringVar();
-        self.HighSweep.set("4095")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        #self.HighSweep = Tkinter.StringVar();
+        #self.HighSweep.set("4095")
         entryWidget = Tkinter.Entry(master, textvariable=self.HighSweep)
         entryWidget["width"] = 5
-        entryWidget.grid(row=i,column=5,sticky=tk.W)
-        
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
         sweepButton = Button(master, text="Start", width=5, command=self.RTRsweepID)
-        sweepButton.grid(row=i, column=6,sticky=tk.W)
-        
+        sweepButton.grid(row=i, column=j,sticky=tk.W)
+        j += 1
         i+= 1
+        
         
         
      
         
     def RTRsweepID(self):
-        print "RTR sweep ID"
+        print "Sweep across given IDs requesting packets"
+        if( not self.dClass.checkComm()):
+            return
+        sniffTime = self.sniffTime.get()
+        low = self.lowSweep.get()
+        high = self.HighSweep.get()
+        attempts = self.attempts.get()
+        verbose = True
+        try: 
+            sT = int(sniffTime)
+            lowI = int(low)
+            highI = int(high)
+            attemptsI = int(attempts)
+        except:
+            print "Values are not integers. Please check inputs and try again."
+            return
+        self.dClass.setRunning()
+        thread.start_new_thread(self.comm.rtrSweep,(self.dClass.getRate(), lowI, highI, attemptsI, sT, verbose))
+        self.dClass.unsetRunning()
  
     def sweepID(self):
         if( not self.dClass.checkComm()):
@@ -149,12 +188,12 @@ class experiments(Toplevel):
             lowI = int(low)
             highI = int(high)
         except:
-            print "Values are not integers"
+            print "Values are not integers. Please check inputs and try again."
             return
         if( highI < lowI  or sT <= 0):
-            print "Incorrectly formated inputs!"
+            print "Incorrectly formated inputs! Please check that lower ID is less than higher ID"
         self.dClass.setRunning()
-        thread.start_new_thread(self.comm.filterStdSweep, (self.freq, low, high, time ))
+        thread.start_new_thread(self.comm.filterStdSweep, (self.dClass.getRate(), lowI, highI, sT ))
         self.dClass.unsetRunning()
         
     

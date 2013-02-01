@@ -32,7 +32,7 @@ class experiments(Toplevel):
         #set Data
         self.data = data
         self.dClass = dClass
-        
+        self.comm = comm
         body = Frame(self)
         self.initial_focus = self.body(body)
         body.pack(padx=5,pady=5)

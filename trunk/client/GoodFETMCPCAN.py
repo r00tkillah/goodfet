@@ -327,9 +327,13 @@ class GoodFETMCPCAN(GoodFETSPI):
         #generate the data section
         dbmsg = ""
         for i in range(0,length):
-            dbmsg += data[idx]   
+            idx = 5 + i
+            dbmsg += " %03d"%ord(data[idx])   
         
-        msg = "sID: %04d" + eIDmsg + rtrmsg + ("length: %d"%(length)) + dbmsg 
+        msg = "sID: %04d"%sID
+        msg += eIDmsg + rtrmsg
+        msg += "length: %d"%(length)
+        msg +=  dbmsg 
     
         return msg
         

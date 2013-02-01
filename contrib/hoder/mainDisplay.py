@@ -471,7 +471,7 @@ class DisplayApp:
         #           standardid=standardid, debug = False)    
         self.running = True
         thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True ))
-        self.runnin = False
+        self.running = False
         
     def write(self):
         if( not self.checkComm()):
@@ -515,7 +515,7 @@ class DisplayApp:
         
     def experiments(self):
         data = {}
-        exp = experiments(self.root, self, comm=self.comment, data = data, title = "Experiments")
+        exp = experiments(self.root, self, comm=self.comm, data = data, title = "Experiments")
         
         
         

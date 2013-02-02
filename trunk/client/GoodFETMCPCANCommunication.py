@@ -442,7 +442,7 @@ class GoodFETMCPCANCommunication:
     # id for a given amount duration. This will be repeated the number of attempts time
     
     #at the moment this is set to switch to the next id once  a message is identified
-    def rtrSweep(self,freq,lowID,highID, attempts = 2,duration = 1, verbose = True):
+    def rtrSweep(self,freq,lowID,highID, attempts = 1,duration = 1, verbose = True):
         #set up file
         now = datetime.datetime.now()
         datestr = now.strftime("%Y%m%d")
@@ -453,9 +453,10 @@ class GoodFETMCPCANCommunication:
         dataWriter.writerow(['# Time     Error        Bytes 1-13']);
         dataWriter.writerow(['#' + "rtr sweep from " + lowID + " to" + highID])
         print "started"
-        self.client.serInit()
-        self.spitSetup(freq)
+        #self.client.serInit()
+        #self.spitSetup(freq)
         for i in range(lowID,highID+1, 1):
+            self.client.serInit()
             self.spitSetup(freq)
             standardid = [i, i, i, i]
             #set filters

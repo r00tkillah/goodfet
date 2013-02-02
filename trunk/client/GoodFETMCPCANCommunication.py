@@ -443,6 +443,15 @@ class GoodFETMCPCANCommunication:
     
     #at the moment this is set to switch to the next id once  a message is identified
     def rtrSweep(self,freq,lowID,highID, attempts = 2,duration = 1, verbose = True):
+        #set up file
+        now = datetime.datetime.now()
+        datestr = now.strftime("%Y%m%d")
+        path = self.DATALOCATION+datestr+"_rtr.csv"
+        filename = path
+        outfile = open(filename,'a');
+        dataWriter = csv.writer(outfile,delimiter=',');
+        dataWriter.writerow(['# Time     Error        Bytes 1-13']);
+        dataWriter.writerow(['#' + "rtr sweep from " + lowID + " to" + highID])
         print "started"
         self.client.serInit()
         self.spitSetup(freq)
@@ -457,6 +466,7 @@ class GoodFETMCPCANCommunication:
             SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
             #create RTR packet
             packet = [SIDhigh, SIDlow, 0x00,0x00,0x40]
+            dataWriter.writerow(["#requested id %d"%i])
             #self.client.poke8(0x2C,0x00);  #clear the CANINTF register; we care about bits 0 and 1 (RXnIF flags) which indicate a message is being held 
             #clear buffer
             packet1 = self.client.rxpacket();
@@ -465,17 +475,30 @@ class GoodFETMCPCANCommunication:
             self.client.txpacket(packet)
             ## listen for 2 packets. one should be the rtr we requested the other should be
             ## a new packet response
-            packet1=self.client.rxpacket();
-            packet2=self.client.rxpacket();
-            if( packet1 != None and packet2 != None):
-                print "packets recieved :\n "
-                print self.client.packet2parsedstr(packet1);
-                print self.client.packet2parsedstr(packet2);
-                continue
-            elif( packet1 != None):
-                print self.client.packet2parsedstr(packet1)
-            elif( packet2 != None):
-                print self.client.packet2parsedstr(packet2)
+            starttime = time.tim()
+            while ((time.time() - starttime) < duration):
+                packet = self.client.rxpacket()
+                row = []
+                row.append("%f"%time.time()) #timestamp
+                row.append(0) #error flag (not checkign)
+                row.append("rtrRequest_%d"%i) #comment
+                row.append(duration) #sniff time
+                row.append(1) # filtering boolean
+                for byte in packet:
+                    row.append("%02x"%ord(byte));
+                dataWriter.writerow(row)
+                print self.client.packet2parsedstr(packet)
+#            packet1=self.client.rxpacket();
+#            packet2=self.client.rxpacket();
+#            if( packet1 != None and packet2 != None):
+#                print "packets recieved :\n "
+#                print self.client.packet2parsedstr(packet1);
+#                print self.client.packet2parsedstr(packet2);
+#                continue
+#            elif( packet1 != None):
+#                print self.client.packet2parsedstr(packet1)
+#            elif( packet2 != None):
+#                print self.client.packet2parsedstr(packet2)
             trial= 2;
             # for each trial
             while( trial <= attempts):
@@ -485,22 +508,34 @@ class GoodFETMCPCANCommunication:
                 # this time we will sniff for the given amount of time to see if there is a
                 # time till the packets come in
                 while( (time.time()-starttime) < duration):
-                    packet1=self.client.rxpacket();
-                    packet2=self.client.rxpacket();
-                    
-                    if( packet1 != None and packet2 != None):
-                        print "packets recieved :\n "
-                        print self.client.packet2parsedstr(packet1);
-                        print self.client.packet2parsedstr(packet2);
-                        #break
-                    elif( packet1 != None):
-                        print "just packet1"
-                        print self.client.packet2parsedstr(packet1)
-                    elif( packet2 != None):
-                        print "just packet2"
-                        print self.client.packet2parsedstr(packet2)
+                    packet=self.client.rxpacket();
+                    row = []
+                    row = []
+                    row.append("%f"%time.time()) #timestamp
+                    row.append(0) #error flag (not checking)
+                    row.append("rtrRequest_%d"%i) #comment
+                    row.append(duration) #sniff time
+                    row.append(1) # filtering boolean
+                    for byte in packet:
+                        row.append("%02x"%ord(byte));
+                    dataWriter.writerow(row)
+                    print self.client.packet2parsedstr(packet)
+#                    packet2=self.client.rxpacket();
+#                    
+#                    if( packet1 != None and packet2 != None):
+#                        print "packets recieved :\n "
+#                        print self.client.packet2parsedstr(packet1);
+#                        print self.client.packet2parsedstr(packet2);
+#                        #break
+#                    elif( packet1 != None):
+#                        print "just packet1"
+#                        print self.client.packet2parsedstr(packet1)
+#                    elif( packet2 != None):
+#                        print "just packet2"
+#                        print self.client.packet2parsedstr(packet2)
                 trial += 1
         print "sweep complete"
+        outfile.close()
         
     def spitSetup(self,freq):
         self.reset();

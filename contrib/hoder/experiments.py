@@ -70,7 +70,7 @@ class experiments(Toplevel):
         entryLabel.grid(row=i,column=j,sticky=tk.W)
         j+=1
         self.sniffTime = Tkinter.StringVar();
-        self.sniffTime.set("20")
+        self.sniffTime.set("2")
         entryWidget = Tkinter.Entry(master, textvariable=self.sniffTime)
         entryWidget["width"] = 5
         entryWidget.grid(row=i,column=j, sticky=tk.W)
@@ -122,7 +122,7 @@ class experiments(Toplevel):
         entryLabel.grid(row=i, column = j, sticky=tk.W)
         j += 1
         self.attempts = Tkinter.StringVar();
-        self.attempts.set("2")
+        self.attempts.set("1")
         entryWidget = Tkinter.Entry(master, textvariable = self.attempts)
         entryWidget["width"] = 5
         entryWidget.grid(row=i,column=j,sticky=tk.W)

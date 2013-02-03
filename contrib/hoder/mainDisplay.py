@@ -10,6 +10,7 @@ import binascii;
 import array;
 from DataManage import DataManage
 from experiments import *
+from info import *
 import datetime
 import os
 import thread
@@ -341,10 +342,10 @@ class DisplayApp:
         #width should be in characters. stored in a touple with the first one being a tag
         self.buttons.append( ( 'cmd1', tk.Button( self.cntlframe, text="Experiments", command=self.experiments, width=10 ) ) )
         self.buttons[-1][1].pack(side=tk.LEFT)
-        self.buttons.append( ( 'cmd1', tk.Button( self.cntlframe, text="Upload to db", command=self.uploaddb, width=10 ) ) )
+        self.buttons.append( ( 'cmd2', tk.Button( self.cntlframe, text="Upload to db", command=self.uploaddb, width=10 ) ) )
         self.buttons[-1][1].pack(side=tk.LEFT)  # default side is top
-        
-        
+        self.buttons.append( ('cmd3', tk.Button(self.cntlframe, text="ID Information", command=self.idInfo, width=15)))
+        self.buttons[-1][1].pack(side=tk.LEFT)
         return
 
     #Bind callbacks with the keyboard/keys
@@ -517,7 +518,9 @@ class DisplayApp:
         data = {}
         exp = experiments(self.root, self, comm=self.comm, data = data, title = "Experiments")
         
-        
+    def idInfo(self):
+        infoBox = info(parent=self.root, title="Information Gathered")
+        pass
         
     def sqlQuery(self):
         cmd = self.text.get(1.0,END)

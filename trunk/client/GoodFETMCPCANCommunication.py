@@ -451,7 +451,7 @@ class GoodFETMCPCANCommunication:
         outfile = open(filename,'a');
         dataWriter = csv.writer(outfile,delimiter=',');
         dataWriter.writerow(['# Time     Error        Bytes 1-13']);
-        dataWriter.writerow(['#' + "rtr sweep from " + lowID + " to" + highID])
+        dataWriter.writerow(['#' + "rtr sweep from %d to %d"%(lowID,highID)])
         print "started"
         #self.client.serInit()
         #self.spitSetup(freq)
@@ -510,7 +510,6 @@ class GoodFETMCPCANCommunication:
                 # time till the packets come in
                 while( (time.time()-starttime) < duration):
                     packet=self.client.rxpacket();
-                    row = []
                     row = []
                     row.append("%f"%time.time()) #timestamp
                     row.append(0) #error flag (not checking)

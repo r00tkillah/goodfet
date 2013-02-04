@@ -476,9 +476,11 @@ class GoodFETMCPCANCommunication:
             self.client.txpacket(packet)
             ## listen for 2 packets. one should be the rtr we requested the other should be
             ## a new packet response
-            starttime = time.tim()
+            starttime = time.time()
             while ((time.time() - starttime) < duration):
                 packet = self.client.rxpacket()
+                if( packet == None):
+                    continue
                 row = []
                 row.append("%f"%time.time()) #timestamp
                 row.append(0) #error flag (not checkign)

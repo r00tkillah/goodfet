@@ -292,49 +292,41 @@ class GoodFETMCPCAN(GoodFETSPI):
     
     
     ## This code could be drastica
-    def packet2parsedstr(self,data):
+    def packet2parsed(self,data):
         dp1 = ord(data[0])
         dp2 = ord(data[1])
         dp5 = ord(data[4])
         
-        msg="";
-        
-        
-
+        packet = {}
         #get the ide bit. allows us to check to see if we have an extended
         #frame
-        ide = (dp2 & 0x0f)>>3
+        packet['ide'] = (dp2 & 0x0f)>>3
         #we have an extended frame
-        if( ide != 0):
+        if( packet['ide'] != 0):
             #get lower nibble, last 2 bits
             eId = dp2 & 0x03
             eId = eId<<8 | ord(data[2])
             eId = eId<<8 | ord(data[3])
             rtr = dp5>>6 & 0x01
-            eIDmsg = " eID: %06d" %(eId)
-            rtrmsg = " rtr: %d" % (rtr)
+            packet['eID'] = " eID: %06d" %(eId)
+            packet['rtr'] = " rtr: %d" % (rtr)
     
         else:
-            rtr = dp2>>4 & 0x01
-            eIDmsg = ""
-            rtrmsg = " rtr: %d"%(rtr)
+            packet['rtr'] = dp2>>4 & 0x01
+            
         
         # Create the standard ID. from the message
-        sID = dp1<<3 | dp2>>5
-        length = dp5 & 0x0f
+        packet['sID'] = dp1<<3 | dp2>>5
+        packet['length'] = dp5 & 0x0f
         
         #generate the data section
-        dbmsg = ""
         for i in range(0,length):
             idx = 5 + i
-            dbmsg += " %03d"%ord(data[idx])   
+            dbidx = 'db%d'%i
+            packet[dbidx] = data[idx] 
         
-        msg = "sID: %04d"%sID
-        msg += eIDmsg + rtrmsg
-        msg += " length: %d"%(length)
-        msg +=  dbmsg 
-    
-        return msg
+        
+        return packet
         
         
     def peek8(self,adr):

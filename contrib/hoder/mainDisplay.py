@@ -11,6 +11,7 @@ import array;
 from DataManage import DataManage
 from experiments import *
 from info import *
+import tkHyperlinkManager
 import datetime
 import os
 import thread
@@ -71,9 +72,11 @@ class DisplayApp:
         # width and height of the window
         self.initDx = width
         self.initDy = height
-        self.dataDx = self.initDx/2-20;
+        self.dataDx = 50;
+        #self.dataDx = (self.initDx/2-350);
+        print self.dataDx
         self.dataDy = self.initDy;
-        self.ControlsDx = self.initDx/2;
+        self.ControlsDx = (self.initDx - 150);
         self.ControlsDy = self.initDy;
 
         # set up the geometry for the window
@@ -327,7 +330,7 @@ class DisplayApp:
         
         #expand it to the size of the window and fill
         #self.canvas.pack( expand=tk.YES, fill=tk.BOTH)
-        self.canvas.pack(side=tk.RIGHT)
+        self.canvas.pack(side=tk.RIGHT,expand=tk.YES, fill=tk.BOTH)
         return
 
     def buildDataCanvas(self):
@@ -335,16 +338,34 @@ class DisplayApp:
         
         self.dataFrame.pack(side=tk.LEFT,padx=2,pady=2,fill=tk.Y)
         
+        
         #separator line
-        sep = tk.Frame(self.root, height=self.initDy,width=2,bd=1,relief=tk.SUNKEN)
+        sep = tk.Frame(self.root, height=self.dataDy,width=2,bd=1,relief=tk.SUNKEN)
         sep.pack(side=tk.LEFT,padx=2,pady=2,fill=tk.Y)
         
-        self.dataText = tk.Text(self.dataFrame,background='white')
-        #self.dataText.config(state=DISABLED)
+        self.infoFrame = tk.Frame(self.dataFrame,width=self.dataDx,height=20)
+        self.infoFrame.pack(side=tk.BOTTOM, padx=2,pady=2,fill=tk.X)
+        
+        sep = tk.Frame(self.dataFrame,height=2,width=self.dataDx,bd=1,relief=tk.SUNKEN)
+        sep.pack(side=tk.BOTTOM,padx=2,pady=2,fill=tk.X)
+        
+        self.msgCount = tk.StringVar()
+        self.msgCount.set(0)
+        label = tk.Label(self.infoFrame,text="Count: ")
+        label.grid(row=0,column=0, sticky=tk.W)
+        label = tk.Label(self.infoFrame,textvariable=self.msgCount)
+        label.grid(row=0,column=1,sticky=tk.W)
+        
+        
+        
+        self.dataText = tk.Text(self.dataFrame,background='white', width=self.dataDx)
+        self.dataText.config(state=DISABLED)
         scroll = Scrollbar(self.dataFrame)
         self.dataText.configure(yscrollcommand=scroll.set)
         scroll.pack(side=tk.RIGHT,fill=tk.Y)
-        self.dataText.pack(side=tk.LEFT,expand=tk.YES,fill=tk.BOTH)
+        self.dataText.pack(side=tk.LEFT,fill=tk.Y)
+        
+        self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.dataText)
         
     # build a frame and put controls in it
     def buildControls(self):
@@ -502,10 +523,11 @@ class DisplayApp:
         self.running = False
         
     def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
+        #reset msg count
+        self.msgCount.set(0)
         self.running = True
         self.updateID = self.root.after(50,self.updateCanvas)
         count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data)
-        print "packet count: ",count
         self.running = False
         self.root.after_cancel(self.updateID)
         
@@ -523,12 +545,30 @@ class DisplayApp:
             except Queue.Empty:
                 pass
             else:
-                #self.dataText.config(state=ENABLE)
+                sID = packet.get('sID')
+                rtr = packet.get('rtr')
+                length = packet.get('length')
+                data = ""
+                for i in range(0,length):
+                    dbidx = 'db%d'%i
+                    data += "%03d"% ord(packetParsed[dbidx])
+                #get position of the scrollbar
+                position = self.scroller.get()
+                self.dataText.config(state=NORMAL)
+                self.dataText.insert(END,"arbID: ")
+                self.dataText.insert(END, sID, self.hyperlink.add(lambda: self.arbIDInfo(sID)))
+                self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data)
                 self.dataText.insert(END,packet+"\n")
+                self.dataText.config(state=DISABLED)
+                #if the position was at the end, update it now now be at the end again
+                if (position[1] == 1.0):
+                    self.text.see('end')
+                self.msgCount.set(self.msgCount.get()+1)
             #self.dataLength += 1
         self.updateID = self.root.after(50,self.updateCanvas)
             
-            
+    def arbIDInfo(self,id):
+        print "Request for information on %d" %id
         
     def write(self):
         if( not self.checkComm()):
@@ -838,5 +878,5 @@ class settingsDialog(Toplevel):
         
 # executes everything to run
 if __name__ == "__main__":
-    dapp = DisplayApp(1300, 520, "ford_2004")
+    dapp = DisplayApp(1000, 520, "ford_2004")
     dapp.main()

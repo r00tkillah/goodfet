@@ -181,19 +181,19 @@ class GoodFETMCPCANCommunication:
                 if( verbose==True):
                     #if we want to print a parsed message
                     if( parsed == True):
-#                        packetParsed = self.client.packet2parsed(packet)
-#                        sId = packetParsed.get('sID')
-#                        msg = "sID: %04d" %sId
-#                        if( packetParsed.get('eID')):
-#                            msg += " eID: %d" %packetParsed.get('eID')
-#                        msg += " rtr: %d"%packetParsed['rtr']
-#                        length = packetParsed['length']
-#                        msg += " length: %d"%length
-#                        msg += " data:"
-#                        for i in range(0,length):
-#                            dbidx = 'db%d'%i
-#                            msg +=" %03d"% ord(packetParsed[dbidx])
-                        msg = self.client.packet2parsedstr(packet)
+                        packetParsed = self.client.packet2parsed(packet)
+                        sId = packetParsed.get('sID')
+                        msg = "sID: %04d" %sId
+                        if( packetParsed.get('eID')):
+                            msg += " eID: %d" %packetParsed.get('eID')
+                        msg += " rtr: %d"%packetParsed['rtr']
+                        length = packetParsed['length']
+                        msg += " length: %d"%length
+                        msg += " data:"
+                        for i in range(0,length):
+                            dbidx = 'db%d'%i
+                            msg +=" %03d"% ord(packetParsed[dbidx])
+                        #msg = self.client.packet2parsedstr(packet)
                         print msg
                     # if we want to print just the message as it is read off the chip
                     else:

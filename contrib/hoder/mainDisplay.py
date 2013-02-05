@@ -466,13 +466,35 @@ class DisplayApp:
         if( len(standardid) == 0):
             standardid = None
         
+        
+        self.data = []
+        self.dataLength = 0
         #sniff
         #self.comm.sniff(freq=self.freq,duration=time,
         #          description=description,verbose=self.verbose,comment=comments,filename = None,
         #           standardid=standardid, debug = False)    
-        self.running = True
-        thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True ))
+        #self.running = True
+        #thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
+        thread.start_new_thread(self.sniffControl, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
+
+        #self.root.after(50, updateCanvas)
+        
         self.running = False
+        
+    def sniffControl(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
+        self.running = True
+        self.root.after(50,updateCanvas)
+        self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data)
+        self.running = False
+        self.root.after_cancel(self.updateID)
+        
+    def updateCanvas(self):
+        while(len(self.data) < self.dataLength):
+            self.text.insert(END,self.data[self.dataLength])
+            self.dataLength += 1
+        self.root.after(50,updateCanvas)
+            
+            
         
     def write(self):
         if( not self.checkComm()):
@@ -611,6 +633,7 @@ class settingsDialog(Toplevel):
     # This sets up the body of the popup dialog with all of the buttons and information
     def body(self,master):
         i=0
+        sniff
         
         #connect
         connectButton = tk.Button(master,text="Connect to Board", command = self.dClass.connectBus,width=20)

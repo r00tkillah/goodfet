@@ -72,7 +72,7 @@ class GoodFETMCPCANCommunication:
     #   SNIFF
     ##########################
          
-    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True):
+    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
         
         #reset eveything on the chip
         self.client.serInit() 
@@ -152,6 +152,10 @@ class GoodFETMCPCANCommunication:
                 packet=self.client.fastrxpacket();
             else:
                 packet=self.client.rxpacket();
+                
+            #add the data to list if the pointer was included
+            if(data != None):
+                data.append(packet)
             
             if(debug == True):
                 #check packet status

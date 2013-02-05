@@ -297,11 +297,10 @@ class GoodFETMCPCAN(GoodFETSPI):
         dp2 = ord(data[1])
         dp5 = ord(data[4])
         
-        #converts the CAN message to a string
         msg="";
         
         
-        
+
         #get the ide bit. allows us to check to see if we have an extended
         #frame
         ide = (dp2 & 0x0f)>>3

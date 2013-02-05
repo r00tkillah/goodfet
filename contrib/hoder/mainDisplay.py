@@ -71,6 +71,10 @@ class DisplayApp:
         # width and height of the window
         self.initDx = width
         self.initDy = height
+        self.dataDx = self.initDx/2-20;
+        self.dataDy = self.initDy;
+        self.ControlsDx = self.initDx/2;
+        self.ControlsDy = self.initDy;
 
         # set up the geometry for the window
         self.root.geometry( "%dx%d+50+30" % (self.initDx, self.initDy) )
@@ -79,7 +83,7 @@ class DisplayApp:
         self.root.title("CAN Data Reader")
 
         # set the maximum size of the window for resizing
-        self.root.maxsize( 1024, 768 )
+        #self.root.maxsize( 1024, 768 )
 
         # bring the window to the front
         self.root.lift()
@@ -93,10 +97,10 @@ class DisplayApp:
         
         self.setBindings()
 
-        
+        self.buildDataCanvas()
         # build the objects on the Canvas
         self.buildCanvas()
-
+        
     def buildMenus(self):
         
         # create a new menu
@@ -141,7 +145,7 @@ class DisplayApp:
     # create the canvas object
     def buildCanvas(self):
         # this makes the canvas the same size as the window, but it could be smaller
-        self.canvas = tk.Canvas( self.root, width=self.initDx, height=self.initDy)
+        self.canvas = tk.Canvas( self.root, width=self.ControlsDx, height=self.ControlsDy)
         i = 0
     
         
@@ -322,10 +326,26 @@ class DisplayApp:
         i += 1
         
         #expand it to the size of the window and fill
-        self.canvas.pack( expand=tk.YES, fill=tk.BOTH)
+        #self.canvas.pack( expand=tk.YES, fill=tk.BOTH)
+        self.canvas.pack(side=tk.RIGHT)
         return
 
-
+    def buildDataCanvas(self):
+        self.dataFrame = tk.Canvas(self.root, width=self.dataDx, height=self.dataDy)
+        
+        self.dataFrame.pack(side=tk.LEFT,padx=2,pady=2,fill=tk.Y)
+        
+        #separator line
+        sep = tk.Frame(self.root, height=self.initDy,width=2,bd=1,relief=tk.SUNKEN)
+        sep.pack(side=tk.LEFT,padx=2,pady=2,fill=tk.Y)
+        
+        self.dataText = tk.Text(self.dataFrame,background='white')
+        self.dataText.config(state=DISABLED)
+        scroll = Scrollbar(self.dataFrame)
+        self.dataText.configure(yscrollcommand=scroll.set)
+        scroll.pack(side=tk.RIGHT,fill=tk.Y)
+        self.dataText.pack(side=tk.LEFT,expand=tk.YES,fill=tk.BOTH)
+        
     # build a frame and put controls in it
     def buildControls(self):
 
@@ -467,7 +487,7 @@ class DisplayApp:
             standardid = None
         
         
-        self.data = []
+        self.data = Queue.Queue()
         self.dataLength = 0
         #sniff
         #self.comm.sniff(freq=self.freq,duration=time,
@@ -492,11 +512,16 @@ class DisplayApp:
         print "called"
         print self.dataLength
         #print self.data
-        while(len(self.data) > self.dataLength):
+        while(not self.data.empty()):
             print self.data[self.dataLength]
-            self.text.insert(END,self.data[self.dataLength])
-            self.dataLength += 1
-        self.updateID=self.root.after(50,self.updateCanvas)
+            try:
+                packet = self.data.get(block=False)
+            except Queue.Empty:
+                pass
+            else:
+                self.dataText.insert(END,packet+"\n")
+            #self.dataLength += 1
+        self.updateID = self.root.after(50,self.updateCanvas)
             
             
         
@@ -808,5 +833,5 @@ class settingsDialog(Toplevel):
         
 # executes everything to run
 if __name__ == "__main__":
-    dapp = DisplayApp(650, 520, "ford_2004")
+    dapp = DisplayApp(1300, 520, "ford_2004")
     dapp.main()

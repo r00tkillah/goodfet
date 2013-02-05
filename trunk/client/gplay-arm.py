@@ -6,7 +6,7 @@ from intelhex import IntelHex
 
 data = []
 
-client=GoodFETARM();
+client=GoodFETARM7();
 def init():
     #Initailize FET and set baud rate
     print >>sys.stderr,"Connecting to goodfet..."

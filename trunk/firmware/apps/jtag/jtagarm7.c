@@ -34,6 +34,8 @@ unsigned char last_sysstate = 0;
 unsigned char last_ir = -1;
 unsigned char last_scanchain = -1;
 unsigned char current_dbgstate = -1;
+unsigned char g_jtag_ir_size = 4;
+unsigned char g_jtagarm_scan_n_bitsize = 4;
 //unsigned char last_halt_debug_state = -1;
 //unsigned long last_halt_pc = -1;
 
@@ -90,7 +92,7 @@ u8 jtagarm_shift_ir(u8 ir, u8 flags){
   if (last_ir != ir){
 	jtag_capture_ir();
 	jtag_shift_register();
-    retval = jtag_trans_n(ir, 4, LSB|flags); 
+    retval = jtag_trans_n(ir, g_jtag_ir_size, LSB|flags); 
     last_ir = ir;
   }
   return retval;
@@ -110,7 +112,7 @@ state” to the “Select DR” state each time the “Update” state is reache
     last_scanchain = chain;
 	jtag_capture_dr();
 	jtag_shift_register();
-    retval = jtag_trans_n(chain, 4, LSB | NORETIDLE);
+    retval = jtag_trans_n(chain, g_jtagarm_scan_n_bitsize, LSB | NORETIDLE);
   }
   jtagarm_shift_ir(testmode, NORETIDLE); 
   return(retval);
@@ -303,6 +305,14 @@ void jtagarm7_handle_fn( uint8_t const app,
     //Enter JTAG mode.
     jtagarm7tdmi_start();
     txdata(app,verb,0);
+    break;
+  case JTAGARM7_SCAN_N_SIZE:
+    g_jtagarm_scan_n_bitsize = cmddata[0];
+    txdata(app,verb,1);
+    break;
+  case JTAGARM7_IR_SIZE:
+    g_jtag_ir_size = cmddata[0];
+    txdata(app,verb,1);
     break;
   case JTAG_IR_SHIFT:
     cmddataword[0] = jtagarm_shift_ir(cmddata[0], cmddata[1]);

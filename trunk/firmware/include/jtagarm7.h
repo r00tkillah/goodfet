@@ -113,6 +113,8 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define JTAGARM7_SCANCHAIN1                 0x94
 #define JTAGARM7_EICE_READ                  0x95
 #define JTAGARM7_EICE_WRITE                 0x96
+#define JTAGARM7_IR_SIZE                    0x9f
+#define JTAGARM7_SCAN_N_SIZE                0x9e
 
 
 // for deeper understanding, read the instruction cycle timing section of: 
@@ -158,6 +160,8 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define JTAG_ARM7TDMI_DBG_TBIT      16
 
 extern app_t const jtagarm7_app;
+extern unsigned char g_jtag_ir_size;
+extern unsigned char g_jtagarm_scan_n_bitsize;
 
 #endif // JTAGARM7_H
 

@@ -45,6 +45,8 @@ CHAIN0 =                    0x93
 SCANCHAIN1 =                0x94
 EICE_READ =                 0x95
 EICE_WRITE =                0x96
+SCAN_N_SIZE =               0x9e
+IR_SIZE =                   0x9f
 
 IR_EXTEST           =  0x0
 IR_SCAN_N           =  0x2
@@ -214,19 +216,23 @@ class GoodFETARM7(GoodFET):
         self.flags =            0xffffffff
         self.nothing =          0xffffffff
         self.stored_regs = []
+
     def __del__(self):
         try:
             if (self.ARMget_dbgstate()&9) == 9:
                 self.resume()
         except:
             sys.excepthook(*sys.exc_info())
+
     def setup(self):
         """Move the FET into the JTAG ARM application."""
         #print "Initializing ARM."
         self.writecmd(0x13,SETUP,0,self.data)
+
     def flash(self,file):
         """Flash an intel hex file to code memory."""
         print "Flash not implemented.";
+
     def dump(self,fn,start=0,stop=0xffffffff):
         """Dump an intel hex file from code memory."""
         
@@ -248,48 +254,68 @@ class GoodFETARM7(GoodFET):
         h.write_hex_file(fn);
 
         print "Dump not implemented.";
+
+    def ARMsetIRsize(self, size=4):
+        if size > 255:
+            raise Exception("IR size cannot be >255!!")
+        self.writecmd(0x13, IR_SIZE, 1, [size])
+
+    def ARMsetSCANsize(self, size=4):
+        if size > 255:
+            raise Exception("IR size cannot be >255!!")
+        self.writecmd(0x13, SCAN_N_SIZE, 1, [size])
+
     def ARMshift_IR(self, IR, noretidle=0):
         self.writecmd(0x13,IR_SHIFT,2, [IR, LSB|noretidle])
         return self.data
+
     def ARMshift_DR(self, data, bits, flags):
         self.writecmd(0x13,DR_SHIFT,14,[bits&0xff, flags&0xff, 0, 0, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff, (data>>32)&0xff,(data>>40)&0xff,(data>>48)&0xff,(data>>56)&0xff,(data>>64)&0xff,(data>>72)&0xff])
         return self.data
+
     def ARMshift_DR_more(self, data, bits, flags):
         self.writecmd(0x13,DR_SHIFT_MORE,14,[bits&0xff, flags&0xff, 0, 0, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff, (data>>32)&0xff,(data>>40)&0xff,(data>>48)&0xff,(data>>56)&0xff,(data>>64)&0xff,(data>>72)&0xff])
         return self.data
+
     def ARMwaitDBG(self, timeout=0xff):
         self.current_dbgstate = self.ARMget_dbgstate()
         while ( not ((self.current_dbgstate & 9L) == 9)):
             timeout -=1
             self.current_dbgstate = self.ARMget_dbgstate()
         return timeout
+
     def ARMident(self):
         """Get an ARM's ID."""
         self.ARMshift_IR(IR_IDCODE,0)
         self.ARMshift_DR(0,32,LSB)
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
+
     def ARMidentstr(self):
         ident=self.ARMident()
         ver     = (ident >> 28)
         partno  = (ident >> 12) & 0xffff
         mfgid   = (ident >> 1)  & 0x7ff
         return "Chip IDCODE:    0x%x\tver: %x\tpartno: %x\tmfgid: %x" % (ident, ver, partno, mfgid); 
+
     def ARMeice_write(self, reg, val):
         data = chop(val,4)
         data.extend([reg])
         retval = self.writecmd(0x13, EICE_WRITE, 5, data)
         return retval
+
     def ARMeice_read(self, reg):
         self.writecmd(0x13, EICE_READ, 1, [reg])
         retval, = struct.unpack("<L",self.data)
         return retval
+
     def ARMget_dbgstate(self):
         """Read the config register of an ARM."""
         self.ARMeice_read(EICE_DBGSTATUS)
         self.current_dbgstate = struct.unpack("<L", self.data[:4])[0]
         return self.current_dbgstate
     status = ARMget_dbgstate
+
     def statusstr(self):
         """Check the status as a string."""
         status=self.status()
@@ -300,36 +326,44 @@ class GoodFETARM7(GoodFET):
                 str="%s %s" %(self.ARMstatusbits[i],str)
             i*=2
         return str
+
     def ARMget_dbgctrl(self):
         """Read the config register of an ARM."""
         self.ARMeice_read(EICE_DBGCTRL)
         retval = struct.unpack("<L", self.data[:4])[0]
         return retval
+
     def ARMset_dbgctrl(self,config):
         """Write the config register of an ARM."""
         self.ARMeice_write(EICE_DBGCTRL, config&7)
+
     def ARMgetPC(self):
         """Get an ARM's PC. Note: real PC gets all wonky in debug mode, this is the "saved" PC"""
         return self.storedPC
     getpc = ARMgetPC
+    
     def ARMsetPC(self, val):
         """Set an ARM's PC.  Note: real PC gets all wonky in debug mode, this changes the "saved" PC which is used when exiting debug mode"""
         self.storedPC = val
+
     def ARMget_register(self, reg):
         """Get an ARM's Register"""
         self.writecmd(0x13,GET_REGISTER,1,[reg&0xf])
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
+
     def ARMset_register(self, reg, val):
         """Get an ARM's Register"""
         self.writecmd(0x13,SET_REGISTER,8,[val&0xff, (val>>8)&0xff, (val>>16)&0xff, val>>24, reg,0,0,0])
         retval = struct.unpack("<L", "".join(self.data[0:4]))[0]
         return retval
+
     def ARMget_registers(self):
         """Get ARM Registers"""
         regs = [ self.ARMget_register(x) for x in range(15) ]
         regs.append(self.ARMgetPC())            # make sure we snag the "static" version of PC
         return regs
+
     def ARMset_registers(self, regs, mask):
         """Set ARM Registers"""
         for x in xrange(15):
@@ -337,6 +371,7 @@ class GoodFETARM7(GoodFET):
             self.ARMset_register(x,regs.pop(0))
         if (1<<15) & mask:                      # make sure we set the "static" version of PC or changes will be lost
           self.ARMsetPC(regs.pop(0))
+
     def ARMdebuginstr(self,instr,bkpt):
         if type (instr) == int or type(instr) == long:
             instr = struct.pack("<L", instr)
@@ -344,12 +379,15 @@ class GoodFETARM7(GoodFET):
         instr.extend([bkpt])
         self.writecmd(0x13,DEBUG_INSTR,len(instr),instr)
         return (self.data)
+
     def ARM_nop(self, bkpt=0):
         if self.status() & DBG_TBIT:
             return self.ARMdebuginstr(THUMB_INSTR_NOP, bkpt)
         return self.ARMdebuginstr(ARM_INSTR_NOP, bkpt)
+
     def ARMrestart(self):
         self.ARMshift_IR(IR_RESTART)
+
     def ARMset_watchpoint0(self, addr, addrmask, data, datamask, ctrl, ctrlmask):
         self.ARMeice_write(EICE_WP0ADDR, addr);           # write 0 in watchpoint 0 address
         self.ARMeice_write(EICE_WP0ADDRMASK, addrmask);   # write 0xffffffff in watchpoint 0 address mask
@@ -358,6 +396,7 @@ class GoodFETARM7(GoodFET):
         self.ARMeice_write(EICE_WP0CTRL, ctrl);           # write 0x00000100 in watchpoint 0 control value register (enables watchpoint)
         self.ARMeice_write(EICE_WP0CTRLMASK, ctrlmask);   # write 0xfffffff7 in watchpoint 0 control mask - only detect the fetch instruction
         return self.data
+
     def ARMset_watchpoint1(self, addr, addrmask, data, datamask, ctrl, ctrlmask):
         self.ARMeice_write(EICE_WP1ADDR, addr);           # write 0 in watchpoint 1 address
         self.ARMeice_write(EICE_WP1ADDRMASK, addrmask);   # write 0xffffffff in watchpoint 1 address mask
@@ -366,6 +405,7 @@ class GoodFETARM7(GoodFET):
         self.ARMeice_write(EICE_WP1CTRL, ctrl);           # write 0x00000100 in watchpoint 1 control value register (enables watchpoint)
         self.ARMeice_write(EICE_WP1CTRLMASK, ctrlmask);   # write 0xfffffff7 in watchpoint 1 control mask - only detect the fetch instruction
         return self.data
+
     def THUMBgetPC(self):
         THUMB_INSTR_STR_R0_r0 =     0x60006000L
         THUMB_INSTR_MOV_R0_PC =     0x46b846b8L
@@ -377,6 +417,7 @@ class GoodFETARM7(GoodFET):
         retval = self.ARMget_register(0)
         self.ARMset_register(0,r0)
         return retval
+
     def ARMcapture_system_state(self, pcoffset):
         self.c0Data, self.flags, self.c0Addr = self.ARMchain0(0)
         if self.ARMget_dbgstate() & DBG_TBIT:
@@ -388,7 +429,6 @@ class GoodFETARM7(GoodFET):
         self.cpsr = self.ARMget_regCPSR()
         #print "ARMcapture_system_state: stored pc: 0x%x  last_dbg_state: 0x%x" % (self.storedPC, self.last_dbg_state)
 
-    #def ARMhaltcpu(self):
     def halt(self):
         """Halt the CPU."""
         if self.ARMget_dbgstate()&DBG_DBGACK:
@@ -413,9 +453,7 @@ class GoodFETARM7(GoodFET):
         #print "stored regs: " + repr(self.stored_regs)
         #print self.print_stored_registers()
         #print "CPSR: (%s) %s"%(self.ARMget_regCPSRstr())
-    #halt = ARMhaltcpu
 
-    #def ARMreleasecpu(self):
     def resume(self):
         """Resume the CPU."""
         # FIXME: restore CPSR
@@ -464,8 +502,6 @@ class GoodFETARM7(GoodFET):
         #print >>sys.stderr,"Debug Status:\t%s\n" % self.statusstr()
         #print >>sys.stderr,"CPSR: (%s) %s"%(self.ARMget_regCPSRstr())
 
-    #resume = ARMreleasecpu
-    
     def resettap(self):
         self.writecmd(0x13, RESETTAP, 0,[])
 
@@ -522,38 +558,6 @@ class GoodFETARM7(GoodFET):
         self.ARM_nop( 0)        # push nop into pipeline - execute
         self.ARMset_register(0, r0)
         return(val)
-        
-    '''
-    def ARMreadMem(self, adr, wrdcount=1):
-        retval = [] 
-        r0 = self.ARMget_register(0);        # store R0 and R1
-        r1 = self.ARMget_register(1);
-        #print >>sys.stderr,("CPSR:\t%x"%self.ARMget_regCPSR())
-        self.ARMset_register(0, adr);        # write address into R0
-        self.ARMset_register(1, 0xdeadbeef)
-        for word in range(adr, adr+(wrdcount*4), 4):
-            #sys.stdin.readline()
-            self.ARM_nop(0)
-            self.ARM_nop(1)
-            self.ARMdebuginstr(ARM_READ_MEM, 0); # push LDR R1, [R0], #4 into instruction pipeline  (autoincrements for consecutive reads)
-            self.ARM_nop(0)
-            self.ARMrestart()
-            self.ARMwaitDBG()
-            #print hex(self.ARMget_register(1))
-
-            # FIXME: this may end up changing te current debug-state.  should we compare to current_dbgstate?
-            #print repr(self.data[4])
-            if (len(self.data)>4 and self.data[4] == '\x00'):
-              print >>sys.stderr,("FAILED TO READ MEMORY/RE-ENTER DEBUG MODE")
-              raise Exception("FAILED TO READ MEMORY/RE-ENTER DEBUG MODE")
-              return (-1);
-            else:
-              retval.append( self.ARMget_register(1) )  # read memory value from R1 register
-              #print >>sys.stderr,("CPSR: %x\t\tR0: %x\t\tR1: %x"%(self.ARMget_regCPSR(),self.ARMget_register(0),self.ARMget_register(1)))
-        self.ARMset_register(1, r1);       # restore R0 and R1 
-        self.ARMset_register(0, r0);
-        return retval
-        '''
         
     def ARMreadStream(self, addr, bytecount):
         baseaddr    = addr & 0xfffffffc
@@ -627,13 +631,6 @@ class GoodFETARM7(GoodFET):
         # FIXME: handle the rest of the wordcount here.
         self.ARMset_registers(regs,0xe)
 
-    '''def ARMreadStream(self, adr, bytecount):
-        #data = [struct.unpack("<L", x) for x in self.ARMreadChunk(adr, (bytecount-1/4)+1)]
-        diff = adr % 4
-        address = adr - diff
-        data = [ struct.pack("<L", x) for x in self.ARMreadChunk(address, (bytecount-1/4)+1) ]
-        return "".join(data)[diff:bytecount]'''
-    
     ARMreadMem = ARMreadChunk
     peek = ARMreadMem
 
@@ -660,26 +657,6 @@ class GoodFETARM7(GoodFET):
             adr += count*4
             #print hex(adr)
         # FIXME: handle the rest of the wordcount here.
-        '''
-    def ARMwriteMem(self, adr, wordarray, instr=ARM_WRITE_MEM):
-        r0 = self.ARMget_register(0);        # store R0 and R1
-        r1 = self.ARMget_register(1);
-        #print >>sys.stderr,("CPSR:\t%x"%self.ARMget_regCPSR())
-        for widx in xrange(len(wordarray)):
-            address = adr + (widx*4)
-            word = wordarray[widx]
-            self.ARMset_register(0, address);        # write address into R0
-            self.ARMset_register(1, word);        # write address into R0
-            self.ARM_nop(0)
-            self.ARM_nop(1)
-            self.ARMdebuginstr(instr, 0); # push STR R1, [R0], #4 into instruction pipeline  (autoincrements for consecutive writes)
-            self.ARM_nop(0)
-            self.ARMrestart()
-            self.ARMwaitDBG()
-            #print >>sys.stderr,hex(self.ARMget_register(1))
-        self.ARMset_register(1, r1);       # restore R0 and R1 
-        self.ARMset_register(0, r0);
-        '''
     ARMwriteMem = ARMwriteChunk
         
     def ARMwriteStream(self, addr, datastr):

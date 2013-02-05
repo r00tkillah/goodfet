@@ -12,41 +12,36 @@
 import sys, binascii, struct, time
 import atlasutils.smartprint as asp
 from GoodFET import GoodFET
-import GoodFETARM7
+from GoodFETARM7 import *
 from intelhex import IntelHex
 
 
-#Global Commands
-READ  = 0x00
-WRITE = 0x01
-PEEK  = 0x02
-POKE  = 0x03
-SETUP = 0x10
-START = 0x20
-STOP  = 0x21
-CALL  = 0x30
-EXEC  = 0x31
-NOK   = 0x7E
-OK    = 0x7F
 
-# ARM JTAG commands
-IR_SHIFT =                  0x80
-DR_SHIFT =                  0x81
-RESETTAP =                  0x82
-RESETTARGET =               0x83
-GET_REGISTER =              0x87
-SET_REGISTER =              0x88
-DEBUG_INSTR =               0x89
-# Really ARM specific stuff
-WAIT_DBG =                  0x91
-CHAIN0 =                    0x93
-SCANCHAIN1 =                0x94
-EICE_READ =                 0x95
-EICE_WRITE =                0x96
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class GoodFETARM9(GoodFETARM7.GoodFETARM7):
-    def ARM9readMem(self, adr, wordcount):
+    def __init__(self):
+        GoodFETARM7.GoodGETARM7.__init__(self)
+        self.ARMsetSCANsize(5)
+
+    def ARMreadMem(self, adr, wordcount=0):
         """ Only works in ARM mode currently
         WARNING: Addresses must be word-aligned!
         """

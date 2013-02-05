@@ -72,7 +72,7 @@ class DisplayApp:
         # width and height of the window
         self.initDx = width
         self.initDy = height
-        self.dataDx = 50;
+        self.dataDx = 80;
         #self.dataDx = (self.initDx/2-350);
         print self.dataDx
         self.dataDy = self.initDy;
@@ -350,7 +350,7 @@ class DisplayApp:
         sep.pack(side=tk.BOTTOM,padx=2,pady=2,fill=tk.X)
         
         self.msgCount = tk.StringVar()
-        self.msgCount.set(0)
+        self.msgCount.set("0")
         label = tk.Label(self.infoFrame,text="Count: ")
         label.grid(row=0,column=0, sticky=tk.W)
         label = tk.Label(self.infoFrame,textvariable=self.msgCount)
@@ -360,9 +360,9 @@ class DisplayApp:
         
         self.dataText = tk.Text(self.dataFrame,background='white', width=self.dataDx)
         self.dataText.config(state=DISABLED)
-        scroll = Scrollbar(self.dataFrame)
-        self.dataText.configure(yscrollcommand=scroll.set)
-        scroll.pack(side=tk.RIGHT,fill=tk.Y)
+        self.scroll = Scrollbar(self.dataFrame)
+        self.dataText.configure(yscrollcommand=self.scroll.set)
+        self.scroll.pack(side=tk.RIGHT,fill=tk.Y)
         self.dataText.pack(side=tk.LEFT,fill=tk.Y)
         
         self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.dataText)
@@ -517,14 +517,14 @@ class DisplayApp:
         #self.running = True
         #thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
         thread.start_new_thread(self.sniffControl, (self.freq, time, description, False, comments, None, standardid, False, False, True, self.data ))
-
+        #self.sniffControl(self.freq, time, description, False, comments, None, standardid, False, False, True, self.data)
         #self.root.after(50, self.updateCanvas)
         
         self.running = False
         
     def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
         #reset msg count
-        self.msgCount.set(0)
+        self.msgCount.set("0")
         self.running = True
         self.updateID = self.root.after(50,self.updateCanvas)
         count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data)
@@ -551,24 +551,27 @@ class DisplayApp:
                 data = ""
                 for i in range(0,length):
                     dbidx = 'db%d'%i
-                    data += "%03d"% ord(packetParsed[dbidx])
+                    data += " %03d"% ord(packet[dbidx])
                 #get position of the scrollbar
-                position = self.scroller.get()
+                position = self.scroll.get()
                 self.dataText.config(state=NORMAL)
                 self.dataText.insert(END,"arbID: ")
-                self.dataText.insert(END, sID, self.hyperlink.add(lambda: self.arbIDInfo(sID)))
-                self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data)
-                self.dataText.insert(END,packet+"\n")
+                self.dataText.insert(END, "%04d"%sID, self.hyperlink.add(lambda: self.arbIDInfo("%04d"%packet.get('sID'))))
+                self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data + "\n")
+                #self.dataText.insert(END,packet+"\n")
                 self.dataText.config(state=DISABLED)
                 #if the position was at the end, update it now now be at the end again
                 if (position[1] == 1.0):
                     self.text.see('end')
-                self.msgCount.set(self.msgCount.get()+1)
+                self.msgCount.set("%d"%(int(self.msgCount.get())+1))
             #self.dataLength += 1
         self.updateID = self.root.after(50,self.updateCanvas)
+        
+    def callback(self):
+        self.arbIDInfo(id)
             
     def arbIDInfo(self,id):
-        print "Request for information on %d" %id
+        print "Request for information on %s" %id
         
     def write(self):
         if( not self.checkComm()):

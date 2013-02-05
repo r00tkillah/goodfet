@@ -320,7 +320,7 @@ class GoodFETMCPCAN(GoodFETSPI):
         packet['length'] = dp5 & 0x0f
         
         #generate the data section
-        for i in range(0,length):
+        for i in range(0,packet['length']):
             idx = 5 + i
             dbidx = 'db%d'%i
             packet[dbidx] = data[idx] 

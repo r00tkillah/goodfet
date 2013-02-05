@@ -157,7 +157,7 @@ class GoodFETMCPCANCommunication:
             #add the data to list if the pointer was included
             if(data != None):
                 #data.append(self.client.packet2parsedstr(packet))
-                data.put(self.client.packet2parsedstr(packet))
+                data.put(self.client.packet2parsed(packet))
             if(debug == True):
                 #check packet status
                 MCPstatusReg = self.client.MCPrxstatus();

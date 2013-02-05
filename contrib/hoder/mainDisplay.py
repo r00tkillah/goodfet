@@ -477,22 +477,26 @@ class DisplayApp:
         #thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
         thread.start_new_thread(self.sniffControl, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
 
-        #self.root.after(50, updateCanvas)
+        #self.root.after(50, self.updateCanvas)
         
         self.running = False
         
     def sniffControl(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
         self.running = True
-        self.root.after(50,updateCanvas)
+        self.updateID = self.root.after(50,self.updateCanvas)
         self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data)
         self.running = False
         self.root.after_cancel(self.updateID)
         
     def updateCanvas(self):
-        while(len(self.data) < self.dataLength):
+        print "called"
+        print self.dataLength
+        #print self.data
+        while(len(self.data) > self.dataLength):
+            print self.data[self.dataLength]
             self.text.insert(END,self.data[self.dataLength])
             self.dataLength += 1
-        self.root.after(50,updateCanvas)
+        self.updateID=self.root.after(50,self.updateCanvas)
             
             
         

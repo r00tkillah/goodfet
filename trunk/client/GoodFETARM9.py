@@ -37,8 +37,8 @@ from intelhex import IntelHex
 
 
 class GoodFETARM9(GoodFETARM7):
-    def __init__(self):
-        GoodGETARM7.__init__(self)
+    def start(self):
+        GoodFETARM7.start(self)
         self.ARMsetSCANsize(5)
 
     def ARMreadMem(self, adr, wordcount=0):

@@ -340,7 +340,7 @@ class DisplayApp:
         sep.pack(side=tk.LEFT,padx=2,pady=2,fill=tk.Y)
         
         self.dataText = tk.Text(self.dataFrame,background='white')
-        self.dataText.config(state=DISABLED)
+        #self.dataText.config(state=DISABLED)
         scroll = Scrollbar(self.dataFrame)
         self.dataText.configure(yscrollcommand=scroll.set)
         scroll.pack(side=tk.RIGHT,fill=tk.Y)
@@ -495,30 +495,35 @@ class DisplayApp:
         #           standardid=standardid, debug = False)    
         #self.running = True
         #thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
-        thread.start_new_thread(self.sniffControl, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
+        thread.start_new_thread(self.sniffControl, (self.freq, time, description, False, comments, None, standardid, False, False, True, self.data ))
 
         #self.root.after(50, self.updateCanvas)
         
         self.running = False
         
-    def sniffControl(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
+    def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
         self.running = True
         self.updateID = self.root.after(50,self.updateCanvas)
-        self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data)
+        count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data)
+        print "packet count: ",count
         self.running = False
         self.root.after_cancel(self.updateID)
         
     def updateCanvas(self):
-        print "called"
-        print self.dataLength
+        #print "called"
+        #print self.dataLength
         #print self.data
+        #print self.data.empty()
         while(not self.data.empty()):
-            print self.data[self.dataLength]
+            #print "trying to add"
+            #print self.data[self.dataLength]
             try:
                 packet = self.data.get(block=False)
+                #print "I GOT  THTIS: ", packet
             except Queue.Empty:
                 pass
             else:
+                #self.dataText.config(state=ENABLE)
                 self.dataText.insert(END,packet+"\n")
             #self.dataLength += 1
         self.updateID = self.root.after(50,self.updateCanvas)

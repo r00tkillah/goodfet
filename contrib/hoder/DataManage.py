@@ -213,8 +213,54 @@ class DataManage:
             # write message
             f.write(msg)
         f.close()
+        
+    def testSQLPCAP(self):
+        cmd = 'Select time,msg from ford_2004 where comment="bgtest"'
+        data = self.getData(cmd)
+        self.writetoPcapfromSQL("test.pcap",data)
+        return
 
+    def writetoPcapfromSQL(self, filenameWriteto, results): # pass in results from SQL query
 
+        f = open(filenameWriteto, "wb")
+        # write global header to file
+        # d4c3 b2a1 0200 0400 0000 0000 0000 0000 0090 0100 be00 0000
+        f.write("\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\xe3\x00\x00\x00")
+            
+        # run through all lines in results
+        for line in results:
+            
+            # create packet header for Wireshark
+            ph = ''
+            t = line[0]
+            us = int(t*(10**6))-int(t)*(10**6) #create microseconds
+            ph += struct.pack("<L", int(t)) # use time integer from results
+            ph += struct.pack("<L", us) # microseconds
+            ph += struct.pack("<L", 16) # number of packet octets saved in file
+            ph += struct.pack("<L", 16) # packet length
+            
+            # write the packet header to the file
+            f.write(ph)
+
+            # create a message of characters from 'message' in SQL database
+            # pad with 0s to ensure Wireshark accepts it correctly
+
+            # separate out bytes
+            bytes = [line[1][i:i+2]for i in range(0,len(line[1]),2)];
+         #   print chr(int(bytes[0],16))
+         #   print int(bytes[0],16)
+            # first 5 bytes
+            msg = '%s%s%s%s%s' % (chr(int(bytes[0], 16)), chr(int(bytes[1], 16)), chr(int(bytes[2], 16)), chr(int(bytes[3], 16)), chr(int(bytes[4], 16)))
+            # 3 bytes of zero to provide stuffing for Wireshark
+            msg += '%s%s%s' % (chr(int('00', 16)), chr(int('00', 16)), chr(int('00', 16)))
+            # 8 data bytes
+            msg += '%s%s%s%s%s%s%s%s' % (chr(int(bytes[5], 16)), chr(int(bytes[6], 16)), chr(int(bytes[7], 16)), chr(int(bytes[8], 16)), chr(int(bytes[9], 16)), chr(int(bytes[10], 16)), chr(int(bytes[11], 16)), chr(int(bytes[12], 16)))
+
+            # write message
+            f.write(msg)
+
+        # close file
+        f.close()
 
     
     # This method converts the data to integers and then passes it into parseMessageInt.
@@ -442,7 +488,7 @@ if __name__ == "__main__":
         write csv file to .pcap format
         ''')
         
-    parser.add_argument('verb', choices=['upload','pcap','getDataPcap', 'getDataCSV', 'autoUpload'])
+    parser.add_argument('verb', choices=['upload','pcap','getDataPcap', 'getDataCSV', 'autoUpload', 'test'])
     parser.add_argument('-f','--filename1', help="Filename to upload from")
     parser.add_argument('-s','--filename2', help='Filename to save to')
     parser.add_argument('-t','--table', help="table to upload to SQL")
@@ -453,6 +499,10 @@ if __name__ == "__main__":
     verb = args.verb;
    
     # upload data to SQL server from csv file provided
+    if( verb == "test"):
+        dm = DataManage(host="thayerschool.org", db="thayersc_canbus",username="thayersc_canbus",password="c3E4&$39",table="ford_2004")
+        dm.testSQLPCAP()
+        
     if( verb == "upload"):
         filename = args.filename1
         table = args.table

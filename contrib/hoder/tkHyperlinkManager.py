@@ -20,11 +20,11 @@ class HyperlinkManager:
     def reset(self):
         self.links = {}
 
-    def add(self, action):
+    def add(self, action, id):
         # add an action to the manager.  returns tags to use in
         # associated text widget
         tag = "hyper-%d" % len(self.links)
-        self.links[tag] = action
+        self.links[tag] = [action, id]
         return "hyper", tag
 
     def _enter(self, event):
@@ -36,5 +36,5 @@ class HyperlinkManager:
     def _click(self, event):
         for tag in self.text.tag_names(CURRENT):
             if tag[:6] == "hyper-":
-                self.links[tag]()
+                self.links[tag][0](self.links[tag][1])
                 return

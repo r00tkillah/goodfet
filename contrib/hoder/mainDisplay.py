@@ -556,7 +556,7 @@ class DisplayApp:
                 position = self.scroll.get()
                 self.dataText.config(state=NORMAL)
                 self.dataText.insert(END,"arbID: ")
-                self.dataText.insert(END, "%04d"%sID, self.hyperlink.add(lambda: self.arbIDInfo("%04d"%packet.get('sID'))))
+                self.dataText.insert(END, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
                 self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data + "\n")
                 #self.dataText.insert(END,packet+"\n")
                 self.dataText.config(state=DISABLED)
@@ -571,7 +571,7 @@ class DisplayApp:
         self.arbIDInfo(id)
             
     def arbIDInfo(self,id):
-        print "Request for information on %s" %id
+        print "Request for information on %d" %id
         
     def write(self):
         if( not self.checkComm()):

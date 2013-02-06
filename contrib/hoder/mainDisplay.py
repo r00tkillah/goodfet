@@ -542,6 +542,10 @@ class DisplayApp:
     def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
         #reset msg count
         self.msgCount.set("0")
+        self.deltas = {}
+        self.dataText.config(state=tk.NORMAL)
+        self.dataText.delete(1.0, END)
+        self.dataText.config(state=tk.DISABLED)
         self.running = True
         self.updateID = self.root.after(50,self.updateCanvas)
         count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data)
@@ -563,6 +567,12 @@ class DisplayApp:
                 pass
             else:
                 sID = packet.get('sID')
+                if( self.deltas.get(sID) == None):
+                    self.deltas[sID] = packet.get("time")
+                    delta = -1
+                else:
+                    delta = packet.get("time") - self.deltas.get(sID)
+                    self.deltas[sID] = packet.get("time")
                 rtr = packet.get('rtr')
                 length = packet.get('length')
                 data = ""
@@ -574,7 +584,7 @@ class DisplayApp:
                 self.dataText.config(state=NORMAL)
                 self.dataText.insert(END,"arbID: ")
                 self.dataText.insert(END, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
-                self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data + "\n")
+                self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data + (" DeltaT: %04f\n"%delta))
                 #self.dataText.insert(END,packet+"\n")
                 self.dataText.config(state=DISABLED)
                 #if the position was at the end, update it now now be at the end again
@@ -632,9 +642,11 @@ class DisplayApp:
         
     def experiments(self):
         data = {}
+        #thread.start_new_thread(experiments,(self.root, self, self.comm,data,"Experiments"))
         exp = experiments(self.root, self, comm=self.comm, data = data, title = "Experiments")
         
     def idInfo(self):
+        
         infoBox = info(parent=self.root, title="Information Gathered")
         pass
         

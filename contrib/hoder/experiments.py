@@ -19,7 +19,7 @@ tk = Tkinter
 class experiments(Toplevel):
     
     #constructor method
-    def __init__(self, title = None):
+    def __init__(self, parent, dClass, comm, data = None, title = None):
         
         Toplevel.__init__(self, parent)
         self.transient(parent)

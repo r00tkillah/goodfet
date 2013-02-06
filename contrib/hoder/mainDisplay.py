@@ -365,10 +365,11 @@ class DisplayApp:
         label = tk.Label(self.infoFrame,textvariable=self.msgCount)
         label.grid(row=0,column=1,sticky=tk.W)
         
-        self.topFrame = tk.Frame(self.dataFrame,width=self.dataDx,height=10)
+        self.topFrame = tk.Frame(self.dataFrame,width=self.dataDx,height=4)
         self.topFrame.pack(side=tk.TOP, padx=2,pady=2,fill=tk.X)
         label = tk.Label(self.topFrame)
-        label["text"] = "arbID        length   rtr    db0 db1 db2 db3 db4 db5 db6 db7";
+        label["text"] = "\t\t\t      db0  db1   db2  db3  db4   db5  db6   db7";
+        
         label.pack(side=tk.LEFT)
         
         
@@ -526,7 +527,8 @@ class DisplayApp:
         
         
         self.data = Queue.Queue()
-        self.dataLength = 0
+    
+        self.deltas = {}
         #sniff
         #self.comm.sniff(freq=self.freq,duration=time,
         #          description=description,verbose=self.verbose,comment=comments,filename = None,
@@ -542,7 +544,7 @@ class DisplayApp:
     def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
         #reset msg count
         self.msgCount.set("0")
-        self.deltas = {}
+        
         self.dataText.config(state=tk.NORMAL)
         self.dataText.delete(1.0, END)
         self.dataText.config(state=tk.DISABLED)

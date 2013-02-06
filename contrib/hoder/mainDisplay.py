@@ -76,7 +76,7 @@ class DisplayApp:
         #self.dataDx = (self.initDx/2-350);
         print self.dataDx
         self.dataDy = self.initDy;
-        self.ControlsDx = (self.initDx - 150);
+        self.ControlsDx = (self.initDx - 80);
         self.ControlsDy = self.initDy;
 
         # set up the geometry for the window
@@ -157,24 +157,33 @@ class DisplayApp:
         entryLabel = Tkinter.Label(self.canvas,  font = "Helvetica 16 bold italic")
         entryLabel["text"] = "Filters:"
         entryLabel.grid(row=i,column=0, sticky=tk.W)
-        entryLabel = Tkinter.Label(self.canvas)
-        entryLabel["text"] = "Buffer 0:"
-        entryLabel.grid(row=i,column =1, sticky=tk.E )
-        entryLabel = Tkinter.Label(self.canvas)
-        entryLabel["text"] = "Buffer 1:"
-        entryLabel.grid(row=i,column =2 ,sticky=tk.W)
+        
+        
+        
         i += 1
         self.filterIDs = []
-        for k in range(0,2):
-            for j in range(0,3):
-                stdID = Tkinter.StringVar()
-                stdID.set("")
-                entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
-                self.filterIDs.append(stdID)
-                entryWidget["width"] = 5
-                entryWidget.grid(row=i+k,column=j+1, sticky=tk.E)
-            print k
-            i += 1
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "Buffer 0:"
+        entryLabel.grid(row=i,column =0, sticky=tk.W )
+        for j in range(0,2):
+            stdID = Tkinter.StringVar()
+            stdID.set("")
+            entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
+            self.filterIDs.append(stdID)
+            entryWidget["width"] = 5
+            entryWidget.grid(row=i,column=j+1, sticky=tk.W)
+            
+        i += 1
+        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel["text"] = "Buffer 1:"
+        entryLabel.grid(row=i,column =0 ,sticky=tk.W)
+        for j in range( 0,4):
+            stdID = Tkinter.StringVar()
+            stdID.set("")
+            entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
+            self.filterIDs.append(stdID)
+            entryWidget["width"] = 5
+            entryWidget.grid(row=i,column=j+1, sticky=tk.W)
         clearButton = tk.Button( self.canvas, text="Clear", command=self.clearFilters, width=5)
         clearButton.grid(row=i,column=j+2,sticky=tk.W)
         i += 1
@@ -183,40 +192,40 @@ class DisplayApp:
         entryLabel = Tkinter.Label(self.canvas, font = "Helvetica 16 bold italic")
         entryLabel["text"] = "Sniff: "
         entryLabel.grid(row=i, column=0, sticky = tk.W)
-        sniffButton = tk.Button( self.canvas, text="Start", command=self.sniff, width=5 )
+        sniffButton = tk.Button( self.canvas, text="Start", command=self.sniff, width=3 )
         sniffButton.grid(row=i,column=1, sticky= tk.W)
         i += 1
         
         #time to sniff for
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "Time (s):"
-        entryLabel.grid(row=i,column=1, sticky=tk.E)
+        entryLabel.grid(row=i,column=0, sticky=tk.W)
         self.time = Tkinter.StringVar();
         self.time.set("10")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.time)
-        entryWidget.grid(row=i,column=2, sticky=tk.E)
+        entryWidget.grid(row=i,column=2, sticky=tk.W)
         entryWidget["width"] = 5
         i += 1
         
         #comment
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "comment (sql):"
-        entryLabel.grid(row=i,column=1, sticky = tk.E)
+        entryLabel.grid(row=i,column=0, columnspan = 2, sticky = tk.W)
         self.comment = Tkinter.StringVar();
         self.comment.set("")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.comment)
-        entryWidget.grid(row=i,column=2, columnspan = 5)
+        entryWidget.grid(row=i,column=2, columnspan = 6, sticky=tk.W)
         entryWidget["width"] = 30
         i += 1
         
         #description
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "description (csv):"
-        entryLabel.grid(row=i,column=1, sticky= tk.E)
+        entryLabel.grid(row=i,column=0,columnspan=2, sticky= tk.W)
         self.description = Tkinter.StringVar();
         self.description.set("")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.description)
-        entryWidget.grid(row=i,column=2, columnspan = 5)
+        entryWidget.grid(row=i,column=2, columnspan = 6, sticky=tk.W)
         entryWidget["width"] = 30
         i += 1
         
@@ -231,7 +240,7 @@ class DisplayApp:
         entryLabel["text"] = "Write:"
         entryLabel.grid(row=i,column=0, sticky = tk.W)
         
-        writeButton = tk.Button( self.canvas, text="Start", command=self.write, width=5 )
+        writeButton = tk.Button( self.canvas, text="Start", command=self.write, width=3 )
         writeButton.grid(row=i,column=1, sticky= tk.W)
         
         self.writeData = {}
@@ -295,7 +304,7 @@ class DisplayApp:
         entryLabel = Tkinter.Label(self.canvas,  font = "Helvetica 16 bold italic")
         entryLabel["text"] = "MYSQL:"
         entryLabel.grid(row=i,column=0, sticky = tk.W)
-        sqlButton = tk.Button( self.canvas, text="Query", command=self.sqlQuery, width=5)
+        sqlButton = tk.Button( self.canvas, text="Query", command=self.sqlQuery, width=4)
         sqlButton.grid(row=i,column=1,sticky=tk.W)
         
         self.pcapBool = IntVar()
@@ -355,6 +364,14 @@ class DisplayApp:
         label.grid(row=0,column=0, sticky=tk.W)
         label = tk.Label(self.infoFrame,textvariable=self.msgCount)
         label.grid(row=0,column=1,sticky=tk.W)
+        
+        self.topFrame = tk.Frame(self.dataFrame,width=self.dataDx,height=10)
+        self.topFrame.pack(side=tk.TOP, padx=2,pady=2,fill=tk.X)
+        label = tk.Label(self.topFrame)
+        label["text"] = "arbID        length   rtr    db0 db1 db2 db3 db4 db5 db6 db7";
+        label.pack(side=tk.LEFT)
+        
+        
         
         
         
@@ -881,5 +898,5 @@ class settingsDialog(Toplevel):
         
 # executes everything to run
 if __name__ == "__main__":
-    dapp = DisplayApp(1000, 520, "ford_2004")
+    dapp = DisplayApp(1200, 520, "ford_2004")
     dapp.main()

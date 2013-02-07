@@ -460,7 +460,7 @@ uint8_t* jtag_trans_many(uint8_t *data,
 
 	if (!in_state(SHIFT_IR | SHIFT_DR))
 	{
-		debugstr("jtag_trans_n from invalid TAP state");
+		debugstr("jtag_trans_many from invalid TAP state");
 		return 0;
 	}
 
@@ -470,31 +470,15 @@ uint8_t* jtag_trans_many(uint8_t *data,
 	{
         high = (1L << (min(bitcount,8) - 1));
         mask = high - 1;
-        hmask = (high<<1) - 1;
-                debugstr(" starting shift:");
-                //debughex(bit);
-                debughex(high);
-                //debughex(hmask);
-                debughex(mask);
-                debughex(*data);
 
 		for (bit = bitcount; bit > 0; bit--,bitnum++) 
 		{
             if (bitnum == 8)
             {
                 high = (1L << (min(bit,8) - 1));
-                hmask = (high<<1) - 1;
                 mask = high - 1;
                 bitnum = 0;
-
-                debugstr("");
-                //debughex(bit);
-                debughex(high);
-                //debughex(hmask);
-                debughex(mask);
-                debughex(*data);
                 data ++;
-
             }
 			/* write MOSI on trailing edge of previous clock */
 			if (*data & 1)
@@ -518,17 +502,11 @@ uint8_t* jtag_trans_many(uint8_t *data,
 			/* read MISO on trailing edge */
 			if (READMISO)
 			{
-                debugstr("MISO: 1");
 				*data |= (high);
 			}
-            else
-            {
-                debugstr("MISO: 0");
-            }
-            debughex(*data);
 
 		}
-        debughex(*data);
+        hmask = (high<<1) - 1;
         *data &= hmask;
 	} 
 	else 
@@ -536,12 +514,25 @@ uint8_t* jtag_trans_many(uint8_t *data,
         // MSB... we need to start at the end of the byte array
         data += (bitcount/8);
         bitnum = bitcount % 8;
-        high = (1L << (max(bitnum,8) - 1));
+        high = (1L << (min(bitnum,8) - 1));
         mask = high - 1;
         hmask = (high<<1) - 1;
 
 		for (bit = bitcount; bit > 0; bit--,bitnum--) 
 		{
+            if (bitnum == 0)
+            {
+                *data &= hmask;
+                debughex(*data);
+
+                high = (1L << (min(bit,8) - 1));
+                mask = high - 1;
+                hmask = (high<<1) - 1;
+                bitnum = 8;
+
+                data --;
+            }
+
 			/* write MOSI on trailing edge of previous clock */
 			if (*data & high)
 			{
@@ -564,14 +555,6 @@ uint8_t* jtag_trans_many(uint8_t *data,
 			/* read MISO on trailing edge */
 			*data |= (READMISO);
 
-            if (bitnum == 0)
-            {
-                high = (1L << (min(bit,8) - 1));
-                mask = high - 1;
-                hmask = (high<<1) - 1;
-                bitnum = 8;
-                data --;
-            }
 		}
 	}
 	

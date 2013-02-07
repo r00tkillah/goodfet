@@ -48,6 +48,8 @@ EICE_WRITE =                0x96
 SCAN_N_SIZE =               0x9e
 IR_SIZE =                   0x9f
 
+DR_SHIFT_MANY =             0x9c
+
 IR_EXTEST           =  0x0
 IR_SCAN_N           =  0x2
 IR_SAMPLE           =  0x3
@@ -276,6 +278,40 @@ class GoodFETARM7(GoodFET):
     def ARMshift_DR_more(self, data, bits, flags):
         self.writecmd(0x13,DR_SHIFT_MORE,14,[bits&0xff, flags&0xff, 0, 0, data&0xff,(data>>8)&0xff,(data>>16)&0xff,(data>>24)&0xff, (data>>32)&0xff,(data>>40)&0xff,(data>>48)&0xff,(data>>56)&0xff,(data>>64)&0xff,(data>>72)&0xff])
         return self.data
+
+    def ARMshift_DR_many(self, data, bits, flags):
+        darry = []
+        tbits = bits
+
+        # this is LSB, least sig BYTE first, between here and goodfet firmware
+        while (tbits>0):
+            darry.append( data&0xff )
+            data >>= 8
+            tbits -= 8
+
+        # bitcount, flags, [data]
+        data = [ bits&0xff, flags&0xff ]
+        data.extend(darry)
+        #print data
+
+        self.writecmd(0x13,DR_SHIFT_MANY, len(darry)+2, data )
+
+        #print repr(self.data[2:])
+        data = self.data[2:]
+        print repr(data)
+        out = 0
+        tbits = bits
+
+        # peal it off LSB again....
+        while (tbits>0):
+            #print tbits
+            out <<= 8
+            out += ord(data[-1])
+            data = data[:-1]
+            #print hex(out)
+            tbits -= 8
+
+        return out
 
     def ARMwaitDBG(self, timeout=0xff):
         self.current_dbgstate = self.ARMget_dbgstate()

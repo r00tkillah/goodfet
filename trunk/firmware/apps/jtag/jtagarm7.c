@@ -523,7 +523,6 @@ uint8_t* jtag_trans_many(uint8_t *data,
             if (bitnum == 0)
             {
                 *data &= hmask;
-                debughex(*data);
 
                 high = (1L << (min(bit,8) - 1));
                 mask = high - 1;

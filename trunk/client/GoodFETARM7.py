@@ -292,23 +292,18 @@ class GoodFETARM7(GoodFET):
         # bitcount, flags, [data]
         data = [ bits&0xff, flags&0xff ]
         data.extend(darry)
-        #print data
 
         self.writecmd(0x13,DR_SHIFT_MANY, len(darry)+2, data )
 
-        #print repr(self.data[2:])
         data = self.data[2:]
-        print repr(data)
         out = 0
         tbits = bits
 
         # peal it off LSB again....
         while (tbits>0):
-            #print tbits
             out <<= 8
             out += ord(data[-1])
             data = data[:-1]
-            #print hex(out)
             tbits -= 8
 
         return out

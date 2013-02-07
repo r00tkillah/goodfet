@@ -535,7 +535,7 @@ class DisplayApp:
         #           standardid=standardid, debug = False)    
         #self.running = True
         #thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
-        thread.start_new_thread(self.sniffControl, (self.freq, time, description, False, comments, None, standardid, False, False, True, self.data ))
+        thread.start_new_thread(self.sniffControl, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
         #self.sniffControl(self.freq, time, description, False, comments, None, standardid, False, False, True, self.data)
         #self.root.after(50, self.updateCanvas)
         
@@ -592,6 +592,7 @@ class DisplayApp:
                 #if the position was at the end, update it now now be at the end again
                 if (position[1] == 1.0):
                     self.text.see('end')
+                self.text.yview(tk.END)
                 self.msgCount.set("%d"%(int(self.msgCount.get())+1))
             #self.dataLength += 1
         self.updateID = self.root.after(50,self.updateCanvas)

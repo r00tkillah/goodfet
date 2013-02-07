@@ -599,7 +599,7 @@ class GoodFETMCPCANCommunication:
         
                 
         print "Transmitting packet: "
-        print self.client.packet2str(packet)
+        #print self.client.packet2str(packet)
                 
         self.client.txpacket(packet);
             

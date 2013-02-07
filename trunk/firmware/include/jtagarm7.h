@@ -40,6 +40,9 @@ void jtagarm7tdmi_set_register(unsigned long reg, unsigned long val);
 //!  Get a 32-bit ARM register
 unsigned long jtagarm7tdmi_get_register(unsigned long reg);
 
+//!  Shift an arbitrary number of bits, using an array of uchars
+uint8_t* jtag_trans_many(uint8_t *word, uint8_t bitcount, enum eTransFlags flags);
+
 // ARM7TDMI-specific pins
 // DBGRQ - GoodFET Pin 8
 #define DBGRQ   TST
@@ -116,6 +119,8 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define JTAGARM7_IR_SIZE                    0x9f
 #define JTAGARM7_SCAN_N_SIZE                0x9e
 
+#define JTAGARM_SCAN1_MANY                  0x9d
+#define JTAG_DR_SHIFT_MANY                  0x9c
 
 // for deeper understanding, read the instruction cycle timing section of: 
 //      http://www.atmel.com/dyn/resources/prod_documents/DDI0029G_7TDMI_R3_trm.pdf
@@ -158,7 +163,6 @@ The least significant bit of the instruction register is scanned in and scanned 
 #define JTAG_ARM7TDMI_DBG_IFEN      4
 #define JTAG_ARM7TDMI_DBG_cgenL     8
 #define JTAG_ARM7TDMI_DBG_TBIT      16
-
 extern app_t const jtagarm7_app;
 extern unsigned char g_jtag_ir_size;
 extern unsigned char g_jtagarm_scan_n_bitsize;

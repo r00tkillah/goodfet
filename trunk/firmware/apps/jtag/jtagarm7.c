@@ -150,11 +150,8 @@ unsigned long eice_read(unsigned char reg){               // PROVEN
 //! push an instruction into the pipeline
 unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  // PROVEN
   unsigned long retval = 0;
-  //debugstr("jtagarm7tdmi_instr_primitive");
   jtagarm7tdmi_scan(1, ARM7TDMI_IR_INTEST);
 
-  //debugstr("instruction:");
-  //debughex32(instr);
   //if (!(last_instr == instr && last_sysstate == breakpt))
   {
 	  jtag_capture_dr();
@@ -173,14 +170,34 @@ unsigned long jtagarm7tdmi_instr_primitive(unsigned long instr, char breakpt){  
     
     // Now shift in the 32 bits
     retval = jtag_trans_n(instr, 32, 0);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
-    //debugstr("hot off the pipeline!");
-    //debughex32(retval);
     last_instr = instr;
     last_sysstate = breakpt;
-  }// else
-  //{ // this assumes we don't want retval!  wtfo!?
-  //  jtag_tcktock();
-  //}
+  }
+  return(retval);
+}
+
+//! push an instruction into the pipeline
+unsigned long jtagarm_instr_primitive(unsigned char *instr, char breakpt){ 
+  unsigned long retval = 0;
+  jtagarm7tdmi_scan(1, ARM7TDMI_IR_INTEST);
+
+  //if (!(last_instr == instr && last_sysstate == breakpt))
+  {
+	  jtag_capture_dr();
+	  jtag_shift_register();
+
+    // if the next instruction is to run using MCLK (master clock), set TDI
+    if (breakpt)
+      { SETMOSI; } 
+    else
+      { CLRMOSI; }
+    jtag_tcktock();
+    
+    // Now shift in the 32 bits
+    retval = jtag_trans_many(instr, 32, 0);    // Must return to RUN-TEST/IDLE state for instruction to enter pipeline, and causes debug clock.
+    last_instr = *instr;
+    last_sysstate = breakpt;
+  }
   return(retval);
 }
 
@@ -354,6 +371,13 @@ void jtagarm7_handle_fn( uint8_t const app,
     }
     txdata(app,verb,val/8);
     break;
+  case JTAG_DR_SHIFT_MANY:
+	jtag_capture_dr();
+	jtag_shift_register();
+    val = cmddata[0];
+    jtag_trans_many(&cmddata[2], val, cmddata[1] );
+    txdata(app,verb,((val+7)/8)+2);
+    break;
   case JTAGARM7_CHAIN0:
     jtagarm7tdmi_scan(0, ARM7TDMI_IR_INTEST);
    	jtag_capture_dr();
@@ -371,6 +395,10 @@ void jtagarm7_handle_fn( uint8_t const app,
   case JTAGARM7_SCANCHAIN1:
   case JTAGARM7_DEBUG_INSTR:
     cmddatalong[0] = jtagarm7tdmi_instr_primitive(cmddatalong[0],cmddata[4]);
+    txdata(app,verb,4);
+    break;
+  case JTAGARM_SCAN1_MANY:
+    cmddatalong[0] = jtagarm_instr_primitive(&cmddata[1],cmddata[0]);
     txdata(app,verb,4);
     break;
   case JTAGARM7_EICE_READ:
@@ -417,4 +445,162 @@ void jtagarm7_handle_fn( uint8_t const app,
   }
 }
 
+#define min(x,y) ( (x>y) ? y : x )
+#define max(x,y) ( (x>y) ? x : y )
 
+uint8_t* jtag_trans_many(uint8_t *data, 
+		      uint8_t bitcount, 
+		      enum eTransFlags flags) 
+{
+	uint8_t bit;
+	uint16_t high;
+	uint16_t mask;
+	uint16_t hmask;
+	uint8_t bitnum = 0;
+
+	if (!in_state(SHIFT_IR | SHIFT_DR))
+	{
+		debugstr("jtag_trans_n from invalid TAP state");
+		return 0;
+	}
+
+	SAVETCLK;
+
+	if (flags & LSB) 
+	{
+        high = (1L << (min(bitcount,8) - 1));
+        mask = high - 1;
+        hmask = (high<<1) - 1;
+                debugstr(" starting shift:");
+                //debughex(bit);
+                debughex(high);
+                //debughex(hmask);
+                debughex(mask);
+                debughex(*data);
+
+		for (bit = bitcount; bit > 0; bit--,bitnum++) 
+		{
+            if (bitnum == 8)
+            {
+                high = (1L << (min(bit,8) - 1));
+                hmask = (high<<1) - 1;
+                mask = high - 1;
+                bitnum = 0;
+
+                debugstr("");
+                //debughex(bit);
+                debughex(high);
+                //debughex(hmask);
+                debughex(mask);
+                debughex(*data);
+                data ++;
+
+            }
+			/* write MOSI on trailing edge of previous clock */
+			if (*data & 1)
+			{
+				SETMOSI;
+			}
+			else
+			{
+				CLRMOSI;
+			}
+			*data >>= 1;
+
+			if ((bit == 1) && !(flags & NOEND))
+				SETTMS; //TMS high on last bit to exit.
+
+			jtag_tcktock();
+
+			if ((bit == 1) && !(flags & NOEND))
+				jtag_state <<= 1; // Exit1-DR or Exit1-IR
+
+			/* read MISO on trailing edge */
+			if (READMISO)
+			{
+                debugstr("MISO: 1");
+				*data |= (high);
+			}
+            else
+            {
+                debugstr("MISO: 0");
+            }
+            debughex(*data);
+
+		}
+        debughex(*data);
+        *data &= hmask;
+	} 
+	else 
+	{
+        // MSB... we need to start at the end of the byte array
+        data += (bitcount/8);
+        bitnum = bitcount % 8;
+        high = (1L << (max(bitnum,8) - 1));
+        mask = high - 1;
+        hmask = (high<<1) - 1;
+
+		for (bit = bitcount; bit > 0; bit--,bitnum--) 
+		{
+			/* write MOSI on trailing edge of previous clock */
+			if (*data & high)
+			{
+				SETMOSI;
+			}
+			else
+			{
+				CLRMOSI;
+			}
+			*data = (*data & mask) << 1;
+
+			if ((bit==1) && !(flags & NOEND))
+				SETTMS; //TMS high on last bit to exit.
+
+			jtag_tcktock();
+
+			if ((bit == 1) && !(flags & NOEND))
+				jtag_state <<= 1; // Exit1-DR or Exit1-IR
+
+			/* read MISO on trailing edge */
+			*data |= (READMISO);
+
+            if (bitnum == 0)
+            {
+                high = (1L << (min(bit,8) - 1));
+                mask = high - 1;
+                hmask = (high<<1) - 1;
+                bitnum = 8;
+                data --;
+            }
+		}
+	}
+	
+	//This is needed for 20-bit MSP430 chips.
+	//Might break another 20-bit chip, if one exists.
+    //
+    //UGH... this needs to be fixed...  doesn't work with char*
+/*	if(bitcount==20){
+	  *data = ((*data << 16) | (*data >> 4)) & 0x000FFFFF;
+	}*/
+	
+	RESTORETCLK;
+
+	if (!(flags & NOEND))
+	{
+		// exit state
+		jtag_tcktock();
+
+		jtag_state <<= 3; // Update-DR or Update-IR
+
+		// update state
+		if (!(flags & NORETIDLE))
+		{
+			CLRTMS;
+			jtag_tcktock();
+
+			jtag_state = RUN_TEST_IDLE;
+		}
+	}
+
+	return &data[2];
+}

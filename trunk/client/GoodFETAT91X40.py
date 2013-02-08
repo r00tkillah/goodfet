@@ -519,6 +519,10 @@ def at91x40_main():
 
     at91x40_cli_handler(client, sys.argv)
 
+
+
+BLOCK_DWORDS = 48
+BLOCK_SIZE   = 4 * BLOCK_DWORDS
 def at91x40_cli_handler(client, argv):
 
     if(argv[1]=="chipRegStr"):
@@ -586,65 +590,73 @@ def at91x40_cli_handler(client, argv):
         client.halt()
 
         h = IntelHex(None)
-        i=start
+        base = start
         err_cnt = 0
         reset_cnt = 0
-        while i<=stop:
-            try:
-                data=client.ARMreadChunk(i, 48, verbose=0)
-                print "Dumped %06x."%i
-                for dword in data:
-                    if i<=stop and dword != 0xdeadbeef:
-                        h.puts( i, struct.pack("<I", dword) )
-                        err_cnt = 0
-                    i+=4
-            # FIXME: get mcu state and return it to that state
-            except:
-                # Handle exceptions by counting errors after pausing to let ARM settle
-                err_cnt = 1
-                fail = 0
-                while err_cnt:
-                    time.sleep(.25)
-                    if err_cnt == 100:
-                        print "Unknown error occurred at least 100 times. Resync did not work. Writing incomplete data to file."
-                        fail = 1
-                        break
-                    else:
-                        try:
-                            print "Unknown error during read. Resync and retry."
-                            err_list.append("0x%06x"%i)
-
-                            # If we error out several times then reset the chip and restart
-                            # This uses a special register value from a Chip Select Register
-                            # to test that the chip is in the operation state we expect
-                            if not ((err_cnt+1) % 2):
-                                while True:
-                                    print "    Reset:",reset_cnt
-                                    check_addr = client.getChipSelectReg(special_reg_num)
-                                    print "    Special Addr:",hex(special_addr)
-                                    print "    Check Addr:",hex(check_addr)
-                                    if (special_addr == check_addr):
-                                        break
-                                    if reset_cnt == 10:
-                                        reset_cnt = 0
-                                        print "    Resetting Target"
-                                        client.ARMresettarget(1000)
-                                        client.halt()
-                                    reset_cnt += 1
-                                    time.sleep(.25)
-                            else:
-                                #Resync ARM and Watch Dog
-                                client.resume()
-                                client.halt()
-
+        while base<=stop:
+            confirmed = False
+            while not confirmed: 
+                i = base
+                try:
+                    data=client.ARMreadChunk(i, BLOCK_DWORDS, verbose=0)
+                    print "Dumped %06x."%i
+                    for dword in data:
+                        if i<=stop:# and dword != 0xdeadbeef:
+                            h.puts( i, struct.pack("<I", dword) )
                             err_cnt = 0
-                        except:
-                            err_cnt += 1
-                            pass
-                if fail:
-                    break
+                        i += 4
 
-        client.resume()
+                    confirmed=True
+
+                # FIXME: get mcu state and return it to that state
+                except:
+                    # Handle exceptions by counting errors after pausing to let ARM settle
+                    err_cnt = 1
+                    fail = 0
+                    while err_cnt:
+                        time.sleep(.25)
+                        if err_cnt == 100:
+                            print "Unknown error occurred at least 100 times. Resync did not work. Writing incomplete data to file."
+                            fail = 1
+                            break
+                        else:
+                            try:
+                                print "Unknown error during read. Resync and retry."
+                                err_list.append("0x%06x"%i)
+
+                                # If we error out several times then reset the chip and restart
+                                # This uses a special register value from a Chip Select Register
+                                # to test that the chip is in the operation state we expect
+                                if not ((err_cnt+1) % 2):
+                                    while True:
+                                        print "    Reset:",reset_cnt
+                                        check_addr = client.getChipSelectReg(special_reg_num)
+                                        print "    Special Addr:",hex(special_addr)
+                                        print "    Check Addr:",hex(check_addr)
+                                        if (special_addr == check_addr):
+                                            break
+                                        if reset_cnt == 10:
+                                            reset_cnt = 0
+                                            print "    Resetting Target"
+                                            client.ARMresettarget(1000)
+                                            client.halt()
+                                        reset_cnt += 1
+                                        time.sleep(.25)
+                                else:
+                                    #Resync ARM and Watch Dog
+                                    client.resume()
+                                    client.halt()
+
+                                err_cnt = 0
+                            except:
+                                err_cnt += 1
+                                pass
+                    if fail:
+                        break
+
+            # we've confirmed the write on this block... move on.
+            base += BLOCK_SIZE
+
         h.write_hex_file(f)
         print "Addresses that required resync:"
         if err_list:
@@ -652,6 +664,15 @@ def at91x40_cli_handler(client, argv):
                 print "   ",e
         else:
             print "   None"
+
+        try:
+            client.resume()
+        except:
+            print "error resuming...  resetting"
+            try:
+                client.ARMresettarget()
+            except:
+                print "error resetting!  just exiting"
 
 
 

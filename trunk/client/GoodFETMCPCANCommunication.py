@@ -556,7 +556,7 @@ class GoodFETMCPCANCommunication:
         self.spitSetup(freq);
         spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None)
 
-    def spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
+    def spit(self,freq, standardid, repeat,writes, period = None, debug = False, packet = None):
     
 
         #### split SID into different regs
@@ -606,12 +606,15 @@ class GoodFETMCPCANCommunication:
         if repeat:
             print "\nNow looping on transmit. "
             if duration!= None:
-                starttime = time.time();
-                while((time.time()-starttime < duration)):
+                for i in range(0,trials):
                     self.client.MCPrts(TXB0=True);
-                    print "MSG printed"
+                    time.sleep(period/1000) # pause for period ms before sending again
+                #starttime = time.time();
+                #while((time.time()-starttime < duration)):
+                #    self.client.MCPrts(TXB0=True);
+                #    print "MSG printed"
             else:
-                while(1): 
+                for i in range(0,trials): 
                     self.client.MCPrts(TXB0=True);
         print "messages injected"
         

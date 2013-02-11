@@ -259,11 +259,11 @@ class DisplayApp:
         entryWidget = Tkinter.Entry(self.canvas,width=5,textvariable=varTemp)
         entryWidget.grid(row=i,column=4,sticky=tk.W)
         
-        entryLabel = Tkinter.Label(self.canvas, text="Trials: ")
+        entryLabel = Tkinter.Label(self.canvas, text="Writes: ")
         entryLabel.grid(row=i,column=5,sticky=tk.W)
         
         varTemp = Tkinter.StringVar()
-        self.writeData["trials"] = varTemp
+        self.writeData["writes"] = varTemp
         varTemp.set(10)
         entryWidget = Tkinter.Entry(self.canvas, width=5, textvariable=varTemp)
         entryWidget.grid(row=i, column=6, sticky=tk.W)
@@ -618,7 +618,7 @@ class DisplayApp:
         packet = []
         try:
             sID = int(self.writeData["sID"].get())
-            trials = int(self.writeData["trials"]).get()
+            writes = int(self.writeData["writes"]).get()
             if(trials == 0):
                 repeat = False
             else:
@@ -647,7 +647,7 @@ class DisplayApp:
         
         self.comm.spitSetup(self.freq)
         #for i in range(0,attempts):
-        self.comm.spit(self.freq,[sID],repeat, trials, period=period, debug=False, packet=packet)
+        self.comm.spit(self.freq,[sID],repeat, writes, period=period, debug=False, packet=packet)
             
             
         #print "write Packet?"

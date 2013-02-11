@@ -55,6 +55,7 @@ CC =$(GCC) -Wall -O1 -fno-strict-aliasing -g   $(CCEXTRA)
 #  Radions:
 # nrf -- Nordic RF SPI
 # ccspi -- Chipcon SPI
+# cc2500 -- Chipcon SPI CC2500
 # atmel_radio -- Atmel radio
 
 # Miscelaneous:
@@ -259,6 +260,12 @@ endif
 ifeq ($(filter ccspi, $(config)), ccspi)
 	apps+= apps/radios/ccspi.o
 	hdrs+= ccspi.h
+endif
+
+# include chipcon CC2500 radio spi app
+ifeq ($(filter cc2500, $(config)), cc2500)
+	apps+= apps/radios/cc2500.o
+	hdrs+= cc2500.h
 endif
 
 # include nrf app

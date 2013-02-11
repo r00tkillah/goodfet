@@ -41,6 +41,7 @@ ifneq (,$(findstring $(board),goodfet40 goodfet41 goodfet42))
 mcu ?= msp430f2618
 platform := goodfet
 CONFIG_nrf = y
+CONFIG_ccspi = y
 endif
 
 ifneq (,$(findstring $(board),stm32f4discovery))
@@ -99,6 +100,7 @@ ifneq (,$(findstring $(board),goodfet24))
 mcu ?= msp430f2618
 platform := goodfet
 CONFIG_glitch = y
+CONFIG_nrf = y
 endif
 
 ifneq (,$(findstring $(board),nhb12b))
@@ -181,7 +183,7 @@ $(error Please define board, as explained in the README)
 endif
 #platform := $(board)
 
-AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2  maxusb atmel_radio
+AVAILABLE_APPS = monitor spi jtag sbw jtag430 jtag430x2 i2c jtagarm7 ejtag jtagxscale openocd chipcon avr pic adc nrf ccspi glitch smartcard ps2 slc2  maxusb atmel_radio cc2500
 
 # defaults
 CONFIG_monitor    ?= y
@@ -202,6 +204,7 @@ CONFIG_pic        ?= n
 CONFIG_adc        ?= n
 CONFIG_nrf        ?= n
 CONFIG_ccspi      ?= n
+CONFIG_cc2500     ?= y
 CONFIG_glitch     ?= n
 CONFIG_smartcard  ?= n
 CONFIG_ps2        ?= n

@@ -245,16 +245,25 @@ class DisplayApp:
         
         self.writeData = {}
         
-        self.rtr = IntVar()
-        self.rtr.set(0)
-        c = Checkbutton(self.canvas,variable=self.rtr, text="rtr")
-        c.grid(row=i,column=4, sticky = tk.W)
+        rtr = IntVar()
+        rtr.set(0)
+        self.writeData["rtr"] = rtr
+        c = Checkbutton(self.canvas,variable=rtr, text="rtr")
+        c.grid(row=i,column=2, sticky = tk.W)
         
-        entryLabel = Tkinter.Label(self.canvas, text="Time: ")
+        entryLabel = Tkinter.Label(self.canvas, text="Period (ms): ")
+        entryLabel.grid(row=i,column=3,sticky=tk.W)
+        varTemp = Tkinter.StringVar()
+        self.writeData["period"] = varTemp
+        varTemp.set(100);
+        entryWidget = Tkinter.Entry(self.canvas,width=5,textvariable=varTemp)
+        entryWidget.grid(row=i,column=4,sticky=tk.W)
+        
+        entryLabel = Tkinter.Label(self.canvas, text="Trials: ")
         entryLabel.grid(row=i,column=5,sticky=tk.W)
         
         varTemp = Tkinter.StringVar()
-        self.writeData["Time"] = varTemp
+        self.writeData["trials"] = varTemp
         varTemp.set(10)
         entryWidget = Tkinter.Entry(self.canvas, width=5, textvariable=varTemp)
         entryWidget.grid(row=i, column=6, sticky=tk.W)
@@ -368,7 +377,7 @@ class DisplayApp:
         self.topFrame = tk.Frame(self.dataFrame,width=self.dataDx,height=4)
         self.topFrame.pack(side=tk.TOP, padx=2,pady=2,fill=tk.X)
         label = tk.Label(self.topFrame)
-        label["text"] = "\t\t\t      db0  db1   db2  db3  db4   db5  db6   db7";
+        label["text"] = "\t\t\t      db0 db1 db2 db3 db4  db5 db6 db7  deltaT";
         
         label.pack(side=tk.LEFT)
         
@@ -376,11 +385,12 @@ class DisplayApp:
         
         
         
-        self.dataText = tk.Text(self.dataFrame,background='white', width=self.dataDx)
+        self.dataText = tk.Text(self.dataFrame,background='white', width=self.dataDx, wrap=Tkinter.WORD)
         self.dataText.config(state=DISABLED)
         self.scroll = Scrollbar(self.dataFrame)
         self.dataText.configure(yscrollcommand=self.scroll.set)
         self.scroll.pack(side=tk.RIGHT,fill=tk.Y)
+        self.scroll.config(command=self.dataText.yview)
         self.dataText.pack(side=tk.LEFT,fill=tk.Y)
         
         self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.dataText)
@@ -563,7 +573,7 @@ class DisplayApp:
             #print "trying to add"
             #print self.data[self.dataLength]
             try:
-                packet = self.data.get(block=False)
+                packet = self.data.get_nowait(block=False)
                 #print "I GOT  THTIS: ", packet
             except Queue.Empty:
                 pass
@@ -582,17 +592,16 @@ class DisplayApp:
                     dbidx = 'db%d'%i
                     data += " %03d"% ord(packet[dbidx])
                 #get position of the scrollbar
-                position = self.scroll.get()
-                self.dataText.config(state=NORMAL)
+                position = self.scroll.get()[1]
+                self.dataText.config(state=NORMAL, yscrollcommand=None)
                 self.dataText.insert(END,"arbID: ")
                 self.dataText.insert(END, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
                 self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data + (" DeltaT: %04f\n"%delta))
                 #self.dataText.insert(END,packet+"\n")
-                self.dataText.config(state=DISABLED)
+                self.dataText.config(state=DISABLED, yscrollcommand=self.scrollbar.set)
                 #if the position was at the end, update it now now be at the end again
                 if (position[1] == 1.0):
-                    self.text.see('end')
-                self.text.yview(tk.END)
+                    self.text.yview(tk.END)
                 self.msgCount.set("%d"%(int(self.msgCount.get())+1))
             #self.dataLength += 1
         self.updateID = self.root.after(50,self.updateCanvas)
@@ -609,17 +618,21 @@ class DisplayApp:
         packet = []
         try:
             sID = int(self.writeData["sID"].get())
-            #print "sid"
-            timeStr = self.writeData["Time"].get()
-            if( timeStr == ""):
-                time = None
+            trials = int(self.writeData["trials"]).get()
+            if(trials == 0):
                 repeat = False
             else:
-                time = int(timeStr)
                 repeat = True
+            #print "sid"
+            periodStr = self.writeData["period"].get()
+            if( periodStr == ""):
+                period = None
+            else:
+                period = float(periodStr)
+               
             #print "attempts"
             #print self.writeData
-            if( self.rtr.get() == 1):
+            if( self.writeData["rtr"].get() == 1):
                 packet = None
             else:
                 for j in range(0,8):
@@ -634,7 +647,7 @@ class DisplayApp:
         
         self.comm.spitSetup(self.freq)
         #for i in range(0,attempts):
-        self.comm.spit(self.freq,[sID],repeat, duration=time, debug=False, packet=packet)
+        self.comm.spit(self.freq,[sID],repeat, trials, period=period, debug=False, packet=packet)
             
             
         #print "write Packet?"
@@ -742,7 +755,7 @@ class settingsDialog(Toplevel):
     # This sets up the body of the popup dialog with all of the buttons and information
     def body(self,master):
         i=0
-        sniff
+        
         
         #connect
         connectButton = tk.Button(master,text="Connect to Board", command = self.dClass.connectBus,width=20)

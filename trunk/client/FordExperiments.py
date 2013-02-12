@@ -11,6 +11,7 @@ from intelhex import IntelHex;
 import Queue
 import math
 
+tT = time
 class FordExperiments(GoodFETMCPCANCommunication):
     
     def init(self):
@@ -138,7 +139,7 @@ class FordExperiments(GoodFETMCPCANCommunication):
             if(packet1 != None):
                 packetParsed = self.client.packet2parsed(packet1)
             
-        recieveTime = time.time()
+        #recieveTime = time.time()
         return packetParsed
         
         
@@ -167,11 +168,17 @@ class FordExperiments(GoodFETMCPCANCommunication):
                  packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
         packetCount = 1;
         self.client.txpacket(packet);
-        tpast = time.time()
-        while( (time.time()-recieveTime) < runTime):
-            dt = tpast - time.time()
-            value = 30*math.sin(((2.0*math.pi)/5.0)*dt)+130
-            packet[5] = int(value)
+        startTime = tT.time()
+        while( (tT.time()-startTime) < runTime):
+            dt = tT.time()-startTime
+            inputValue = ((2.0*math.pi)/20.0)*dt
+            value = 30*math.sin(inputValue)+130
+            print value
+            #packet[5] = int(value)
+            if( value > 130 ):
+                packet[5] = 160
+            else:
+                packet[5] = 100
             #packet[6] = 1
             print packet
             self.client.txpacket(packet)

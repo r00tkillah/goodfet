@@ -82,6 +82,7 @@ class FordExperiments(GoodFETMCPCANCommunication):
             packetParsed = self.client.packet2parsed(packet1);
         #keep sniffing till we read a packet
         while( packet1 == None or packetParsed.get('sID') != 1056 ):
+            time.sleep(.1)
             packet1 = self.client.rxpacket()
             if(packet1 != None):
                 packetParsed = self.client.packet2parsed(packet1)
@@ -112,8 +113,16 @@ class FordExperiments(GoodFETMCPCANCommunication):
         while( (time.time()-recieveTime) < runTime):
             #care about db3 or packet[8] that we want to count at the rate that it is
             dT = time.time()-tpast
-            packetValue = (packetValue+1)%255
-            packet[1] = packetValue
+            packetValue += 1
+            pV = packetValue%255
+            #temp = ((packetValue+1))%2
+            #if( temp == 1):
+            #    pV = packetValue%255
+            #else:
+            #    pV = 0
+            packet[6] = pV
+            #packet[6] = 1
+            print packet
             self.client.txpacket(packet)
             packetCount += 1
             tpast = time.time()  #update our transmit time on the one before   

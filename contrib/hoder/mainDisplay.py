@@ -377,7 +377,7 @@ class DisplayApp:
         self.topFrame = tk.Frame(self.dataFrame,width=self.dataDx,height=4)
         self.topFrame.pack(side=tk.TOP, padx=2,pady=2,fill=tk.X)
         label = tk.Label(self.topFrame)
-        label["text"] = "\t\t\t      db0 db1 db2 db3 db4  db5 db6 db7  deltaT";
+        label["text"] = "\t\t\t    db0 db1 db2 db3 db4 db5 db6 db7  deltaT";
         
         label.pack(side=tk.LEFT)
         
@@ -388,8 +388,9 @@ class DisplayApp:
         self.dataText = tk.Text(self.dataFrame,background='white', width=self.dataDx, wrap=Tkinter.WORD)
         self.dataText.config(state=DISABLED)
         self.scroll = Scrollbar(self.dataFrame)
-        self.dataText.configure(yscrollcommand=self.scroll.set)
         self.scroll.pack(side=tk.RIGHT,fill=tk.Y)
+        self.dataText.configure(yscrollcommand=self.scroll.set)
+        #self.scroll.pack(side=tk.RIGHT,fill=tk.Y)
         self.scroll.config(command=self.dataText.yview)
         self.dataText.pack(side=tk.LEFT,fill=tk.Y)
         
@@ -545,7 +546,7 @@ class DisplayApp:
         #           standardid=standardid, debug = False)    
         #self.running = True
         #thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
-        thread.start_new_thread(self.sniffControl, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
+        thread.start_new_thread(self.sniffControl, (self.freq, time, description, False, comments, None, standardid, False, False, True, self.data ))
         #self.sniffControl(self.freq, time, description, False, comments, None, standardid, False, False, True, self.data)
         #self.root.after(50, self.updateCanvas)
         
@@ -573,7 +574,8 @@ class DisplayApp:
             #print "trying to add"
             #print self.data[self.dataLength]
             try:
-                packet = self.data.get_nowait(block=False)
+                packet = self.data.get_nowait()
+                #packet = self.data.get(block=False)
                 #print "I GOT  THTIS: ", packet
             except Queue.Empty:
                 pass
@@ -593,15 +595,22 @@ class DisplayApp:
                     data += " %03d"% ord(packet[dbidx])
                 #get position of the scrollbar
                 position = self.scroll.get()[1]
-                self.dataText.config(state=NORMAL, yscrollcommand=None)
+                positionT = self.dataText.yview()[0]
+                
+                self.dataText.config(yscrollcommand=None, state=NORMAL)
                 self.dataText.insert(END,"arbID: ")
                 self.dataText.insert(END, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
                 self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data + (" DeltaT: %04f\n"%delta))
                 #self.dataText.insert(END,packet+"\n")
-                self.dataText.config(state=DISABLED, yscrollcommand=self.scrollbar.set)
+                self.text.yview(END)
+                self.dataText.config(yscrollcommand=self.scroll.set, state=DISABLED)
                 #if the position was at the end, update it now now be at the end again
-                if (position[1] == 1.0):
-                    self.text.yview(tk.END)
+                #self.scroll.set(1.0,0)
+                if (position ==1.0):
+                    self.dataText.yview(END)
+                #print "position ", position
+                #self.dataText.yview(tk.MOVETO, 1.0)
+                
                 self.msgCount.set("%d"%(int(self.msgCount.get())+1))
             #self.dataLength += 1
         self.updateID = self.root.after(50,self.updateCanvas)
@@ -618,8 +627,9 @@ class DisplayApp:
         packet = []
         try:
             sID = int(self.writeData["sID"].get())
-            writes = int(self.writeData["writes"]).get()
-            if(trials == 0):
+            print "here1"
+            writes = int(self.writeData["writes"].get())
+            if(writes == 0):
                 repeat = False
             else:
                 repeat = True

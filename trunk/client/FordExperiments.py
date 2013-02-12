@@ -15,26 +15,37 @@ class FordExperiments(GoodFETMCPCANCommunication):
     
     def init(self):
         super(FordExperimetns,self).__init__(self) #initialize chip
-    
+        self.freq = 500;
+
     def mimic1056(self,packetData,runTime):
         #setup chip
         self.client.serInit()
-        self.spitSetup()
+        self.spitSetup(500)
         #FIGURE out how to clear buffers
         self.addFilter([1056, 1056, 1056, 1056,1056, 1056], verbose=False)
         packet1 = self.client.rxpacket();
+        if(packet1 != None):
+            packetParsed = self.client.packet2parsed(packet1);
+        #keep sniffing till we read a packet
+        while( packet1 == None or packetParsed.get('sID') != 1056 ):
+            packet1 = self.client.rxpacket()
+            if(packet1 != None):
+                packetParsed = self.client.packet2parsed(packet1)
         recieveTime = time.time()
         packetParsed = self.client.packet2parsed(packet1)
         if( packetParsed['sID'] != 1056):
             print "Sniffed wrong packet"
             return
-        countInitial = ord(packetParsed['db3'].get()) #initial count value
+        countInitial = ord(packetParsed['db3']) #initial count value
         packet = []
         #set data packet to match what was sniffed or at least what was input
         for i in range(0,8):
             idx = "db%d"%i
             if(packetData.get(idx) == None):
                 packet.append(ord(packetParsed.get(idx)))
+            else:
+                packet.append(packetData.get(idx))
+        print packet
         #### split SID into different regs
         SIDlow = (1056 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (1056 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
@@ -42,6 +53,7 @@ class FordExperiments(GoodFETMCPCANCommunication):
                   0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                   # lower nibble is DLC                   
                  packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
+        packetCount = 1;
         self.client.txpacket(packet);
         tpast = time.time()
         while( (time.time()-recieveTime) < runTime):
@@ -50,8 +62,11 @@ class FordExperiments(GoodFETMCPCANCommunication):
             if( dT/0.2 >= 1):
                 db3 = (countInitial + math.floor((time.time()-recieveTime)/0.2))%255
                 packet[8] = db3
+                self.client.txpacket(packet)
+                packetCount += 1
             else:
-                self.client.MCPrts(TXB0=True):
+                packetCount += 1
+                self.client.MCPrts(TXB0=True)
             tpast = time.time()  #update our transmit time on the one before   
             
                 

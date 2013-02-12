@@ -605,16 +605,18 @@ class GoodFETMCPCANCommunication:
             
         if repeat:
             print "\nNow looping on transmit. "
-            if duration!= None:
-                for i in range(0,trials):
+            if period != None:
+                for i in range(0,writes):
                     self.client.MCPrts(TXB0=True);
+                    tic = time.time()
                     time.sleep(period/1000) # pause for period ms before sending again
+                    print time.time()-tic
                 #starttime = time.time();
                 #while((time.time()-starttime < duration)):
                 #    self.client.MCPrts(TXB0=True);
                 #    print "MSG printed"
             else:
-                for i in range(0,trials): 
+                for i in range(0,writes): 
                     self.client.MCPrts(TXB0=True);
         print "messages injected"
         

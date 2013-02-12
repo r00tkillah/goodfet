@@ -71,11 +71,58 @@ class FordExperiments(GoodFETMCPCANCommunication):
             
                 
          
-
-
+    def cycledb1_1056(self,runTime):
+        #setup chip
+        self.client.serInit()
+        self.spitSetup(500)
+        #FIGURE out how to clear buffers
+        self.addFilter([1056, 1056, 1056, 1056,1056, 1056], verbose=False)
+        packet1 = self.client.rxpacket();
+        if(packet1 != None):
+            packetParsed = self.client.packet2parsed(packet1);
+        #keep sniffing till we read a packet
+        while( packet1 == None or packetParsed.get('sID') != 1056 ):
+            packet1 = self.client.rxpacket()
+            if(packet1 != None):
+                packetParsed = self.client.packet2parsed(packet1)
+        recieveTime = time.time()
+        packetParsed = self.client.packet2parsed(packet1)
+        if( packetParsed['sID'] != 1056):
+            print "Sniffed wrong packet"
+            return
+        packet = []
+        #set data packet to match what was sniffed or at least what was input
+        for i in range(0,8):
+            idx = "db%d"%i
+            packet.append(ord(packetParsed.get(idx)))
+        packetValue = 0
+        packet[1] = packetValue;
+        
+        print packet
+        #### split SID into different regs
+        SIDlow = (1056 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (1056 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                 packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
+        packetCount = 1;
+        self.client.txpacket(packet);
+        tpast = time.time()
+        while( (time.time()-recieveTime) < runTime):
+            #care about db3 or packet[8] that we want to count at the rate that it is
+            dT = time.time()-tpast
+            packetValue = (packetValue+1)%255
+            packet[1] = packetValue
+            self.client.txpacket(packet)
+            packetCount += 1
+            tpast = time.time()  #update our transmit time on the one before   
+        print packetCount;
+        
 if __name__ == "__main__":
     fe = FordExperiments();
     packetData = {}
     packetData['db4'] = 4;
     runTime = 10;
-    fe.mimic1056(packetData, runTime)
+    #fe.mimic1056(packetData, runTime)
+    fe.cycledb1_1056(runTime)

@@ -324,9 +324,23 @@ class GoodFETMCPCAN(GoodFETSPI):
             idx = 5 + i
             dbidx = 'db%d'%i
             packet[dbidx] = data[idx] 
-        
-        
+    
         return packet
+    
+    def packet2parsedstr(self,data):
+        packet = self.packet2parsed(data)
+        msg = "sID: %04d" %sId
+        if( packetParsed.get('eID')):
+            msg += " eID: %d" %packetParsed.get('eID')
+        msg += " rtr: %d"%packetParsed['rtr']
+        length = packetParsed['length']
+        msg += " length: %d"%length
+        msg += " data:"
+        for i in range(0,length):
+            dbidx = 'db%d'%i
+            msg +=" %03d"% ord(packetParsed[dbidx])
+        #msg = self.client.packet2parsedstr(packet)
+        print msg
         
         
     def peek8(self,adr):

@@ -627,13 +627,17 @@ class DisplayApp:
             else:
                 sID = packet.get('sID')
                 if( self.deltas.get(sID) == None):
+                    print "cannot find id"
                     self.deltas[sID] = {'time':packet.get("time")} #create a new dictionary for the arb id
-                    sIDDic = self.deltas.get[sID]
+                    sIDDic = self.deltas.get(sID)
                     delta = -1
                 else:
                     sIDDic = self.deltas.get(sID);
-                    delta = packet.get("time") - sIDDic['time'] #get the delta time
-                    sIDDic = packet.get("time")
+                    
+                    delta = packet['time'] - sIDDic['time'] #get the delta time
+                    sIDDic['time'] = packet['time']
+                    #rint delta
+                #time = packet.get("time")
                 rtr = packet.get('rtr')
                 length = packet.get('length')
                 data = ""
@@ -649,16 +653,18 @@ class DisplayApp:
                     lineNum = sIDDic.get('lineNum')
                     if( lineNum == None):
                         numlines = self.dataText.index('end - 1 line').split('.')[0] #get number of lines
-                        sIDDic['lineNum'] = numlines + 1
-                        lineNum = numlines+1
+                        print numlines
+                        sIDDic['lineNum'] = float(numlines)
+                        lineNum = float(numlines)
                     else:
                         self.dataText.config(yscrollcommand=None, state=NORMAL)
                         self.dataText.delete(lineNum, lineNum+1) #delete the previous entry for this id
                     self.dataText.config(yscrollcommand=None, state=NORMAL)
-                    self.dataText.insert(lineNum,"arbID: ")
-                    self.dataText.insert(lineNum, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
+                    #self.dataText.insert(lineNum,"arbID: ")
+                    #self.dataText.insert(lineNum, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
                     self.dataText.insert(lineNum, (" Length: %d rtr: %d "%(length,rtr)) + data + (" DeltaT: %04f\n"%delta))
-                        
+                    self.dataText.insert(lineNum, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))    
+                    self.dataText.insert(lineNum,"arbID: ");
                         
                 else:
                     self.dataText.config(yscrollcommand=None, state=NORMAL)

@@ -9,7 +9,8 @@ import sys;
 import binascii;
 import array;
 from DataManage import DataManage
-from experiments import *
+from tkFileDialog import askopenfilename
+from experimentsGUI import *
 from info import *
 import tkHyperlinkManager
 import datetime
@@ -19,6 +20,7 @@ import thread
 sys.path.insert(0,'../../trunk/client/')
 from GoodFETMCPCANCommunication import *
 from GoodFETMCPCAN import GoodFETMCPCAN;
+from experiments import experiments
 from intelhex import IntelHex;
 
 
@@ -45,7 +47,8 @@ class DisplayApp:
         #configure information
         #Initialize communication class
         try:
-            self.comm = GoodFETMCPCANCommunication()
+            #self.comm = GoodFETMCPCANCommunication()
+            self.comm = experiments()
         except:
             print "Board not properly connected. please connect and reset"
             self.comm = None
@@ -72,11 +75,12 @@ class DisplayApp:
         # width and height of the window
         self.initDx = width
         self.initDy = height
-        self.dataDx = 80;
+        self.dataDx =80;
         #self.dataDx = (self.initDx/2-350);
         print self.dataDx
         self.dataDy = self.initDy;
-        self.ControlsDx = (self.initDx - 80);
+        #self.ControlsDx = (self.initDx - 80);
+        self.ControlsDx = 400;
         self.ControlsDy = self.initDy;
 
         # set up the geometry for the window
@@ -99,10 +103,12 @@ class DisplayApp:
         self.buildControls()
         
         self.setBindings()
-
+        
         self.buildDataCanvas()
+        
         # build the objects on the Canvas
         self.buildCanvas()
+        
         
     def buildMenus(self):
         
@@ -147,8 +153,10 @@ class DisplayApp:
 
     # create the canvas object
     def buildCanvas(self):
+        self.RightSideCanvas = tk.Canvas( self.root, width=self.ControlsDx, height=self.ControlsDy)
+        #self.RightSideCanvas.grid(row=0,column=1,sticky=tk.W)
         # this makes the canvas the same size as the window, but it could be smaller
-        self.canvas = tk.Canvas( self.root, width=self.ControlsDx, height=self.ControlsDy)
+        self.canvas = tk.Canvas( self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
         i = 0
     
         
@@ -194,6 +202,10 @@ class DisplayApp:
         entryLabel.grid(row=i, column=0, sticky = tk.W)
         sniffButton = tk.Button( self.canvas, text="Start", command=self.sniff, width=3 )
         sniffButton.grid(row=i,column=1, sticky= tk.W)
+        self.saveInfo = tk.IntVar()
+        self.saveInfo.set(1)
+        c = Checkbutton(self.canvas, variable=self.saveInfo, text="Save Data")
+        c.grid(row=i,column=2,columnspan = 2, sticky=tk.W)
         i += 1
         
         #time to sniff for
@@ -214,7 +226,7 @@ class DisplayApp:
         self.comment = Tkinter.StringVar();
         self.comment.set("")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.comment)
-        entryWidget.grid(row=i,column=2, columnspan = 6, sticky=tk.W)
+        entryWidget.grid(row=i,column=2, columnspan = 7, sticky=tk.W)
         entryWidget["width"] = 30
         i += 1
         
@@ -225,7 +237,7 @@ class DisplayApp:
         self.description = Tkinter.StringVar();
         self.description.set("")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.description)
-        entryWidget.grid(row=i,column=2, columnspan = 6, sticky=tk.W)
+        entryWidget.grid(row=i,column=2, columnspan = 7, sticky=tk.W)
         entryWidget["width"] = 30
         i += 1
         
@@ -251,33 +263,46 @@ class DisplayApp:
         c = Checkbutton(self.canvas,variable=rtr, text="rtr")
         c.grid(row=i,column=2, sticky = tk.W)
         
+        fromFile = tk.IntVar()
+        fromFile.set(0)
+        self.writeData['fromFile'] = fromFile
+        c = Checkbutton(self.canvas, variable=fromFile, text="Write from File")
+        c.grid(row=i,column=3,columnspan = 2, stick=tk.W)
+        
+        i += 1
+        
         entryLabel = Tkinter.Label(self.canvas, text="Period (ms): ")
-        entryLabel.grid(row=i,column=3,sticky=tk.W)
+        entryLabel.grid(row=i,column=0,sticky=tk.W)
         varTemp = Tkinter.StringVar()
         self.writeData["period"] = varTemp
         varTemp.set(100);
         entryWidget = Tkinter.Entry(self.canvas,width=5,textvariable=varTemp)
-        entryWidget.grid(row=i,column=4,sticky=tk.W)
+        entryWidget.grid(row=i,column=1,sticky=tk.W)
         
         entryLabel = Tkinter.Label(self.canvas, text="Writes: ")
-        entryLabel.grid(row=i,column=5,sticky=tk.W)
+        entryLabel.grid(row=i,column=2,sticky=tk.W)
         
         varTemp = Tkinter.StringVar()
         self.writeData["writes"] = varTemp
         varTemp.set(10)
         entryWidget = Tkinter.Entry(self.canvas, width=5, textvariable=varTemp)
-        entryWidget.grid(row=i, column=6, sticky=tk.W)
+        entryWidget.grid(row=i, column=3, sticky=tk.W)
+        
+        
+        
+        
         i += 1
+        
         
         
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "sID:"
-        entryLabel.grid(row=i,column=1, sticky= tk.E)
+        entryLabel.grid(row=i,column=0, sticky= tk.W)
         varTemp = Tkinter.StringVar()
         self.writeData['sID'] = varTemp
         varTemp.set("")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
-        entryWidget.grid(row=i,column=2, sticky=tk.W)
+        entryWidget.grid(row=i,column=1, sticky=tk.W)
         entryWidget["width"] = 5
         i += 1
         
@@ -285,12 +310,12 @@ class DisplayApp:
         for j in range (0, 8, 2):
             entryLabel = Tkinter.Label(self.canvas)
             entryLabel["text"] = "db%d:" %k
-            entryLabel.grid(row=i,column=j+1, sticky= tk.E)
+            entryLabel.grid(row=i,column=j, sticky= tk.W)
             varTemp = Tkinter.StringVar()
             self.writeData['db%d'%(k)] = varTemp
             varTemp.set("")
             entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
-            entryWidget.grid(row=i,column=j+2, sticky=tk.W)
+            entryWidget.grid(row=i,column=j+1, sticky=tk.W)
             entryWidget["width"] = 5
             k += 1
             print k
@@ -298,12 +323,12 @@ class DisplayApp:
         for j in range(0,8,2):
             entryLabel = Tkinter.Label(self.canvas)
             entryLabel["text"] = "db%d:" %((k))
-            entryLabel.grid(row=i+1,column=j+1, sticky= tk.E)
+            entryLabel.grid(row=i+1,column=j, sticky= tk.W)
             varTemp = Tkinter.StringVar()
             self.writeData['db%d'%((k))] = varTemp
             varTemp.set("")
             entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
-            entryWidget.grid(row=i+1,column=j+2, sticky=tk.W)
+            entryWidget.grid(row=i+1,column=j+1, sticky=tk.W)
             entryWidget["width"] = 5
             k +=1
     
@@ -348,12 +373,20 @@ class DisplayApp:
         
         #expand it to the size of the window and fill
         #self.canvas.pack( expand=tk.YES, fill=tk.BOTH)
-        self.canvas.pack(side=tk.RIGHT,expand=tk.YES, fill=tk.BOTH)
+        #self.canvas.pack(side=tk.RIGHT,expand=tk.YES, fill=tk.BOTH)
+        self.canvas.grid(row=0,column=0,sticky=tk.W+tk.N,pady=0)
+        canvas2 = tk.Canvas(self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
+        canvas2.grid(row=0,column=0,sticky=tk.W+tk.N, pady=0)
+        #self.canvas.lift(aboveThis=canvas2)
+        tk.Misc.lift(self.canvas, aboveThis=None)
+        #self.canvas.lift(canvas2)
+        self.RightSideCanvas.pack(side=tk.RIGHT,expand=tk.YES,fill=tk.BOTH)
+        
         return
 
     def buildDataCanvas(self):
         self.dataFrame = tk.Canvas(self.root, width=self.dataDx, height=self.dataDy)
-        
+        #self.dataFrame.grid(row=0,column=0,sticky=tk.W)
         self.dataFrame.pack(side=tk.LEFT,padx=2,pady=2,fill=tk.Y)
         
         
@@ -536,6 +569,11 @@ class DisplayApp:
         if( len(standardid) == 0):
             standardid = None
         
+        #figure out if the data gathered will be saved
+        if( self.saveInfo.get() == 1):
+            writeToFile = True
+        else:
+            writeToFile = False
         
         self.data = Queue.Queue()
     
@@ -546,13 +584,13 @@ class DisplayApp:
         #           standardid=standardid, debug = False)    
         #self.running = True
         #thread.start_new_thread(self.comm.sniff, (self.freq, time, description, True, comments, None, standardid, False, False, True, self.data ))
-        thread.start_new_thread(self.sniffControl, (self.freq, time, description, False, comments, None, standardid, False, False, True, self.data ))
+        thread.start_new_thread(self.sniffControl, (self.freq, time, description, False, comments, None, standardid, False, False, True, self.data, writeToFile ))
         #self.sniffControl(self.freq, time, description, False, comments, None, standardid, False, False, True, self.data)
         #self.root.after(50, self.updateCanvas)
         
         self.running = False
         
-    def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None):
+    def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None, writeToFile = True):
         #reset msg count
         self.msgCount.set("0")
         
@@ -561,7 +599,7 @@ class DisplayApp:
         self.dataText.config(state=tk.DISABLED)
         self.running = True
         self.updateID = self.root.after(50,self.updateCanvas)
-        count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data)
+        count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data, writeToFile)
         self.running = False
         self.root.after_cancel(self.updateID)
         
@@ -622,36 +660,49 @@ class DisplayApp:
         print "Request for information on %d" %id
         
     def write(self):
-        if( not self.checkComm()):
-            return
+        #if( not self.checkComm()):
+        #    return
         packet = []
-        try:
-            sID = int(self.writeData["sID"].get())
-            print "here1"
-            writes = int(self.writeData["writes"].get())
-            if(writes == 0):
-                repeat = False
-            else:
-                repeat = True
-            #print "sid"
-            periodStr = self.writeData["period"].get()
-            if( periodStr == ""):
-                period = None
-            else:
-                period = float(periodStr)
-               
-            #print "attempts"
-            #print self.writeData
-            if( self.writeData["rtr"].get() == 1):
-                packet = None
-            else:
-                for j in range(0,8):
-                    #print "db%d"%j
-                    var = self.writeData.get("db%d"%j)
-                    packet.append(int(var.get()))
-        except:
-            print "Invalid input!"
+        if(self.writeData["fromFile"].get() == 1):
+            # ping the user to choose the file for writing
+            filename = askopenfilename(title="Choose a File to Load Packet Data")
+            data = self.dm.readWriteFileDEC(filename)
+            #check that we have data
+            if( data == None):
+                print "Failed to load file"
+                return
+            #write the data
+            self.comm.writeData(data,self.freq)
             return
+        #otherwise gather data from the GUI for writing
+        else:
+            try:
+                sID = int(self.writeData["sID"].get())
+                print "here1"
+                writes = int(self.writeData["writes"].get())
+                if(writes == 0):
+                    repeat = False
+                else:
+                    repeat = True
+                #print "sid"
+                periodStr = self.writeData["period"].get()
+                if( periodStr == ""):
+                    period = None
+                else:
+                    period = float(periodStr)
+                   
+                #print "attempts"
+                #print self.writeData
+                if( self.writeData["rtr"].get() == 1):
+                    packet = None
+                else:
+                    for j in range(0,8):
+                        #print "db%d"%j
+                        var = self.writeData.get("db%d"%j)
+                        packet.append(int(var.get()))
+            except:
+                print "Invalid input!"
+                return
         
             
         
@@ -669,7 +720,7 @@ class DisplayApp:
     def experiments(self):
         data = {}
         #thread.start_new_thread(experiments,(self.root, self, self.comm,data,"Experiments"))
-        exp = experiments(self.root, self, comm=self.comm, data = data, title = "Experiments")
+        exp = experimentsGUI(self.root, self, comm=self.comm, data = data, title = "Experiments")
         
     def idInfo(self):
         

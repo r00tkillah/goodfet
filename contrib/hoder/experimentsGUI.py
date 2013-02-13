@@ -16,7 +16,7 @@ import tkMessageBox
 tk = Tkinter
 
 
-class experiments(Toplevel):
+class experimentsGUI(Toplevel):
     
     #constructor method
     def __init__(self, parent, dClass, comm, data = None, title = None):

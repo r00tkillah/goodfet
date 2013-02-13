@@ -14,14 +14,15 @@ import math
 tT = time
 class FordExperiments(GoodFETMCPCANCommunication):
     
-    def init(self):
-        super(FordExperimetns,self).__init__(self) #initialize chip
+    def __init__(self):
+        GoodFETMCPCANCommunication.__init__(self)
+        #super(FordExperiments,self).__init__(self) #initialize chip
         self.freq = 500;
 
     def mimic1056(self,packetData,runTime):
         #setup chip
         self.client.serInit()
-        self.spitSetup(500)
+        self.spitSetup(self.freq)
         #FIGURE out how to clear buffers
         self.addFilter([1056, 1056, 1056, 1056,1056, 1056], verbose=False)
         packet1 = self.client.rxpacket();

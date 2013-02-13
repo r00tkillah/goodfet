@@ -25,7 +25,7 @@ class DataManage:
         self.table = table
         self.DATALOCATION = "../ThayerData/"
         self.SQLDDATALOCATION = self.DATALOCATION+"SQLData/"
-       
+        
     def getSQLLocation(self):
         return self.SQLDDATALOCATION
     
@@ -363,6 +363,7 @@ class DataManage:
         
         #load the data from the csv file
         try:
+            
             fileObj = open(filename,'rU')
             data = self.opencsv(fileObj)
         except:
@@ -409,10 +410,6 @@ class DataManage:
         # for every row
         for row in reader:
             packet = []
-            #this is the header row, we can ignore
-            if rownum == 0:
-                rownum += 1
-                continue
             #check to see if the line begins with #
             # if it does it is a comment and should be ignored
             if( row[0][0] == '#'):
@@ -442,6 +439,86 @@ class DataManage:
         fileObj.close()
         return data
 
+    # This will be used to read a file for writing packets on to the bus
+    # The format below will assume a standard id but there will be easy extensible to make generic.
+    # The format of the data in this case is assumed to be in hex
+    # row format: will ignore any rows that begin with #
+    # col 0: delay time from previous row (if empty no delay)
+    # col 1: sID
+    # COULD ADD eID column here
+    # col2: DLC
+    # col3: db0
+    #  ...
+    # colDLC
+    def readWriteFileHex(self, filename):
+        try:
+            fileObj = open(filename,'rU')
+        except:
+            print "Unable to open file!"
+            return
+        
+        reader = csv.reader(fileObj)
+        rownum = 0
+        data = []
+        # for every row
+        for row in reader:
+            packet = []
+            #check to see if the line begins with #
+            # if it does it is a comment and should be ignored
+            if( row[0][0] == '#'):
+                rownum += 1
+                continue
+            colnum = 0;
+            #go down each byte, the first one is the time
+            for col in row:
+                #time stamp
+                if(colnum == 0):
+                    packet.append(float(col))
+                else:
+                    packet.append(int(col,16))
+                colnum += 1
+                #print packet
+            data.append(packet)
+            rownum += 1
+        #print data
+        fileObj.close()
+        return data
+    
+    # same as the readWriteFileHex but format is assumed to be in Decimal format
+    def readWriteFileDEC(self,filename):
+        try:
+            fileObj = open(filename,'rU')
+        except:
+            print "Unable to open file!"
+            return
+        
+        reader = csv.reader(fileObj)
+        rownum = 0
+        data = []
+        # for every row
+        for row in reader:
+            packet = []
+            #check to see if the line begins with #
+            # if it does it is a comment and should be ignored
+            if( row[0][0] == '#'):
+                rownum += 1
+                continue
+            colnum = 0;
+            #go down each byte, the first one is the time
+            for col in row:
+                #time stamp
+                if(colnum == 0):
+                    packet.append(float(col))
+                else:
+                    packet.append(int(col))
+                colnum += 1
+                #print packet
+            data.append(packet)
+            rownum += 1
+        #print data
+        fileObj.close()
+        return data
+    
     # will upload all the csv files in the self.DATALOCATION to the MySQL database
     # the files uploaded will be moved to a folder named as today's date and a tag _Uploaded will
     # be appended to the end of the filename

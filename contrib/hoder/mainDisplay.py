@@ -206,18 +206,18 @@ class DisplayApp:
         entryLabel.grid(row=i, column=0, sticky = tk.W)
         sniffButton = tk.Button( self.canvas, text="Start", command=self.sniff, width=3 )
         sniffButton.grid(row=i,column=1, sticky= tk.W)
-        self.saveInfo = tk.IntVar()
-        self.saveInfo.set(1)
-        c = Checkbutton(self.canvas, variable=self.saveInfo, text="Save Data")
-        c.grid(row=i,column=2,columnspan = 2, sticky=tk.W)
-        
+       
         options = ['Rolling','Fixed']
         self.SniffChoice = Tkinter.StringVar()
         self.SniffChoice.set(options[0])
-        self.SniffChoice.trace('w',self.changeView)
         optionsSniff = OptionMenu(self.canvas, self.SniffChoice,*tuple(options)) #put an options menu for type
-        optionsSniff.grid(row=i,column=4,columnspan=2,sticky=tk.W)
+        optionsSniff.grid(row=i,column=2,columnspan=2,sticky=tk.W)
         self.fixedView = False
+    
+        self.saveInfo = tk.IntVar()
+        self.saveInfo.set(1)
+        c = Checkbutton(self.canvas, variable=self.saveInfo, text="Save Data")
+        c.grid(row=i,column=4,columnspan = 2, sticky=tk.W)
         i += 1
         
         #time to sniff for
@@ -233,7 +233,7 @@ class DisplayApp:
         
         #comment
         entryLabel = Tkinter.Label(self.canvas)
-        entryLabel["text"] = "comment (sql):"
+        entryLabel["text"] = "Comment:"
         entryLabel.grid(row=i,column=0, columnspan = 2, sticky = tk.W)
         self.comment = Tkinter.StringVar();
         self.comment.set("")
@@ -243,15 +243,15 @@ class DisplayApp:
         i += 1
         
         #description
-        entryLabel = Tkinter.Label(self.canvas)
-        entryLabel["text"] = "description (csv):"
-        entryLabel.grid(row=i,column=0,columnspan=2, sticky= tk.W)
-        self.description = Tkinter.StringVar();
-        self.description.set("")
-        entryWidget = Tkinter.Entry(self.canvas, textvariable=self.description)
-        entryWidget.grid(row=i,column=2, columnspan = 7, sticky=tk.W)
-        entryWidget["width"] = 30
-        i += 1
+        #entryLabel = Tkinter.Label(self.canvas)
+        #entryLabel["text"] = "description (csv):"
+        #entryLabel.grid(row=i,column=0,columnspan=2, sticky= tk.W)
+        #self.description = Tkinter.StringVar();
+        #self.description.set("")
+        #entryWidget = Tkinter.Entry(self.canvas, textvariable=self.description)
+        #entryWidget.grid(row=i,column=2, columnspan = 7, sticky=tk.W)
+        #entryWidget["width"] = 30
+        #i += 1
         
 #        self.fileBool = IntVar()
 #        self.fileBool.set(0)
@@ -267,6 +267,7 @@ class DisplayApp:
         writeButton = tk.Button( self.canvas, text="Start", command=self.write, width=3 )
         writeButton.grid(row=i,column=1, sticky= tk.W)
         
+        # This will hold the data options for writing 
         self.writeData = {}
         
         rtr = IntVar()
@@ -417,10 +418,18 @@ class DisplayApp:
         
         self.msgCount = tk.StringVar()
         self.msgCount.set("0")
+        self.msgPrev = time.time()
         label = tk.Label(self.infoFrame,text="Count: ")
         label.grid(row=0,column=0, sticky=tk.W)
         label = tk.Label(self.infoFrame,textvariable=self.msgCount)
         label.grid(row=0,column=1,sticky=tk.W)
+        
+        self.msgDelta = tk.StringVar()
+        self.msgDelta.set("0")
+        label = tk.Label(self.infoFrame,text='\t Delta T: ')
+        label.grid(row=0,column=2,sticky=tk.W)
+        label = tk.Label(self.infoFrame, textvariable=self.msgDelta)
+        label.grid(row=0,column=3, sticky=tk.W)
         
         self.topFrame = tk.Frame(self.dataFrame,width=self.dataDx,height=4)
         self.topFrame.pack(side=tk.TOP, padx=2,pady=2,fill=tk.X)
@@ -570,7 +579,8 @@ class DisplayApp:
         except:
             print "time in seconds as an integer"
         comments = self.comment.get()
-        description = self.description.get()
+        description = comments
+        #description = self.description.get()
         standardid = []
         # Get the filter ids and check to see if they are correctly an integer
         for element in self.filterIDs:
@@ -608,7 +618,8 @@ class DisplayApp:
     def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None, writeToFile = True):
         #reset msg count
         self.msgCount.set("0")
-        
+        self.msgDelta.set("0")
+        self.msgPrev = time.time()
         self.dataText.config(state=tk.NORMAL)
         self.dataText.delete(1.0, END)
         self.dataText.config(state=tk.DISABLED)
@@ -617,17 +628,6 @@ class DisplayApp:
         count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data, writeToFile)
         self.running = False
         #self.root.after_cancel(self.updateID)
-        
-    # this will change the sniff view options (should work mid scrolling)
-    def changeView(self, name, index, mode):
-        pass
-        #self.delta = {}
-        #choice = self.SniffChoice.get()
-        #if( choice == 'Rolling'):
-        #    self.fixedView = True;
-        #else: 
-        #    self.fixedView = False;
-            
         
     def updateCanvas(self):
         choice = self.SniffChoice.get()
@@ -712,7 +712,8 @@ class DisplayApp:
                     self.dataText.yview(END)
                 #print "position ", position
                 #self.dataText.yview(tk.MOVETO, 1.0)
-                
+                self.msgDelta.set("%04f"%(self.msgPrev-packet['time']))
+                self.msgPrev = packet['time']
                 self.msgCount.set("%d"%(int(self.msgCount.get())+1))
             #self.dataLength += 1
         if(self.running == True):

@@ -173,10 +173,11 @@ class GoodFETMCPCANCommunication:
                     print "Message in RXB0; message type is %02x (0x00 is standard data, 0x08 is standard remote)." %messagetype
                 elif(messagestat == 0x00):
                     print "No messages in buffers."
-            
+            #check to see if there was a packet
+            if( packet != None):
+                packetcount+=1;
             if (packet!=None and writeToFile == True):
                 
-                packetcount+=1;
                 row = [];
                 row.append("%f"%time.time());
                 

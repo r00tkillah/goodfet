@@ -210,6 +210,14 @@ class DisplayApp:
         self.saveInfo.set(1)
         c = Checkbutton(self.canvas, variable=self.saveInfo, text="Save Data")
         c.grid(row=i,column=2,columnspan = 2, sticky=tk.W)
+        
+        options = ['Rolling','Fixed']
+        self.SniffChoice = Tkinter.StringVar()
+        self.SniffChoice.set(options[0])
+        self.SniffChoice.trace('w',self.changeView)
+        optionsSniff = OptionMenu(self.canvas, self.SniffChoice,*tuple(options)) #put an options menu for type
+        optionsSniff.grid(row=i,column=4,columnspan=2)
+        self.fixedView = False
         i += 1
         
         #time to sniff for
@@ -609,6 +617,16 @@ class DisplayApp:
         count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data, writeToFile)
         self.running = False
         #self.root.after_cancel(self.updateID)
+        
+    # this will change the sniff view options (should work mid scrolling)
+    def changeView(self, name, index, mode):
+        self.data = {}
+        choice = self.SniffChoice.get()
+        if( choice == 'Rolling'):
+            self.fixedView = True;
+        else: 
+            self.fixedView = False;
+            
         
     def updateCanvas(self):
         #print "called"

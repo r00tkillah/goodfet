@@ -216,7 +216,7 @@ class DisplayApp:
         self.SniffChoice.set(options[0])
         self.SniffChoice.trace('w',self.changeView)
         optionsSniff = OptionMenu(self.canvas, self.SniffChoice,*tuple(options)) #put an options menu for type
-        optionsSniff.grid(row=i,column=4,columnspan=2)
+        optionsSniff.grid(row=i,column=4,columnspan=2,sticky=tk.W)
         self.fixedView = False
         i += 1
         
@@ -620,15 +620,29 @@ class DisplayApp:
         
     # this will change the sniff view options (should work mid scrolling)
     def changeView(self, name, index, mode):
-        self.data = {}
-        choice = self.SniffChoice.get()
-        if( choice == 'Rolling'):
-            self.fixedView = True;
-        else: 
-            self.fixedView = False;
+        pass
+        #self.delta = {}
+        #choice = self.SniffChoice.get()
+        #if( choice == 'Rolling'):
+        #    self.fixedView = True;
+        #else: 
+        #    self.fixedView = False;
             
         
     def updateCanvas(self):
+        choice = self.SniffChoice.get()
+        if( choice == 'Rolling' and self.fixedView == True):
+            self.fixedView = False
+            self.delta = {}
+            self.dataText.config(state=tk.NORMAL)
+            self.dataText.delete(1.0,END)
+            self.dataText.config(state=tk.DISABLED)
+        elif( choice == 'Fixed' and self.fixedView ==False):
+            self.fixedView = True
+            self.delta = {}
+            self.dataText.config(state=tk.NORMAL)
+            self.dataText.delete(1.0,END)
+            self.dataText.config(state=tk.DISABLED)
         #print "called"
         #print self.dataLength
         #print self.data
@@ -665,8 +679,8 @@ class DisplayApp:
                 #get position of the scrollbar
                 position = self.scroll.get()[1]
                 positionT = self.dataText.yview()[0]
-                fixedView = True
-                if( fixedView == True):
+                #fixedView = True
+                if( self.fixedView == True):
                     #we need to add the arbID (doesn't already exist)
                     lineNum = sIDDic.get('lineNum')
                     if( lineNum == None):

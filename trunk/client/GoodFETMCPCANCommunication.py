@@ -237,8 +237,8 @@ class GoodFETMCPCANCommunication:
                 for byte in packet:
                     row.append("%02x"%ord(byte));
                 dataWriter.writerow(row);
-        
-        outfile.close()
+        if(writeToFile == True):
+            outfile.close()
         print "Listened for %d seconds, captured %d packets." %(duration,packetcount);
         return packetcount
         

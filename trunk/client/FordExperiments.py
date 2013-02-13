@@ -142,6 +142,25 @@ class FordExperiments(GoodFETMCPCANCommunication):
             
         #recieveTime = time.time()
         return packetParsed
+
+    def cycle4packets1279(self):
+        self.client.serInit()
+        self.spitSetup(500)
+        # filter on 1279
+        self.addFilter([1279, 1279, 1279, 1279, 1279, 1279], verbose = False)
+        packetParsed = self.getBackground(1279)
+        packet = []
+        if (packetParsed[db0] == 16):
+            # if it's the first of the four packets, replace the value in db7  with 83
+            packetParsed[db7] = 83
+            # transmit new packet
+            self.client.txpacket(packetParsed)
+        else:
+        # otherwise, leave it alone
+            # transmit same pakcet we read in
+            self.client.txpacket(packetParsed)
+        # print the packet we are transmitting
+        print packetParsed
         
         
     def oscillateTemperature(self,time):

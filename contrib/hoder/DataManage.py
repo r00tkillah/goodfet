@@ -10,7 +10,7 @@ import struct
 import glob
 import os
 import datetime
-#data parsing assumes an extended ID!!
+#data parsing assumes an standard ID!!
 
 class DataManage:
     

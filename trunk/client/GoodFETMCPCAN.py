@@ -329,7 +329,7 @@ class GoodFETMCPCAN(GoodFETSPI):
     
     def packet2parsedstr(self,data):
         packet = self.packet2parsed(data)
-        msg = "sID: %04d" %sId
+        msg = "sID: %04d" %packet['sId']
         if( packetParsed.get('eID')):
             msg += " eID: %d" %packetParsed.get('eID')
         msg += " rtr: %d"%packetParsed['rtr']

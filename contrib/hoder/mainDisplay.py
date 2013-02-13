@@ -728,8 +728,8 @@ class DisplayApp:
         print "Request for information on %d" %id
         
     def write(self):
-        #if( not self.checkComm()):
-        #    return
+        if( not self.checkComm()):
+            return
         packet = []
         if(self.writeData["fromFile"].get() == 1):
             # ping the user to choose the file for writing
@@ -771,13 +771,20 @@ class DisplayApp:
             except:
                 print "Invalid input!"
                 return
-        
-            
-        
-        self.comm.spitSetup(self.freq)
+                
+        #self.comm.spitSetup(self.freq)
         #for i in range(0,attempts):
-        self.comm.spit(self.freq,[sID],repeat, writes, period=period, debug=False, packet=packet)
-            
+        #self.comm.spit(self.freq,[sID],repeat, writes, period=period, debug=False, packet=packet)
+        thread.start_new_thread( self.writeControl, (self.freq,[sID], repeat, writes, period, False, packet))
+     
+     
+     # This is the method that will be called as a thread to write to the bus
+    def writeControl(freq, sID, repeat, writes, period, debug=False, packet=None):  
+         self.comm.spitSetup(self.freq)
+         self.running = True
+         self.comm.spit(self.freq,[sID],repeat, writes, period=period, debug=False, packet=packet)
+         self.running = False
+              
             
         #print "write Packet?"
         

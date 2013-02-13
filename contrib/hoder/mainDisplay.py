@@ -44,6 +44,7 @@ class DisplayApp:
         self.SQL_DATABASE = "thayersc_canbus"
         self.SQL_TABLE = table
         
+        
         #configure information
         #Initialize communication class
         try:
@@ -71,7 +72,9 @@ class DisplayApp:
 
         # create a tk object, which is the root window
         self.root = tk.Tk()
-        self.root.bind_class("Text","<Command-a>", self.selectall)
+        self.root.bind_class("Text","<Command-a>", self.selectall) #rebinds the select all feature
+        
+        
         # width and height of the window
         self.initDx = width
         self.initDy = height
@@ -82,7 +85,8 @@ class DisplayApp:
         #self.ControlsDx = (self.initDx - 80);
         self.ControlsDx = 400;
         self.ControlsDy = self.initDy;
-
+        self.csvBool = Tkinter.IntVar()
+        self.sqlSaveCsvChoice = True
         # set up the geometry for the window
         self.root.geometry( "%dx%d+50+30" % (self.initDx, self.initDy) )
         
@@ -342,12 +346,15 @@ class DisplayApp:
         sqlButton.grid(row=i,column=1,sticky=tk.W)
         
         self.pcapBool = IntVar()
+        #self.pcapBool.trace('w', self.sqlSaveType)
         self.pcapBool.set(0)
         c = Checkbutton(self.canvas, variable = self.pcapBool, text="pcap")
         c.grid(row=i,column=2, sticky = tk.W)
                         
         self.csvBool = IntVar()
         self.csvBool.set(1)
+        self.sqlSaveCsvChoice = True
+        #self.csvBool.trace('w',self.sqlSaveType)
         c = Checkbutton(self.canvas,variable=self.csvBool, text="csv")
         c.grid(row=i,column=3, sticky = tk.W)
         
@@ -601,7 +608,7 @@ class DisplayApp:
         self.updateID = self.root.after(50,self.updateCanvas)
         count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data, writeToFile)
         self.running = False
-        self.root.after_cancel(self.updateID)
+        #self.root.after_cancel(self.updateID)
         
     def updateCanvas(self):
         #print "called"
@@ -620,11 +627,13 @@ class DisplayApp:
             else:
                 sID = packet.get('sID')
                 if( self.deltas.get(sID) == None):
-                    self.deltas[sID] = packet.get("time")
+                    self.deltas[sID] = {'time':packet.get("time")} #create a new dictionary for the arb id
+                    sIDDic = self.deltas.get[sID]
                     delta = -1
                 else:
-                    delta = packet.get("time") - self.deltas.get(sID)
-                    self.deltas[sID] = packet.get("time")
+                    sIDDic = self.deltas.get(sID);
+                    delta = packet.get("time") - sIDDic['time'] #get the delta time
+                    sIDDic = packet.get("time")
                 rtr = packet.get('rtr')
                 length = packet.get('length')
                 data = ""
@@ -634,12 +643,29 @@ class DisplayApp:
                 #get position of the scrollbar
                 position = self.scroll.get()[1]
                 positionT = self.dataText.yview()[0]
-                
-                self.dataText.config(yscrollcommand=None, state=NORMAL)
-                self.dataText.insert(END,"arbID: ")
-                self.dataText.insert(END, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
-                self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data + (" DeltaT: %04f\n"%delta))
-                #self.dataText.insert(END,packet+"\n")
+                fixedView = True
+                if( fixedView == True):
+                    #we need to add the arbID (doesn't already exist)
+                    lineNum = sIDDic.get('lineNum')
+                    if( lineNum == None):
+                        numlines = self.dataText.index('end - 1 line').split('.')[0] #get number of lines
+                        sIDDic['lineNum'] = numlines + 1
+                        lineNum = numlines+1
+                    else:
+                        self.dataText.config(yscrollcommand=None, state=NORMAL)
+                        self.dataText.delete(lineNum, lineNum+1) #delete the previous entry for this id
+                    self.dataText.config(yscrollcommand=None, state=NORMAL)
+                    self.dataText.insert(lineNum,"arbID: ")
+                    self.dataText.insert(lineNum, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
+                    self.dataText.insert(lineNum, (" Length: %d rtr: %d "%(length,rtr)) + data + (" DeltaT: %04f\n"%delta))
+                        
+                        
+                else:
+                    self.dataText.config(yscrollcommand=None, state=NORMAL)
+                    self.dataText.insert(END,"arbID: ")
+                    self.dataText.insert(END, "%04d"%sID, self.hyperlink.add(self.arbIDInfo,sID))
+                    self.dataText.insert(END, (" Length: %d rtr: %d "%(length,rtr)) + data + (" DeltaT: %04f\n"%delta))
+                    #self.dataText.insert(END,packet+"\n")
                 self.text.yview(END)
                 self.dataText.config(yscrollcommand=self.scroll.set, state=DISABLED)
                 #if the position was at the end, update it now now be at the end again
@@ -651,8 +677,11 @@ class DisplayApp:
                 
                 self.msgCount.set("%d"%(int(self.msgCount.get())+1))
             #self.dataLength += 1
-        self.updateID = self.root.after(50,self.updateCanvas)
+        if(self.running == True):
+           self.updateID = self.root.after(50,self.updateCanvas)
         
+  
+            
     def callback(self):
         self.arbIDInfo(id)
             
@@ -754,8 +783,11 @@ class DisplayApp:
                 i+=1
             filename=filename2
             print "file already exists name changed to %s" % filename
-        self.dm.writeDataCsv(data,filename)
-    
+        if( self.csvBool.get() == 1):
+            self.dm.writeDataCsv(data,filename)
+        else:
+            self.dm.writetoPcapfromSQL(filenameWriteto=filename,results=data)
+          
     def isConnected(self):
         return self.comm != None
 

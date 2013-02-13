@@ -153,7 +153,6 @@ class info(Toplevel):
         
     # this is a cancel button which will just exit the dialog and should not plot anything
     def cancel(self, event = None):
-        self.data.clear()
     
         #put focus back on parent window
         self.parent.focus_set()

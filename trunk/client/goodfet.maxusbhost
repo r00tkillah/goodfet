@@ -25,6 +25,7 @@ client.serInit()
 client.MAXUSBsetup();
 
 client.hostinit();
+client.usbverbose=False;
 
 if(sys.argv[1]=="info"):
     client.hostrun();

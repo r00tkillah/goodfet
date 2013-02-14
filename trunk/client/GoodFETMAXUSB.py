@@ -203,7 +203,7 @@ bmHXFRDNIRQ     =0x80
 
 class GoodFETMAXUSB(GoodFET):
     MAXUSBAPP=0x40;
-    usbverbose=True;
+    usbverbose=False;
     
     def service_irqs(self):
         """Handle USB interrupt events."""
@@ -394,7 +394,7 @@ class GoodFETMAXUSB(GoodFET):
             self.wreg(rHIRQ,bmRCVDAVIRQ); #Clear IRQ
             xfrlen=xfrlen+pktsize; #Add byte count to total transfer length.
             
-            print "%i / %i" % (xfrlen,xfrsize)
+            #print "%i / %i" % (xfrlen,xfrsize)
             
             #Packet is complete if:
             # 1. The device sent a short packet, <maxPacketSize
@@ -404,7 +404,7 @@ class GoodFETMAXUSB(GoodFET):
                 ashex="";
                 for foo in self.xfrdata:
                     ashex=ashex+(" %02x"%foo);
-                print "INPACKET EP%i==%s (0x%02x bytes remain)" % (endpoint,ashex,xfrsize);
+                #print "INPACKET EP%i==%s (0x%02x bytes remain)" % (endpoint,ashex,xfrsize);
                 return resultcode;
 
     RETRY_LIMIT=3;
@@ -473,9 +473,15 @@ class GoodFETMAXUSB(GoodFET):
         """Resets the chip into host mode."""
         self.wreg(rUSBCTL,bmCHIPRES); #Stop the oscillator.
         self.wreg(rUSBCTL,0x00);      #restart it.
-        while self.rreg(rUSBIRQ)&bmOSCOKIRQ:
-            #Hang until the PLL stabilizes.
-            pass;
+        
+        #FIXME: Why does the OSC line never settle?
+        #Code works without it.
+        
+        #print "Waiting for PLL to sabilize.";
+        #while self.rreg(rUSBIRQ)&bmOSCOKIRQ:
+        #    #Hang until the PLL stabilizes.
+        #    pass;
+        #print "Stable.";
 
 class GoodFETMAXUSBHost(GoodFETMAXUSB):
     """This is a class for implemented a minimal USB host.
@@ -483,10 +489,13 @@ class GoodFETMAXUSBHost(GoodFETMAXUSB):
     def hostinit(self):
         """Initialize the MAX3421 as a USB Host."""
         self.usb_connect();
+        print "Enabling host mode.";
         self.wreg(rPINCTL,(bmFDUPSPI|bmPOSINT));
+        print "Resetting host.";
         self.reset_host();
         self.vbus_off();
         time.sleep(0.2);
+        print "Powering host.";
         self.vbus_on();
         
         #self.hostrun();

@@ -155,10 +155,11 @@ class experimentsGUI(Toplevel):
         j = 0
         
         entryLabel = Tkinter.Label(master, font = self.BOLDFONT)
-        entryLabel["text"] = "Packet Fuzz:"
+        entryLabel["text"] = "Generation Fuzzing:"
         entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
-        
+        j +=3
         startButton = Tkinter.Button(master,text="Start",width=5,command=self.GenerationFuzz)
+        startButton.grid(row=i,column=j,sticky=tk.W)
         i+=1
         self.fuzzData = {}
         j = 0 
@@ -257,8 +258,15 @@ class experimentsGUI(Toplevel):
     
         i += 2
         j=0
-    def GenerationFuz(self):
+    def GenerationFuzz(self):
         print "generation Fuzz"
+        if( not self.dClass.checkComm()):
+            return
+        sID = self.fuzzData['sID']
+        period = self.fuzzData['period']
+        writesPerFuzz = self.fuzzData['writesPerFuzz']
+        Fuzzes = self.fuzzData['Fuzzes']
+        self.comm.generationFuzzer(self.dClass.freq, sID,self.fuzzData, period, writesPerFuzz, Fuzzes)
         
 
     def RTRsweepID(self):

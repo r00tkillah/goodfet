@@ -158,6 +158,7 @@ class experimentsGUI(Toplevel):
         entryLabel["text"] = "Packet Fuzz:"
         entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
         
+        startButton = Tkinter.Button(master,text="Start",width=5,command=self.GenerationFuzz)
         i+=1
         self.fuzzData = {}
         j = 0 
@@ -256,7 +257,10 @@ class experimentsGUI(Toplevel):
     
         i += 2
         j=0
+    def GenerationFuz(self):
+        print "generation Fuzz"
         
+
     def RTRsweepID(self):
         print "Sweep across given IDs requesting packets"
         if( not self.dClass.checkComm()):

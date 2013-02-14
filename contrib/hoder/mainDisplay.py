@@ -227,18 +227,18 @@ class DisplayApp:
         self.time = Tkinter.StringVar();
         self.time.set("10")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.time)
-        entryWidget.grid(row=i,column=2, sticky=tk.W)
+        entryWidget.grid(row=i,column=1, sticky=tk.W)
         entryWidget["width"] = 5
         i += 1
         
         #comment
         entryLabel = Tkinter.Label(self.canvas)
         entryLabel["text"] = "Comment:"
-        entryLabel.grid(row=i,column=0, columnspan = 2, sticky = tk.W)
+        entryLabel.grid(row=i,column=0, sticky = tk.W)
         self.comment = Tkinter.StringVar();
         self.comment.set("")
         entryWidget = Tkinter.Entry(self.canvas, textvariable=self.comment)
-        entryWidget.grid(row=i,column=2, columnspan = 7, sticky=tk.W)
+        entryWidget.grid(row=i,column=1, columnspan = 7, sticky=tk.W)
         entryWidget["width"] = 30
         i += 1
         

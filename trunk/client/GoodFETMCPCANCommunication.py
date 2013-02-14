@@ -510,9 +510,9 @@ class GoodFETMCPCANCommunication:
             if period != None:
                 for i in range(0,writes):
                     self.client.MCPrts(TXB0=True);
-                    tic = time.time()
+                    #tic = time.time()
                     time.sleep(period/1000) # pause for period ms before sending again
-                    print time.time()-tic
+                    #print time.time()-tic
                 #starttime = time.time();
                 #while((time.time()-starttime < duration)):
                 #    self.client.MCPrts(TXB0=True);

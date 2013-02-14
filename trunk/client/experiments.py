@@ -5,6 +5,7 @@ import csv, time, argparse;
 import datetime
 import os
 from random import randrange
+import random
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from GoodFETMCPCANCommunication import GoodFETMCPCANCommunication
 from intelhex import IntelHex;
@@ -170,10 +171,68 @@ class experiments(GoodFETMCPCANCommunication):
         print "sweep complete"
         outfile.close()
         
-    
+    # This method will do generation based fuzzing on the id given in standard id
+    # dbLimits is a dictionary of the databytes
+    # dbLimits['db0'] = [low, High]
+    # ..
+    # dbLimits['db7'] = [low, High]
+    # where low is the low end of values for the fuzz, high is the high end value
+    # period is the time between sending packets in milliseconds, writesPerFuzz is the times the 
+    # same fuzzed packet will be injecetez. Fuzzes is the number of different packets to be injected
+    def generationFuzzer(self,freq, standardId, dbLimits, period, writesPerFuzz, Fuzzes):
+        print "Fuzzing on standard ID: %d" %standardId
+        self.client.serInit()
+        self.spitSetup(freq)
+        packet = [0,0,0,0,0,0,0,0]
+        #form a basic packet
         
-    
-    
+        #### split SID into different regs
+        SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        
+        packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                 packetTemp[0],packetTemp[1],packetTemp[2],packetTemp[3],packetTemp[4],packetTemp[5],packetTemp[6],packetTemp[7]]
+        
+        
+        #get folder information (based on today's date)
+        now = datetime.datetime.now()
+        datestr = now.strftime("%Y%m%d")
+        path = self.DATALOCATION+datestr+".csv"
+        filename = path
+        outfile = open(filename,'a');
+        dataWriter = csv.writer(outfile,delimiter=',');
+        #dataWriter.writerow(['# Time     Error        Bytes 1-13']);
+        #dataWriter.writerow(['#' + description])
+            
+        
+        fuzzNumber = 0;
+        while( fuzzNumber < Fuzzes):
+            #generate a fuzzed packet
+            for i in range(0,8): # for each databyte, fuzz it
+                idx = "db%d"%i
+                limits = dbLimits[idx]
+                value = random.randint(limits[0],limits[1]) #generate pseudo-random integer value
+                packet[i+5] = value
+            
+            #put a rough time stamp on the data and get all the data bytes    
+            row = [time.time(), standardId]
+            msg = "Injecting: "
+            for i in range(5,13):
+                row.append(packet[i])
+                msg += " %d"%packet[i]
+            print msg
+            dataWriter.writerow(row)
+            self.client.txpacket(packet)
+            #inject the packet repeatily 
+            for i in range(1,writesPerFuzz):
+                self.client.MCPrts(TXB0=True)
+                time.sleep(period/1000)
+            
+            
+        outfile.close()
+            
     
     
     

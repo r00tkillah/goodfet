@@ -152,9 +152,110 @@ class experimentsGUI(Toplevel):
         j += 1
         i+= 1
         
+        j = 0
         
+        entryLabel = Tkinter.Label(master, font = self.BOLDFONT)
+        entryLabel["text"] = "Packet Fuzz:"
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
         
+        i+=1
+        self.fuzzData = {}
+        j = 0 
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "sID: "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        sID = Tkinter.StringVar()
+        sID.set("")
+        self.fuzzData['sID'] = sID
+        entryWidget = Tkinter.Entry(master, textvariable=sID)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Period (ms): "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        period = Tkinter.StringVar()
+        period.set("")
+        self.fuzzData['period'] = period
+        entryWidget = Tkinter.Entry(master, textvariable=period)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Writes: "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        writesPerFuzz = Tkinter.StringVar()
+        writesPerFuzz.set("")
+        self.fuzzData['writesPerFuzz'] = writesPerFuzz
+        entryWidget = Tkinter.Entry(master, textvariable=writesPerFuzz)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
      
+        j += 1
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Fuzzes : "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        Fuzzes = Tkinter.StringVar()
+        Fuzzes.set("")
+        self.fuzzData['Fuzzes'] = Fuzzes
+        entryWidget = Tkinter.Entry(master, textvariable=Fuzzes)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        
+        i+=1 
+        j = 0
+        for k in range(1,11,3):
+            entryLabel = Tkinter.Label(master)
+            entryLabel["text"] = "low"
+            entryLabel.grid(row=i,column=k)
+            entryLabel = Tkinter.Label(master)
+            entryLabel["text"] = "high"
+            entryLabel.grid(row=i,column=k+1)
+        i += 1
+        j = 0
+        k = 0
+        for j in range (0, 12, 3):
+            entryLabel = Tkinter.Label(master)
+            entryLabel["text"] = "db%d:" %k
+            entryLabel.grid(row=i,column=j, sticky= tk.W)
+            varTempLow = Tkinter.StringVar()
+            #self.fuzzData['db%d'%(k)] = varTempLow
+            varTempLow.set("")
+            entryWidget = Tkinter.Entry(master, textvariable=varTempLow)
+            entryWidget.grid(row=i,column=j+1, sticky=tk.W)
+            entryWidget["width"] = 5
+            varTempHigh = Tkinter.StringVar()
+            self.fuzzData['db%d'%(k)] = [varTempLow, varTempHigh]
+            entryWidget = Tkinter.Entry(master, textvariable = varTempHigh)
+            entryWidget["width"] = 5
+            entryWidget.grid(row=i,column=j+2,sticky=tk.W)
+            k += 1
+            print k
+        
+        for j in range(0,12,3):
+            entryLabel = Tkinter.Label(master)
+            entryLabel["text"] = "db%d:" %((k))
+            entryLabel.grid(row=i+1,column=j, sticky= tk.W)
+            varTempLow = Tkinter.StringVar()
+            #self.fuzzData['db%d'%((k))] = varTemp
+            varTempLow.set("")
+            entryWidget = Tkinter.Entry(master, textvariable=varTempLow)
+            entryWidget.grid(row=i+1,column=j+1, sticky=tk.W)
+            entryWidget["width"] = 5
+            varTempHigh = Tkinter.StringVar()
+            self.fuzzData['db%d'%(k)] = [varTempLow, varTempHigh]
+            entryWidget = Tkinter.Entry(master, textvariable = varTempHigh)
+            entryWidget["width"] = 5
+            entryWidget.grid(row=i+1,column=j+2,sticky=tk.W)
+            k +=1
+    
+        i += 2
+        j=0
         
     def RTRsweepID(self):
         print "Sweep across given IDs requesting packets"

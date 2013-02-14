@@ -779,10 +779,10 @@ class DisplayApp:
      
      
      # This is the method that will be called as a thread to write to the bus
-    def writeControl(freq, sID, repeat, writes, period, debug=False, packet=None):  
+    def writeControl(self, freq, sID, repeat, writes, period, debug=False, packet=None):  
          self.comm.spitSetup(self.freq)
          self.running = True
-         self.comm.spit(self.freq,[sID],repeat, writes, period=period, debug=False, packet=packet)
+         self.comm.spit(self.freq,sID,repeat, writes, period=period, debug=False, packet=packet)
          self.running = False
               
             

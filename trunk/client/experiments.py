@@ -183,12 +183,12 @@ class experiments(GoodFETMCPCANCommunication):
         print "Fuzzing on standard ID: %d" %standardId
         self.client.serInit()
         self.spitSetup(freq)
-        packet = [0,0,0,0,0,0,0,0]
+        packetTemp = [0,0,0,0,0,0,0,0]
         #form a basic packet
         
         #### split SID into different regs
-        SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
-        SIDhigh = (standardid[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        SIDlow = (standardId & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (standardId >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
         
         packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                   0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
@@ -199,7 +199,7 @@ class experiments(GoodFETMCPCANCommunication):
         #get folder information (based on today's date)
         now = datetime.datetime.now()
         datestr = now.strftime("%Y%m%d")
-        path = self.DATALOCATION+datestr+".csv"
+        path = self.DATALOCATION+datestr+"_GenerationFuzzedPackets.csv"
         filename = path
         outfile = open(filename,'a');
         dataWriter = csv.writer(outfile,delimiter=',');
@@ -217,7 +217,7 @@ class experiments(GoodFETMCPCANCommunication):
                 packet[i+5] = value
             
             #put a rough time stamp on the data and get all the data bytes    
-            row = [time.time(), standardId]
+            row = ['#',time.time(), standardId]
             msg = "Injecting: "
             for i in range(5,13):
                 row.append(packet[i])
@@ -229,7 +229,7 @@ class experiments(GoodFETMCPCANCommunication):
             for i in range(1,writesPerFuzz):
                 self.client.MCPrts(TXB0=True)
                 time.sleep(period/1000)
-            
+            fuzzNumber += 1
             
         outfile.close()
             

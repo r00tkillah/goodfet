@@ -258,15 +258,21 @@ class experimentsGUI(Toplevel):
     
         i += 2
         j=0
+
     def GenerationFuzz(self):
         print "generation Fuzz"
         if( not self.dClass.checkComm()):
             return
-        sID = self.fuzzData['sID']
-        period = self.fuzzData['period']
-        writesPerFuzz = self.fuzzData['writesPerFuzz']
-        Fuzzes = self.fuzzData['Fuzzes']
-        self.comm.generationFuzzer(self.dClass.freq, sID,self.fuzzData, period, writesPerFuzz, Fuzzes)
+        sID = int(self.fuzzData['sID'].get())
+        period = int(self.fuzzData['period'].get())
+        writesPerFuzz = int(self.fuzzData['writesPerFuzz'].get())
+        Fuzzes = int(self.fuzzData['Fuzzes'].get())
+        dbInfo = {}
+        for i in range(0,8):
+            idx = 'db%d'%i
+            dbValues = self.fuzzData.get(idx)
+            dbInfo[idx] = [int(dbValues[0].get()), int(dbValues[1].get())]
+        self.comm.generationFuzzer(self.dClass.freq, sID,dbInfo, period, writesPerFuzz, Fuzzes)
         
 
     def RTRsweepID(self):

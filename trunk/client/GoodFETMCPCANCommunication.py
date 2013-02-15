@@ -569,8 +569,10 @@ class GoodFETMCPCANCommunication:
             SIDhigh = (sID >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
             packet = [SIDhigh,SIDlow,0x00,0x00,0x08]
             #dlc = row[2]
-            for i in range(4,dlc+4):
+            dlc = 8
+            for i in range(3,dlc+3):
                 packet.append(row[i])
+            print packet
             self.client.txpacket(packet)
                 
         

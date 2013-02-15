@@ -495,12 +495,14 @@ class DataManage:
         reader = csv.reader(fileObj)
         rownum = 0
         data = []
+        
         # for every row
         for row in reader:
+            print row
             packet = []
             #check to see if the line begins with #
             # if it does it is a comment and should be ignored
-            if( row[0][0] == '#'):
+            if( row[0] == '' or row[0][0] == '#'):
                 rownum += 1
                 continue
             colnum = 0;

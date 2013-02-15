@@ -170,11 +170,13 @@ class experimentsGUI(Toplevel):
         j +=1
         sID = Tkinter.StringVar()
         sID.set("")
-        self.fuzzData['sID'] = sID
+        self.fuzzData['sIDs'] = sID
         entryWidget = Tkinter.Entry(master, textvariable=sID)
-        entryWidget["width"] = 5
-        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        entryWidget["width"] = 40
+        entryWidget.grid(row=i,column=j,columnspan=8,sticky=tk.W)
         j += 1
+        i += 1
+        j = 0
         entryLabel = Tkinter.Label(master)
         entryLabel["text"] = "Period (ms): "
         entryLabel.grid(row=i,column=j,sticky=tk.W)
@@ -365,7 +367,11 @@ class experimentsGUI(Toplevel):
         print "Generation Fuzz"
         if( not self.dClass.checkComm()):
             return
-        sID = int(self.fuzzData['sID'].get())
+        #sIDs = int(self.fuzzData['sID'].get())
+        ids = self.fuzzData['sID'].get().split(",")
+        sID = []
+        for id in ids:
+            sID.append(int(id))
         period = int(self.fuzzData['period'].get())
         writesPerFuzz = int(self.fuzzData['writesPerFuzz'].get())
         Fuzzes = int(self.fuzzData['Fuzzes'].get())
@@ -375,7 +381,7 @@ class experimentsGUI(Toplevel):
             dbValues = self.fuzzData.get(idx)
             dbInfo[idx] = [int(dbValues[0].get()), int(dbValues[1].get())]
         #start the writing as a thread
-        thread.start_new_thread(self.GenerationFuzzControl,(self.dClass.getRate(),dbInfo,period,writesPerFuzz,Fuzzes))
+        thread.start_new_thread(self.GenerationFuzzControl,(self.dClass.getRate(),sID, dbInfo,period,writesPerFuzz,Fuzzes))
         
     def GenerationFuzzControl(self,freq, sID, dbInfo, period, writesPerFuzz, Fuzzes):
         self.dClass.setRunning()

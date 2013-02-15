@@ -10,6 +10,7 @@ import binascii;
 import array;
 from DataManage import DataManage
 from tkFileDialog import askopenfilename
+import tkMessageBox
 from experimentsGUI import *
 from info import *
 import tkHyperlinkManager
@@ -81,7 +82,7 @@ class DisplayApp:
             print "Board not properly connected. please connect and reset"
             self.comm = None
         self.running = False
-        self.freq = self.ConfigSectionMap(Config, "BusInfo")['frequency']
+        self.freq = float(self.ConfigSectionMap(Config, "BusInfo")['frequency'])
         self.verbose = True
         
         # Initialize the data manager
@@ -852,8 +853,12 @@ class DisplayApp:
         #print "write Packet?"
         
     def uploaddb(self):
-        print "Uploading all files"
-        self.dm.uploadFiles()
+        msg = "Upload data to table: %s, \n you are at frequency: %.2f"%(self.SQL_TABLE,self.freq)
+        response = tkMessageBox.askyesno(title = "Upload Data", message = msg)
+        
+        if(response):
+            print "Uploading all files"
+            self.dm.uploadFiles()
         
     def experiments(self):
         data = {}
@@ -969,7 +974,7 @@ class settingsDialog(Toplevel):
         entryLabel["text"] = "Set Rate:"
         entryLabel.grid(row=i,column=0)
         self.rateChoice = tk.StringVar()
-        self.rateChoice.set("500");
+        self.rateChoice.set(self.dClass.getRate());
         self.rateMenu = tk.OptionMenu(master,self.rateChoice,"83.3","100","125","250","500","1000")
         self.rateMenu.grid(row=i,column=1)
         rateButton = tk.Button(master,text="Set Rate",command=self.setRate,width=10)
@@ -1073,7 +1078,7 @@ class settingsDialog(Toplevel):
         entryWidget["width"] = 30
         
     def setRate(self):
-        rate = self.rateChoice.get()
+        rate = float(self.rateChoice.get())
         self.dClass.setRate(rate)
         
     

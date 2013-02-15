@@ -16,6 +16,7 @@ import tkHyperlinkManager
 import datetime
 import os
 import thread
+import ConfigParser
 
 sys.path.insert(0,'../../trunk/client/')
 from GoodFETMCPCANCommunication import *
@@ -35,15 +36,41 @@ tk = Tkinter
 class DisplayApp:
 
     # init function
-    def __init__(self, width, height, rate=500, table="ford_2004"):
+    def __init__(self):
+        self.SETTINGS_FILE = "./Settings.ini"
+        Config = ConfigParser.ConfigParser()
+        try:
+            fileObj = open(self.SETTINGS_FILE)
+            results = Config.read(self.SETTINGS_FILE)
+        except Error, msg:
+            print "Error Parsing Config File."
+            print msg
+        else:
+            if( results == []):
+                print "Could not load config file %s"%self.SETTINGS_FILE
+        dmData = self.ConfigSectionMap(Config,"DataManager")
+        #print a
+        #cfgfile = open(self.SETTINGS_FILE)
         
-        self.SQL_NAME = "thayersc_canbus"
-        self.SQL_HOST = "thayerschool.org"
-        self.SQL_USERNAME = "thayersc_canbus"
-        self.SQL_PASSWORD = "c3E4&$39"
-        self.SQL_DATABASE = "thayersc_canbus"
-        self.SQL_TABLE = table
-    
+        
+        self.SQL_NAME = dmData['sql_name']
+        self.SQL_HOST = dmData['sql_host']
+        self.SQL_USERNAME = dmData['sql_username']
+        self.SQL_PASSWORD = dmData['sql_password']
+        self.SQL_DATABASE = dmData['sql_database']
+        self.SQL_TABLE = dmData['sql_table']
+      
+        windowInfo = self.ConfigSectionMap(Config, "WindowSize")
+        # width and height of the window
+        self.initDx = int(windowInfo['width'])
+        self.initDy = int(windowInfo['height'])
+        self.dataDx =80;
+        #self.dataDx = (self.initDx/2-350);
+        print self.dataDx
+        self.dataDy = self.initDy;
+        #self.ControlsDx = (self.initDx - 80);
+        self.ControlsDx = 400;
+        self.ControlsDy = self.initDy;
         
         #configure information
         #Initialize communication class
@@ -54,12 +81,12 @@ class DisplayApp:
             print "Board not properly connected. please connect and reset"
             self.comm = None
         self.running = False
-        self.freq = 500
+        self.freq = self.ConfigSectionMap(Config, "BusInfo")['frequency']
         self.verbose = True
         
         # Initialize the data manager
-
-        self.dm = DataManage(host=self.SQL_HOST, db=self.SQL_DATABASE,username=self.SQL_USERNAME,password=self.SQL_PASSWORD,table=self.SQL_TABLE)
+        self.DATA_LOCATION = self.ConfigSectionMap(Config, "FileLocations")['data_location']
+        self.dm = DataManage(host=self.SQL_HOST, db=self.SQL_DATABASE,username=self.SQL_USERNAME,password=self.SQL_PASSWORD,table=self.SQL_TABLE, dataLocation = self.DATA_LOCATION)
         
         #store figure
         self.fig = None
@@ -75,16 +102,7 @@ class DisplayApp:
         self.root.bind_class("Text","<Command-a>", self.selectall) #rebinds the select all feature
         
         
-        # width and height of the window
-        self.initDx = width
-        self.initDy = height
-        self.dataDx =80;
-        #self.dataDx = (self.initDx/2-350);
-        print self.dataDx
-        self.dataDy = self.initDy;
-        #self.ControlsDx = (self.initDx - 80);
-        self.ControlsDx = 400;
-        self.ControlsDy = self.initDy;
+        
         self.csvBool = Tkinter.IntVar()
         self.sqlSaveCsvChoice = True
         # set up the geometry for the window
@@ -113,7 +131,33 @@ class DisplayApp:
         # build the objects on the Canvas
         self.buildCanvas()
         
+    
+    #This will write a config parameters. Modified from code on the help blog:
+    # http://bytes.com/topic/python/answers/627791-writing-file-using-configparser
+    def writeiniFile(self, filename, section, option, value):
+        Config = None
+        Config = ConfigParser.ConfigParser()
+        Config.read(filename)
+        if not Config.has_section( section ):
+            Config.add_section(section)
+        Config.set(section, option, value)
+        Config.write(open(filename,'w'))
         
+    #modified from the following example:
+    # http://wiki.python.org/moin/ConfigParserExamples
+    def ConfigSectionMap(self, Config, section):
+        dict1 = {}
+        options = Config.options(section)
+        for option in options:
+            try:
+                dict1[option] = Config.get(section,option)
+                if( dict1[option] == 1):
+                    print "Skipped loading option: %s" %option
+            except:
+                print "Cannot load settings file. Crash on %s"%option
+                dict1[option] = None
+        return dict1
+         
     def buildMenus(self):
         
         # create a new menu
@@ -498,14 +542,21 @@ class DisplayApp:
         self.root.destroy()
              
     def setDataManage(self,table, name, host, username, password, database):
-        print "Resetting MYSQL database information"
+        print "Updating MYSQL database information"
+        
         self.SQL_NAME = name
+        self.writeiniFile(self.SETTINGS_FILE, "DataManager", "sql_name", name)
         self.SQL_HOST = host
+        self.writeiniFile(self.SETTINGS_FILE, "DataManager", "sql_host", host)
         self.SQL_USERNAME = username
+        self.writeiniFile(self.SETTINGS_FILE, "DataManager", "sql_username", username)
         self.SQL_PASSWORD = password
+        self.writeiniFile(self.SETTINGS_FILE, "DataManager", "sql_password", password)
         self.SQL_DATABASE = database
+        self.writeiniFile(self.SETTINGS_FILE, "DataManager", "sql_database", database)
         self.SQL_TABLE = table
-        self.dm = DataManage(host=self.SQL_HOST, db=self.SQL_DATABASE,username=self.SQL_USERNAME,password=self.SQL_PASSWORD,table=self.SQL_TABLE)
+        self.writeiniFile(self.SETTINGS_FILE, "DataManager", "sql_table", table)
+        self.dm = DataManage(host=self.SQL_HOST, db=self.SQL_DATABASE,username=self.SQL_USERNAME,password=self.SQL_PASSWORD,table=self.SQL_TABLE,dataLocation=self.DATA_LOCATION)
 
 
     def handleSettings(self, event=None):
@@ -558,10 +609,21 @@ class DisplayApp:
         
         return True
     
+    def getDataLocation(self):
+        return self.DATA_LOCATION
+    
+    def setDataLocation(self, location):
+        print "Updating Data Location"
+        self.writeiniFile(self.SETTINGS_FILE, "FileLocations", "data_location", location)
+        self.DATA_LOCATION = location
+        
+    
     #set the rate on the MC2515
     def setRate(self,freq):
+        print "Updating Bus Rate"
         if( not self.checkComm()):
             return
+        self.writeiniFile(self.SETTINGS_FILE, "BusInfo", "frequency", freq)
         self.comm.setRate(freq)
         
         
@@ -997,6 +1059,19 @@ class settingsDialog(Toplevel):
         entryWidget["width"] = 30
         i += 1
         
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "File storage location:"
+        entryLabel.grid(row=i,column=0,columnspan=2,sticky=tk.W)
+        i += 1
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Path:"
+        entryLabel.grid(row=i,column=1,sticky=tk.W)
+        self.fileLocation = Tkinter.StringVar()
+        self.fileLocation.set(self.dClass.getDataLocation())
+        entryWidget = Tkinter.Entry(master, textvariable=self.fileLocation)
+        entryWidget.grid(row=i,column=2,columnspan=3,sticky=tk.W)
+        entryWidget["width"] = 30
+        
     def setRate(self):
         rate = self.rateChoice.get()
         self.dClass.setRate(rate)
@@ -1022,12 +1097,15 @@ class settingsDialog(Toplevel):
     # ok button will first validate the choices (see validate method) and then exit the dialog
     # if everything is ok 
     def ok(self, event = None):
+        print "Updating Configurations."
         if not self.validate():
             self.initial_focus.focus_set() #put focus back
             return
-        
-        table = "%s"% self.sqlDB[0].get()
-        print table
+        fileLocation = self.fileLocation.get()
+        self.dClass.setDataLocation(fileLocation)
+        #table = "%s"% self.sqlDB[0].get()
+        #print table
+        table = self.sqlDB[0].get()
         name = self.sqlDB[1].get()
         host = self.sqlDB[2].get()
         username = self.sqlDB[3].get()
@@ -1035,6 +1113,7 @@ class settingsDialog(Toplevel):
         database =self.sqlDB[5].get() 
         self.dClass.setDataManage(table = table, name = name, host = host, \
                                   username = username, password = password, database = database )
+        
         
         self.withdraw()
         self.update_idletasks()
@@ -1066,5 +1145,5 @@ class settingsDialog(Toplevel):
         
 # executes everything to run
 if __name__ == "__main__":
-    dapp = DisplayApp(1200, 520, "ford_2004")
+    dapp = DisplayApp()
     dapp.main()

@@ -15,7 +15,7 @@ import datetime
 class DataManage:
     
     
-    def __init__(self, host, db, username, password, table):
+    def __init__(self, host, db, username, password, table, dataLocation):
         
         # Save MYSQL information for later use
         self.host = host
@@ -23,7 +23,8 @@ class DataManage:
         self.username = username
         self.password = password
         self.table = table
-        self.DATALOCATION = "../ThayerData/"
+        #self.DATALOCATION = "../ThayerData/"
+        self.DATALOCATION = dataLocation
         self.SQLDDATALOCATION = self.DATALOCATION+"SQLData/"
         self.INJECTDATALOCATION  = self.DATALOCATION+"InjectedData/"
         self.MIN_TIME_DELAY = 0.01

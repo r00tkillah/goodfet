@@ -10,6 +10,7 @@ import os
 import thread
 from mainDisplay import *
 import tkMessageBox
+import datetime
 
 
 # create a shorthand object for Tkinter so we don't have to type it all the time
@@ -258,9 +259,110 @@ class experimentsGUI(Toplevel):
     
         i += 2
         j=0
-
+        entryLabel = Tkinter.Label(master, font = self.BOLDFONT)
+        entryLabel["text"] = "Re-inject Fuzzed Packets:"
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        j +=3
+        startButton = Tkinter.Button(master,text="Start",width=5,command=self.reInjectFuzzed)
+        startButton.grid(row=i,column=j,sticky=tk.W)
+        i+=1
+        j = 0
+        self.reInjectData = {}
+        entryLabel = Tkinter.Label(master,text="sID: ")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        varID = Tkinter.StringVar()
+        varID.set("")
+        self.reInjectData['sID'] = varID
+        entryWidget = Tkinter.Entry(master, textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        # The injection files are all saved by date
+        entryLabel = Tkinter.Label(master,text="Date: ")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        varID = Tkinter.StringVar()
+        now = datetime.datetime.now()
+        varID.set(now.strftime("%Y%m%d")) # automatically fill with today's date
+        self.reInjectData['date'] = varID
+        entryWidget = Tkinter.Entry(master, textvariable=varID,width=10)
+        entryWidget.grid(row=i,column=j,columnspan=2,sticky=tk.W)
+        j+= 2
+        # The injection files are all saved by date
+        entryLabel = Tkinter.Label(master,text="Start (HHMM): ")
+        entryLabel.grid(row=i,column=j,columnspan=2,sticky=tk.W)
+        j+= 2
+        varID = Tkinter.StringVar()
+       
+        varID.set("") # automatically fill with today's date
+        self.reInjectData['startTime'] = varID
+        entryWidget = Tkinter.Entry(master, textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        # The injection files are all saved by date
+        entryLabel = Tkinter.Label(master,text="END (HHMM): ")
+        entryLabel.grid(row=i,column=j,columnspan = 2, sticky=tk.W)
+        j+= 2
+        varID = Tkinter.StringVar()
+       
+        varID.set("") # automatically fill with today's date
+        self.reInjectData['endTime'] = varID
+        entryWidget = Tkinter.Entry(master, textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        
+        
+    def reInjectFuzzed(self):
+        if( not self.dClass.checkComm()):
+            return
+        try:
+            date = self.reInjectData["date"].get();
+            if( date == ""):
+                raise Exception
+            startTimestr = self.reInjectData['startTime'].get()
+            if( startTimestr == ""):
+                startTime = None
+            else:
+                #startTime = int(startTimestr)
+                #put it into time stamp format: tuple( year, month, day, hour, min, sec, wday,yday,isdst) -- leave the last ones 0
+                startTime = time.mktime((int(date[0:4]), int(date[4:6]), int(date[6:8]), int(startTimestr[0:2]), int(startTimestr[2:4]),0,0,0,0))
+            endTimestr = self.reInjectData['endTime'].get()
+            if( endTimestr == ""): #if they did not input an end time (optional)
+                endTime = None
+            else:
+                
+                endTime = time.mktime((int(date[0:4]), int(date[4:6]), int(date[6:8]), int(endTimestr[0:2]), int(endTimestr[2:4]),0,0,0,0))
+            idstr = self.reInjectData['sID'].get()
+            if( idstr == ""): # they did not input an id (optional)
+                id = None
+            else:
+                id = int(idstr)  
+            
+        except:
+            print "Invalid Input!"
+            return
+        injectLocation = self.dClass.dm.getInjectedLocation()
+        filename = injectLocation + date + "_GenerationFuzzedPackets.csv"
+        print "filename ", filename
+        print "date ", date
+        print "id ", id
+        print " startTime ", startTime
+        print " endTime ", endTime
+        # start a new thread
+        thread.start_new_thread(self.reInjectFuzzedControl, (filename, startTime, endTime,id))
+        
+        
+    def reInjectFuzzedControl(self, filename, startTime,endTime,id):
+        self.dClass.setRunning()
+        #load the data from the file
+        data = self.dClass.dm.readInjectedFileDEC(filename,startTime,endTime,id)
+        #inject the data 
+        self.comm.writeData(data,self.dClass.freq)
+        self.dClass.unsetRunning()
+        
+        
     def GenerationFuzz(self):
-        print "generation Fuzz"
+        print "Generation Fuzz"
         if( not self.dClass.checkComm()):
             return
         sID = int(self.fuzzData['sID'].get())
@@ -272,9 +374,14 @@ class experimentsGUI(Toplevel):
             idx = 'db%d'%i
             dbValues = self.fuzzData.get(idx)
             dbInfo[idx] = [int(dbValues[0].get()), int(dbValues[1].get())]
-        self.comm.generationFuzzer(self.dClass.freq, sID,dbInfo, period, writesPerFuzz, Fuzzes)
+        #start the writing as a thread
+        thread.start_new_thread(self.GenerationFuzzControl,(self.dClass.getRate(),dbInfo,period,writesPerFuzz,Fuzzes))
         
-
+    def GenerationFuzzControl(self,freq, sID, dbInfo, period, writesPerFuzz, Fuzzes):
+        self.dClass.setRunning()
+        self.comm.generationFuzzer(freq, sID,dbInfo, period, writesPerFuzz, Fuzzes)
+        self.dClass.unsetRunning()
+        
     def RTRsweepID(self):
         print "Sweep across given IDs requesting packets"
         if( not self.dClass.checkComm()):
@@ -292,9 +399,12 @@ class experimentsGUI(Toplevel):
         except:
             print "Values are not integers. Please check inputs and try again."
             return
+        thread.start_new_thread(self.RTRsweepIDControl, (self.dClass.getRate(), lowI,highI,attemptsI,sT,verbose))
+ 
+    def RTRsweepIDControl(self, freq, lowI, highI,attemptsI, sT, verbose):
         self.dClass.setRunning()
         #thread.start_new_thread(self.comm.rtrSweep,(self.dClass.getRate(), lowI, highI, attemptsI, sT, verbose))
-        self.comm.rtrSweep(self.dClass.getRate(), lowI, highI, attemptsI, sT, verbose)
+        self.comm.rtrSweep(freq, lowI, highI, attemptsI, sT, verbose)
         self.dClass.unsetRunning()
  
     def sweepID(self):
@@ -312,11 +422,13 @@ class experimentsGUI(Toplevel):
             return
         if( highI < lowI  or sT <= 0):
             print "Incorrectly formated inputs! Please check that lower ID is less than higher ID"
+        thread.start_new_thread(self.sweeIDControl, (self.dClass.getRate(),lowI,highI,sT))
+    
+    def sweeIDControl(self, freq, lowI, highI, sT):
         self.dClass.setRunning()
-        thread.start_new_thread(self.comm.filterStdSweep, (self.dClass.getRate(), lowI, highI, sT ))
+        self.comm.filterStdSweep( freq, lowI, highI, sT )
         self.dClass.unsetRunning()
         
-    
     #This is the cancel / ok button
     def buttonbox(self):
         #add standard button box

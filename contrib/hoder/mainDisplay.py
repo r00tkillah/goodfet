@@ -43,7 +43,7 @@ class DisplayApp:
         self.SQL_PASSWORD = "c3E4&$39"
         self.SQL_DATABASE = "thayersc_canbus"
         self.SQL_TABLE = table
-        
+    
         
         #configure information
         #Initialize communication class
@@ -553,6 +553,7 @@ class DisplayApp:
             return False
         
         elif( self.running ):
+            print  "There is a current script running. Please wait until it has finished"
             return False
         
         return True

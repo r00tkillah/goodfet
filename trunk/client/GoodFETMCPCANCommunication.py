@@ -29,6 +29,7 @@ class GoodFETMCPCANCommunication:
        self.client.serInit()
        self.client.MCPsetup();
        self.DATALOCATION = "../../contrib/ThayerData/"
+       self.INJECTDATALOCATION  = self.DATALOCATION+"InjectedData/"
        
 
     

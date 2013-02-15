@@ -199,7 +199,7 @@ class experiments(GoodFETMCPCANCommunication):
         #get folder information (based on today's date)
         now = datetime.datetime.now()
         datestr = now.strftime("%Y%m%d")
-        path = self.DATALOCATION+datestr+"_GenerationFuzzedPackets.csv"
+        path = self.DATALOCATION+"InjectedData/"+datestr+"_GenerationFuzzedPackets.csv"
         filename = path
         outfile = open(filename,'a');
         dataWriter = csv.writer(outfile,delimiter=',');
@@ -217,12 +217,12 @@ class experiments(GoodFETMCPCANCommunication):
                 packet[i+5] = value
             
             #put a rough time stamp on the data and get all the data bytes    
-            row = ['#',time.time(), standardId]
+            row = [time.time(), standardId,8]
             msg = "Injecting: "
             for i in range(5,13):
                 row.append(packet[i])
                 msg += " %d"%packet[i]
-            print msg
+            #print msg
             dataWriter.writerow(row)
             self.client.txpacket(packet)
             #inject the packet repeatily 

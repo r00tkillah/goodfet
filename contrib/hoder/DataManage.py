@@ -25,12 +25,18 @@ class DataManage:
         self.table = table
         self.DATALOCATION = "../ThayerData/"
         self.SQLDDATALOCATION = self.DATALOCATION+"SQLData/"
+        self.INJECTDATALOCATION  = self.DATALOCATION+"InjectedData/"
+        self.MIN_TIME_DELAY = 0.01
+        self.MAX_TIME_DELAY = 1.1
         
     def getSQLLocation(self):
         return self.SQLDDATALOCATION
     
     def getDataLocation(self):
         return self.DATALOCATION
+    
+    def getInjectedLocation(self):
+        return self.INJECTDATALOCATION
     
     #Creates a new MySQL table in the database with the given table name
     def createTable(self, table):
@@ -520,6 +526,61 @@ class DataManage:
         #print data
         fileObj.close()
         return data
+    
+    def readInjectedFileDEC(self,filename,startTime = None,endTime = None,id=None):
+        try:
+            fileObj = open(filename,'rU')
+        except:
+            print "Unable to open file!"
+            return
+        reader = csv.reader(fileObj)
+        rownum = 0
+        data = []
+        timePrev = 0;
+        # for every row
+        for row in reader:
+            packet = []
+            #check to see if the line begins with #
+            # if it does it is a comment and should be ignored
+            if( row[0][0] == '#'):
+                rownum += 1
+                continue
+            # if the user specified an id to get and this doesn't match
+            elif( id != None and row[1] != int(id)):
+                continue
+            # if the user specified a start time to the packets that were fuzzed make sure it is after that.
+            elif( startTime != None and row[0] < startTime):
+                continue
+            # if the user specified an end time to the packets that were fuzzed make sure it is before that.
+            elif( endTime != None and row[0] > endTime):
+                break # We are assuming that the file is ordered by time in an ascending order so that as soon as we are
+                      # after the end time we are not going to add any new packets
+            colnum = 0;
+            #go down each byte, the first one is the time
+            for col in row:
+                #time stamp
+                if(colnum == 0):
+                    timeInject = float(col)
+                    # if the difference between this packet's inject time is less than the minimum and not more than 
+                    # the maximum delay. The reason for the maximum delay is to make sure that if you are combining
+                    # different fuzzes you are not having an unwanted long pause
+                    if( rownum != 0 and (timeInject-timePrev) > self.MIN_TIME_DELAY and (timeInject-timePrev) < self.MAX_TIME_DELAY):
+                        packet.append(timeInject-timePrev)
+                    else:
+                        packet.append(0)
+                    timePrev = timeInject
+                    #packet.append(float(col))
+                
+                else:
+                    packet.append(int(col))
+                colnum += 1
+                #print packet
+            data.append(packet)
+            rownum += 1
+        #print data
+        fileObj.close()
+        return data
+    
     
     # will upload all the csv files in the self.DATALOCATION to the MySQL database
     # the files uploaded will be moved to a folder named as today's date and a tag _Uploaded will

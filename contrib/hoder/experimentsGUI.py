@@ -368,7 +368,7 @@ class experimentsGUI(Toplevel):
         if( not self.dClass.checkComm()):
             return
         #sIDs = int(self.fuzzData['sID'].get())
-        ids = self.fuzzData['sID'].get().split(",")
+        ids = self.fuzzData['sIDs'].get().split(",")
         sID = []
         for id in ids:
             sID.append(int(id))

@@ -626,7 +626,7 @@ class DisplayApp:
             return
         self.writeiniFile(self.SETTINGS_FILE, "BusInfo", "frequency", freq)
         self.comm.setRate(freq)
-        
+        self.freq = freq
         
     # This method will clear all the filter inputs for the user
     def clearFilters(self):

@@ -179,11 +179,11 @@ class experiments(GoodFETMCPCANCommunication):
     # where low is the low end of values for the fuzz, high is the high end value
     # period is the time between sending packets in milliseconds, writesPerFuzz is the times the 
     # same fuzzed packet will be injecetez. Fuzzes is the number of different packets to be injected
-    def generationFuzzer(self,freq, standardIds, dbLimits, period, writesPerFuzz, Fuzzes):
-        print "Fuzzing on standard ID: %d" %standardId
+    def generationFuzzer(self,freq, standardIDs, dbLimits, period, writesPerFuzz, Fuzzes):
+        #print "Fuzzing on standard ID: %d" %standardId
         self.client.serInit()
         self.spitSetup(freq)
-        packet = [0,0,0,0,0,0,0,0,0,0,0,0] #empty template
+        packet = [0,0,0x00,0x00,0x08,0,0,0,0,0,0,0,0] #empty template
         #form a basic packet
         
 #        #### split SID into different regs
@@ -209,7 +209,7 @@ class experiments(GoodFETMCPCANCommunication):
         numIds = len(standardIDs)
         fuzzNumber = 0;
         while( fuzzNumber < Fuzzes):
-            id_new = standsardIDs[random.randint(0,numIds-1)]
+            id_new = standardIDs[random.randint(0,numIds-1)]
             #### split SID into different regs
             SIDlow = (id_new & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
             SIDhigh = (id_new >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
@@ -224,7 +224,7 @@ class experiments(GoodFETMCPCANCommunication):
                 packet[i+5] = value
             
             #put a rough time stamp on the data and get all the data bytes    
-            row = [time.time(), standardId,8]
+            row = [time.time(), id_new,8]
             msg = "Injecting: "
             for i in range(5,13):
                 row.append(packet[i])

@@ -28,17 +28,21 @@ from intelhex import IntelHex;
 
 
 # create a shorthand object for Tkinter so we don't have to type it all the time
-tk = Tkinter
+tk = Tkinter """ Shortcut for Tkinter """
 
-# This is a simple display class for the GOODTHOPTER10 board. It currently allows you to
-# set the rate, sniff, write and save what is sniffed in 3 different forms. Raw, parsed, pcap.
-# one can also store a time stamp on when a stimulus is added. All data will be written into the 
-# following path ../../contrib/hoder/data/
+
 class DisplayApp:
+    """ 
+    This is the main display for the graphical user interface (GUI). This GUI is designed to aid 
+    the user in their work listening to CAN traffic via the GOODTHOPTER10 board, U{http://goodfet.sourceforge.net/hardware/goodthopter10/}.
+    There are no inputs to this class but all default data is loaded from the settings file.
+    
+    """   
 
     # init function
     def __init__(self):
         self.SETTINGS_FILE = "./Settings.ini"
+        """ This stores the location of the file where settings are saved"""
         Config = ConfigParser.ConfigParser()
         try:
             fileObj = open(self.SETTINGS_FILE)
@@ -49,25 +53,30 @@ class DisplayApp:
         else:
             if( results == []):
                 print "Could not load config file %s"%self.SETTINGS_FILE
+        
+        # Initialize the data manager
+        self.DATA_LOCATION = self.ConfigSectionMap(Config, "FileLocations")['data_location']
+       
         dmData = self.ConfigSectionMap(Config,"DataManager")
         #print a
         #cfgfile = open(self.SETTINGS_FILE)
         
         
-        self.SQL_NAME = dmData['sql_name']
+        self.SQL_NAME = dmData['sql_name'] 
         self.SQL_HOST = dmData['sql_host']
         self.SQL_USERNAME = dmData['sql_username']
         self.SQL_PASSWORD = dmData['sql_password']
         self.SQL_DATABASE = dmData['sql_database']
         self.SQL_TABLE = dmData['sql_table']
-      
+        self.dm = DataManage(host=self.SQL_HOST, db=self.SQL_DATABASE,username=self.SQL_USERNAME,password=self.SQL_PASSWORD,table=self.SQL_TABLE, dataLocation = self.DATA_LOCATION)
+        
         windowInfo = self.ConfigSectionMap(Config, "WindowSize")
         # width and height of the window
         self.initDx = int(windowInfo['width'])
         self.initDy = int(windowInfo['height'])
         self.dataDx =80;
         #self.dataDx = (self.initDx/2-350);
-        print self.dataDx
+       
         self.dataDy = self.initDy;
         #self.ControlsDx = (self.initDx - 80);
         self.ControlsDx = 400;
@@ -77,35 +86,23 @@ class DisplayApp:
         #Initialize communication class
         try:
             #self.comm = GoodFETMCPCANCommunication()
-            self.comm = experiments()
+            self.comm = experiments(self.DATA_LOCATION) """ Stores the class which communicates with the bus """
         except:
             print "Board not properly connected. please connect and reset"
             self.comm = None
-        self.running = False
-        self.freq = float(self.ConfigSectionMap(Config, "BusInfo")['frequency'])
-        self.verbose = True
+        self.running = False """ This is a boolean which when false tells you that there is a thread communicating with the bus at the moment"""
+        self.freq = float(self.ConfigSectionMap(Config, "BusInfo")['frequency']) """ Bus frequency """
+        self.verbose = True 
         
-        # Initialize the data manager
-        self.DATA_LOCATION = self.ConfigSectionMap(Config, "FileLocations")['data_location']
-        self.dm = DataManage(host=self.SQL_HOST, db=self.SQL_DATABASE,username=self.SQL_USERNAME,password=self.SQL_PASSWORD,table=self.SQL_TABLE, dataLocation = self.DATA_LOCATION)
-        
-        #store figure
-        self.fig = None
-        
-        #stimulus is initial not being conducted
-        self.isStimulus = False
-        
-        #save the filenames, initialized when sniffing begins
-        self.filenames = []
 
         # create a tk object, which is the root window
-        self.root = tk.Tk()
-        self.root.bind_class("Text","<Command-a>", self.selectall) #rebinds the select all feature
+        self.root = tk.Tk() """ Stores the tk object for the window """ 
+        self.root.bind_class("Text","<Command-a>", self.selectall) # rebinds the select all feature
         
         
         
-        self.csvBool = Tkinter.IntVar()
-        self.sqlSaveCsvChoice = True
+        self.csvBool = Tkinter.IntVar() """ 1 if sql query is to be stored as a csv document, 0 otherwise """
+        self.sqlSaveCsvChoice = True """ True if data is to be saved as a csv document """
         # set up the geometry for the window
         self.root.geometry( "%dx%d+50+30" % (self.initDx, self.initDy) )
         
@@ -133,13 +130,25 @@ class DisplayApp:
         self.buildCanvas()
         
     
-    #This will write a config parameters. Modified from code on the help blog:
-    # http://bytes.com/topic/python/answers/627791-writing-file-using-configparser
+  
     def writeiniFile(self, filename, section, option, value):
+        """ 
+        Writes the given settings to the given settings filename. If the section does not exist in the settings file
+        then it will be created. The file is assumed to be a .ini file. This method is a modified version of the
+        one found on the following website: U{http://bytes.com/topic/python/answers/627791-writing-file-using-configparser}
+        
+        @type filename: string
+        @param filename: path to the settings file
+        @type section: string
+        @param section: section heading in the settings file
+        @param option: string
+        @param option: The option in the given section in the settings file that will be set
+        @param value: The value of the option we are saving. 
+        """
         Config = None
         Config = ConfigParser.ConfigParser()
         Config.read(filename)
-        if not Config.has_section( section ):
+        if not Config.has_section( section ): #create the section
             Config.add_section(section)
         Config.set(section, option, value)
         Config.write(open(filename,'w'))
@@ -147,6 +156,17 @@ class DisplayApp:
     #modified from the following example:
     # http://wiki.python.org/moin/ConfigParserExamples
     def ConfigSectionMap(self, Config, section):
+        """
+        This method has been implemented based on the following exmaple, U{http://wiki.python.org/moin/ConfigParserExamples}.
+        
+        @param Config: ConfigParser instance that has already read the given settings filename.
+        @type section: string
+        @param section: Section that you want to get all of the elements of from the settings file that has been
+                        read by the Config parser and passed in as Config.
+        @rtype: Dictionary
+        @return: Dictionary where they keys are the options in the given section and the values are the corresponding
+                 settings value.
+        """
         dict1 = {}
         options = Config.options(section)
         for option in options:
@@ -160,6 +180,9 @@ class DisplayApp:
         return dict1
          
     def buildMenus(self):
+        """
+        This method will build the menu bars
+        """
         
         # create a new menu
         self.menu = tk.Menu(self.root)
@@ -198,9 +221,12 @@ class DisplayApp:
     
     
     def selectall(self, event):
+        """ 
+        This method is called when the user wishes to select the entire text box.
+        """
         event.widget.tag_add("sel","1.0","end")
 
-    # create the canvas object
+
     def buildCanvas(self):
         self.RightSideCanvas = tk.Canvas( self.root, width=self.ControlsDx, height=self.ControlsDy)
         #self.RightSideCanvas.grid(row=0,column=1,sticky=tk.W)
@@ -522,6 +548,9 @@ class DisplayApp:
 
     #Bind callbacks with the keyboard/keys
     def setBindings(self):
+        """
+        This method will set bindings on the window. This includes mouse clicks and key presses
+        """
         #self.root.bind( '<Button-1>', self.handleButton1 )
         #self.root.bind( '<Button-2>', self.handleButton2 )
         #self.root.bind( '<Button-3>', self.handleButton3 )
@@ -539,10 +568,16 @@ class DisplayApp:
     
     #quits the GUI
     def handleQuit(self, event=None):
+        """ 
+        This method is called when the user quits the program. It terminates the display and exits
+        """
         print 'Terminating'
         self.root.destroy()
              
     def setDataManage(self,table, name, host, username, password, database):
+        """
+        
+        """
         print "Updating MYSQL database information"
         
         self.SQL_NAME = name
@@ -866,7 +901,8 @@ class DisplayApp:
         exp = experimentsGUI(self.root, self, comm=self.comm, data = data, title = "Experiments")
         
     def idInfo(self):
-        
+        """ This method will open an info box for the user
+            to gain information on a known arbID"""
         infoBox = info(parent=self.root, title="Information Gathered")
         pass
         

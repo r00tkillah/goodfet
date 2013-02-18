@@ -24,17 +24,18 @@ import Queue
 
 class GoodFETMCPCANCommunication:
     
-    def __init__(self):
-       self.client=GoodFETMCPCAN();
+    def __init__(self, dataLocation):
+       self.client=GoodFETMCPCAN(); """ Communication with the bus"""
        self.client.serInit()
        self.client.MCPsetup();
-       self.DATALOCATION = "../../contrib/ThayerData/"
-       self.INJECTDATALOCATION  = self.DATALOCATION+"InjectedData/"
+       #self.DATA_LOCATION = "../../contrib/ThayerData/"
+       self.DATA_LOCATION = dataLocation; """ Stores file data location. This is the root folder where basic sniffs will be stored"""
+       self.INJECT_DATA_LOCATION  = self.DATA_LOCATION+"InjectedData/" """ stores the sub folder path where injected data will be stored"""
        
 
     
     def printInfo(self):
-        
+        """ This method will print information about the board to the termina. It is usefull for diagnostics"""
         self.client.MCPreqstatConfiguration();
         
         print "MCP2515 Info:\n\n";
@@ -67,6 +68,9 @@ class GoodFETMCPCANCommunication:
            print self.client.packet2str(foo);
            
     def reset(self):
+        """ 
+        Reset the chip
+        """
         self.client.MCPsetup();
     
     
@@ -75,7 +79,9 @@ class GoodFETMCPCANCommunication:
     ##########################
          
     def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None,writeToFile=True):
+        """
         
+        """
         #reset eveything on the chip
         self.client.serInit() 
         self.reset()
@@ -134,7 +140,7 @@ class GoodFETMCPCANCommunication:
             #get folder information (based on today's date)
             now = datetime.datetime.now()
             datestr = now.strftime("%Y%m%d")
-            path = self.DATALOCATION+datestr+".csv"
+            path = self.DATA_LOCATION+datestr+".csv"
             filename = path
             
         if( writeToFile == True):
@@ -365,7 +371,9 @@ class GoodFETMCPCANCommunication:
                 print "Data: " + self.client.packet2str(data);
 
     def test(self):
-        
+        """ This will perform a test on the GOODTHOPTER10. Diagnostic messages will be printed
+        out to the terminal
+        """
         comm.reset();
         print "Just reset..."
         print "EFLG register:  %02x" % self.client.peek8(0x2d);
@@ -400,7 +408,20 @@ class GoodFETMCPCANCommunication:
     
     
     def addFilter(self,standardid, verbose= True):
-        comment = None
+        """ This method will configure filters on the board. Filters are positive filters meaning that they will only 
+        store messages that match the ids provided in the list of standardid. Since there are 2 buffers and due to the configuration
+        of how the filtering works (see MCP2515 documentation), at least 3 filters must be set to guarentee you do not get any
+        unwanted messages. However even with only 1 filter set you should get all messages from that ID but the other buffer will store 
+        any additional messages.
+        @type standardid: list of integers
+        @param standardid: List of standard ids that need to be set. There can be at most 6 filters set.
+        @type verbose: Boolean
+        @param verbose: If true it will print out messages and diagnostics to terminal.
+        
+        @rtype: None
+        @return: This method does not return anything
+        """
+       
         ### ON-CHIP FILTERING
         if(standardid != None):
             self.client.MCPreqstatConfiguration();  
@@ -450,17 +471,80 @@ class GoodFETMCPCANCommunication:
    
         
     def spitSetup(self,freq):
+        """ 
+        This method sets up the chip for transmitting messages, but does not transmit anything itself.
+        """
         self.reset();
         self.client.MCPsetrate(freq);
         self.client.MCPreqstatNormal();
         
     
-    def spitSingle(self,freq, standardid, repeat, duration = None, debug = False, packet = None):
+    def spitSingle(self,freq, standardid, repeat,writes, period = None, debug = False, packet = None):
+        """ 
+        This method will spit a single message onto the bus. If there is no packet information provided then the 
+        message will be sent as a remote transmission request (RTR). The packet length is assumed to be 8 bytes The message can be repeated a given number of times with
+        a gap of period (milliseconds) between each message. This will continue for the the number of times specified in the writes input.
+        This method will setup the bus and call the spit method, L{spit}. This method includes a bus reset and initialization.
+        
+        @type freq: number
+        @param freq: The frequency of the bus
+        
+        @type standardid: list of integer
+        @param standardid: This is a single length list with one integer elment that corresponds to the standard id you wish to write to
+        
+        @type repeat: Boolean
+        @param repeat: If true the message will be repeatedly injected. if not the message will only be injected 1 time
+        
+        @type writes: Integer
+        @param writes: Number of writes of the packet
+        
+        @type period: Integer
+        @param period: Time delay between injections of the packet in Milliseconds
+        
+        @type debug: Boolean
+        @param debug: When true debug status messages will be printed to the terminal
+        
+        @type packet: List
+        @param packet: Contains the data bytes for the packet which is assumed to be of length 8. Each byte is stored as
+                       an integer and can range from 0 to 255 (8 bits). If packet == None then an RTR will be sent on the given
+                       standard id.
+        
+        """
         self.spitSetup(freq);
-        spit(self,freq, standardid, repeat, duration = None, debug = False, packet = None)
+        spit(self,freq, standardid, repeat,writes,  period, debug , packet)
 
     def spit(self,freq, standardid, repeat,writes, period = None, debug = False, packet = None):
-    
+        """ 
+        This method will spit a single message onto the bus. If there is no packet information provided then the 
+        message will be sent as a remote transmission request (RTR). The packet length is assumed to be 8 bytes The message can be repeated a given number of times with
+        a gap of period (milliseconds) between each message. This will continue for the the number of times specified in the writes input.
+        This method does not include bus setup, it must be done before the method call.
+        
+        
+        @type freq: number
+        @param freq: The frequency of the bus
+        
+        @type standardid: list of integer
+        @param standardid: This is a single length list with one integer elment that corresponds to the standard id you wish to write to
+        
+        @type repeat: Boolean
+        @param repeat: If true the message will be repeatedly injected. if not the message will only be injected 1 time
+        
+        @type writes: Integer
+        @param writes: Number of writes of the packet
+        
+        @type period: Integer
+        @param period: Time delay between injections of the packet in Milliseconds
+        
+        @type debug: Boolean
+        @param debug: When true debug status messages will be printed to the terminal
+        
+        @type packet: List
+        @param packet: Contains the data bytes for the packet which is assumed to be of length 8. Each byte is stored as
+                       an integer and can range from 0 to 255 (8 bits). If packet == None then an RTR will be sent on the given
+                       standard id.
+        
+        """
 
         #### split SID into different regs
         SIDlow = (standardid[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
@@ -473,14 +557,11 @@ class GoodFETMCPCANCommunication:
             packet = [SIDhigh, SIDlow, 0x00,0x00,0x40] 
         
         
-                #packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
-                #         0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-                #        # lower nibble is DLC                   
-                #        0x00,0x01,0x02,0x03,0x04,0x05,0x06,0xFF]
         else:
 
             # if we do have a packet, packet is SID + padding out EID registers + DLC of 8 + packet
             #
+            """@todo: allow for variable-length packets"""
             #    TODO: allow for variable-length packets
             #
             packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
@@ -507,6 +588,7 @@ class GoodFETMCPCANCommunication:
         self.client.txpacket(packet);
             
         if repeat:
+            """@todo: the repeat variable is no longer needed and can be removed """
             print "\nNow looping on transmit. "
             if period != None:
                 for i in range(0,writes):
@@ -546,6 +628,12 @@ class GoodFETMCPCANCommunication:
 
 
     def setRate(self,freq):
+        """ 
+        This method will reset the frequency that the MCP2515 expects the CAN bus to be on.
+        
+        @type freq: Number
+        @param freq: Frequency of the CAN bus
+        """
         self.client.MCPsetrate(freq);
         
 

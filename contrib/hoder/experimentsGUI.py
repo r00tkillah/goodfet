@@ -351,7 +351,7 @@ class experimentsGUI(Toplevel):
         print " startTime ", startTime
         print " endTime ", endTime
         # start a new thread
-        thread.start_new_thread(self.reInjectFuzzedControl, (filename, startTime, endTime,id))
+        thread.start_new_thread(self.reInjectFuzzedControl, (filename, float(startTime), float(endTime),id))
         
         
     def reInjectFuzzedControl(self, filename, startTime,endTime,id):

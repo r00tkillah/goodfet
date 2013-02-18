@@ -22,13 +22,13 @@ class experiments(GoodFETMCPCANCommunication):
     
     """
     
-    def __init__(self, datalocation):
+    def __init__(self, data_location):
         """ 
         Constructor
         @type datalocation: string
         @param datalocation: path to the folder where data will be stored
         """
-        GoodFETMCPCANCommunication.__init__(self, location)
+        GoodFETMCPCANCommunication.__init__(self, data_location)
         #super(experiments,self).__init(self)
         self.freq = 500;
         
@@ -262,10 +262,10 @@ class experiments(GoodFETMCPCANCommunication):
         @return: This method does not return anything
                          
         """
-        print "Fuzzing on standard ID: %d" %standardId
+        #print "Fuzzing on standard ID: %d" %standardId
         self.client.serInit()
         self.spitSetup(freq)
-        packet = [0,0,0,0,0,0,0,0,0,0,0,0] #empty template
+        packet = [0,0,0x00,0x00,0x08,0,0,0,0,0,0,0,0] #empty template
         #form a basic packet
         
 #        #### split SID into different regs
@@ -291,7 +291,8 @@ class experiments(GoodFETMCPCANCommunication):
         numIds = len(standardIDs)
         fuzzNumber = 0; #: counts the number of packets we have generated
         while( fuzzNumber < Fuzzes):
-            id_new = standsardIDs[random.randint(0,numIds-1)]
+            id_new = standardIDs[random.randint(0,numIds-1)]
+            print id_new
             #### split SID into different regs
             SIDhigh = (id_new >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
             SIDlow = (id_new & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
@@ -304,9 +305,9 @@ class experiments(GoodFETMCPCANCommunication):
                 limits = dbLimits[idx]
                 value = random.randint(limits[0],limits[1]) #generate pseudo-random integer value
                 packet[i+5] = value
-            
+            print packet
             #put a rough time stamp on the data and get all the data bytes    
-            row = [time.time(), standardId,8]
+            row = [time.time(), id_new,8]
             msg = "Injecting: "
             for i in range(5,13):
                 row.append(packet[i])

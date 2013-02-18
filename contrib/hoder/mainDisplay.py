@@ -28,7 +28,8 @@ from intelhex import IntelHex;
 
 
 # create a shorthand object for Tkinter so we don't have to type it all the time
-tk = Tkinter """ Shortcut for Tkinter """
+tk = Tkinter 
+""" Shortcut for Tkinter """
 
 
 class DisplayApp:
@@ -84,25 +85,32 @@ class DisplayApp:
         
         #configure information
         #Initialize communication class
+        self.comm=experiments(self.DATA_LOCATION)
         try:
             #self.comm = GoodFETMCPCANCommunication()
-            self.comm = experiments(self.DATA_LOCATION) """ Stores the class which communicates with the bus """
+            self.comm = experiments(self.DATA_LOCATION) 
+            """ Stores the class which communicates with the bus """
         except:
             print "Board not properly connected. please connect and reset"
             self.comm = None
-        self.running = False """ This is a boolean which when false tells you that there is a thread communicating with the bus at the moment"""
-        self.freq = float(self.ConfigSectionMap(Config, "BusInfo")['frequency']) """ Bus frequency """
+        self.running = False 
+        """ This is a boolean which when false tells you that there is a thread communicating with the bus at the moment"""
+        self.freq = float(self.ConfigSectionMap(Config, "BusInfo")['frequency']) 
+        """ Bus frequency """
         self.verbose = True 
         
 
         # create a tk object, which is the root window
-        self.root = tk.Tk() """ Stores the tk object for the window """ 
+        self.root = tk.Tk() 
+        """ Stores the tk object for the window """ 
         self.root.bind_class("Text","<Command-a>", self.selectall) # rebinds the select all feature
         
         
         
-        self.csvBool = Tkinter.IntVar() """ 1 if sql query is to be stored as a csv document, 0 otherwise """
-        self.sqlSaveCsvChoice = True """ True if data is to be saved as a csv document """
+        self.csvBool = Tkinter.IntVar() 
+        """ 1 if sql query is to be stored as a csv document, 0 otherwise """
+        self.sqlSaveCsvChoice = True 
+        """ True if data is to be saved as a csv document """
         # set up the geometry for the window
         self.root.geometry( "%dx%d+50+30" % (self.initDx, self.initDy) )
         

@@ -529,6 +529,7 @@ class DataManage:
         return data
     
     def readInjectedFileDEC(self,filename,startTime = None,endTime = None,id=None):
+        print startTime, "    ", endTime, "      ", id
         try:
             fileObj = open(filename,'rU')
         except:
@@ -543,17 +544,24 @@ class DataManage:
             packet = []
             #check to see if the line begins with #
             # if it does it is a comment and should be ignored
+            #print row
             if( row[0][0] == '#'):
                 rownum += 1
                 continue
             # if the user specified an id to get and this doesn't match
-            elif( id != None and row[1] != int(id)):
+            elif( id != None and int(row[1]) != id):
+                print int(row[1])
+                rownum +=1
                 continue
             # if the user specified a start time to the packets that were fuzzed make sure it is after that.
-            elif( startTime != None and row[0] < startTime):
+            elif( startTime != None and float(row[0]) < startTime):
+                print "startTime", row[0],"   ", startTime
+                rownum += 1
                 continue
             # if the user specified an end time to the packets that were fuzzed make sure it is before that.
-            elif( endTime != None and row[0] > endTime):
+            elif( endTime != None and float(row[0]) > endTime):
+                print "endTime Issue", row[0], "     ",endTime
+
                 break # We are assuming that the file is ordered by time in an ascending order so that as soon as we are
                       # after the end time we are not going to add any new packets
             colnum = 0;
@@ -576,10 +584,12 @@ class DataManage:
                     packet.append(int(col))
                 colnum += 1
                 #print packet
+            print packet
             data.append(packet)
             rownum += 1
         #print data
         fileObj.close()
+        print data
         return data
     
     

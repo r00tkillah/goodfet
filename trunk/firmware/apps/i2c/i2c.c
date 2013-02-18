@@ -134,6 +134,7 @@ unsigned char I2C_ReadBit()
   SDAOUTPUT;
   I2CDELAY(1);
   I2C_CLOCK_LO();
+  I2CDELAY(1);
 
   return c;
 }
@@ -161,8 +162,9 @@ unsigned char I2C_ReadBit_Wait()
   SDAOUTPUT;
   I2CDELAY(1);
   I2C_CLOCK_LO();
+  I2CDELAY(1);
 
-  return c;
+  return c?0:1;	// return true on ACK (0)
 }
 
 //! Send a START Condition
@@ -249,15 +251,19 @@ void i2c_handle_fn( uint8_t const app,
 		break;
 	case WRITE:
 		I2C_Start();
-		for(i=0; i<len; i++)
-			cmddata[0]+=I2C_Write(cmddata[i]);
+		cmddata[0] = cmddata[0] << 1;
+		for(i=0; i<len; i++) {
+			if (!I2C_Write(cmddata[i]))		//if NACK
+				break;
+		}
 		I2C_Stop();
+		cmddata[0] = i;
 		txdata(app,verb,1);
 		break;
 	case PEEK:
 		l = cmddata[0];
 		I2C_Start();
-		unsigned char address = cmddata[1]<<1;
+		unsigned char address = cmddata[1] << 1;
 		I2C_Write(address);
 		for(i=2; i < len; i++){
 			I2C_Write(cmddata[i]);

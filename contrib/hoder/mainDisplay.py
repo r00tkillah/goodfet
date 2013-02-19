@@ -85,7 +85,6 @@ class DisplayApp:
         
         #configure information
         #Initialize communication class
-        self.comm=experiments(self.DATA_LOCATION)
         try:
             #self.comm = GoodFETMCPCANCommunication()
             self.comm = experiments(self.DATA_LOCATION) 
@@ -584,6 +583,21 @@ class DisplayApp:
              
     def setDataManage(self,table, name, host, username, password, database):
         """
+        This method will update the stored information for accessing the MYSQL database. The settings will be 
+        saved to the settings file.
+        
+        @type table: string
+        @param table: SQL table to add data to
+        @type name: string
+        @param name: Name for SQL account
+        @type host: string
+        @param host: Host for MYSQL table
+        @type username: string
+        @param username: MYSQL username
+        @type password: string
+        @param password: MYSQL username password
+        @type database: string
+        @type database: database we want to use
         
         """
         print "Updating MYSQL database information"
@@ -604,35 +618,54 @@ class DisplayApp:
 
 
     def handleSettings(self, event=None):
+        """
+        This method will open the settings dialog box for the user to change various components of the GUI.
+        """
         data = {}
         dialogBox =  settingsDialog(parent = self.root, dClass = self, data=data, title = "Settings")
         
     #quits
     def handleModQ(self, event):
+        """ 
+        This method will quit the GUI
+        """
         self.handleQuit()
 
     # writes a row of data to the end of a csv file that is given by filename
-    def writeRow(self,data,filename):
-        writeFile  = open(filename,'a')
-        dataWriter = csv.writer(writeFile,delimiter=',')
-        dataWriter.writerow(data)
-        writeFile.close()
-        return
+    #def writeRow(self,data,filename):
+    #    writeFile  = open(filename,'a')
+    #    dataWriter = csv.writer(writeFile,delimiter=',')
+    #    dataWriter.writerow(data)
+    #    writeFile.close()
+    #    return
    
     def fileCallback(self):
         if( self.fileBool == 0):
             pass
 
     def setRunning(self):
+        """
+        This method sets the running boolean when a method is communicating with the bus
+        """
         self.running = True
     
     def unsetRunning(self):
+        """
+        This method unsets the running boolean when a method is done communicating with the bus
+        """
         self.running = False
 
     def getRate(self):
+        """
+        This method returns the rate that the GOODTHOPTER10 is set to
+        """
         return self.freq
 
     def connectBus(self):
+        """ 
+        This method will try to reconnect with the GOODTHOPTER10. It will first check to make sure that no
+        method is currently communicating with the bus. 
+        """
         if( self.running):
             return
         try:
@@ -641,8 +674,15 @@ class DisplayApp:
             print "Board not properly connected. please plug in the GoodThopter10 and re-attempt"
             self.comm = None
 
-    #This method will check to see if we can do anything on the bus (i.e. if the chip is connected or being used)
     def checkComm(self):
+        """
+        This method check to see if the program is able to begin communication with the GOODTHOPTER10 board. This method
+        should be called before anything begins to try and communicate. It will check first to see if the board is connected
+        and will then check to see if the self.running boolean is set or not.
+        
+        @rtype: Boolean
+        @return: False if the board is either not connected or if there is currently a script communicating with the board. True otherwise
+        """
         if(not self.isConnected() ):
             print "GoodThopter10 not connected. Please connect board"
             return False
@@ -654,9 +694,19 @@ class DisplayApp:
         return True
     
     def getDataLocation(self):
+        """
+        Returns the path to the data location
+        @rtype: string
+        @return: Data location path
+        """
         return self.DATA_LOCATION
     
     def setDataLocation(self, location):
+        """
+        Sets the data location path in the program as well as saved to the settings file.
+        @type location: string
+        @param location: path to new location to save data to
+        """
         print "Updating Data Location"
         self.writeiniFile(self.SETTINGS_FILE, "FileLocations", "data_location", location)
         self.DATA_LOCATION = location
@@ -664,6 +714,11 @@ class DisplayApp:
     
     #set the rate on the MC2515
     def setRate(self,freq):
+        """
+        This method will set the rate that the board communicates with  the CAN Bus on. 
+        @type freq: number
+        @param freq: Frequency of CAN communication
+        """
         print "Updating Bus Rate"
         if( not self.checkComm()):
             return
@@ -673,11 +728,20 @@ class DisplayApp:
         
     # This method will clear all the filter inputs for the user
     def clearFilters(self):
+        """
+        This method will clear the filters that the user has input into the dialog spots. It does not reset the chip
+        and clear them on the board.
+        """
         for element in self.filterIDs:
             element.set("")
     
     
     def sniff(self):
+        """ This method will sniff the CAN bus. It will take in the input arguments from the GUI and pass them onto the
+        sniff method in the L{GoodFETMCPCANCommmunication.sniff} file. The method will take in any filters that have been
+        set on the GUI, as well as the sniff length and comment off the display. This method will call L{sniffControl} which
+        will be run as a thread.
+        """
         if( not self.checkComm() ):
             return
         # get time and check that it is correct
@@ -720,9 +784,34 @@ class DisplayApp:
         #self.sniffControl(self.freq, time, description, False, comments, None, standardid, False, False, True, self.data)
         #self.root.after(50, self.updateCanvas)
         
-        self.running = False
+        self.running = False # we are running a method with the bus
+        
+        
         
     def sniffControl(self,freq,duration,description, verbose=False, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None, writeToFile = True):
+        """
+        This method will actively do the sniffing on the bus. It will call the sniff method in the GoodFETMCPCANCommunication class. This method will
+        be called by the L{sniff} method when started by the user in the GUI. It will set up the display for the incoming sniffed data as well as 
+        reset the counters. The input parameters to this method are the same as to the sniff method in the GoodFETMCPCANCommunication class.
+        
+        @type freq: number
+        @param freq: Frequency of the CAN communication
+        @type description: string
+        @param description: This is the description that will be put in the csv file. This gui will set this to be equal to the comments string
+        @type verbose: Boolean
+        @param verbose: This will trigger the sniff method to print out to the terminal. This is false by default since information is printed to the GUI. 
+        @type comment: string
+        @param comment: This is the comment tag for the observation. This will be saved with every sniffed packet and included in the data uploaded to the SQL database
+        @type filename: String
+        @param filename: filename with path to save the csv file to of the sniffed data. By default the sniff method in the GoodFETMCPCANCommunication file will automatically deal with
+                         the file management and this can be left as None.
+        @type standardid: List of integers
+        @param standardid: This will be a list of the standard ids that the method will filter for. This can be a list of up to 6 ids.
+        @type debug: Boolean
+        @param debug: 
+        
+        """
+        
         #reset msg count
         self.msgCount.set("0")
         self.msgDelta.set("0")

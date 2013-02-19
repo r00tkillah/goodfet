@@ -325,7 +325,103 @@ class experiments(GoodFETMCPCANCommunication):
         print "Fuzzing Complete"   
         outfile.close()
             
+    def generalFuzz(self,freq, Fuzzes, period, writesPerFuzz):
+        #print "Fuzzing on standard ID: %d" %standardId
+        self.client.serInit()
+        self.spitSetup(freq)
+        packet = [0,0,0x00,0x00,0x08,0,0,0,0,0,0,0,0] #empty template
+        
+        #get folder information (based on today's date)
+        now = datetime.datetime.now()
+        datestr = now.strftime("%Y%m%d")
+        path = self.DATA_LOCATION+"InjectedData/"+datestr+"_GenerationFuzzedPackets.csv"
+        filename = path
+        outfile = open(filename,'a');
+        dataWriter = csv.writer(outfile,delimiter=',');
+        #dataWriter.writerow(['# Time     Error        Bytes 1-13']);
+        #dataWriter.writerow(['#' + description])
+            
+        fuzzNumber = 0; #: counts the number of packets we have generated
+        while( fuzzNumber < Fuzzes):
+            id_new = random.randint(0,4095)
+            #print id_new
+            #### split SID into different regs
+            SIDhigh = (id_new >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+            SIDlow = (id_new & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+            packet[0] = SIDhigh
+            packet[1] = SIDlow
+            
+            #generate a fuzzed packet
+            for i in range(0,8): # for each data byte, fuzz it
+                idx = "db%d"%i
+                limits = dbLimits[idx]
+                value = random.randint(limits[0],limits[1]) #generate pseudo-random integer value
+                packet[i+5] = value
+            print packet
+            #put a rough time stamp on the data and get all the data bytes    
+            row = [time.time(), id_new,8]
+            msg = "Injecting: "
+            for i in range(5,13):
+                row.append(packet[i])
+                msg += " %d"%packet[i]
+            #print msg
+            dataWriter.writerow(row)
+            self.client.txpacket(packet)
+            time.sleep(period/1000)
+            
+            #inject the packet the given number of times. 
+            for i in range(1,writesPerFuzz):
+                self.client.MCPrts(TXB0=True)
+                time.sleep(period/1000)
+            fuzzNumber += 1
+        print "Fuzzing Complete"   
+        outfile.close()
     
+    # assumes 8 byte packets
+    def packetRespond(self,freq, time, repeats, period,  responseID, respondPacket,listenID, listenPacket = None):
+        self.client.serInit()
+        self.spitSetup(freq)
+        
+        #formulate response packet
+        SIDhigh = (responseID >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        SIDlow = (responseID & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        #resPacket[0] = SIDhigh
+        #resPacket[1] = SIDlow
+        resPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                 respondPacket[0],respondPacket[1],respondPacket[2],respondPacket[3],respondPacket[4],respondPacket[5],respondPacket[6],respondPacket[7]]
+        #load packet/send once
+        """@todo: make this only load the data onto the chip and not send """
+        self.client.txpacket(resPacket) 
+        self.addFilter([listenID,listenID,listenID,listenID]) #listen only for this packet
+        startTime = time.time()
+        packet = None
+        while( (time.time() - startTime) < time):
+            packet = self.client.rxpacket()
+            if( packet != None):
+                print "packet read in, responding now"
+                # assume the ids already match since we are filtering for the id
+                
+                #compare packet received to desired packet
+                if( listenPacket == None): # no packets given, just want the id
+                    for i in range(0,repeats):
+                        self.client.MCPrts(TXB0=True)
+                        time.sleep(period/1000)
+                else: #compare packets
+                    for i in range(0,8):
+                        idx = 5 + i
+                        byteIn = ord(packet[idx])
+                        compareIn = erspondPacket[i]
+                        if( byteIn != compareIn):
+                            packet == None
+                            break
+                    if( packet ):
+                        self.client(MCPrts(TXB0=True))
+                        time.sleep(period/1000)
+        print "Response Listening Terminated."
+                
+        
 #    def generationFuzzRandomID(self, freq, standardIDs, dbLimits, period, writesPerFuzz, Fuzzes):
 #        print "Fuzzing on standard ID: %d" %standardId
 #        self.client.serInit()

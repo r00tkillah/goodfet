@@ -152,9 +152,55 @@ class experimentsGUI(Toplevel):
         sweepButton.grid(row=i, column=j,sticky=tk.W)
         j += 1
         i+= 1
+        j = 0
+        entryLabel = Tkinter.Label(master,font=self.BOLDFONT)
+        entryLabel["text"] = "Fuzz all possible packets"
+        entryLabel.grid(row=i,column=j,columnspan=3,stick=tk.W)
+        j+=3
+        startButton = Tkinter.Button(master,text="Start",width=5,command=self.generalFuzz)
+        startButton.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        
+        i+=1
+        j=0
+        self.generalFuzzData = {}
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Period (ms): "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        period = Tkinter.StringVar()
+        period.set("")
+        self.generalFuzzData['period'] = period
+        entryWidget = Tkinter.Entry(master, textvariable=period)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Writes: "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        writesPerFuzz = Tkinter.StringVar()
+        writesPerFuzz.set("")
+        self.generalFuzzData['writesPerFuzz'] = writesPerFuzz
+        entryWidget = Tkinter.Entry(master, textvariable=writesPerFuzz)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+     
+        j += 1
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Fuzzes : "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        Fuzzes = Tkinter.StringVar()
+        Fuzzes.set("")
+        self.generalFuzzData['Fuzzes'] = Fuzzes
+        entryWidget = Tkinter.Entry(master, textvariable=Fuzzes)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
         
         j = 0
-        
+        i += 1
         entryLabel = Tkinter.Label(master, font = self.BOLDFONT)
         entryLabel["text"] = "Generation Fuzzing:"
         entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
@@ -313,8 +359,144 @@ class experimentsGUI(Toplevel):
         entryWidget.grid(row=i,column=j,sticky=tk.W)
         j+= 1
         
+        i+= 1
+        j = 0
         
+        entryLabel = Tkinter.Label(master, font = self.BOLDFONT)
+        entryLabel["text"] = "Packet Response:"
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        j +=3
+        startButton = Tkinter.Button(master,text="Start",width=5,command=self.packetResponse)
+        startButton.grid(row=i,column=j,sticky=tk.W)
+        i+=1
+        self.packetResponseData = {}
+        j = 0 
+        entryLabel = Tkinter.Label(master,text="Time:")
+        entryLabel.grid(row=i,column=j,sticky = tk.W)
+        j += 1
+        varID = Tkinter.StringVar()
+        varID.set("30")
+        self.packetResponseData['time:'] = varID
+        entryWidget = Tkinter.Entry(master,textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(master,text="repeats:")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        varID = Tkinter.StringVar()
+        varID.set("100")
+        self.packetResponseData["repeats"] = varID
+        entryWidget = Tkinter.Entry(master,textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(master,text="period (ms):")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        varID = Tkinter.StringVar()
+        varID.set("1")
+        self.packetResponseData["period"] = varID
+        entryWidget = Tkinter.Entry(master,textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        i+=1
+        j = 0
+        entryLabel = Tkinter.Label(master,text="listenID: ")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        varID = Tkinter.StringVar()
+        varID.set("")
+        self.packetResponseData['listenID'] = varID
+        entryWidget = Tkinter.Entry(master,textvariable=varID, width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        entryLabel = tk.Label(master,text="data:")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        for k in range(0,8):
+            varID = tk.StringVar()
+            varID.set("")
+            idx = 'Listen_db%d'%k
+            self.packetResponseData[idx] = varID
+            entryWidget = tk.Entry(master,textvariable=varID,width=5)
+            entryWidget.grid(row=i,column=j,sticky=tk.W)
+            j += 1
+        i += 1
+        j = 0
+        entryLabel = tk.Label(master,text="Res.ID:")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        varID = tk.StringVar()
+        varID.set("")
+        self.packetResponseData["responseID"] = varID
+        entryWidget = Tkinter.Entry(master,textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        entryLabel = tk.Label(master,text="data:")
+        entryLabel.grid(row=i,column=j,stick=tk.W)
+        j += 1
+        for k in range(0,8):
+            varID = tk.StringVar()
+            varID.set("")
+            idx = 'Response_db%d'%k
+            self.packetResponseData[idx] = varID
+            entryWidget = tk.Entry(master,textvariable=varID,width=5)
+            entryWidget.grid(row=i,column=j,sticky=tk.W)
+            j+=1
+            
+        
+    def generalFuzz(self):
+        if( not self.dClass.checkComm()):
+            return
+        try:
+            Fuzzes = int(self.generalFuzzData["Fuzzes"].get())
+            period = float(self.generalFuzzData["period"].get())
+            writesPerFuzz = int(self.generalFuzzData["writesPerFuzz"].get())
+        except:
+            print "Invalid Input. Please check input and try again"
+            return
+        
+        thread.start_new_thread(self.generalFuzzControl, (self.dClass.getRate(),Fuzzes,period,writesPerFuzz))
+        
+    def generalFuzzControl(self, freq,Fuzzes, period, writesPerFuzz):
+        self.dClass.setRunning()
+        self.comm.generalFuzz(freq,Fuzzes,period,writesPerFuzz)
+        self.dClass.unsetRunning()
+        
+    def packetResponse(self):
+        if( not self.dClass.checkComm()):
+            return
+        try:
+            time = int(self.packetResponseData['time'].get())
+            repeats = int(self.packetResponseData['repeats'].get())
+            period = float(self.packetResponseData["period"].get())
+            reponseID = int(self.packetResponseData['responseID'].get())
+            listenID = int(self.packetResponseData['listenID'].get())
+            responsePacket = []
+            listenPacket = []
+            for k in range(0,8):
+                idx_listen = 'Listen_db%d'%k
+                idx_response = 'Response_db%d'%k
+                listenStr = self.packetResponseData[idx_listen].get()
+                if( listenStr == ""):
+                    listenPacket = None
+                else:
+                    listenPacket.append(int(listenStr))
+                    
+                listenPacket.append(int(self.packetResponseData[idx_listen].get()))
+                responsePacket.append(int(self.packetResponseData[idx_response].get()))
+                
+        except:
+            print "Invalid Input. Please check input and try again."
+            return
+        
+        thread.start_new_thread(self.packetResponseControl, (self.dclass.getRate(), time,repeats,period,responseID,respondPacket,listenID,listenPacket))
+        
+    def packetResponseControl(self, freq, time, repeats, period,  responseID, respondPacket,listenID, listenPacket = None):
+        self.dClass.setRunning()
+        self.comm.packetResponse(freq, time,repeats,period,responseID,respondPacket,listenID,listenPacket)
+        self.dClass.unsetRunning()
+
     def reInjectFuzzed(self):
+        
         if( not self.dClass.checkComm()):
             return
         try:
@@ -364,6 +546,7 @@ class experimentsGUI(Toplevel):
         
         
     def GenerationFuzz(self):
+        
         print "Generation Fuzz"
         if( not self.dClass.checkComm()):
             return

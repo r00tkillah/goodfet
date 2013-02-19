@@ -323,8 +323,7 @@ class GoodFETMCPCAN(GoodFETSPI):
         for i in range(0,packet['length']):
             idx = 5 + i
             dbidx = 'db%d'%i
-            packet[dbidx] = data[idx] 
-    
+            packet[dbidx] = ord(data[idx])
         return packet
     
     def packet2parsedstr(self,data):

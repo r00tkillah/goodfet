@@ -12,12 +12,15 @@ import Queue
 import math
 
 tT = time
-class FordExperiments(GoodFETMCPCANCommunication):
+class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
     
     def __init__(self):
-        GoodFETMCPCANCommunication.__init__(self)
+        GoodFETMCPCANCommunication.__init__(self, dataLocation)
         #super(FordExperiments,self).__init__(self) #initialize chip
         self.freq = 500;
+
+    
+
 
     def mimic1056(self,packetData,runTime):
         #setup chip

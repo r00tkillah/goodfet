@@ -467,6 +467,89 @@ class GoodFETMCPCANCommunication:
                
         self.client.MCPreqstatNormal();
     
+    def filterForPacket(self, standardid, DB0, DB1, verbose= True):
+        """ This method will configure filters on the board to listen for a specific packet originating from standardid with data bytes 0 and 1. It will configure all six filters, so you will not recieve any other packets.
+            @type standardid: integer
+            @param standardid: standardID to listen for
+            @type DB0: integer
+            @param standardid: DB0 contents to filter for
+            @type DB1: integer
+            @param standardid: DB1 contents to filter for
+            @type verbose: Boolean
+            @param verbose: If true it will print out messages and diagnostics to terminal.
+            
+            @rtype: None
+            @return: This method does not return anything
+            """
+        
+        ### ON-CHIP FILTERING
+       
+        self.client.MCPreqstatConfiguration();  
+        
+        # SID filtering: set CTRL registers to only accept standard messages
+        self.client.poke8(0x60,0x26); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RXM=1, BUKT=1)
+        self.client.poke8(0x70,0x20); # set RXB1 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RXM0=1)
+
+        # Mask buffer 0 to match SID, DB0, DB1
+        self.client.poke8(0x20,0xFF); #set buffer 0 mask 1 (SID 10:3) to FF
+        self.client.poke8(0x21,0xE0); #set buffer 0 mask 2 bits 7:5 (SID 2:0) to 1s
+        self.client.poke8(0x22,0xFF); #set buffer 0 mask 3 (DB0) to FF 
+        self.client.poke8(0x23,0xFF); #set buffer 0 mask 4 (DB0) to FF
+
+        # Mask buffer 1 to match SID, DB0, DB1
+        self.client.poke8(0x24,0xFF); #set buffer 1 mask 1 (SID 10:3) to FF
+        self.client.poke8(0x25,0xE0); #set buffer 1 mask 2 bits 7:5 (SID 2:0) to 1s
+        self.client.poke8(0x26,0xFF); #set buffer 1 mask 3 (DB0) to FF
+        self.client.poke8(0x27,0xFF); #set buffer 1 mask 4 (DB1) to FF
+        
+        # Split SID into high and low bytes
+        SIDlow = (standardid & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (standardid >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+
+            
+        for filter in range(0,5):
+            if (filter==0):
+                RXFSIDH = 0x00;
+                RXFSIDL = 0x01;
+                RXFDB0 = 0x02;
+                RXFDB1 = 0x03;
+            elif (filter==1):
+                RXFSIDH = 0x04;
+                RXFSIDL = 0x05;
+                RXFDB0 = 0x06;
+                RXFDB1 = 0x07;
+            elif (filter==2):
+                RXFSIDH = 0x08;
+                RXFSIDL = 0x09;
+                RXFDB0 = 0x0A;
+                RXFDB1 = 0x0B;
+            elif (filter==3):
+                RXFSIDH = 0x10;
+                RXFSIDL = 0x11;
+                RXFDB0 = 0x12;
+                RXFDB1 = 0x13;
+            elif (filter==4):
+                RXFSIDH = 0x14;
+                RXFSIDL = 0x15;
+                RXFDB0 = 0x16;
+                RXFDB1 = 0x17;
+            else:
+                RXFSIDH = 0x18;
+                RXFSIDL = 0x19;
+                RXFDB0 = 0x1A;
+                RXFDB1 = 0x1B;
+            
+
+            self.client.poke8(RXFSIDH, SIDhigh);
+            self.client.poke8(RXFSIDL, SIDlow);
+            self.client.poke8(RXFDB0, DB0);
+            self.client.poke8(RXFDB1, DB1);
+                
+            if (verbose == True):
+                print "Filtering for SID %d DB0 0x%02xh DB1 0x%02xh with filter #%d"%(ID, DB0, DB1, filter);
+        
+        self.client.MCPreqstatNormal();
+    
     
    
         

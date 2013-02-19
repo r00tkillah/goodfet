@@ -175,7 +175,7 @@ class experiments(GoodFETMCPCANCommunication):
             self.client.txpacket(packet)
             ## listen for 2 packets. one should be the rtr we requested the other should be
             ## a new packet response
-            starttime = time.time()
+            starttime = tT.time()
             while ((time.time() - starttime) < duration): #listen for the given duration time period
                 packet = self.client.rxpacket()
                 if( packet == None):
@@ -307,7 +307,7 @@ class experiments(GoodFETMCPCANCommunication):
                 packet[i+5] = value
             print packet
             #put a rough time stamp on the data and get all the data bytes    
-            row = [time.time(), id_new,8]
+            row = [time.tT(), id_new,8]
             msg = "Injecting: "
             for i in range(5,13):
                 row.append(packet[i])
@@ -315,12 +315,12 @@ class experiments(GoodFETMCPCANCommunication):
             #print msg
             dataWriter.writerow(row)
             self.client.txpacket(packet)
-            time.sleep(period/1000)
+            tT.sleep(period/1000)
             
             #inject the packet the given number of times. 
             for i in range(1,writesPerFuzz):
                 self.client.MCPrts(TXB0=True)
-                time.sleep(period/1000)
+                tT.sleep(period/1000)
             fuzzNumber += 1
         print "Fuzzing Complete"   
         outfile.close()
@@ -354,8 +354,8 @@ class experiments(GoodFETMCPCANCommunication):
             #generate a fuzzed packet
             for i in range(0,8): # for each data byte, fuzz it
                 idx = "db%d"%i
-                limits = dbLimits[idx]
-                value = random.randint(limits[0],limits[1]) #generate pseudo-random integer value
+                
+                value = random.randint(0, 255) #generate pseudo-random integer value
                 packet[i+5] = value
             print packet
             #put a rough time stamp on the data and get all the data bytes    
@@ -395,9 +395,9 @@ class experiments(GoodFETMCPCANCommunication):
         """@todo: make this only load the data onto the chip and not send """
         self.client.txpacket(resPacket) 
         self.addFilter([listenID,listenID,listenID,listenID]) #listen only for this packet
-        startTime = time.time()
+        startTime = tT.time()
         packet = None
-        while( (time.time() - startTime) < time):
+        while( (tT.time() - startTime) < time):
             packet = self.client.rxpacket()
             if( packet != None):
                 print "packet read in, responding now"
@@ -407,18 +407,19 @@ class experiments(GoodFETMCPCANCommunication):
                 if( listenPacket == None): # no packets given, just want the id
                     for i in range(0,repeats):
                         self.client.MCPrts(TXB0=True)
-                        time.sleep(period/1000)
+                        tT.sleep(period/1000)
                 else: #compare packets
                     for i in range(0,8):
                         idx = 5 + i
                         byteIn = ord(packet[idx])
-                        compareIn = erspondPacket[i]
+                        compareIn = respondPacket[i]
                         if( byteIn != compareIn):
                             packet == None
+                            print "packet did not match"
                             break
                     if( packet ):
-                        self.client(MCPrts(TXB0=True))
-                        time.sleep(period/1000)
+                        self.client.MCPrts(TXB0=True)
+                        tT.sleep(period/1000)
         print "Response Listening Terminated."
                 
         

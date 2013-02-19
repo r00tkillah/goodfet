@@ -376,7 +376,7 @@ class experimentsGUI(Toplevel):
         j += 1
         varID = Tkinter.StringVar()
         varID.set("30")
-        self.packetResponseData['time:'] = varID
+        self.packetResponseData['time'] = varID
         entryWidget = Tkinter.Entry(master,textvariable=varID,width=5)
         entryWidget.grid(row=i,column=j,sticky=tk.W)
         j += 1
@@ -464,35 +464,36 @@ class experimentsGUI(Toplevel):
     def packetResponse(self):
         if( not self.dClass.checkComm()):
             return
-        try:
-            time = int(self.packetResponseData['time'].get())
-            repeats = int(self.packetResponseData['repeats'].get())
-            period = float(self.packetResponseData["period"].get())
-            reponseID = int(self.packetResponseData['responseID'].get())
-            listenID = int(self.packetResponseData['listenID'].get())
-            responsePacket = []
-            listenPacket = []
-            for k in range(0,8):
-                idx_listen = 'Listen_db%d'%k
-                idx_response = 'Response_db%d'%k
-                listenStr = self.packetResponseData[idx_listen].get()
-                if( listenStr == ""):
-                    listenPacket = None
-                else:
-                    listenPacket.append(int(listenStr))
+        #try:
+        time = int(self.packetResponseData['time'].get())
+        repeats = int(self.packetResponseData['repeats'].get())
+        period = float(self.packetResponseData["period"].get())
+        responseID = int(self.packetResponseData['responseID'].get())
+        listenID = int(self.packetResponseData['listenID'].get())
+        responsePacket = []
+        listenPacket = []
+        for k in range(0,8):
+            idx_listen = 'Listen_db%d'%k
+            idx_response = 'Response_db%d'%k
+            listenStr = self.packetResponseData[idx_listen].get()
+            if( listenStr == ""):
+                listenPacket = None
+            else:
+                listenPacket.append(int(listenStr))
                     
-                listenPacket.append(int(self.packetResponseData[idx_listen].get()))
-                responsePacket.append(int(self.packetResponseData[idx_response].get()))
+            #listenPacket.append(int(self.packetResponseData[idx_listen].get()))
+            responsePacket.append(int(self.packetResponseData[idx_response].get()))
                 
-        except:
-            print "Invalid Input. Please check input and try again."
-            return
+        #except:
+         #   print "Invalid Input. Please check input and try again."
+         #   return
         
-        thread.start_new_thread(self.packetResponseControl, (self.dclass.getRate(), time,repeats,period,responseID,respondPacket,listenID,listenPacket))
+        self.comm.packetRespond(self.dClass.getRate(), time,repeats,period,responseID,responsePacket,listenID,listenPacket)
+        #thread.start_new_thread(self.packetResponseControl, (self.dClass.getRate(), time,repeats,period,responseID,responsePacket,listenID,listenPacket))
         
     def packetResponseControl(self, freq, time, repeats, period,  responseID, respondPacket,listenID, listenPacket = None):
         self.dClass.setRunning()
-        self.comm.packetResponse(freq, time,repeats,period,responseID,respondPacket,listenID,listenPacket)
+        self.comm.packetRespond(freq, time,repeats,period,responseID,respondPacket,listenID,listenPacket)
         self.dClass.unsetRunning()
 
     def reInjectFuzzed(self):

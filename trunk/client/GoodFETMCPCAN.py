@@ -234,7 +234,22 @@ class GoodFETMCPCAN(GoodFETSPI):
         
         self.SPItrans([0x40|(packbuf<<1)]+packet);
 
+   
+    def txpacket(self,packet):
+        """Transmits a packet through one of the outbound buffers.
+        As usual, the packet should begin with SIDH.
+        For now, only TXB0 is supported."""
+
+        self.writetxbuffer(packet,0);
+        self.MCPrts(TXB0=True);
+
+                
+    ###############   UTILITY FUNCTIONS  #################
+     
     def simpleParse(self,packet):
+        """ 
+        This will print a simple parsing of the data with the standard Id and the extended id parsed.
+        """
         dataPt = ord(packet[0]);
         dataPt2 = ord(packet[1]);
         # check if we have a standard frame, the msb of the second
@@ -256,9 +271,9 @@ class GoodFETMCPCAN(GoodFETSPI):
         #find the dataLength
         dataPt5 = packet[4]
         dataLength = dataPt5 & 0x0e
-        print "Data Length: "+("%d"%dataLength)
+        #print "Data Length: "+("%d"%dataLength)
         # Print the data packet
-        print "Data:"
+        #print "Data:"
         # Temporary, until correct packets are read
         if( dataLength > 8 ):
             dataLength = 8
@@ -272,16 +287,6 @@ class GoodFETMCPCAN(GoodFETSPI):
        # toprint =  self.pcket2str(packet[5:(5+dataLength)])
        # print toprint
 
-    def txpacket(self,packet):
-        """Transmits a packet through one of the outbound buffers.
-        As usual, the packet should begin with SIDH.
-        For now, only TXB0 is supported."""
-
-        self.writetxbuffer(packet,0);
-        self.MCPrts(TXB0=True);
-
-                
-    ###############   UTILITY FUNCTIONS  #################
             
     def packet2str(self,packet):
         """Converts a packet from the internal format to a string."""
@@ -291,8 +296,29 @@ class GoodFETMCPCAN(GoodFETSPI):
         return toprint;
     
     
-    ## This code could be drastica
+    
     def packet2parsed(self,data):
+        """
+        This method will parse the packet that was received via L{rxpacket}.
+        
+        @type data: List
+        @param data: data packet read off of the MCP2515 from the CAN bus. format will be
+                     14 bytes where each element is a character whose unicode integer value corresponds
+                     to the hex value of the byte (use the ord() method).
+        
+        @rtype: Dictionary
+        @return: Dictionary of the packet parsed into various components. The key values will be as follows
+                     
+                     1. ide : 1 if the message is an extended frame. 0 otherwise
+                     2. eID : extended ID. Not included if not an extended frame
+                     3. rtr : 1 if the message is a remote transmission request (RTR)
+                     4. sID : Standard ID. 
+                     5. length: packet length (between 0 and 8)
+                     6. db0 : Data byte 0 (not included if RTR message)
+                         
+                         ---
+                     7. db7 : Data byte 7 (not included if RTR message)
+        """
         dp1 = ord(data[0])
         dp2 = ord(data[1])
         dp5 = ord(data[4])
@@ -327,6 +353,17 @@ class GoodFETMCPCAN(GoodFETSPI):
         return packet
     
     def packet2parsedstr(self,data):
+        """
+        This will return a string that is the parsed CAN message. The bytes will be parsed
+        for the standard ID, extended ID (if one is present), rtr, length and databytes (if present).
+        The message will be placed into a string as decimal integers not hex values. This method 
+        calls L{packet2parsed} to do the packet parsing.
+        
+        @type data: List
+        @param data: Data packet as returned by the L{rxpacket}
+        @rtype: String
+        @return: String that shows the data message in decimal format, parsed.
+        """
         packet = self.packet2parsed(data)
         msg = "sID: %04d" %packet['sId']
         if( packetParsed.get('eID')):
@@ -337,9 +374,9 @@ class GoodFETMCPCAN(GoodFETSPI):
         msg += " data:"
         for i in range(0,length):
             dbidx = 'db%d'%i
-            msg +=" %03d"% ord(packetParsed[dbidx])
+            msg +=" %03d"% ord(packetParsed[dbidx])  # could change this to HEX
         #msg = self.client.packet2parsedstr(packet)
-        print msg
+        return msg
         
         
     def peek8(self,adr):

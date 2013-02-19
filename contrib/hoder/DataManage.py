@@ -13,10 +13,32 @@ import datetime
 #data parsing assumes an standard ID!!
 
 class DataManage:
+    """
+    This class will do the data Management for the CAN analysis. This includes loading data up to the 
+    MYSQL database, downloading data from the MYSQL database, converting data to pcap, loading in packets.
     
+    @todo: change the way to upload data to run bulk inserts and not item by item as it is now
+    """
     
     def __init__(self, host, db, username, password, table, dataLocation):
+        """
+        Constructor method.
         
+        @type table: string
+        @param table: SQL table to add data to
+        @type host: string
+        @param host: Host for MYSQL table
+        @type username: string
+        @param username: MYSQL username
+        @type password: string
+        @param password: MYSQL username password
+        @type db: String
+        @type db: database we want to use
+        
+        @type dataLocation: String
+        @param dataLocation: path to the folder where data will be saved and loaded from
+
+        """
         # Save MYSQL information for later use
         self.host = host
         self.db = db
@@ -25,55 +47,101 @@ class DataManage:
         self.table = table
         #self.DATALOCATION = "../ThayerData/"
         self.DATALOCATION = dataLocation
+        """ Location of main data folder """
         self.SQLDDATALOCATION = self.DATALOCATION+"SQLData/"
+        """ Location where MYSQL data will be stored"""
         self.INJECTDATALOCATION  = self.DATALOCATION+"InjectedData/"
+        """ Location where injection data will be stored """
         self.MIN_TIME_DELAY = 0.01
+        """ This is the minimum time between 2 packets that we will consider there to be a delay between injection of the packets. """
         self.MAX_TIME_DELAY = 1.1
+        """ This is the maximum time between 2 packets that we will consider as a time delay between the two packets """
         
     def getSQLLocation(self):
+        """
+        This method returns the path to folder where all sql queries will be saved
+        
+        @rtype: string
+        @return: path to the folder where sql data is stored. this will be a sub folder of the data location
+                 path that was passed into the constructor, L{__init__}.
+        """
         return self.SQLDDATALOCATION
     
     def getDataLocation(self):
+        """
+        This method returns the path to the main folder where all data will be stored and read from.
+        @rtype: String
+        @return: path to the main folder where data will be saved and loaded from
+        """
         return self.DATALOCATION
     
     def getInjectedLocation(self):
+        """
+        This method returns the path to the sub folder where data that was injected will be read from.
+        
+        @rtype: String
+        @return: Path, relative to dataLocation, give in the constructor L{__init__}, where the injection data will be stored
+        """
         return self.INJECTDATALOCATION
     
     #Creates a new MySQL table in the database with the given table name
     def createTable(self, table):
+        """
+        This method will create a new table in the MYSQL database. There is no error checking so be 
+        careful when adding in a new table
+        @type table: String
+        @param table: Name of the new table in the database. The database information was set in the constructor, L{__init__}
+        """ 
         self.table = table
-        cmd = "CREATE TABLE %s (\
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,\
-  `time` double(20,5) unsigned NOT NULL,\
-  `stdID` int(5) unsigned NOT NULL,\
-  `exID` int(5) unsigned DEFAULT NULL,\
-  `length` int(1) unsigned NOT NULL,\
-  `error` bit(1) NOT NULL,\
-  `remoteframe` bit(1) NOT NULL DEFAULT b'0',\
-  `db0` int(3) unsigned DEFAULT NULL,\
-  `db1` int(3) unsigned DEFAULT NULL,\
-  `db2` int(3) unsigned DEFAULT NULL,\
-  `db3` int(3) unsigned DEFAULT NULL,\
-  `db4` int(3) unsigned DEFAULT NULL,\
-  `db5` int(3) unsigned DEFAULT NULL,\
-  `db6` int(3) unsigned DEFAULT NULL,\
-  `db7` int(3) unsigned DEFAULT NULL,\
-  `msg` varchar(30) NOT NULL,\
-  `comment` varchar(500) DEFAULT NULL,\
-  `filter` bit(1) NOT NULL DEFAULT b'0',\
-  `readTime` int(11) unsigned NOT NULL DEFAULT '0',\
-  PRIMARY KEY (`id`)\
-) ENGINE=MyISAM AUTO_INCREMENT=114278 DEFAULT CHARSET=utf8"% (table)
+        cmd =" CREATE TABLE `%s` ( \
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT, \
+  `time` double(20,5) unsigned NOT NULL, \
+  `stdID` int(5) unsigned NOT NULL, \
+  `exID` int(5) unsigned DEFAULT NULL, \
+  `length` int(1) unsigned NOT NULL, \
+  `error` bit(1) NOT NULL, \
+  `remoteframe` bit(1) NOT NULL DEFAULT b'0', \
+  `db0` int(3) unsigned DEFAULT NULL, \
+  `db1` int(3) unsigned DEFAULT NULL, \
+  `db2` int(3) unsigned DEFAULT NULL, \
+  `db3` int(3) unsigned DEFAULT NULL, \
+  `db4` int(3) unsigned DEFAULT NULL, \
+  `db5` int(3) unsigned DEFAULT NULL, \
+  `db6` int(3) unsigned DEFAULT NULL, \
+  `db7` int(3) unsigned DEFAULT NULL, \
+  `msg` varchar(30) NOT NULL, \
+  `comment` varchar(500) DEFAULT NULL, \
+  `filter` bit(1) NOT NULL DEFAULT b'0', \
+  `readTime` int(11) unsigned NOT NULL DEFAULT '0', \
+  PRIMARY KEY (`id`) \
+) ENGINE=MyISAM AUTO_INCREMENT=310634 DEFAULT CHARSET=utf8;"% (table)
         self.addData(cmd)
         self.table = table
         
     def changeTable(self,table):
+        """
+        Changes the dtable that we are going to be reading from and uploading to in the MYSQL database
+        @type table: String
+        @param table: String that is the name of the table we want to communicate with in the MYSQL database
+        """
         self.table = table
     
     def getTable(self):
+        """
+        Returns the name of the table that we are set to upload to.
+        @rtype: String
+        @return: The table we are set to communicate with
+        """
         return self.table
     
     def addData(self,cmd):
+        """
+        This method will insert data into the MYSQL database based on the given command and the MYSQL information provided 
+        in the constructor, L{__init__}. This method is designed for the insertion of data and not for retrieving data.
+        Use the method L{getData} to retrieve data from the MYSQL database.
+        @type cmd: String
+        @param cmd: MYSQL command that we want executed. This is designed for the insertion of data.
+        """
         db_conn = MySQLdb.connect(self.host, self.username, self.password, self.db)
         cursor = db_conn.cursor()
         try:
@@ -92,6 +160,18 @@ class DataManage:
 
 
     def getData(self,cmd):
+        """
+        This method is designed to grab data from the MYSQL database and return it to the user. It is not designed for insertions. See L{getData} for 
+        a method to insert data to the database. 
+        
+        @param cmd: MYSQL command requesting data
+        @type cmd:  String
+        
+        @rtype: List of Lists
+        @return: SQL data that you requested. The format will be a list of all the rows of data. Each row will be a list
+                 of the columns you requested.
+        
+        """
         db_conn = MySQLdb.connect(self.host, self.username, self.password, self.db)
         cursor = db_conn.cursor()
         try:
@@ -111,6 +191,17 @@ class DataManage:
     # INPUT:
     # data: list of the CAN message received. each 
     def addDataPacket(self,data,time,error):
+        """
+        This method will take in a data packet (such as one read from our sniff file) and then upload it to the MYSQL database that is
+        set for the class.
+        
+        @type data: List
+        @param data: This is a list that is one packet as it read off by GooDFETMCPCAN rxpacket method. It is 14 elements long and each byte is stored to an element as an ASCII character .
+        @type time: float
+        @param time: The time stamp of the packet
+        @type error: Boolean 
+        @param error: An additional boolean to set if there was an error detected with this packet during its parsing.
+        """
         parse = self.parseMessage(data)
         cmd = self.getCmd(parse, time, error)
         self.addData(cmd)
@@ -118,6 +209,34 @@ class DataManage:
     
     #Creates a SQl command to upload data packet to the database
     def getCmd(self,packet,time,error,duration,filter, comment=None):
+        """
+        This method will create a sql insertion command based on the given data and the MYSQL information stored in the class. This is 
+        designed for inserting 1 packet.
+        
+        @type packet: Dictionary
+        @param packet: This is a dictionary that contains the information for an entire data packet sniffed off of the CAN bus it has already
+                      been parsed from the format that it is saved as in the sniff method from GoodFETMCPCANCommuniation, L{GoodFETMCPCANCommunication.sniff}. See L{parseMessageInt} to 
+                      parse the message and for information on the packet Dictionary. The keys expected to be contained in this dictionary are as follows
+                      sID, length,rtr,error, ide, eID (optional), db0 (optional), ... , db7 (optional). See the parsing method for information on all components
+        
+        @type time: float
+        @param time: Time stamp of the packet
+        
+        @type error: Boolean
+        @param error: 1 if there is an error in the packet, 0 otherwise. This is a field in the MYSQL database
+        
+        @type duration: Float
+        @param duration: The length of the observation time during which this packet was sniffed off of the CAN bus.
+        
+        @type filter: Boolean
+        @param filter: 1 if there was filtering applied during this experiment, 0 otherwise
+        
+        @type comment: string
+        @param comment: Comment tag that can be assigned to the field in the MYSQL database
+        
+        @rtype: String
+        @return: SQL command for insertion of the packet to the MYSQL database table set in the class
+        """
         length = packet['length']
         
         cmd = "INSERT INTO %s ( time, stdID" % self.table
@@ -137,7 +256,7 @@ class DataManage:
             cmd +=" db" + str(i) + ","
         cmd += ' error, remoteFrame'
 
-        if( comment != None):
+        if( comment != None): # optional comment
             cmd += ", comment"
 
         cmd+= ', msg, filter, readTime) VALUES (%f, %d' % (time, packet['sID'])
@@ -154,7 +273,7 @@ class DataManage:
         
         cmd += ', %d, %d' %(error,packet['rtr'])
 
-        if(comment != None):
+        if(comment != None): # if there was a comment
             cmd += ',"%s"' %comment
 
         cmd += ', "%s", %d, %f)' %(packet['msg'], filter, duration)
@@ -162,15 +281,23 @@ class DataManage:
         return cmd
     
     def writeDataCsv(self,data, filename):
+        """
+        This method will write the given data to the given filename as a csv file. This is designed to write packet data to files
+        
+        @type data: List of Lists
+        @param data: A list of the data we wish to write to the csv file. The format is that each element in the list is a considered a row. and then each
+                     element in the row is a column in the csv file. This can handle both string and numeric elements in the lists. This is 
+                     the format that is returned by L{opencsv}.
+        """
         outputfile = open(filename,'a')
         dataWriter = csv.writer(outputfile,delimiter=',')
         #dataWriter.writerow(['# Time     Error        Bytes 1-13']);
         for row in data:
             rowTemp = []
             for col in row:
-                if( isinstance(col,str)):
+                if( isinstance(col,str)): #if the element is a string, write a string
                     rowTemp.append(col)
-                elif(isinstance(col,float)):
+                elif(isinstance(col,float)): # if the element is a number, turn it into a string
                     rowTemp.append("%f" % col)
                 else:
                     rowTemp.append(col)
@@ -179,6 +306,16 @@ class DataManage:
             
     
     def writePcapUpload(self,filenameUp,filenameWriteTo):
+        """
+        This method will create a pcap file of the data contained in a given csv file. The csv file is assumed to be of the format
+        saved by the sniff method in the GoodFETMCPCANCommunication class, L{GoodFETMCPCANCommunication.sniff}. 
+        
+        @type filenameUp: String
+        @param filenameUp: path/filename for the csv file that will be read and used for making a pcap file. This assumes that the .csv is included in the input.
+        
+        @type filenameWriteTo: String
+        @param filenameWriteTo: path/filename for the pcap to be saved to. This assumes that there is the .pcap ending included in the input.
+        """
         #load the data from the csv file
         try:
             fileObj = open(filenameUp,'rU')
@@ -190,6 +327,17 @@ class DataManage:
         return
         
     def writeToPcap(self,filenameWriteTo, data):
+        """
+        This method will create a pcap formatted file from the data that was supplied.
+        
+        @type filenameWriteTo: String
+        @param filenameWriteTo: path/filename for the pcap to be saved to. This assumes that there is the .pcap ending included in the input.
+
+        @type data: List of Lists
+        @param data: A list of the data we wish to write to the csv file. The format is that each element in the list is a considered a row. and then each
+                     element in the row is a column in the csv file. This can handle both string and numeric elements in the lists. This is 
+                     the format that is returned by L{opencsv}.
+        """
         f = open(filenameWriteTo,"wb")
         # write global header to file
         # d4c3 b2a1 0200 0400 0000 0000 0000 0000 0090 0100 be00 0000
@@ -222,13 +370,26 @@ class DataManage:
         f.close()
         
     def testSQLPCAP(self):
+        """ 
+        This is an internal test method
+        """
         cmd = 'Select time,msg from ford_2004 where comment="bgtest"'
         data = self.getData(cmd)
         self.writetoPcapfromSQL("test.pcap",data)
         return
 
     def writetoPcapfromSQL(self, filenameWriteto, results): # pass in results from SQL query
+        """
+        This method will create a pcap formatted file from the data that was supplied.
+        
+        @type filenameWriteto: String
+        @param filenameWriteto: path/filename for the pcap to be saved to. This assumes that there is the .pcap ending included in the input.
 
+        @type results: List of Lists
+        @param results: A list of the data we wish to write to the csv file. The format is that each element in the list is a considered a row. and then each
+                     element in the row is a column in the csv file. This can handle both string and numeric elements in the lists. This is 
+                     the format that is returned by a MYSQL query.
+        """
         f = open(filenameWriteto, "wb")
         # write global header to file
         # d4c3 b2a1 0200 0400 0000 0000 0000 0000 0090 0100 be00 0000
@@ -273,6 +434,30 @@ class DataManage:
     # This method converts the data to integers and then passes it into parseMessageInt.
     # see that method for more documentation.
     def parseMessage(self,data):
+        """
+        This method will parse a row of the data packets that is of the form of the packet as returned by the GoodFETMCPCAN rxpacket method will simply convert
+        each databyte to integers and then call L{parseMessageInt}. See this method for more information. 
+        
+        @type data: List
+        @param data: This is a list that is one packet as returned by GoodFETMCPCAN rxpacket method. It is 13 bytes long and ASCII value.
+        
+        @rtype: Dictionary
+        @return: This is a dictionary that contains the information for an entire data packet sniffed off of the CAN bus it has already
+                 been parsed from the format that it is saved as in the sniff method from GoodFETMCPCANCommuniation. See L{parseMessageInt} to 
+                 parse the message and for information on the packet Dictionary. The keys expected to be contained in this dictionary are as follows
+                 sID, length,rtr,error, ide, eID (optional), db0 (optional), ... , db7 (optional). 
+                 
+                     1. sID: standard ID of the packet
+                     2. length: length of the data packet (number of data bytes). This will be 0 for an Remote Transmission Request frame
+                     3. rtr: boolean that is 1 if the message is a Remote Transmission Request, 0 otherwise
+                     4. ide: Boolean that is 1 if the message has an extended id. 0 otherwise
+                     5. eID: Extended ID. Only included if one exists
+                     6. db0: Databyte 0. Only included if one exists
+                        
+                        ---
+                     7. db7: Databyte 7. Only included if one exists
+            
+        """
         numData =[]
         for element in data:
             numData.append(ord(element))
@@ -304,6 +489,26 @@ class DataManage:
     #   
     #    NOTE: db1-8 are only assigned if the data byte contains info (see length int)
     def parseMessageInt(self,data):
+        """
+        @type data: List
+        @param data: This is a list that is one packet as it read off by L{opencsv} method. The Elements will have been convereted to integers.
+        
+        @rtype: Dictionary
+        @return: This is a dictionary that contains the information for an entire data packet sniffed off of the CAN bus it has already
+                 been parsed from the format that it is saved as in the sniff method from GoodFETMCPCANCommuniation. See L{parseMessageInt} to 
+                 parse the message and for information on the packet Dictionary. The keys expected to be contained in this dictionary are as follows
+                 sID, length,rtr,error, ide, eID (optional), db0 (optional), ... , db7 (optional). 
+                 
+                     1. sID: standard ID of the packet
+                     2. length: length of the data packet (number of data bytes). This will be 0 for an Remote Transmission Request frame
+                     3. rtr: boolean that is 1 if the message is a Remote Transmission Request, 0 otherwise
+                     4. ide: Boolean that is 1 if the message has an extended id. 0 otherwise
+                     5. eID: Extended ID. Only included if one exists
+                     6. db0: Databyte 0. Only included if one exists
+                         
+                        ---
+                     7. db7: Databyte 7. Only included if one exists
+        """
         dp1 = data[0]
         dp2 = data[1]
         dp5 = data[4]
@@ -355,6 +560,16 @@ class DataManage:
     
     #this converts the packet to string with no spaces
     def packet2str(self,packet):
+        """
+        Converts the packet, in the form of the datapacket provided by GoodFETMCPCAN rxpacket and each element is a string ASCII character corresponding to the Hex number
+        of the databyte. This will convert the list to a string of the hex bytes.
+        
+        @type packet: List
+        @param packet: This is a list that is one packet as it read off by the GoodFETMCPCANComunication class. It is 13 bytes long and string character is in each element.
+        
+        @rtype: String
+        @return: String that is the data packet printed out where each byte has been converted to the hex characters.
+        """
         toprint="";
         for bar in packet:
             toprint=toprint+("%02x"%ord(bar))
@@ -364,6 +579,13 @@ class DataManage:
     # This method will take a csv file as the file name and upload it to the MySQL 
     # database in the object. 
     def uploadData(self,filename):
+        """
+        This method will upload all the data contained in the given file path to the MYSQL database. 
+        
+        @type filename: String
+        @param filename: This is the path to the file that the user wishes to upload. It is assumed to contain the .csv ending and
+                         be a file in the format of the data that is saved by GoodFETMCPCANCommunication sniff method. 
+        """
         
         db_conn = MySQLdb.connect(self.host, self.username, self.password, self.db)
         cursor = db_conn.cursor()
@@ -411,6 +633,22 @@ class DataManage:
     # The returned value is a list of lists. Each row is a packet received and the columns are as defined
     # by our standard
     def opencsv(self,fileObj):
+        """
+        This method will load packet data from a csv file. The format of the data will be of the form of the data that was saved by the
+        GoodFETMCPCANCommunication sniff method. See L{GoodFETMCPCANCommunication.sniff} for more information on the meaning of the databytes. The elements in each row of the csv file will be parsed as if they are the following types:
+                     1. float
+                     2. string
+                     3. integer 
+                     4 Hex value (i.e. 'ff' or 'af')
+        This will ignore any lines in the csv document that begin with # in the first column. This allows for comments to be added.
+        
+        @type fileObj: Object of the file
+        @param fileObj: This is the file object (i.e. what is returned by the open command) of the csv document that is to be read.
+        
+        @rtype: List of lists
+        @return: The csv file parsed by rows and columns. The format will be that each element in the return list will be one row of the
+                 csv file. All entries will be stored as a number except column 2 which will be stored as a string (see above).
+        """
         reader = csv.reader(fileObj)
         rownum = 0
         data = []
@@ -458,6 +696,24 @@ class DataManage:
     #  ...
     # colDLC
     def readWriteFileHex(self, filename):
+        """
+        This method will be used for reading a file for of packets to be written to the the CAN bus. The format of the csv layout is
+        expected to be as follows with each element stored as a hex except for the time delay:
+            - col 0: delay time from previous row (0 if no delay)
+            - col 1: Standard ID
+            - col 2: Data Length (0-8) 
+            - col 3: db 0
+            ---
+            - col 7: db7 (as needed, based on data length)
+            
+            @type filename: String
+            @param filename: path/filenae to the csv file to be uploaded. This is expected to include the .csv ending. The format of the rows
+                             is described above. 
+                             
+            @rtype: List of Lists
+            @return: This will simply turn the csv file to a list of lists where the elements of the outer list are rows in the csv file. Each row is a list 
+                     of all the columns.  The time delay will be converted to a float while all other columns are converted to an integer.
+        """
         try:
             fileObj = open(filename,'rU')
         except:
@@ -472,7 +728,7 @@ class DataManage:
             packet = []
             #check to see if the line begins with #
             # if it does it is a comment and should be ignored
-            if( row[0][0] == '#'):
+            if( row[0][0]=='' or row[0][0] == '#'):
                 rownum += 1
                 continue
             colnum = 0;
@@ -481,18 +737,36 @@ class DataManage:
                 #time stamp
                 if(colnum == 0):
                     packet.append(float(col))
-                else:
+                else: # all other packets
                     packet.append(int(col,16))
                 colnum += 1
-                #print packet
+                
             data.append(packet)
             rownum += 1
-        #print data
+        
         fileObj.close()
         return data
     
     # same as the readWriteFileHex but format is assumed to be in Decimal format
     def readWriteFileDEC(self,filename):
+        """
+        This method will be used for reading a file for of packets to be written to the the CAN bus. The format of the csv layout is
+        expected to be as follows with each element stored as an integer value except for the time delay which is expected as a float:
+            - col 0: delay time from previous row (0 if no delay)
+            - col 1: Standard ID
+            - col 2: Data Length (0-8) 
+            - col 3: db 0
+            ---
+            - col 7: db7 (as needed, based on data length)
+            
+            @type filename: String
+            @param filename: path/filenae to the csv file to be uploaded. This is expected to include the .csv ending. The format of the rows
+                             is described above. 
+                             
+            @rtype: List of Lists
+            @return: This will simply turn the csv file to a list of lists where the elements of the outer list are rows in the csv file. Each row is a list 
+                     of all the columns.  The time delay will be converted to a float while all other columns are converted to an integer.
+        """
         try:
             fileObj = open(filename,'rU')
         except:
@@ -521,14 +795,49 @@ class DataManage:
                 else:
                     packet.append(int(col))
                 colnum += 1
-                #print packet
+            
             data.append(packet)
             rownum += 1
-        #print data
+        
         fileObj.close()
         return data
     
     def readInjectedFileDEC(self,filename,startTime = None,endTime = None,id=None):
+        """
+        This method will read packets from a file that was saved from packets that were injected onto the bus. An example of a method that does this would be
+        the experiments method L{experiments.generationFuzzer}. The file is assumed to be a csv file with the .csv included matching this format. Any lines that
+        begin with a # in the first column will be ignored. The user can specify start and end times to only get a subset of the packet. If no startTime is provided 
+        then it will return packets starting from the begining up until the endTime. If no endTime is provided then it will return all packets in the file after the 
+        startTime. An id can be provided and it will return only the packets with the given id.  
+        
+        When parsing the data it will assume the data is of the following form where the first column is parsed as a float and all subsequent are parsed as a decimal ineteger:
+        
+            1. time of injection
+            2. standard Id 
+            3. 8 (data length) @todo: extend to varied length
+            4. db0
+            
+               ---
+            5. db7
+        
+        @type filename: String
+        @param filename: path/filenae to the csv file to be uploaded. This is expected to include the .csv ending. The format of the rows
+                         is described above.
+        @type startTime: timestamp
+        @param startTime: This is a timestamp of the start time for the earliest time for packets you want. The method will not return any packets that were injected
+                          before this start time. This input is optional.
+                         
+        @type endTime: timestamp
+        @param endTime: This is the timestamp of the latest inject time for packets you want. The method will return no packets with an endTime after this timestamp.
+                        This input is optional.
+                        
+        @type id: Integer
+        @param id: This is an optional parameter that allows you to positively filter for the id that you want of packets. Only packets with the given id will be returned.
+        
+        @rtype: List of Lists
+        @return: This imports the data on the csv file. Each element in the list will correspond to a row. each element in the row will correspond to the column. The types of the 
+                 column will be a float for the first columna and integer for all subsequent columns.
+        """
         print startTime, "    ", endTime, "      ", id
         try:
             fileObj = open(filename,'rU')
@@ -589,7 +898,7 @@ class DataManage:
             rownum += 1
         #print data
         fileObj.close()
-        print data
+        #print data
         return data
     
     
@@ -597,6 +906,16 @@ class DataManage:
     # the files uploaded will be moved to a folder named as today's date and a tag _Uploaded will
     # be appended to the end of the filename
     def uploadFiles(self):
+        """
+        This method will upload all data files from sniffing experiments that have been saved. The sniff would be called by L{GoodFETMCPCANCommunication.sniff}
+        and it will be all .csv files saved in the self.DATALOCATION which is input by the user when the class is initiated. 
+        
+        This method will find all .csv files in the folder and attemp to upload them all. It will call the L{uploadData} method on all the filenames. Once a 
+        file has been uploaded (or attempted to) the file will be moved to a subfolder that is named by todays date in the following format: YYYYMMDD. If the
+        folder does not exist, it will be created. The filename will then be changed by adding  "_Uploaded" to the end of the csv. To ensure that no files are
+        overwritten, the program will ensure that the file does not exist. if one does of the same filename it will append "_i" where i is the first integer that
+        does not have a conflicting filename. This allows the user to upload multiple times during the same day without loosing the origional data files.
+        """
         #get all files in the ThayerData folder
         files = glob.glob(self.DATALOCATION+"*.csv")
         if( len(files) == 0):
@@ -631,6 +950,10 @@ class DataManage:
         
 # executes everything to run, inputs of the command lines
 if __name__ == "__main__":
+    """
+    Script that allows this to be called from the command line
+    
+    """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,description='''\
     
         Data Management Program. The following options are available:

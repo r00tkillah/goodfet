@@ -25,17 +25,24 @@ import Queue
 class GoodFETMCPCANCommunication:
     
     def __init__(self, dataLocation):
-       self.client=GoodFETMCPCAN(); """ Communication with the bus"""
+       self.client=GoodFETMCPCAN();
+        """ Communication with the bus"""
        self.client.serInit()
        self.client.MCPsetup();
        #self.DATA_LOCATION = "../../contrib/ThayerData/"
-       self.DATA_LOCATION = dataLocation; """ Stores file data location. This is the root folder where basic sniffs will be stored"""
-       self.INJECT_DATA_LOCATION  = self.DATA_LOCATION+"InjectedData/" """ stores the sub folder path where injected data will be stored"""
+       self.DATA_LOCATION = dataLocation; 
+       """ Stores file data location. This is the root folder where basic sniffs will be stored"""
+       self.INJECT_DATA_LOCATION  = self.DATA_LOCATION+"InjectedData/" 
+       """ stores the sub folder path where injected data will be stored"""
        
 
     
     def printInfo(self):
-        """ This method will print information about the board to the termina. It is usefull for diagnostics"""
+        """ 
+        This method will print information about the board to the terminal. 
+        It is good for diagnostics
+        """
+        
         self.client.MCPreqstatConfiguration();
         
         print "MCP2515 Info:\n\n";
@@ -298,7 +305,12 @@ class GoodFETMCPCANCommunication:
 #        return msgIDs, ids
     
     def sniffTest(self, freq):
+        """
+        This method will preform a test to see if we can sniff corretly formed packets from the CAN bus.
         
+        @type freq: number
+        @param freq: frequency of the CAN bus
+        """
         rate = freq;
         
         print "Calling MCPsetrate for %i." %rate;
@@ -322,7 +334,13 @@ class GoodFETMCPCANCommunication:
    
     
     def freqtest(self,freq):
+        """
+        This method will test the frequency provided to see if it is the correct frequency for this CAN bus.
         
+        @type freq: Number
+        @param freq: The frequency to listen to the CAN bus.
+        
+        """
         self.client.MCPsetup();
 
         self.client.MCPsetrate(freq);
@@ -420,6 +438,7 @@ class GoodFETMCPCANCommunication:
         
         @rtype: None
         @return: This method does not return anything
+        @todo: rename setFilters
         """
        
         ### ON-CHIP FILTERING
@@ -468,19 +487,22 @@ class GoodFETMCPCANCommunication:
         self.client.MCPreqstatNormal();
     
     def filterForPacket(self, standardid, DB0, DB1, verbose= True):
-        """ This method will configure filters on the board to listen for a specific packet originating from standardid with data bytes 0 and 1. It will configure all six filters, so you will not recieve any other packets.
-            @type standardid: integer
-            @param standardid: standardID to listen for
-            @type DB0: integer
-            @param standardid: DB0 contents to filter for
-            @type DB1: integer
-            @param standardid: DB1 contents to filter for
-            @type verbose: Boolean
-            @param verbose: If true it will print out messages and diagnostics to terminal.
-            
-            @rtype: None
-            @return: This method does not return anything
-            """
+        """ 
+        This method will configure filters on the board to listen for a specific packet originating 
+        from standardid with data bytes 0 and 1. It will configure all six filters, so you will not receive any other packets.
+        
+        @type standardid: integer
+        @param standardid: standardID to listen for
+        @type DB0: integer
+        @param standardid: DB0 contents to filter for
+        @type DB1: integer
+        @param standardid: DB1 contents to filter for
+        @type verbose: Boolean
+        @param verbose: If true it will print out messages and diagnostics to terminal.
+        
+        @rtype: None
+        @return: This method does not return anything
+        """
         
         ### ON-CHIP FILTERING
        

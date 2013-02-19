@@ -19,9 +19,6 @@ class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
         #super(FordExperiments,self).__init__(self) #initialize chip
         self.freq = 500;
 
-    
-
-
     def mimic1056(self,packetData,runTime):
         #setup chip
         self.client.serInit()
@@ -118,7 +115,7 @@ class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
         while( (time.time()-recieveTime) < runTime):
             #care about db3 or packet[8] that we want to count at the rate that it is
             dT = time.time()-tpast
-            packetValue += 1
+            packetValue += 10
             pV = packetValue%255
             #temp = ((packetValue+1))%2
             #if( temp == 1):

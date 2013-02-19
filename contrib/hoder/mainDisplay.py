@@ -738,7 +738,7 @@ class DisplayApp:
     
     def sniff(self):
         """ This method will sniff the CAN bus. It will take in the input arguments from the GUI and pass them onto the
-        sniff method in the L{GoodFETMCPCANCommmunication.sniff} file. The method will take in any filters that have been
+        sniff method in the L{GoodFETMCPCANCommunication.sniff} file. The method will take in any filters that have been
         set on the GUI, as well as the sniff length and comment off the display. This method will call L{sniffControl} which
         will be run as a thread.
         """

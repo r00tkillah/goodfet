@@ -39,7 +39,7 @@ class experiments(GoodFETMCPCANCommunication):
         This will actively filter for 6 ids at a time and sniff for the given amount of
         time in seconds. If at least one message is read in then it will go individually
         through the 6 ids and sniff only for that id for the given amount of time. All the
-        data gathered will be saved. 
+        data gathered will be saved.  This does not save any sniffed packets.
         
         @type  freq: number
         @param freq: The frequency at which the bus is communicating
@@ -78,7 +78,7 @@ class experiments(GoodFETMCPCANCommunication):
         This method will choose random values to listen out of all the possible standard ids up to
         the given number. It will sniff for the given amount of time on each set of ids on the given 
         frequency. Sniffs in groups of 6 but when at least one message is read in it will go through all
-        six individually before continuing.
+        six individually before continuing. This does not save any sniffed packets.
         
         @type  freq: number
         @param freq: The frequency at which the bus is communicating
@@ -122,6 +122,19 @@ class experiments(GoodFETMCPCANCommunication):
         send a remote transmissions request (RTR) to each id and then listen for a response. 
         The RTR will be repeated in the given number of attempts and will sniff for the given duration
         continuing to the next id.
+        
+        Any messages that are sniffed will be saved to a csv file. The filename will be stored in the DATA_LOCATION folder
+        with a filename that is the date (YYYYMMDD)_rtr.csv. If the file already exists it will append to the end of the file
+        The format will follow that of L{GoodFETMCPCANCommunication.sniff} in that the columns will be as follows:
+            1. timestamp:     as floating point number
+            2. error boolean: 1 if there was an error detected of packet formatting (not exhaustive check). 0 otherwise
+            3. comment tag:   comment about experiments as String
+            4. duration:      Length of overall sniff
+            5. filtering:     1 if there was filtering. 0 otherwise
+            6. db0:           Integer
+            
+                ---
+            7. db7:           Integer
         
         @type  freq: number
         @param freq: The frequency at which the bus is communicating
@@ -307,7 +320,7 @@ class experiments(GoodFETMCPCANCommunication):
                 packet[i+5] = value
             print packet
             #put a rough time stamp on the data and get all the data bytes    
-            row = [time.tT(), id_new,8]
+            row = [time.tT(), id_new,8] # could make this 8 a variable 
             msg = "Injecting: "
             for i in range(5,13):
                 row.append(packet[i])
@@ -326,6 +339,29 @@ class experiments(GoodFETMCPCANCommunication):
         outfile.close()
             
     def generalFuzz(self,freq, Fuzzes, period, writesPerFuzz):
+        """
+        The method will inject properly formatted, randomly generated messages at a given period for a I{writesPerFuzz} 
+        number of times. A new random standard id will be chosen with each newly generated packet. IDs will be chosen from the full
+        range of potential ids ranging from 0 to 4095. The packets that are injected into the bus will all be saved in the following path
+        DATALOCATION/InjectedData/(today's date (YYYYMMDD))_GenerationFuzzedPackets.csv. An example filename would be 20130222_GenerationFuzzedPackets.csv
+        Where DATALOCATION is provided when the class is initiated. The data will be saved as integers.
+        Each row will be formatted in the following form::
+                     row = [time of injection, standardID, 8, db0, db1, db2, db3, db4, db5, db6, db7]
+        
+        @type  freq: number
+        @param freq: The frequency at which the bus is communicating
+        @type period: number
+        @param period: The time gap between packet inejctions given in milliseconds
+        @type writesPerFuzz: integer
+        @param writesPerFuzz: This will be the number of times that each randomly generated packet will be injected onto the bus
+                              before a new packet is generated
+        @type Fuzzes: integer
+        @param Fuzzes: The number of packets to be generated and injected onto bus
+        
+        @rtype: None
+        @return: This method does not return anything
+                         
+        """
         #print "Fuzzing on standard ID: %d" %standardId
         self.client.serInit()
         self.spitSetup(freq)
@@ -343,7 +379,8 @@ class experiments(GoodFETMCPCANCommunication):
             
         fuzzNumber = 0; #: counts the number of packets we have generated
         while( fuzzNumber < Fuzzes):
-            id_new = random.randint(0,4095)
+            #generate new random standard id in the full range of possible values
+            id_new = random.randint(0,4095) 
             #print id_new
             #### split SID into different regs
             SIDhigh = (id_new >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
@@ -359,7 +396,8 @@ class experiments(GoodFETMCPCANCommunication):
                 packet[i+5] = value
             print packet
             #put a rough time stamp on the data and get all the data bytes    
-            row = [time.time(), id_new,8]
+            row = [time.time(), id_new,8] 
+            """@todo: allow for varied packet lengths"""
             msg = "Injecting: "
             for i in range(5,13):
                 row.append(packet[i])
@@ -379,6 +417,37 @@ class experiments(GoodFETMCPCANCommunication):
     
     # assumes 8 byte packets
     def packetRespond(self,freq, time, repeats, period,  responseID, respondPacket,listenID, listenPacket = None):
+        """
+        This method will allow the user to listen for a specific packet and then respond with a given message.
+        If no listening packet is included then the method will only listen for the id and respond with the specified
+        packet when it receives a message from that id. This process will continue for the given amount of time (in seconds). 
+        and with each message received that matches the listenPacket and ID the transmit message will be sent the I{repeats} number
+        of times at the specified I{period}. This message assumes a packet length of 8 for both messages, although the listenPacket can be None
+        
+        @type freq: number
+        @param freq: Frequency of the CAN bus
+        @type time: number
+        @param time: Length of time to perform the packet listen/response in seconds.
+        @type repeats: Integer
+        @param repeats: The number of times the response packet will be injected onto the bus after the listening 
+                        criteria has been met.
+        @type period: number
+        @param period: The time interval between messages being injected onto the CAN bus. This will be specified in milliseconds
+        @type responseID: Integer
+        @param responseID: The standard ID of the message that we want to inject
+        @type respondPacket: List of integers
+        @param respondPacket: The data we wish to inject into the bus. In the format where respondPacket[0] = databyte 0 ... respondPacket[7] = databyte 7
+                              This assumes a packet length of 8.
+        @type listenID: Integer
+        @param listenID: The standard ID of the messages that we are listening for. When we read the correct message from this ID off of the bus, the method will
+                         begin re-injecting the responsePacket on the responseID
+        @type listenPacket: List of Integers
+        @param listenPacket: The data we wish to listen for before we inject packets. This will be a list of the databytes, stored as integers such that
+                             listenPacket[0] = data byte 0, ..., listenPacket[7] = databyte 7. This assumes a packet length of 8. This input can be None and this
+                             will lead to the program only listening for the standardID and injecting the response as soon as any message from that ID is given
+        """
+        
+        
         self.client.serInit()
         self.spitSetup(freq)
         
@@ -394,7 +463,7 @@ class experiments(GoodFETMCPCANCommunication):
         #load packet/send once
         """@todo: make this only load the data onto the chip and not send """
         self.client.txpacket(resPacket) 
-        self.addFilter([listenID,listenID,listenID,listenID]) #listen only for this packet
+        self.addFilter([listenID,listenID,listenID,listenID, listenID, listenID]) #listen only for this packet
         startTime = tT.time()
         packet = None
         while( (tT.time() - startTime) < time):
@@ -409,6 +478,8 @@ class experiments(GoodFETMCPCANCommunication):
                         self.client.MCPrts(TXB0=True)
                         tT.sleep(period/1000)
                 else: #compare packets
+                    sid =  ord(packet[0])<< | ord(packet[1])>>5
+                    print "standard id of packet recieved: ", sid #standard ID
                     for i in range(0,8):
                         idx = 5 + i
                         byteIn = ord(packet[idx])

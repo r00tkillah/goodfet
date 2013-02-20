@@ -759,13 +759,16 @@ class DataManage:
             ---
             - col 7: db7 (as needed, based on data length)
             
-            @type filename: String
-            @param filename: path/filenae to the csv file to be uploaded. This is expected to include the .csv ending. The format of the rows
-                             is described above. 
-                             
-            @rtype: List of Lists
-            @return: This will simply turn the csv file to a list of lists where the elements of the outer list are rows in the csv file. Each row is a list 
-                     of all the columns.  The time delay will be converted to a float while all other columns are converted to an integer.
+        Additionally, this can now take in the packets that the sniff method writes out, L{GoodFETMCPCANCommunication.sniff}. It will detect
+        either the header that is added to these files or that the length is longer than those written by the fuzz methods.
+        
+        @type filename: String
+        @param filename: path/filenae to the csv file to be uploaded. This is expected to include the .csv ending. The format of the rows
+                         is described above. 
+                         
+        @rtype: List of Lists
+        @return: This will simply turn the csv file to a list of lists where the elements of the outer list are rows in the csv file. Each row is a list 
+                 of all the columns.  The time delay will be converted to a float while all other columns are converted to an integer.
         """
         try:
             fileObj = open(filename,'rU')
@@ -777,27 +780,67 @@ class DataManage:
         rownum = 0
         data = []
         
-        # for every row
-        for row in reader:
-            print row
-            packet = []
-            #check to see if the line begins with #
-            # if it does it is a comment and should be ignored
-            if( row[0] == '' or row[0][0] == '#'):
+        #it was a sniff file or sniff file format
+        if( row[0] == "# Time     Error        Bytes 1-13" or len(row[1] == 18)):
+            # for every row
+            for row in reader:
+                packet = []
+                #check to see if the line begins with #
+                # if it does it is a comment and should be ignored
+                if( row[0][0] == '#'):
+                    rownum += 1
+                    continue
+                colnum = 0;
+                #go down each byte, the first one is the time
+                for col in row:
+                    #time stamp
+                    if(colnum == 0):
+                        packet.append(float(col))
+                    #error flag
+                    elif(colnum == 1 or column== 2 or column == 3 or column == 4):
+                        continue
+                    elif( colnum == 5 ):
+                        dp1 = int(col,16)
+                    elif( colnum == 6):
+                        dp2 = int(col,16)
+                        sID = dp1<<3 | dp2>>5 #get the standard ID
+                    elif( colnum == 9):
+                        length = int(col,16)&0x0f # get the length
+                        packet.append(sID) #add in the standard id
+                        packet.append(length) # add in the length
+                    elif( colnum > 9 ):
+                        packet.append(int(col,16))   
+                    colnum += 1
+                    #print packet
+                data.append(packet)
                 rownum += 1
-                continue
-            colnum = 0;
-            #go down each byte, the first one is the time
-            for col in row:
-                #time stamp
-                if(colnum == 0):
-                    packet.append(float(col))
-                else:
-                    packet.append(int(col))
-                colnum += 1
-            
-            data.append(packet)
-            rownum += 1
+            #print data
+            fileObj.close()
+            return data
+        
+        
+        else:
+            # for every row
+            for row in reader:
+                print row
+                packet = []
+                #check to see if the line begins with #
+                # if it does it is a comment and should be ignored
+                if( row[0] == '' or row[0][0] == '#'):
+                    rownum += 1
+                    continue
+                colnum = 0;
+                #go down each byte, the first one is the time
+                for col in row:
+                    #time stamp
+                    if(colnum == 0):
+                        packet.append(float(col))
+                    else:
+                        packet.append(int(col))
+                    colnum += 1
+                
+                data.append(packet)
+                rownum += 1
         
         fileObj.close()
         return data

@@ -278,19 +278,9 @@ class experiments(GoodFETMCPCANCommunication):
         #print "Fuzzing on standard ID: %d" %standardId
         self.client.serInit()
         self.spitSetup(freq)
-        packet = [0,0,0x00,0x00,0x08,0,0,0,0,0,0,0,0] #empty template
-        #form a basic packet
-        
-#        #### split SID into different regs
-#        SIDlow = (standardIds[0] & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
-#        SIDhigh = (standardIds[0] >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
-#        
-#        packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
-#                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-#                  # lower nibble is DLC                   
-#                 packetTemp[0],packetTemp[1],packetTemp[2],packetTemp[3],packetTemp[4],packetTemp[5],packetTemp[6],packetTemp[7]]
-#        
-        
+        packet = [0,0,0x00,0x00,0x08,0,0,0,0,0,0,0,0] #empty packet template
+    
+
         #get folder information (based on today's date)
         now = datetime.datetime.now()
         datestr = now.strftime("%Y%m%d")

@@ -12,9 +12,9 @@ import Queue
 import math
 
 tT = time
-class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
+class FordExperiments(GoodFETMCPCANCommunication):
     
-    def __init__(self):
+    def __init__(self, dataLocation):
         GoodFETMCPCANCommunication.__init__(self, dataLocation)
         #super(FordExperiments,self).__init__(self) #initialize chip
         self.freq = 500;
@@ -207,7 +207,7 @@ class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
         print packetCount;
         
         
-   def fakeVIN(self):
+    def fakeVIN(self):
        #reset eveything on the chip
        self.client.serInit() 
        self.reset()
@@ -215,7 +215,7 @@ class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
        
        listenID = 2015
        listenPacket = [2, 9, 6, 153, 153, 153, 153, 153]
-       reponseID = 2024
+       responseID = 2024
        #actual response by the car
        #r1 = [34, 88, 0, 0, 0, 0, 0, 0]
        #r2 = [33, 75, 50, 78, 51, 46, 72, 69 ]
@@ -241,7 +241,7 @@ class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
                   # lower nibble is DLC                   
                  r3[0],r3[1],r3[2],r3[3],r3[4],r3[5],r3[6],r3[7]]
 
-       self.multipacketSpit(packet0 = r1, packet1 = r2, packet2 = r3, packet0rts = True, packet1rts = True, packet2rts = True)
+       self.multiPacketSpit(packet0 = r1, packet1 = r2, packet2 = r3, packet0rts = True, packet1rts = True, packet2rts = True)
 
        #filter for the correct packet
        self.filterForPacket(listenID, listenPacket[0],listenPacket[1], verbose = True)
@@ -255,6 +255,7 @@ class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
                if( sid == listenID):
                    byte3 = ord(packet[6])
                    if( byte3 == listenPacket[3]):
+                       print "SendingPackets!"
                        #send packets
                        self.multpackSpit(packet0rts=True,packet1rts=True,packet2rts=True)
                        
@@ -262,7 +263,7 @@ class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
        
         
 if __name__ == "__main__":
-    fe = FordExperiments();
+    fe = FordExperiments("asdsf");
     #packetData = {}
     #packetData['db4'] = 4;
     #runTime = 100;

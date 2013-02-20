@@ -478,17 +478,21 @@ class experiments(GoodFETMCPCANCommunication):
                         self.client.MCPrts(TXB0=True)
                         tT.sleep(period/1000)
                 else: #compare packets
-                    sid =  ord(packet[0])<< | ord(packet[1])>>5
+                    sid =  ord(packet[0])<<3 | ord(packet[1])>>5
                     print "standard id of packet recieved: ", sid #standard ID
+                    msg = ""
                     for i in range(0,8):
                         idx = 5 + i
                         byteIn = ord(packet[idx])
-                        compareIn = respondPacket[i]
+                        msg += " %d" %byteIn
+                        compareIn = listenPacket[i]
+                        print byteIn, compareIn
                         if( byteIn != compareIn):
                             packet == None
                             print "packet did not match"
                             break
-                    if( packet ):
+                    print msg
+                    if( packet != None ):
                         self.client.MCPrts(TXB0=True)
                         tT.sleep(period/1000)
         print "Response Listening Terminated."

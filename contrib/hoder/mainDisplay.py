@@ -871,7 +871,8 @@ class DisplayApp:
                 data = ""
                 for i in range(0,length):
                     dbidx = 'db%d'%i
-                    data += " %03d"% ord(packet[dbidx])
+                    data += " %03d"%packet[dbidx]
+                    #data += " %03d"% ord(packet[dbidx])
                 #get position of the scrollbar
                 position = self.scroll.get()[1]
                 positionT = self.dataText.yview()[0]

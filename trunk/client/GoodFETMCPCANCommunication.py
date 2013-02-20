@@ -26,7 +26,7 @@ class GoodFETMCPCANCommunication:
     
     def __init__(self, dataLocation):
        self.client=GoodFETMCPCAN();
-        """ Communication with the bus"""
+       """ Communication with the bus"""
        self.client.serInit()
        self.client.MCPsetup();
        #self.DATA_LOCATION = "../../contrib/ThayerData/"

@@ -207,11 +207,66 @@ class FordExperiments(GoodFETMCPCANCommunication, dataLocation):
         print packetCount;
         
         
+   def fakeVIN(self):
+       #reset eveything on the chip
+       self.client.serInit() 
+       self.reset()
+       duration = 20; #seconds 
+       
+       listenID = 2015
+       listenPacket = [2, 9, 6, 153, 153, 153, 153, 153]
+       reponseID = 2024
+       #actual response by the car
+       #r1 = [34, 88, 0, 0, 0, 0, 0, 0]
+       #r2 = [33, 75, 50, 78, 51, 46, 72, 69 ]
+       #r3 = [16, 19, 73, 4, 1, 70, 65, 66]
+       
+       r1 = [34, 88, 0, 0, 0, 0, 0, 0]
+       r2 = [33, 75, 50, 78, 51, 46, 72, 69 ]
+       r3 = [16, 19, 73, 160, 159, 70, 65, 66]
+       
+       #format
+       SIDlow = (responseID & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+       SIDhigh = (responseID >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+       packet1 = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                 r1[0],r1[1],r1[2],r1[3],r1[4],r1[5],r1[6],r1[7]]
+       packet2 = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+              0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                 r2[0],r2[1],r2[2],r2[3],r2[4],r2[5],r2[6],r2[7]]
+       packet3 = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                 r3[0],r3[1],r3[2],r3[3],r3[4],r3[5],r3[6],r3[7]]
+
+       self.multipacketSpit(packet0 = r1, packet1 = r2, packet2 = r3, packet0rts = True, packet1rts = True, packet2rts = True)
+
+       #filter for the correct packet
+       self.filterForPacket(listenID, listenPacket[0],listenPacket[1], verbose = True)
+       self.client.rxpacket()
+       self.client.rxpacket() # flush buffers if there is anything
+       startTime = tT.time()
+       while( (tT.time() -startTime) < duration):
+           packet = self.client.rxpacket()
+           if( packet != None):
+               sid =  ord(packet[0])<<3 | ord(packet[1])>>5
+               if( sid == listenID):
+                   byte3 = ord(packet[6])
+                   if( byte3 == listenPacket[3]):
+                       #send packets
+                       self.multpackSpit(packet0rts=True,packet1rts=True,packet2rts=True)
+                       
+       
+       
+        
 if __name__ == "__main__":
     fe = FordExperiments();
-    packetData = {}
-    packetData['db4'] = 4;
-    runTime = 100;
+    #packetData = {}
+    #packetData['db4'] = 4;
+    #runTime = 100;
     #fe.mimic1056(packetData, runTime)
     #fe.cycledb1_1056(runTime)
-    fe.oscillateTemperature(runTime)
+    #fe.oscillateTemperature(runTime)
+    fe.fakeVIN()

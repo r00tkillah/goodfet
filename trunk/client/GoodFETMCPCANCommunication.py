@@ -85,61 +85,29 @@ class GoodFETMCPCANCommunication:
     #   SNIFF
     ##########################
          
-    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None,writeToFile=True):
+    def sniff(self,freq,duration,description, verbose=True, comment=None, filename=None, standardid=None, debug=False, faster=False, parsed=True, data = None,writeToFile=True, db0 = None, db1 = None):
         """
         
         """
         #reset eveything on the chip
         self.client.serInit() 
         self.reset()
-          
-        #### ON-CHIP FILTERING
-        if(standardid != None):
-            if( comment == None):
+        
+        # filtering for specific packets
+        if(db0 != None and db1 != None and standardid != None):
+            self.filterForPacket(standardid[0], db0, db1, verbose)
+            if(comment == None):
                 comment = ""
-            self.client.MCPreqstatConfiguration();  
-            self.client.poke8(0x60,0x26); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1, BUKT=1)
-            self.client.poke8(0x20,0xFF); #set buffer 0 mask 1 (SID 10:3) to FF
-            self.client.poke8(0x21,0xE0); #set buffer 0 mask 2 bits 7:5 (SID 2:0) to 1s
-            if(len(standardid)>2):
-               self.client.poke8(0x70,0x20); # set RXB1 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RMX0=1)
-               self.client.poke8(0x24,0xFF); #set buffer 1 mask 1 (SID 10:3) to FF
-               self.client.poke8(0x25,0xE0); #set buffer 1 mask 2 bits 7:5 (SID 2:0) to 1s 
-            
-            for filter,ID in enumerate(standardid):
-        
-               if (filter==0):
-                RXFSIDH = 0x00;
-                RXFSIDL = 0x01;
-               elif (filter==1):
-                RXFSIDH = 0x04;
-                RXFSIDL = 0x05;
-               elif (filter==2):
-                RXFSIDH = 0x08;
-                RXFSIDL = 0x09;
-               elif (filter==3):
-                RXFSIDH = 0x10;
-                RXFSIDL = 0x11;
-               elif (filter==4):
-                RXFSIDH = 0x14;
-                RXFSIDL = 0x15;
-               else:
-                RXFSIDH = 0x18;
-                RXFSIDL = 0x19;
-        
-               #### split SID into different regs
-               SIDlow = (ID & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
-               SIDhigh = (ID >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
-               
-               #write SID to regs 
-               self.client.poke8(RXFSIDH,SIDhigh);
-               self.client.poke8(RXFSIDL, SIDlow);
-        
-               if (verbose == True):
-                   print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
-               comment += ("f%d" %(ID))
-        
-        
+            comment += ("f%d[%d][%d]" %(standardid[0], db0, db1))
+        # filtering for standard ID
+        elif(standardid != None):
+            self.addFilter(standardid, verbose)
+            if(comment == None):
+                comment = ""
+                for ID in standardid:
+                    comment += ("f%d" %(ID))
+
+                
         self.client.MCPsetrate(freq);
         
         # This will handle the files so that we do not loose them. each day we will create a new csv file
@@ -209,7 +177,7 @@ class GoodFETMCPCANCommunication:
                         msg += " data:"
                         for i in range(0,length):
                             dbidx = 'db%d'%i
-                            msg +=" %03d"% ord(packetParsed[dbidx])
+                            msg +=" %03d"% packetParsed[dbidx]
                         #msg = self.client.packet2parsedstr(packet)
                         print msg
                     # if we want to print just the message as it is read off the chip
@@ -480,7 +448,7 @@ class GoodFETMCPCANCommunication:
                #write SID to regs 
                self.client.poke8(RXFSIDH,SIDhigh);
                self.client.poke8(RXFSIDL, SIDlow);
-        
+                       
                if (verbose == True):
                    print "Filtering for SID %d (0x%02xh) with filter #%d"%(ID, ID, filter);
                
@@ -509,8 +477,8 @@ class GoodFETMCPCANCommunication:
         self.client.MCPreqstatConfiguration();  
         
         # SID filtering: set CTRL registers to only accept standard messages
-        self.client.poke8(0x60,0x26); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RXM=1, BUKT=1)
-        self.client.poke8(0x70,0x20); # set RXB1 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RXM0=1)
+        self.client.poke8(0x60,0x06); # set RXB0 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RXM=1, BUKT=1)
+        self.client.poke8(0x70,0x00); # set RXB1 CTRL register to ONLY accept STANDARD messages with filter match (RXM1=0, RXM0=1)
 
         # Mask buffer 0 to match SID, DB0, DB1
         self.client.poke8(0x20,0xFF); #set buffer 0 mask 1 (SID 10:3) to FF
@@ -568,11 +536,9 @@ class GoodFETMCPCANCommunication:
             self.client.poke8(RXFDB1, DB1);
                 
             if (verbose == True):
-                print "Filtering for SID %d DB0 0x%02xh DB1 0x%02xh with filter #%d"%(ID, DB0, DB1, filter);
+                print "Filtering for SID %d DB0 %d DB1 %d with filter #%d"%(standardid, DB0, DB1, filter);
         
-        self.client.MCPreqstatNormal();
-    
-    
+        self.client.MCPreqstatNormal();    
    
         
     def spitSetup(self,freq):
@@ -587,7 +553,7 @@ class GoodFETMCPCANCommunication:
     def spitSingle(self,freq, standardid, repeat,writes, period = None, debug = False, packet = None):
         """ 
         This method will spit a single message onto the bus. If there is no packet information provided then the 
-        message will be sent as a remote transmission request (RTR). The packet length is assumed to be 8 bytes The message can be repeated a given number of times with
+        message will be sent as a remote transmission request (RTR). The packet length is assumed to be 8 bytes The message can be repeated given number of times with
         a gap of period (milliseconds) between each message. This will continue for the the number of times specified in the writes input.
         This method will setup the bus and call the spit method, L{spit}. This method includes a bus reset and initialization.
         
@@ -685,7 +651,6 @@ class GoodFETMCPCANCommunication:
             print "TXB0CTRL: %02x" %self.client.peek8(0x30);
             print "CANINTF: %02x\n"  %self.client.peek8(0x2C);
             print "\n\nATTEMPTING TRANSMISSION!!!"
-        
                 
         print "Transmitting packet: "
         #print self.client.packet2str(packet)
@@ -740,6 +705,7 @@ class GoodFETMCPCANCommunication:
         @param freq: Frequency of the CAN bus
         """
         self.client.MCPsetrate(freq);
+
         
 
     # This will write the data provided in the packets which is expected to be a list of lists
@@ -791,7 +757,7 @@ if __name__ == "__main__":
         ''')
         
     
-    parser.add_argument('verb', choices=['info', 'test','peek', 'reset', 'sniff', 'freqtest','snifftest', 'spit']);
+    parser.add_argument('verb', choices=['info', 'test','peek', 'reset', 'sniff', 'freqtest','snifftest', 'spit', 'packet']);
     parser.add_argument('-f', '--freq', type=int, default=500, help='The desired frequency (kHz)', choices=[100, 125, 250, 500, 1000]);
     parser.add_argument('-t','--time', type=int, default=15, help='The duration to run the command (s)');
     parser.add_argument('-o', '--output', default=None,help='Output file');
@@ -802,6 +768,9 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--standardid', type=int, action='append', help='Standard ID to accept with filter 0 [1, 2, 3, 4, 5]', default=None);
     parser.add_argument('-x', '--faster', action='store_true', help='-x will use "fast packet recieve," which may duplicate packets and/or cause other weird behavior.', default=False);
     parser.add_argument('-r', '--repeat', action='store_true', help='-r with "spit" will continuously send the inputted packet. This will put the GoodTHOPTHER into an infinite loop.', default=False);
+    parser.add_argument('-db0', '--databyte0', type=int, default = None, help='-db0 to filter for a specfic data byte');
+    parser.add_argument('-db1', '--databyte1', type=int, default = None, help='-db0 to filter for a specfic data byte');
+
     
     
     args = parser.parse_args();
@@ -815,8 +784,13 @@ if __name__ == "__main__":
     standardid = args.standardid
     faster=args.faster
     repeat = args.repeat
+    db0 = args.databyte0
+    db1 = args.databyte1
 
-    comm = GoodFETMCPCANCommunication();
+    comm = GoodFETMCPCANCommunication("./");
+    
+    if(args.verb=="packet"):
+        comm.filterForPacket(standardid=standardid[0], DB0=db0, DB1=db1, verbose= True)
     
     ##########################
     #   INFO
@@ -846,7 +820,7 @@ if __name__ == "__main__":
     #
     
     if(args.verb=="sniff"):
-        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename, standardid=standardid, debug=debug, faster=faster)    
+        comm.sniff(freq=freq,duration=duration,description=description,verbose=verbose,comment=comments,filename=filename, standardid=standardid, debug=debug, faster=faster, db0=db0, db1=db1)    
                     
     ##########################
     #   SNIFF TEST

@@ -73,28 +73,33 @@ app_t const i2c_app = {
 
 //#warning "Using internal resistors.  Won't work on 161x devices."
 
-//! Inits bitbanging port, must be called before using the functions below
-void I2C_Init()
+// Take control of the bus
+void I2C_Take()
 {
-  
-  //Clear SDA and SCL.
-  //Direction, not value, is used to set the value.
-  
-  SCLOUTPUT;
-  SDAOUTPUT;
-  
   I2C_CLOCK_HI();
   I2C_DATA_HI();
-  //PULLON;
-
-  I2CDELAY(1);
+  SCLOUTPUT;
+  SDAOUTPUT;
 }
 
-// This is never called...
-void I2C_Exit()
+void I2C_Release()
 {
   SDAINPUT;
   SCLINPUT;
+}
+
+//! Inits bitbanging port, must be called before using the functions below
+void I2C_Init()
+{
+  I2C_Take();
+  //PULLON;
+  I2CDELAY(1);
+}
+
+// XXX This is never called...
+void I2C_Exit()
+{
+  I2C_Release();
   PULLOFF;
 }
 
@@ -111,12 +116,6 @@ void I2C_WriteBit( unsigned char c )
 
   I2C_CLOCK_LO();
   I2CDELAY(1);
-
-  /*if(c>0)
-   *I2C_DATA_LO();
-   *
-   *I2CDELAY(1);
-   */
 }
 
 //! Read an I2C bit.
@@ -170,8 +169,7 @@ unsigned char I2C_ReadBit_Wait()
 //! Send a START Condition
 void I2C_Start()
 {
-  // set both to high at the same time
-  SETBOTH;
+  I2C_Take();	// XXX Should probably check to see if someone else is using the bus before we do this
   I2CDELAY(3);
   
   I2C_DATA_LO();
@@ -192,6 +190,7 @@ void I2C_Stop()
 
   I2C_DATA_HI();
   I2CDELAY(1);
+  I2C_Release();
 }
 
 //! write a byte to the I2C slave device

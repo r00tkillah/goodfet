@@ -528,7 +528,6 @@ class GoodFETMCPCANCommunication:
                 RXFSIDL = 0x19;
                 RXFDB0 = 0x1A;
                 RXFDB1 = 0x1B;
-            
 
             self.client.poke8(RXFSIDH, SIDhigh);
             self.client.poke8(RXFSIDL, SIDlow);
@@ -538,8 +537,86 @@ class GoodFETMCPCANCommunication:
             if (verbose == True):
                 print "Filtering for SID %d DB0 %d DB1 %d with filter #%d"%(standardid, DB0, DB1, filter);
         
-        self.client.MCPreqstatNormal();    
-   
+        self.client.MCPreqstatNormal();   
+    
+    def multiPacketTest(self):
+        
+        self.reset();
+        self.client.MCPsetrate(500);
+        self.client.MCPreqstatNormal();
+        
+        packet0 = [0x00, 0x00, 0x00,0x00, # pad out EID regs
+                   0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                   # lower nibble is DLC                   
+                   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
+        
+        packet1 = [0x00, 0x20, 0x00,0x00, # pad out EID regs
+                   0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                   # lower nibble is DLC                   
+                   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
+        packet2 = [0x00, 0x40, 0x00,0x00, # pad out EID regs
+                   0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                   # lower nibble is DLC                   
+                   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
+            
+        comm.multiPacketSpit(packet0=packet0, packet1=packet1, packet2=packet2)
+        
+        comm.multiPacketSpit(packet0rts=True, packet1rts=True, packet2rts=True)
+        comm.multiPacketSpit(packet2rts=True)
+        comm.multiPacketSpit(packet1rts=True)
+        comm.multiPacketSpit(packet0rts=True)
+        
+
+
+    def multiPacketSpit(self, packet0 = None, packet1 = None, packet2 = None, packet0rts = False, packet1rts = False, packet2rts = False):
+        """ 
+            This method writes packets to the chip's TX buffers and/or sends the contents of the buffers onto the bus.
+            
+            @type packet0: list of integer
+            @param packet0: A list of 13 integers of the format [SIDhigh SIDlow 0 0 DLC DB0-7] to be loaded into TXBF0
+            
+            @type packet1: list of integer
+            @param packet1: A list of 13 integers of the format [SIDhigh SIDlow 0 0 DLC DB0-7] to be loaded into TXBF1
+            
+            @type packet2: list of integer
+            @param packet2: A list of 13 integers of the format [SIDhigh SIDlow 0 0 DLC DB0-7] to be loaded into TXBF2
+            
+            @type packet0rts: Boolean
+            @param packet0rts: If true the message in TX buffer 0 will be sent
+            
+            @type packet2rts: Boolean
+            @param packet0rts: If true the message in TX buffer 1 will be sent
+            
+            @type packet2rts: Boolean
+            @param packet0rts: If true the message in TX buffer 2 will be sent
+            
+        """
+        
+        if(packet0 != None):
+            self.client.writetxbuffer(packet0,0)
+        #   print("trying to write TX buffer 0");
+        #  for db in packet0:
+        #      print" %d" %db
+        if (packet1 != None):
+            self.client.writetxbuffer(packet1,1)
+            # print("trying to write TX buffer 1");
+                # for db in packet0:
+                    #     print" %d" %db
+        if (packet2 != None):
+            self.client.writetxbuffer(packet2,2)
+            # print("trying to write TX buffer 2");
+                #  for db in packet0:
+                    #   print" %d" %db
+            
+        #  if(packet0rts):
+            #    print("trying to send TX buffer 0")
+        #if(packet1rts):
+            #    print("trying to send TX buffer 1")
+        #if(packet2rts):
+            #    print("trying to send TX buffer 2")
+
+        self.client.MCPrts(TXB0=packet0rts, TXB1=packet1rts, TXB2=packet2rts)
+ 
         
     def spitSetup(self,freq):
         """ 
@@ -757,7 +834,7 @@ if __name__ == "__main__":
         ''')
         
     
-    parser.add_argument('verb', choices=['info', 'test','peek', 'reset', 'sniff', 'freqtest','snifftest', 'spit', 'packet']);
+    parser.add_argument('verb', choices=['info', 'test','peek', 'reset', 'sniff', 'freqtest','snifftest', 'spit', 'packet', 'multipacket']);
     parser.add_argument('-f', '--freq', type=int, default=500, help='The desired frequency (kHz)', choices=[100, 125, 250, 500, 1000]);
     parser.add_argument('-t','--time', type=int, default=15, help='The duration to run the command (s)');
     parser.add_argument('-o', '--output', default=None,help='Output file');
@@ -791,6 +868,8 @@ if __name__ == "__main__":
     
     if(args.verb=="packet"):
         comm.filterForPacket(standardid=standardid[0], DB0=db0, DB1=db1, verbose= True)
+    if(args.verb=="multipacket"):
+        comm.multiPacketTest();
     
     ##########################
     #   INFO

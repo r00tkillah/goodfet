@@ -1014,7 +1014,7 @@ class DisplayApp:
         #self.root.bind( '<Button-3>', self.handleButton3 )
         #self.root.bind( '<B1-Motion>', self.handleButton1Motion )
         self.root.bind( '<Command-q>', self.handleModQ )
-        self.root.bind( '<Control-.>', self.handleSettings)
+        self.root.bind( '<Control-z>', self.handleSettings)
         #self.root.bind( '<Command-o>', self.handleModO )
         self.root.bind( '<Control-q>', self.handleQuit )
         self.root.bind( '<Control-s>', self.sniffFrameLift)
@@ -1123,7 +1123,10 @@ class DisplayApp:
         if( self.running.get() == 1):
             return
         try:
-            self.comm = GoodFETMCPCANCommunication()
+            self.comm = experiments(self.DATA_LOCATION)
+            print "connected"
+            self.statusString.set("Ready")
+            self.statusLabel.config(bg="green")
         except:
             print "Board not properly connected. please plug in the GoodThopter10 and re-attempt"
             self.comm = None
@@ -1666,7 +1669,8 @@ class DisplayApp:
             tkMessageBox.showwarning('Invalid Input', 'Incorrectly formatted input.')
             return
         #start the writing as a thread
-        thread.start_new_thread(self.GenerationFuzzControl,(self.getRate(),sID, dbInfo,period,writesPerFuzz,Fuzzes))
+        self.GenerationFuzzControl(self.getRate(),sID,dbInfo,period,writesPerFuzz,Fuzzes)
+        #thread.start_new_thread(self.GenerationFuzzControl,(self.getRate(),sID, dbInfo,period,writesPerFuzz,Fuzzes))
         
     def GenerationFuzzControl(self,freq, sID, dbInfo, period, writesPerFuzz, Fuzzes):
         self.setRunning()

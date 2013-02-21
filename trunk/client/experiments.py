@@ -310,7 +310,7 @@ class experiments(GoodFETMCPCANCommunication):
                 packet[i+5] = value
             print packet
             #put a rough time stamp on the data and get all the data bytes    
-            row = [time.tT(), id_new,8] # could make this 8 a variable 
+            row = [tT.time(), id_new,8] # could make this 8 a variable 
             msg = "Injecting: "
             for i in range(5,13):
                 row.append(packet[i])

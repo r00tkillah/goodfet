@@ -488,8 +488,8 @@ class experimentsGUI(Toplevel):
          #   print "Invalid Input. Please check input and try again."
          #   return
         
-        self.comm.packetRespond(self.dClass.getRate(), time,repeats,period,responseID,responsePacket,listenID,listenPacket)
-        #thread.start_new_thread(self.packetResponseControl, (self.dClass.getRate(), time,repeats,period,responseID,responsePacket,listenID,listenPacket))
+        #self.comm.packetRespond(self.dClass.getRate(), time,repeats,period,responseID,responsePacket,listenID,listenPacket)
+        thread.start_new_thread(self.packetResponseControl, (self.dClass.getRate(), time,repeats,period,responseID,responsePacket,listenID,listenPacket))
         
     def packetResponseControl(self, freq, time, repeats, period,  responseID, respondPacket,listenID, listenPacket = None):
         self.dClass.setRunning()

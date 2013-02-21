@@ -42,6 +42,7 @@ class DisplayApp:
 
     # init function
     def __init__(self):
+        self.BOLDFONT = "Helvetica 16 bold italic"
         self.SETTINGS_FILE = "./Settings.ini"
         """ This stores the location of the file where settings are saved"""
         Config = ConfigParser.ConfigParser()
@@ -85,14 +86,7 @@ class DisplayApp:
         
         #configure information
         #Initialize communication class
-        try:
-            #self.comm = GoodFETMCPCANCommunication()
-            self.comm = experiments(self.DATA_LOCATION) 
-            """ Stores the class which communicates with the bus """
-        except:
-            print "Board not properly connected. please connect and reset"
-            self.comm = None
-        self.running = False 
+        
         """ This is a boolean which when false tells you that there is a thread communicating with the bus at the moment"""
         self.freq = float(self.ConfigSectionMap(Config, "BusInfo")['frequency']) 
         """ Bus frequency """
@@ -133,10 +127,36 @@ class DisplayApp:
         
         self.buildDataCanvas()
         
+        self.RightSideCanvas = tk.Canvas( self.root, width=self.ControlsDx, height=self.ControlsDy)
         # build the objects on the Canvas
-        self.buildCanvas()
+        self.blankCanvas = tk.Canvas(self.RightSideCanvas,width=self.ControlsDx*10,height=self.ControlsDy*10)
+        self.blankCanvas.grid(row=0,column=0)
         
+        self.buildCanvas()
+        self.buildExperimentCanvas()
+        self.buildSQLCanvas()
+        self.buildInfoFrame()
+        self.RightSideCanvas.pack(side=tk.RIGHT,expand=tk.YES,fill=tk.BOTH)
+        #tk.Misc.lift(self.blankCanvas, aboveThis=self.sniffFrame)
+        self.sniffFrameLift()
     
+        self.running = Tkinter.IntVar()
+        self.running.set(0)
+        self.running.trace('w',self.updateStatus)
+        
+        try:
+            #self.comm = GoodFETMCPCANCommunication()
+            self.comm = experiments(self.DATA_LOCATION)
+            self.statusLabel.config(bg="green")
+            self.statusString.set("Ready")
+            """ Stores the class which communicates with the bus """
+        except:
+            print "Board not properly connected. please connect and reset"
+            self.comm = None
+            self.statusLabel.config(bg="red")
+            self.statusString.set("Not Connected")
+        #self.running = False 
+        
   
     def writeiniFile(self, filename, section, option, value):
         """ 
@@ -211,7 +231,7 @@ class DisplayApp:
         self.menulist.append(cmdmenu)
 
         # menu text for the elements
-        menutext = [ [ 'Quit  \xE2\x8C\x98-Q', 'Settings ^, ' ],
+        menutext = [ [ 'Quit  \xE2\x8C\x98-Q', 'Settings ^. ' ],
                      [ '-', '-', '-' ] ]
 
         # menu callback functions
@@ -234,17 +254,478 @@ class DisplayApp:
         event.widget.tag_add("sel","1.0","end")
 
 
+    def buildExperimentCanvas(self):
+        self.experimentFrame = Tkinter.Frame(self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
+        i=0
+        #Sweep all ids experiments
+        j = 0
+        entryLabel = Tkinter.Label(self.experimentFrame, font = self.BOLDFONT)
+        entryLabel["text"] = "Sweep Std IDs:"
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        
+        i+=1
+        j = 0
+        entryLabel=Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "Time (s):"
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        self.sniffTime = Tkinter.StringVar();
+        self.sniffTime.set("2")
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=self.sniffTime)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j, sticky=tk.W)
+        j+=1
+        #align with lower exp
+        j += 2
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "From: "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        self.lowSweep = Tkinter.StringVar();
+        self.lowSweep.set("0")
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=self.lowSweep)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "To "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        self.HighSweep = Tkinter.StringVar();
+        self.HighSweep.set("4095")
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=self.HighSweep)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        sweepButton = Button(self.experimentFrame, text="Start", width=5, command=self.sweepID)
+        sweepButton.grid(row=i, column=j,sticky=tk.W)
+        
+        i += 1
+        j = 0
+        entryLabel = Tkinter.Label(self.experimentFrame, font = self.BOLDFONT)
+        entryLabel["text"] = "RTR sweep response:"
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        
+        i+=1
+        j = 0 
+        entryLabel=Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "Time (s):"
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        #self.sniffTime = Tkinter.StringVar();
+        #self.sniffTime.set("20")
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=self.sniffTime)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j, sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(self.experimentFrame, text = "Attempts: ")
+        entryLabel.grid(row=i, column = j, sticky=tk.W)
+        j += 1
+        self.attempts = Tkinter.StringVar();
+        self.attempts.set("1")
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable = self.attempts)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "From: "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        #self.lowSweep = Tkinter.StringVar();
+        #self.lowSweep.set("0")
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=self.lowSweep)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "To "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        #self.HighSweep = Tkinter.StringVar();
+        #self.HighSweep.set("4095")
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=self.HighSweep)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        sweepButton = Button(self.experimentFrame, text="Start", width=5, command=self.RTRsweepID)
+        sweepButton.grid(row=i, column=j,sticky=tk.W)
+        j += 1
+        i+= 1
+        j = 0
+        entryLabel = Tkinter.Label(self.experimentFrame,font=self.BOLDFONT)
+        entryLabel["text"] = "Fuzz all possible packets"
+        entryLabel.grid(row=i,column=j,columnspan=3,stick=tk.W)
+        j+=3
+        startButton = Tkinter.Button(self.experimentFrame,text="Start",width=5,command=self.generalFuzz)
+        startButton.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        
+        i+=1
+        j=0
+        self.generalFuzzData = {}
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "Period (ms): "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        period = Tkinter.StringVar()
+        period.set("")
+        self.generalFuzzData['period'] = period
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=period)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "Writes: "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        writesPerFuzz = Tkinter.StringVar()
+        writesPerFuzz.set("")
+        self.generalFuzzData['writesPerFuzz'] = writesPerFuzz
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=writesPerFuzz)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+     
+        j += 1
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "Fuzzes : "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        Fuzzes = Tkinter.StringVar()
+        Fuzzes.set("")
+        self.generalFuzzData['Fuzzes'] = Fuzzes
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=Fuzzes)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        
+        j = 0
+        i += 1
+        entryLabel = Tkinter.Label(self.experimentFrame, font = self.BOLDFONT)
+        entryLabel["text"] = "Generation Fuzzing:"
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        j +=3
+        startButton = Tkinter.Button(self.experimentFrame,text="Start",width=5,command=self.GenerationFuzz)
+        startButton.grid(row=i,column=j,sticky=tk.W)
+        i+=1
+        self.fuzzData = {}
+        j = 0 
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "sID: "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        sID = Tkinter.StringVar()
+        sID.set("")
+        self.fuzzData['sIDs'] = sID
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=sID)
+        entryWidget["width"] = 40
+        entryWidget.grid(row=i,column=j,columnspan=8,sticky=tk.W)
+        j += 1
+        i += 1
+        j = 0
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "Period (ms): "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        period = Tkinter.StringVar()
+        period.set("")
+        self.fuzzData['period'] = period
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=period)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "Writes: "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        writesPerFuzz = Tkinter.StringVar()
+        writesPerFuzz.set("")
+        self.fuzzData['writesPerFuzz'] = writesPerFuzz
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=writesPerFuzz)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+     
+        j += 1
+        entryLabel = Tkinter.Label(self.experimentFrame)
+        entryLabel["text"] = "Fuzzes : "
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        Fuzzes = Tkinter.StringVar()
+        Fuzzes.set("")
+        self.fuzzData['Fuzzes'] = Fuzzes
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=Fuzzes)
+        entryWidget["width"] = 5
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        
+        i+=1 
+        j = 0
+        for k in range(1,11,3):
+            entryLabel = Tkinter.Label(self.experimentFrame)
+            entryLabel["text"] = "low"
+            entryLabel.grid(row=i,column=k)
+            entryLabel = Tkinter.Label(self.experimentFrame)
+            entryLabel["text"] = "high"
+            entryLabel.grid(row=i,column=k+1)
+        i += 1
+        j = 0
+        k = 0
+        for j in range (0, 12, 3):
+            entryLabel = Tkinter.Label(self.experimentFrame)
+            entryLabel["text"] = "db%d:" %k
+            entryLabel.grid(row=i,column=j, sticky= tk.W)
+            varTempLow = Tkinter.StringVar()
+            #self.fuzzData['db%d'%(k)] = varTempLow
+            varTempLow.set("")
+            entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=varTempLow)
+            entryWidget.grid(row=i,column=j+1, sticky=tk.W)
+            entryWidget["width"] = 5
+            varTempHigh = Tkinter.StringVar()
+            self.fuzzData['db%d'%(k)] = [varTempLow, varTempHigh]
+            entryWidget = Tkinter.Entry(self.experimentFrame, textvariable = varTempHigh)
+            entryWidget["width"] = 5
+            entryWidget.grid(row=i,column=j+2,sticky=tk.W)
+            k += 1
+            print k
+        
+        for j in range(0,12,3):
+            entryLabel = Tkinter.Label(self.experimentFrame)
+            entryLabel["text"] = "db%d:" %((k))
+            entryLabel.grid(row=i+1,column=j, sticky= tk.W)
+            varTempLow = Tkinter.StringVar()
+            #self.fuzzData['db%d'%((k))] = varTemp
+            varTempLow.set("")
+            entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=varTempLow)
+            entryWidget.grid(row=i+1,column=j+1, sticky=tk.W)
+            entryWidget["width"] = 5
+            varTempHigh = Tkinter.StringVar()
+            self.fuzzData['db%d'%(k)] = [varTempLow, varTempHigh]
+            entryWidget = Tkinter.Entry(self.experimentFrame, textvariable = varTempHigh)
+            entryWidget["width"] = 5
+            entryWidget.grid(row=i+1,column=j+2,sticky=tk.W)
+            k +=1
+    
+        i += 2
+        j=0
+        entryLabel = Tkinter.Label(self.experimentFrame, font = self.BOLDFONT)
+        entryLabel["text"] = "Re-inject Fuzzed Packets:"
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        j +=3
+        startButton = Tkinter.Button(self.experimentFrame,text="Start",width=5,command=self.reInjectFuzzed)
+        startButton.grid(row=i,column=j,sticky=tk.W)
+        i+=1
+        j = 0
+        self.reInjectData = {}
+        entryLabel = Tkinter.Label(self.experimentFrame,text="sID: ")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        varID = Tkinter.StringVar()
+        varID.set("")
+        self.reInjectData['sID'] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        # The injection files are all saved by date
+        entryLabel = Tkinter.Label(self.experimentFrame,text="Date: ")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        varID = Tkinter.StringVar()
+        now = datetime.datetime.now()
+        varID.set(now.strftime("%Y%m%d")) # automatically fill with today's date
+        self.reInjectData['date'] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=varID,width=10)
+        entryWidget.grid(row=i,column=j,columnspan=2,sticky=tk.W)
+        j+= 2
+        # The injection files are all saved by date
+        entryLabel = Tkinter.Label(self.experimentFrame,text="Start (HHMM): ")
+        entryLabel.grid(row=i,column=j,columnspan=2,sticky=tk.W)
+        j+= 2
+        varID = Tkinter.StringVar()
+       
+        varID.set("") # automatically fill with today's date
+        self.reInjectData['startTime'] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        # The injection files are all saved by date
+        entryLabel = Tkinter.Label(self.experimentFrame,text="END (HHMM): ")
+        entryLabel.grid(row=i,column=j,columnspan = 2, sticky=tk.W)
+        j+= 2
+        varID = Tkinter.StringVar()
+       
+        varID.set("") # automatically fill with today's date
+        self.reInjectData['endTime'] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame, textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+= 1
+        
+        i+= 1
+        j = 0
+        
+        entryLabel = Tkinter.Label(self.experimentFrame, font = self.BOLDFONT)
+        entryLabel["text"] = "Packet Response:"
+        entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
+        j +=3
+        startButton = Tkinter.Button(self.experimentFrame,text="Start",width=5,command=self.packetResponse)
+        startButton.grid(row=i,column=j,sticky=tk.W)
+        i+=1
+        self.packetResponseData = {}
+        j = 0 
+        entryLabel = Tkinter.Label(self.experimentFrame,text="Time:")
+        entryLabel.grid(row=i,column=j,sticky = tk.W)
+        j += 1
+        varID = Tkinter.StringVar()
+        varID.set("30")
+        self.packetResponseData['time'] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame,textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(self.experimentFrame,text="repeats:")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        varID = Tkinter.StringVar()
+        varID.set("100")
+        self.packetResponseData["repeats"] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame,textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        entryLabel = Tkinter.Label(self.experimentFrame,text="period (ms):")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        varID = Tkinter.StringVar()
+        varID.set("1")
+        self.packetResponseData["period"] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame,textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        i+=1
+        j = 0
+        entryLabel = Tkinter.Label(self.experimentFrame,text="listenID: ")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        varID = Tkinter.StringVar()
+        varID.set("")
+        self.packetResponseData['listenID'] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame,textvariable=varID, width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j +=1
+        entryLabel = tk.Label(self.experimentFrame,text="data:")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j += 1
+        for k in range(0,8):
+            varID = tk.StringVar()
+            varID.set("")
+            idx = 'Listen_db%d'%k
+            self.packetResponseData[idx] = varID
+            entryWidget = tk.Entry(self.experimentFrame,textvariable=varID,width=5)
+            entryWidget.grid(row=i,column=j,sticky=tk.W)
+            j += 1
+        i += 1
+        j = 0
+        entryLabel = tk.Label(self.experimentFrame,text="Res.ID:")
+        entryLabel.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        varID = tk.StringVar()
+        varID.set("")
+        self.packetResponseData["responseID"] = varID
+        entryWidget = Tkinter.Entry(self.experimentFrame,textvariable=varID,width=5)
+        entryWidget.grid(row=i,column=j,sticky=tk.W)
+        j+=1
+        entryLabel = tk.Label(self.experimentFrame,text="data:")
+        entryLabel.grid(row=i,column=j,stick=tk.W)
+        j += 1
+        for k in range(0,8):
+            varID = tk.StringVar()
+            varID.set("")
+            idx = 'Response_db%d'%k
+            self.packetResponseData[idx] = varID
+            entryWidget = tk.Entry(self.experimentFrame,textvariable=varID,width=5)
+            entryWidget.grid(row=i,column=j,sticky=tk.W)
+            j+=1
+        #pass
+        
+        self.experimentFrame.grid(row=0,column=0,sticky=tk.W+tk.N,pady=0)
+
+    def buildInfoFrame(self):
+        self.infoFrame = tk.Frame(self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
+        entryLabel = Tkinter.Label(self.infoFrame, text="ArbID: ")
+        entryLabel.grid(row=0,column=0)
+        self.options = ["INSERT","insert"]
+        self.IDchoice = Tkinter.StringVar()
+        self.IDchoice.set(self.options[0])
+        self.IDchoice.trace('w',self.updateInfo)
+        #self.splitChoice = OptionMenu(self.canvas, self.splitValue, *keys)
+        idChoiceOptions= OptionMenu(self.infoFrame,self.IDchoice, *tuple(self.options))
+        idChoiceOptions.grid(row=0,column=1)
+        
+        self.infoFrame.grid(row=0,column=0,sticky=tk.N+tk.W)
+        
+        
+    
+    def updateInfo(self, name, index, mode):
+        print "name: ", name
+        print "index: ", index
+        print "mode: ", mode
+        print "change"  
+        
+    def buildSQLCanvas(self):
+        self.sqlFrame = tk.Frame(self.RightSideCanvas, width = self.ControlsDx, height=self.ControlsDy)
+        i = 0;
+        sqlButton = tk.Button(self.sqlFrame,text="Upload Sniffed Packets to Database", command=self.uploaddb, width=30)
+        sqlButton.grid(row=i,column=0,columnspan=3,sticky=tk.W)
+        i+=1;
+        #self.buttons.append( ( 'cmd2', tk.Button( self.cntlframe, text="Upload to db", command=self.uploaddb, width=10 ) ) )
+        #self.buttons[-1][1].pack(side=tk.LEFT)  # default side is top
+        #sql
+        entryLabel = Tkinter.Label(self.sqlFrame,  font = self.BOLDFONT)
+        entryLabel["text"] = "MYSQL:"
+        entryLabel.grid(row=i,column=0, sticky = tk.W)
+        sqlButton = tk.Button( self.sqlFrame, text="Query", command=self.sqlQuery, width=4)
+        sqlButton.grid(row=i,column=1,sticky=tk.W)
+        
+        self.pcapBool = IntVar()
+        #self.pcapBool.trace('w', self.sqlSaveType)
+        self.pcapBool.set(0)
+        c = Checkbutton(self.sqlFrame, variable = self.pcapBool, text="pcap")
+        c.grid(row=i,column=2, sticky = tk.W)
+                        
+        self.csvBool = IntVar()
+        self.csvBool.set(1)
+        self.sqlSaveCsvChoice = True
+        #self.csvBool.trace('w',self.sqlSaveType)
+        c = Checkbutton(self.sqlFrame,variable=self.csvBool, text="csv")
+        c.grid(row=i,column=3, sticky = tk.W)
+        
+        i += 1
+        
+        #text query box
+        self.text = Tkinter.Text(self.sqlFrame,borderwidth=10,insertborderwidth=10,padx=5,pady=2, width=50,height=5, highlightbackground="black")
+        self.text.grid(row=i,column=0, columnspan=10,rowspan=2)
+        i += 9
+        
+        
+        #relative filename input
+        entryLabel = Tkinter.Label(self.sqlFrame)
+        entryLabel["text"] = "Filename:"
+        entryLabel.grid(row=i, column = 0,columnspan=2,stick=tk.E)
+        self.queryFilename = Tkinter.StringVar()
+        self.queryFilename.set("1.csv")
+        entryWidget = Tkinter.Entry(self.sqlFrame, textvariable=self.queryFilename)
+        entryWidget.grid(row=i,column=2,columnspan=4)
+        
+        
+        i += 1
+        self.sqlFrame.grid(row=0,column=0,sticky=tk.W+tk.N,pady=0)
+
     def buildCanvas(self):
-        self.RightSideCanvas = tk.Canvas( self.root, width=self.ControlsDx, height=self.ControlsDy)
+        
         #self.RightSideCanvas.grid(row=0,column=1,sticky=tk.W)
         # this makes the canvas the same size as the window, but it could be smaller
-        self.canvas = tk.Canvas( self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
+        self.sniffFrame = tk.Frame( self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
         i = 0
     
         
         
         #filters
-        entryLabel = Tkinter.Label(self.canvas,  font = "Helvetica 16 bold italic")
+        entryLabel = Tkinter.Label(self.sniffFrame,  font = self.BOLDFONT)
         entryLabel["text"] = "Filters:"
         entryLabel.grid(row=i,column=0, sticky=tk.W)
         
@@ -252,97 +733,97 @@ class DisplayApp:
         
         i += 1
         self.filterIDs = []
-        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel = Tkinter.Label(self.sniffFrame)
         entryLabel["text"] = "Buffer 0:"
         entryLabel.grid(row=i,column =0, sticky=tk.W )
         for j in range(0,2):
             stdID = Tkinter.StringVar()
             stdID.set("")
-            entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
+            entryWidget = Tkinter.Entry(self.sniffFrame, textvariable=stdID)
             self.filterIDs.append(stdID)
             entryWidget["width"] = 5
             entryWidget.grid(row=i,column=j+1, sticky=tk.W)
             
         i += 1
-        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel = Tkinter.Label(self.sniffFrame)
         entryLabel["text"] = "Buffer 1:"
         entryLabel.grid(row=i,column =0 ,sticky=tk.W)
         for j in range( 0,4):
             stdID = Tkinter.StringVar()
             stdID.set("")
-            entryWidget = Tkinter.Entry(self.canvas, textvariable=stdID)
+            entryWidget = Tkinter.Entry(self.sniffFrame, textvariable=stdID)
             self.filterIDs.append(stdID)
             entryWidget["width"] = 5
             entryWidget.grid(row=i,column=j+1, sticky=tk.W)
-        clearButton = tk.Button( self.canvas, text="Clear", command=self.clearFilters, width=5)
+        clearButton = tk.Button( self.sniffFrame, text="Clear", command=self.clearFilters, width=5)
         clearButton.grid(row=i,column=j+2,sticky=tk.W)
         i += 1
         
         #sniff button
-        entryLabel = Tkinter.Label(self.canvas, font = "Helvetica 16 bold italic")
+        entryLabel = Tkinter.Label(self.sniffFrame, font = self.BOLDFONT)
         entryLabel["text"] = "Sniff: "
         entryLabel.grid(row=i, column=0, sticky = tk.W)
-        sniffButton = tk.Button( self.canvas, text="Start", command=self.sniff, width=3 )
+        sniffButton = tk.Button( self.sniffFrame, text="Start", command=self.sniff, width=3 )
         sniffButton.grid(row=i,column=1, sticky= tk.W)
        
         options = ['Rolling','Fixed']
         self.SniffChoice = Tkinter.StringVar()
         self.SniffChoice.set(options[0])
-        optionsSniff = OptionMenu(self.canvas, self.SniffChoice,*tuple(options)) #put an options menu for type
+        optionsSniff = OptionMenu(self.sniffFrame, self.SniffChoice,*tuple(options)) #put an options menu for type
         optionsSniff.grid(row=i,column=2,columnspan=2,sticky=tk.W)
         self.fixedView = False
     
         self.saveInfo = tk.IntVar()
         self.saveInfo.set(1)
-        c = Checkbutton(self.canvas, variable=self.saveInfo, text="Save Data")
+        c = Checkbutton(self.sniffFrame, variable=self.saveInfo, text="Save Data")
         c.grid(row=i,column=4,columnspan = 2, sticky=tk.W)
         i += 1
         
         #time to sniff for
-        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel = Tkinter.Label(self.sniffFrame)
         entryLabel["text"] = "Time (s):"
         entryLabel.grid(row=i,column=0, sticky=tk.W)
         self.time = Tkinter.StringVar();
         self.time.set("10")
-        entryWidget = Tkinter.Entry(self.canvas, textvariable=self.time)
+        entryWidget = Tkinter.Entry(self.sniffFrame, textvariable=self.time)
         entryWidget.grid(row=i,column=1, sticky=tk.W)
         entryWidget["width"] = 5
         i += 1
         
         #comment
-        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel = Tkinter.Label(self.sniffFrame)
         entryLabel["text"] = "Comment:"
         entryLabel.grid(row=i,column=0, sticky = tk.W)
         self.comment = Tkinter.StringVar();
         self.comment.set("")
-        entryWidget = Tkinter.Entry(self.canvas, textvariable=self.comment)
+        entryWidget = Tkinter.Entry(self.sniffFrame, textvariable=self.comment)
         entryWidget.grid(row=i,column=1, columnspan = 7, sticky=tk.W)
         entryWidget["width"] = 30
         i += 1
         
         #description
-        #entryLabel = Tkinter.Label(self.canvas)
+        #entryLabel = Tkinter.Label(self.sniffFrame)
         #entryLabel["text"] = "description (csv):"
         #entryLabel.grid(row=i,column=0,columnspan=2, sticky= tk.W)
         #self.description = Tkinter.StringVar();
         #self.description.set("")
-        #entryWidget = Tkinter.Entry(self.canvas, textvariable=self.description)
+        #entryWidget = Tkinter.Entry(self.sniffFrame, textvariable=self.description)
         #entryWidget.grid(row=i,column=2, columnspan = 7, sticky=tk.W)
         #entryWidget["width"] = 30
         #i += 1
         
 #        self.fileBool = IntVar()
 #        self.fileBool.set(0)
-#        c = Checkbutton(self.canvas, variable = self.fileBool, command = self.fileCallback)
+#        c = Checkbutton(self.sniffFrame, variable = self.fileBool, command = self.fileCallback)
 #        c.grid(row=i, column = 0)
 #        i += 1
 #        
         #writing
-        entryLabel = Tkinter.Label(self.canvas,  font = "Helvetica 16 bold italic")
+        entryLabel = Tkinter.Label(self.sniffFrame,  font = self.BOLDFONT)
         entryLabel["text"] = "Write:"
         entryLabel.grid(row=i,column=0, sticky = tk.W)
         
-        writeButton = tk.Button( self.canvas, text="Start", command=self.write, width=3 )
+        writeButton = tk.Button( self.sniffFrame, text="Start", command=self.write, width=3 )
         writeButton.grid(row=i,column=1, sticky= tk.W)
         
         # This will hold the data options for writing 
@@ -351,32 +832,32 @@ class DisplayApp:
         rtr = IntVar()
         rtr.set(0)
         self.writeData["rtr"] = rtr
-        c = Checkbutton(self.canvas,variable=rtr, text="rtr")
+        c = Checkbutton(self.sniffFrame,variable=rtr, text="rtr")
         c.grid(row=i,column=2, sticky = tk.W)
         
         fromFile = tk.IntVar()
         fromFile.set(0)
         self.writeData['fromFile'] = fromFile
-        c = Checkbutton(self.canvas, variable=fromFile, text="Write from File")
+        c = Checkbutton(self.sniffFrame, variable=fromFile, text="Write from File")
         c.grid(row=i,column=3,columnspan = 2, stick=tk.W)
         
         i += 1
         
-        entryLabel = Tkinter.Label(self.canvas, text="Period (ms): ")
+        entryLabel = Tkinter.Label(self.sniffFrame, text="Period (ms): ")
         entryLabel.grid(row=i,column=0,sticky=tk.W)
         varTemp = Tkinter.StringVar()
         self.writeData["period"] = varTemp
         varTemp.set(100);
-        entryWidget = Tkinter.Entry(self.canvas,width=5,textvariable=varTemp)
+        entryWidget = Tkinter.Entry(self.sniffFrame,width=5,textvariable=varTemp)
         entryWidget.grid(row=i,column=1,sticky=tk.W)
         
-        entryLabel = Tkinter.Label(self.canvas, text="Writes: ")
+        entryLabel = Tkinter.Label(self.sniffFrame, text="Writes: ")
         entryLabel.grid(row=i,column=2,sticky=tk.W)
         
         varTemp = Tkinter.StringVar()
         self.writeData["writes"] = varTemp
         varTemp.set(10)
-        entryWidget = Tkinter.Entry(self.canvas, width=5, textvariable=varTemp)
+        entryWidget = Tkinter.Entry(self.sniffFrame, width=5, textvariable=varTemp)
         entryWidget.grid(row=i, column=3, sticky=tk.W)
         
         
@@ -386,95 +867,56 @@ class DisplayApp:
         
         
         
-        entryLabel = Tkinter.Label(self.canvas)
+        entryLabel = Tkinter.Label(self.sniffFrame)
         entryLabel["text"] = "sID:"
         entryLabel.grid(row=i,column=0, sticky= tk.W)
         varTemp = Tkinter.StringVar()
         self.writeData['sID'] = varTemp
         varTemp.set("")
-        entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
+        entryWidget = Tkinter.Entry(self.sniffFrame, textvariable=varTemp)
         entryWidget.grid(row=i,column=1, sticky=tk.W)
         entryWidget["width"] = 5
         i += 1
         
         k = 0
         for j in range (0, 8, 2):
-            entryLabel = Tkinter.Label(self.canvas)
+            entryLabel = Tkinter.Label(self.sniffFrame)
             entryLabel["text"] = "db%d:" %k
             entryLabel.grid(row=i,column=j, sticky= tk.W)
             varTemp = Tkinter.StringVar()
             self.writeData['db%d'%(k)] = varTemp
             varTemp.set("")
-            entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
+            entryWidget = Tkinter.Entry(self.sniffFrame, textvariable=varTemp)
             entryWidget.grid(row=i,column=j+1, sticky=tk.W)
             entryWidget["width"] = 5
             k += 1
             print k
             
         for j in range(0,8,2):
-            entryLabel = Tkinter.Label(self.canvas)
+            entryLabel = Tkinter.Label(self.sniffFrame)
             entryLabel["text"] = "db%d:" %((k))
             entryLabel.grid(row=i+1,column=j, sticky= tk.W)
             varTemp = Tkinter.StringVar()
             self.writeData['db%d'%((k))] = varTemp
             varTemp.set("")
-            entryWidget = Tkinter.Entry(self.canvas, textvariable=varTemp)
+            entryWidget = Tkinter.Entry(self.sniffFrame, textvariable=varTemp)
             entryWidget.grid(row=i+1,column=j+1, sticky=tk.W)
             entryWidget["width"] = 5
             k +=1
     
         i += 2
        
-        #sql
-        entryLabel = Tkinter.Label(self.canvas,  font = "Helvetica 16 bold italic")
-        entryLabel["text"] = "MYSQL:"
-        entryLabel.grid(row=i,column=0, sticky = tk.W)
-        sqlButton = tk.Button( self.canvas, text="Query", command=self.sqlQuery, width=4)
-        sqlButton.grid(row=i,column=1,sticky=tk.W)
-        
-        self.pcapBool = IntVar()
-        #self.pcapBool.trace('w', self.sqlSaveType)
-        self.pcapBool.set(0)
-        c = Checkbutton(self.canvas, variable = self.pcapBool, text="pcap")
-        c.grid(row=i,column=2, sticky = tk.W)
-                        
-        self.csvBool = IntVar()
-        self.csvBool.set(1)
-        self.sqlSaveCsvChoice = True
-        #self.csvBool.trace('w',self.sqlSaveType)
-        c = Checkbutton(self.canvas,variable=self.csvBool, text="csv")
-        c.grid(row=i,column=3, sticky = tk.W)
-        
-        i += 1
-        
-        #text query box
-        self.text = Tkinter.Text(self.canvas,borderwidth=10,insertborderwidth=10,padx=5,pady=2, width=50,height=5, highlightbackground="black")
-        self.text.grid(row=i,column=0, columnspan=10,rowspan=2)
-        i += 9
-        
-        
-        #relative filename input
-        entryLabel = Tkinter.Label(self.canvas)
-        entryLabel["text"] = "Filename:"
-        entryLabel.grid(row=i, column = 0,columnspan=2,stick=tk.E)
-        self.queryFilename = Tkinter.StringVar()
-        self.queryFilename.set("1.csv")
-        entryWidget = Tkinter.Entry(self.canvas, textvariable=self.queryFilename)
-        entryWidget.grid(row=i,column=2,columnspan=4)
-        
-        
-        i += 1
         
         #expand it to the size of the window and fill
-        #self.canvas.pack( expand=tk.YES, fill=tk.BOTH)
-        #self.canvas.pack(side=tk.RIGHT,expand=tk.YES, fill=tk.BOTH)
-        self.canvas.grid(row=0,column=0,sticky=tk.W+tk.N,pady=0)
-        canvas2 = tk.Canvas(self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
-        canvas2.grid(row=0,column=0,sticky=tk.W+tk.N, pady=0)
-        #self.canvas.lift(aboveThis=canvas2)
-        tk.Misc.lift(self.canvas, aboveThis=None)
-        #self.canvas.lift(canvas2)
-        self.RightSideCanvas.pack(side=tk.RIGHT,expand=tk.YES,fill=tk.BOTH)
+        #self.sniffFrame.pack( expand=tk.YES, fill=tk.BOTH)
+        #self.sniffFrame.pack(side=tk.RIGHT,expand=tk.YES, fill=tk.BOTH)
+        self.sniffFrame.grid(row=0,column=0,sticky=tk.W+tk.N,pady=0)
+        #canvas2 = tk.Canvas(self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
+        #canvas2.grid(row=0,column=0,sticky=tk.W+tk.N, pady=0)
+        #self.sniffFrame.lift(aboveThis=canvas2)
+        #tk.Misc.lift(self.sniffFrame, aboveThis=None)
+        #self.sniffFrame.lift(canvas2)
+        
         
         return
 
@@ -494,20 +936,27 @@ class DisplayApp:
         sep = tk.Frame(self.dataFrame,height=2,width=self.dataDx,bd=1,relief=tk.SUNKEN)
         sep.pack(side=tk.BOTTOM,padx=2,pady=2,fill=tk.X)
         
+        self.statusString = tk.StringVar()
+        self.statusString.set("Not Connected")
+        label = tk.Label(self.infoFrame,text="Status: ")
+        label.grid(row=0,column=0,sticky=tk.W)
+        self.statusLabel = tk.Label(self.infoFrame,textvariable=self.statusString, bg="red")
+        self.statusLabel.grid(row=0,column=1,sticky=tk.W)
         self.msgCount = tk.StringVar()
         self.msgCount.set("0")
         self.msgPrev = time.time()
         label = tk.Label(self.infoFrame,text="Count: ")
-        label.grid(row=0,column=0, sticky=tk.W)
-        label = tk.Label(self.infoFrame,textvariable=self.msgCount)
-        label.grid(row=0,column=1,sticky=tk.W)
+        label.grid(row=0,column=2, sticky=tk.W)
+        label = tk.Label(self.infoFrame,textvariable=self.msgCount, width=5)
+        label.grid(row=0,column=3,sticky=tk.W)
         
         self.msgDelta = tk.StringVar()
         self.msgDelta.set("0")
-        label = tk.Label(self.infoFrame,text='\t Delta T: ')
-        label.grid(row=0,column=2,sticky=tk.W)
+        label = tk.Label(self.infoFrame,text='Delta T: ')
+        label.grid(row=0,column=4,sticky=tk.W)
         label = tk.Label(self.infoFrame, textvariable=self.msgDelta)
-        label.grid(row=0,column=3, sticky=tk.W)
+        label.grid(row=0,column=5, sticky=tk.W)
+    
         
         self.topFrame = tk.Frame(self.dataFrame,width=self.dataDx,height=4)
         self.topFrame.pack(side=tk.TOP, padx=2,pady=2,fill=tk.X)
@@ -545,11 +994,13 @@ class DisplayApp:
         # make a cmd 1 button in the frame
         self.buttons = []
         #width should be in characters. stored in a touple with the first one being a tag
-        self.buttons.append( ( 'cmd1', tk.Button( self.cntlframe, text="Experiments", command=self.experiments, width=10 ) ) )
+        self.buttons.append( ( 'sniff', tk.Button(self.cntlframe, text="Sniff", command=self.sniffFrameLift,width=10)))
         self.buttons[-1][1].pack(side=tk.LEFT)
-        self.buttons.append( ( 'cmd2', tk.Button( self.cntlframe, text="Upload to db", command=self.uploaddb, width=10 ) ) )
-        self.buttons[-1][1].pack(side=tk.LEFT)  # default side is top
-        self.buttons.append( ('cmd3', tk.Button(self.cntlframe, text="ID Information", command=self.idInfo, width=15)))
+        self.buttons.append( ( 'cmd1', tk.Button( self.cntlframe, text="Experiments", command=self.experimentFrameLift, width=10 ) ) )
+        self.buttons[-1][1].pack(side=tk.LEFT)
+        self.buttons.append( ( 'SQL', tk.Button( self.cntlframe, text="SQL", command=self.sqlFrameLift, width=10)))
+        self.buttons[-1][1].pack(side=tk.LEFT)
+        self.buttons.append( ('cmd3', tk.Button(self.cntlframe, text="ID Information", command=self.infoFrameLift, width=15)))
         self.buttons[-1][1].pack(side=tk.LEFT)
         return
 
@@ -563,9 +1014,12 @@ class DisplayApp:
         #self.root.bind( '<Button-3>', self.handleButton3 )
         #self.root.bind( '<B1-Motion>', self.handleButton1Motion )
         self.root.bind( '<Command-q>', self.handleModQ )
-        self.root.bind( '<Control-s>', self.handleSettings)
+        self.root.bind( '<Control-.>', self.handleSettings)
         #self.root.bind( '<Command-o>', self.handleModO )
         self.root.bind( '<Control-q>', self.handleQuit )
+        self.root.bind( '<Control-s>', self.sniffFrameLift)
+        self.root.bind( '<Control-e>', self.experimentFrameLift)
+        self.root.bind( '<Control-u>', self.sqlFrameLift)
         #self.root.bind('<Return>',self.handleStim )
         #self.root.bind('<Key>',self.handleKeys)
 
@@ -647,13 +1101,13 @@ class DisplayApp:
         """
         This method sets the running boolean when a method is communicating with the bus
         """
-        self.running = True
+        self.running.set(1)
     
     def unsetRunning(self):
         """
         This method unsets the running boolean when a method is done communicating with the bus
         """
-        self.running = False
+        self.running.set(0)
 
     def getRate(self):
         """
@@ -666,7 +1120,7 @@ class DisplayApp:
         This method will try to reconnect with the GOODTHOPTER10. It will first check to make sure that no
         method is currently communicating with the bus. 
         """
-        if( self.running):
+        if( self.running.get() == 1):
             return
         try:
             self.comm = GoodFETMCPCANCommunication()
@@ -687,7 +1141,7 @@ class DisplayApp:
             print "GoodThopter10 not connected. Please connect board"
             return False
         
-        elif( self.running ):
+        elif( self.running.get() == 1 ):
             print  "There is a current script running. Please wait until it has finished"
             return False
         
@@ -784,7 +1238,7 @@ class DisplayApp:
         #self.sniffControl(self.freq, time, description, False, comments, None, standardid, False, False, True, self.data)
         #self.root.after(50, self.updateCanvas)
         
-        self.running = False # we are running a method with the bus
+        self.running.set(0) # we are running a method with the bus
         
         
         
@@ -819,12 +1273,24 @@ class DisplayApp:
         self.dataText.config(state=tk.NORMAL)
         self.dataText.delete(1.0, END)
         self.dataText.config(state=tk.DISABLED)
-        self.running = True
+        #self.running = True
+        self.setRunning()
         self.updateID = self.root.after(50,self.updateCanvas)
         count = self.comm.sniff(self.freq, duration, description, verbose, comment, filename, standardid, debug, faster, parsed, data, writeToFile)
-        self.running = False
+        self.unsetRunning()
         #self.root.after_cancel(self.updateID)
+     
+    def updateStatus(self,name,index,mode):
+        runningVal = self.running.get()
+        if( runningVal == 1):
+            self.statusString.set("Running")
+            self.statusLabel.config(bg = "yellow")
+        if( runningVal == 0):
+            if( self.comm != None):
+                self.statusString.set("Ready")
+                self.statusLabel.config(bg="green")
         
+    
     def updateCanvas(self):
         choice = self.SniffChoice.get()
         if( choice == 'Rolling' and self.fixedView == True):
@@ -909,11 +1375,11 @@ class DisplayApp:
                     self.dataText.yview(END)
                 #print "position ", position
                 #self.dataText.yview(tk.MOVETO, 1.0)
-                self.msgDelta.set("%04f"%(self.msgPrev-packet['time']))
+                self.msgDelta.set("%04f"%(packet['time']-self.msgPrev))
                 self.msgPrev = packet['time']
                 self.msgCount.set("%d"%(int(self.msgCount.get())+1))
             #self.dataLength += 1
-        if(self.running == True):
+        if(self.running.get() == 1):
            self.updateID = self.root.after(50,self.updateCanvas)
         
   
@@ -965,7 +1431,8 @@ class DisplayApp:
                         #print "db%d"%j
                         var = self.writeData.get("db%d"%j)
                         packet.append(int(var.get()))
-            except:
+            except:            
+                tkMessageBox.showwarning('Invalid Input', 'Incorrectly formatted input. Values are not Integers')
                 print "Invalid input!"
                 return
                 
@@ -978,9 +1445,9 @@ class DisplayApp:
      # This is the method that will be called as a thread to write to the bus
     def writeControl(self, freq, sID, repeat, writes, period, debug=False, packet=None):  
          self.comm.spitSetup(self.freq)
-         self.running = True
+         self.setRunning()
          self.comm.spit(self.freq,sID,repeat, writes, period=period, debug=False, packet=packet)
-         self.running = False
+         self.unsetRunning()
               
             
         #print "write Packet?"
@@ -992,11 +1459,30 @@ class DisplayApp:
         if(response):
             print "Uploading all files"
             self.dm.uploadFiles()
+    
+    def infoFrameLift(self, event=None):
+        tk.Misc.lift(self.blankCanvas,aboveThis=None)
+        tk.Misc.lift(self.infoFrame,aboveThis=None)
+            
+    def sqlFrameLift(self, event=None):
+        tk.Misc.lift(self.blankCanvas,aboveThis=None)
+        tk.Misc.lift(self.sqlFrame,aboveThis=None)
         
-    def experiments(self):
-        data = {}
+    def sniffFrameLift(self, event=None):
+        #tk.Misc.lower(self.experimentFrame, belowThis=self.blankCanvas)
+        #tk.Misc.lift(self.sniffFrame, aboveThis=self.blankCanvas)
+        tk.Misc.lift(self.blankCanvas,aboveThis=None)
+        tk.Misc.lift(self.sniffFrame, aboveThis=None)
+    def experimentFrameLift(self, event=None):
+        #data = {}
         #thread.start_new_thread(experiments,(self.root, self, self.comm,data,"Experiments"))
-        exp = experimentsGUI(self.root, self, comm=self.comm, data = data, title = "Experiments")
+        #exp = experimentsGUI(self.root, self, comm=self.comm, data = data, title = "Experiments")
+        #tk.Misc.lower(self.sniffFrame, belowThis=self.blankCanvas)
+        #tk.Misc.lift(self.experimentFrame, aboveThis=self.blankCanvas)
+        tk.Misc.lift(self.blankCanvas,aboveThis=None)
+        tk.Misc.lift(self.experimentFrame,aboveThis=None)
+        #pass
+        
         
     def idInfo(self):
         """ This method will open an info box for the user
@@ -1048,6 +1534,193 @@ class DisplayApp:
     def handleCmd3(self):
         print "handling cmd3"
         return
+    
+    def generalFuzz(self):
+        if( not self.checkComm()):
+            return
+        try:
+            Fuzzes = int(self.generalFuzzData["Fuzzes"].get())
+            period = float(self.generalFuzzData["period"].get())
+            writesPerFuzz = int(self.generalFuzzData["writesPerFuzz"].get())
+        except:            
+            tkMessageBox.showwarning('Invalid Input', 'Incorrectly formatted input. Values are not Integers')
+            print "Invalid Input. Please check input and try again"
+            return
+        
+        thread.start_new_thread(self.generalFuzzControl, (self.getRate(),Fuzzes,period,writesPerFuzz))
+        
+    def generalFuzzControl(self, freq,Fuzzes, period, writesPerFuzz):
+        self.setRunning()
+        self.comm.generalFuzz(freq,Fuzzes,period,writesPerFuzz)
+        self.unsetRunning()
+        
+    def packetResponse(self):
+        if( not self.checkComm()):
+            return
+        try:
+            time = int(self.packetResponseData['time'].get())
+            repeats = int(self.packetResponseData['repeats'].get())
+            period = float(self.packetResponseData["period"].get())
+            responseID = int(self.packetResponseData['responseID'].get())
+            listenID = int(self.packetResponseData['listenID'].get())
+            responsePacket = []
+            listenPacket = []
+            for k in range(0,8):
+                idx_listen = 'Listen_db%d'%k
+                idx_response = 'Response_db%d'%k
+                listenStr = self.packetResponseData[idx_listen].get()
+                if( listenStr == ""):
+                    listenPacket = None
+                else:
+                    listenPacket.append(int(listenStr))
+                        
+                #listenPacket.append(int(self.packetResponseData[idx_listen].get()))
+                responsePacket.append(int(self.packetResponseData[idx_response].get()))
+                    
+        except:
+            tkMessageBox.showwarning('Invalid Input', 'Incorrectly formatted input.')
+            returns
+         #   print "Invalid Input. Please check input and try again."
+         #   return
+        
+        #self.comm.packetRespond(self.dClass.getRate(), time,repeats,period,responseID,responsePacket,listenID,listenPacket)
+        thread.start_new_thread(self.packetResponseControl, (self.getRate(), time,repeats,period,responseID,responsePacket,listenID,listenPacket))
+        
+    def packetResponseControl(self, freq, time, repeats, period,  responseID, respondPacket,listenID, listenPacket = None):
+        self.setRunning()
+        self.comm.packetRespond(freq, time,repeats,period,responseID,respondPacket,listenID,listenPacket)
+        self.unsetRunning()
+        
+    def reInjectFuzzed(self):
+        
+        if( not self.checkComm()):
+            return
+        try:
+            date = self.reInjectData["date"].get();
+            if( date == ""):
+                raise Exception
+            startTimestr = self.reInjectData['startTime'].get()
+            if( startTimestr == ""):
+                startTime = None
+            else:
+                #startTime = int(startTimestr)
+                #put it into time stamp format: tuple( year, month, day, hour, min, sec, wday,yday,isdst) -- leave the last ones 0
+                startTime = time.mktime((int(date[0:4]), int(date[4:6]), int(date[6:8]), int(startTimestr[0:2]), int(startTimestr[2:4]),0,0,0,0))
+            endTimestr = self.reInjectData['endTime'].get()
+            if( endTimestr == ""): #if they did not input an end time (optional)
+                endTime = None
+            else:
+                
+                endTime = time.mktime((int(date[0:4]), int(date[4:6]), int(date[6:8]), int(endTimestr[0:2]), int(endTimestr[2:4]),0,0,0,0))
+            idstr = self.reInjectData['sID'].get()
+            if( idstr == ""): # they did not input an id (optional)
+                id = None
+            else:
+                id = int(idstr)  
+            
+        except:
+            tkMessageBox.showwarning('Invalid Input', 'Incorrectly formatted input.')
+            print "Invalid Input!"
+            return
+        injectLocation = self.dm.getInjectedLocation()
+        filename = injectLocation + date + "_GenerationFuzzedPackets.csv"
+        print "filename ", filename
+        print "date ", date
+        print "id ", id
+        print " startTime ", startTime
+        print " endTime ", endTime
+        # start a new thread
+        thread.start_new_thread(self.reInjectFuzzedControl, (filename, float(startTime), float(endTime),id))
+        
+        
+    def reInjectFuzzedControl(self, filename, startTime,endTime,id):
+        self.setRunning()
+        #load the data from the file
+        data = self.dm.readInjectedFileDEC(filename,startTime,endTime,id)
+        #inject the data 
+        self.comm.writeData(data,self.freq)
+        self.unsetRunning()
+        
+        
+    def GenerationFuzz(self):
+        
+        print "Generation Fuzz"
+        if( not self.checkComm()):
+            return
+        #sIDs = int(self.fuzzData['sID'].get())
+        try:
+            ids = self.fuzzData['sIDs'].get().split(",")
+            sID = []
+            for id in ids:
+                sID.append(int(id))
+            period = int(self.fuzzData['period'].get())
+            writesPerFuzz = int(self.fuzzData['writesPerFuzz'].get())
+            Fuzzes = int(self.fuzzData['Fuzzes'].get())
+            dbInfo = {}
+            for i in range(0,8):
+                idx = 'db%d'%i
+                dbValues = self.fuzzData.get(idx)
+                dbInfo[idx] = [int(dbValues[0].get()), int(dbValues[1].get())]
+        except:
+            print "Invalid Input."
+            tkMessageBox.showwarning('Invalid Input', 'Incorrectly formatted input.')
+            return
+        #start the writing as a thread
+        thread.start_new_thread(self.GenerationFuzzControl,(self.getRate(),sID, dbInfo,period,writesPerFuzz,Fuzzes))
+        
+    def GenerationFuzzControl(self,freq, sID, dbInfo, period, writesPerFuzz, Fuzzes):
+        self.setRunning()
+        self.comm.generationFuzzer(freq, sID,dbInfo, period, writesPerFuzz, Fuzzes)
+        self.unsetRunning()
+        
+    def RTRsweepID(self):
+        print "Sweep across given IDs requesting packets"
+        if( not self.checkComm()):
+            return
+        sniffTime = self.sniffTime.get()
+        low = self.lowSweep.get()
+        high = self.HighSweep.get()
+        attempts = self.attempts.get()
+        verbose = True
+        try: 
+            sT = int(sniffTime)
+            lowI = int(low)
+            highI = int(high)
+            attemptsI = int(attempts)
+        except:
+            tkMessageBox.showwarning('Invalid Input', 'Incorrectly formatted input. Values are not Integers')
+            print "Values are not integers. Please check inputs and try again."
+            return
+        thread.start_new_thread(self.RTRsweepIDControl, (self.getRate(), lowI,highI,attemptsI,sT,verbose))
+ 
+    def RTRsweepIDControl(self, freq, lowI, highI,attemptsI, sT, verbose):
+        self.setRunning()
+        #thread.start_new_thread(self.comm.rtrSweep,(self.dClass.getRate(), lowI, highI, attemptsI, sT, verbose))
+        self.comm.rtrSweep(freq, lowI, highI, attemptsI, sT, verbose)
+        self.unsetRunning()
+ 
+    def sweepID(self):
+        if( not self.checkComm()):
+            return
+        sniffTime = self.sniffTime.get()
+        low = self.lowSweep.get()
+        high = self.HighSweep.get()
+        try:
+            sT = int(sniffTime)
+            lowI = int(low)
+            highI = int(high)
+        except:
+            tkMessageBox.showwarning('Invalid Input', 'Values are not integers. Please check inputs and try again.')
+            print "Values are not integers. Please check inputs and try again."
+            return
+        if( highI < lowI  or sT <= 0):
+            print "Incorrectly formated inputs! Please check that lower ID is less than higher ID"
+        thread.start_new_thread(self.sweeIDControl, (self.getRate(),lowI,highI,sT))
+    
+    def sweeIDControl(self, freq, lowI, highI, sT):
+        self.setRunning()
+        self.comm.filterStdSweep( freq, lowI, highI, sT )
+        self.unsetRunning()
     
     #run the method
     def main(self):

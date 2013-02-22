@@ -22,11 +22,11 @@ class experiments(GoodFETMCPCANCommunication):
     
     """
     
-    def __init__(self, data_location):
+    def __init__(self, data_location = "../../contrib/ThayerData/"):
         """ 
         Constructor
-        @type datalocation: string
-        @param datalocation: path to the folder where data will be stored
+        @type data_location: string
+        @param data_location: path to the folder where data will be stored
         """
         GoodFETMCPCANCommunication.__init__(self, data_location)
         #super(experiments,self).__init(self)
@@ -38,8 +38,8 @@ class experiments(GoodFETMCPCANCommunication):
         This method will sweep through the range of standard ids given from low to high.
         This will actively filter for 6 ids at a time and sniff for the given amount of
         time in seconds. If at least one message is read in then it will go individually
-        through the 6 ids and sniff only for that id for the given amount of time. All the
-        data gathered will be saved.  This does not save any sniffed packets.
+        through the 6 ids and sniff only for that id for the given amount of time.
+        This does not save any sniffed packets.
         
         @type  freq: number
         @param freq: The frequency at which the bus is communicating
@@ -384,7 +384,7 @@ class experiments(GoodFETMCPCANCommunication):
                 
                 value = random.randint(0, 255) #generate pseudo-random integer value
                 packet[i+5] = value
-            print packet
+            #print packet
             #put a rough time stamp on the data and get all the data bytes    
             row = [time.time(), id_new,8] 
             """@todo: allow for varied packet lengths"""

@@ -3,13 +3,11 @@
 #
 # (C) 2012 Travis Goodspeed <travis at radiantmachines.com>
 #
+#  Edited By: Chris Hoder    2013
+#             Ted Summers    2013
+#             Grayson Zulauf 2013
 #
-# Ted's working copy
-#   1) getting hot reads on frequency
-#   2) allow sniffing in "normal" mode to get ack bits
-#       --check if that's whats causing error flags in board-to-board transmission
-#
-#
+
 
 import sys;
 import binascii;
@@ -24,7 +22,7 @@ import Queue
 
 class GoodFETMCPCANCommunication:
     
-    def __init__(self, dataLocation):
+    def __init__(self, dataLocation = "../../contrib/ThayerData/"):
        self.client=GoodFETMCPCAN();
        """ Communication with the bus"""
        self.client.serInit()
@@ -795,6 +793,25 @@ class GoodFETMCPCANCommunication:
     # row[4] = Data Byte 1
     #    .... up to Data Byte 8 ( THIS ASSUMES A PACKET OF LENGTH 8!!!
     def writeData(self,packets,freq):
+        """
+        This method will write a list of packets to the bus at the given frequency. This method assumes a packet 
+        length of 8 for all packets as well as a standard id.
+        
+        @type packets: List of Lists
+        @param packets: The list of packets to be injected into the bus. Each element of packets is a list that is 
+        a packet to be injected onto the bus. These packets are assumed to be in the following format::
+                 row[0] time delay relative to the last packet. if 0 or empty there will be no delay
+                 row[1] = Standard ID (integer)
+                 row[2] = Data Length (0-8) (if it is zero we assume an Remote Transmit Request)
+                 row[3] = Data Byte 0
+                 row[4] = Data Byte 1
+                 ...
+                 row[10] = Data Byte 7
+        
+        @type freq: number
+        @param freq: Frequency of the CAN bus
+        
+        """
         self.client.serInit()
         self.spitSetup(freq)
         for row in packets:

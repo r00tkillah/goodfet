@@ -114,7 +114,6 @@ class info(Toplevel):
     
     
     def generalInfo(self):
-        
         pass
     
     def data(self):

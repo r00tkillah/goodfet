@@ -12,6 +12,11 @@ import os
 import datetime
 #data parsing assumes an standard ID!!
 
+sys.path.insert(0,'../../trunk/client/')
+from GoodFETMCPCANCommunication import *
+from GoodFETMCPCAN import GoodFETMCPCAN;
+from experiments import experiments
+
 class DataManage:
     """
     This class will do the data Management for the CAN analysis. This includes loading data up to the 

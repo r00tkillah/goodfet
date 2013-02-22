@@ -14,7 +14,7 @@ import math
 tT = time
 class FordExperiments(GoodFETMCPCANCommunication):
     
-    def __init__(self, dataLocation):
+    def __init__(self, dataLocation = "../../contrib/ThayerData/"):
         GoodFETMCPCANCommunication.__init__(self, dataLocation)
         #super(FordExperiments,self).__init__(self) #initialize chip
         self.freq = 500;

@@ -1800,6 +1800,11 @@ class DisplayApp:
         print "Request for information on %d" %id
         
         
+        
+        
+        
+        
+        
     def loadJson(self):
         self.packetInformationData = self.dm.loadJson(self.packetInformation)['Arbitration Ids']
         

@@ -22,6 +22,7 @@ sys.path.insert(0,'../../trunk/client/')
 from GoodFETMCPCANCommunication import *
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from experiments import experiments
+from FordExperiments import FordExperiments
 from intelhex import IntelHex;
 
 
@@ -103,6 +104,20 @@ class DisplayApp:
         
         self.freq = float(self.ConfigSectionMap(Config, "BusInfo")['frequency']) 
         """ Bus frequency """
+        
+        
+        experimentInfo = self.ConfigSectionMap(Config, "experimentInfo")
+        print experimentInfo
+        self.packetInformation = experimentInfo["packetinformation"]
+        self.experimentFile = experimentInfo.get("experimentfile")
+        self.loadJson()
+        
+        
+        
+        
+        
+        
+        
         self.verbose = True 
         
 
@@ -159,10 +174,19 @@ class DisplayApp:
         """
         self.running.set(0)
         self.running.trace('w',self.updateStatus)
+#        if( self.experimentFile != None):
+#            try:
+#                self.comm = 
+#                
+#            except:
+#                
+#            else:
+#                return
         
         try:
             #self.comm = GoodFETMCPCANCommunication()
-            self.comm = experiments(self.DATA_LOCATION)
+            self.comm = FordExperiments(self.DATA_LOCATION)
+            #self.comm = experiments(self.DATA_LOCATION)
             """ Stores the communication with the CAN class methods """
             self.statusLabel.config(bg="green")
             self.statusString.set("Ready")
@@ -768,19 +792,181 @@ class DisplayApp:
         arbitration ids and any known information
         about the packets at the moment.
         """
+        i = 0 # row num
         self.infoFrame = tk.Frame(self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
         entryLabel = Tkinter.Label(self.infoFrame, text="ArbID: ")
-        entryLabel.grid(row=0,column=0)
-        self.options = ["INSERT","insert"]
+        entryLabel.grid(row=i,column=0)
+        
+        # get all the arbIDS
+        ids = self.packetInformationData.keys()
+        intIds = []
+        #convert to integer to sort
+        for element in ids:
+            intIds.append(int(element))
+        intIds = sorted(intIds)
+        ids = []
+        for element in intIds:
+            ids.append(str(element))
+            
+        self.options = ids
         self.IDchoice = Tkinter.StringVar()
         self.IDchoice.set(self.options[0])
         self.IDchoice.trace('w',self.updateInfo)
         #self.splitChoice = OptionMenu(self.canvas, self.splitValue, *keys)
         idChoiceOptions= OptionMenu(self.infoFrame,self.IDchoice, *tuple(self.options))
-        idChoiceOptions.grid(row=0,column=1)
+        idChoiceOptions.grid(row=i,column=1)
+        i += 1
         
+        button = tk.Button(self.infoFrame, text="General Info", command=self.liftGeneralInfo)
+        button.grid(row=i,column=0)
+        
+        button = tk.Button(self.infoFrame,text="Byte Info", command=self.liftBytesInfo)
+        button.grid(row=i,column=1)
+        
+        button = tk.Button(self.infoFrame,text="Packets", command=self.liftPackets)
+        button.grid(row=i,column=2)
+        
+        i += 1
+        self.buildGeneralInfoFrame(i)
+        self.buildPacketInfoFrame(i)
+        self.buildByteInfoFrame(i)
+        self.blankCanvasInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx, height = self.ControlsDy)
+        self.blankCanvasInfoFrame.grid(row=i, column = 0, columnspan=20,sticky=tk.N+tk.W+tk.E+tk.S)
         self.infoFrame.grid(row=0,column=0,sticky=tk.N+tk.W)
+    
+    
+    def buildByteInfoFrame(self,i):
+        self.byteInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx,height = self.ControlsDy)
+        self.byteInfoFrame.grid(row=i,column=0,columnspan=20, sticky=tk.N+tk.W+tk.E+tk.S)
+        k = 0
+        entryLabel  = tk.Label(self.byteInfoFrame,text="Byte Information: ", font=self.BOLDFONT)
+        entryLabel.grid(row=k,column=0,sticky=tk.W)
         
+    def buildPacketInfoFrame(self,i):
+        self.packetInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx, height = self.ControlsDy)
+        self.packetInfoFrame.grid(row=i,column=0,columnspan=20, sticky=tk.N+tk.W+tk.E+tk.S)
+        k = 0
+        entryLabel = tk.Label(self.packetInfoFrame, text = "Known Packets", font = self.BOLDFONT)
+        entryLabel.grid(row = k, column = 0, sticky=tk.W)
+        k+=1
+        self.packetInfoText = tk.Text(self.packetInfoFrame, width=80, height=30,wrap=tk.WORD,borderwidth=3)
+        scroll = tk.Scrollbar(self.packetInfoFrame)
+        scroll.grid(row = k, column = 3, sticky=tk.N+tk.S)
+        
+        xscroll = tk.Scrollbar(self.packetInfoFrame,orient=tk.HORIZONTAL)
+        xscroll.grid(row=k+1, column=0,columnspan=3,sticky=tk.W+tk.E)
+        self.packetInfoText.config(yscrollcommand=scroll.set, xscrollcommand=xscroll.set)
+        scroll.config(command=self.packetInfoText.yview)
+        xscroll.config(command=self.packetInfoText.xview)
+        
+        self.packetInfoText.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
+        self.packetInfoText.config(state=tk.DISABLED)
+        
+    
+    def buildGeneralInfoFrame(self,i):
+        self.generalInfoFrame = tk.Canvas(self.infoFrame, width=self.ControlsDx, height = self.ControlsDy)   
+        k = 0; #row num
+        entryLabel = Tkinter.Label(self.generalInfoFrame,text="General Information:",font = self.BOLDFONT)
+        entryLabel.grid(row = k, column = 0, sticky = tk.W, columnspan = 2)
+        self.generalInfoFrame.grid(row=i, column = 0, columnspan = 20, sticky=tk.N+tk.W + tk.E+tk.S)
+       
+        k += 1;
+        self.generalInfoVars = {}
+        """ This will store all of the variables for resetting the General Infos page"""
+        varId = tk.StringVar()
+        self.generalInfoVars['frequency'] = varId
+        
+        entryLabel = Tkinter.Label(self.generalInfoFrame, text="Frequency: ")
+        entryLabel.grid(row = k, column = 0, sticky=tk.W)
+        entryLabel = Tkinter.Label(self.generalInfoFrame, textvariable = varId)
+        entryLabel.grid(row = k, column = 1, sticky=tk.W)
+        
+        k +=1 
+        varId = tk.StringVar()
+        self.generalInfoVars['canbus'] = varId
+        entryLabel = Tkinter.Label(self.generalInfoFrame, text="CAN Bus: ")
+        entryLabel.grid(row = k, column = 0, sticky=tk.W)
+        entryLabel = Tkinter.Label(self.generalInfoFrame, textvariable = varId)
+        entryLabel.grid(row = k, column = 1, sticky=tk.W)
+        
+        k += 1
+        
+        entryLabel = Tkinter.Label(self.generalInfoFrame,text="Correlations: ")
+        entryLabel.grid(row = k, column = 0, sticky=tk.W)
+        
+        k += 1
+        correlationsText = tk.Text(self.generalInfoFrame,width=60, height = 4, wrap=tk.WORD, borderwidth=3)
+        correlationsText.insert(END, "addfks;lfjasdlkfjadsflk;ajflk;dfja;lskfjdslk;fajfl;kdjfa;lkfjadsf;\n\n\n\nn\n\adfksljfkaljf;lakdsfjadlks;fj;flk\n\n\n\n\n\n\n\nn\n\n\n\n\n\n\asdlfkjadslkfjadslk;fjafls;k")
+        
+        scroll = tk.Scrollbar(self.generalInfoFrame)
+        scroll.grid(row = k, column=3,sticky=tk.N+tk.S)
+        
+        xscroll = tk.Scrollbar(self.generalInfoFrame, orient=tk.HORIZONTAL)
+        xscroll.grid(row=k+1,column=0,columnspan=3,sticky=tk.W+tk.E)        
+        correlationsText.config(yscrollcommand=scroll.set, xscrollcommand=xscroll.set)
+        scroll.config(command=correlationsText.yview)
+        xscroll.config(command=correlationsText.xview)
+        correlationsText.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
+        correlationsText.config(state=tk.DISABLED)
+        
+        self.generalInfoVars['correlations'] = correlationsText
+        
+        k +=2
+        
+        entryLabel = Tkinter.Label(self.generalInfoFrame, text="Comment Tags:")
+        entryLabel.grid(row=k,column=0,sticky=tk.W)
+        
+        k += 1
+        commentTags = tk.Text(self.generalInfoFrame,width=60, height = 4, wrap=tk.WORD, borderwidth=3)
+        commentTags.insert(END, "addfks;lfjasdlkfjadsflk;ajflk;dfja;lskfjdslk;fajfl;kdjfa;lkfjadsf;\n\n\n\nn\n\adfksljfkaljf;lakdsfjadlks;fj;flk\n\n\n\n\n\n\n\nn\n\n\n\n\n\n\asdlfkjadslkfjadslk;fjafls;k")
+        
+        scroll = tk.Scrollbar(self.generalInfoFrame)
+        scroll.grid(row = k, column=3,sticky=tk.N+tk.S)
+        
+        xscroll = tk.Scrollbar(self.generalInfoFrame, orient=tk.HORIZONTAL)
+        xscroll.grid(row=k+1,column=0,columnspan=3,sticky=tk.W+tk.E)        
+        commentTags.config(yscrollcommand=scroll.set, xscrollcommand=xscroll.set)
+        scroll.config(command=commentTags.yview)
+        xscroll.config(command=commentTags.xview)
+        commentTags.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
+        commentTags.config(state=tk.DISABLED)
+        self.generalInfoVars['commentTags'] = commentTags
+        
+        self.generalInfoFrame.grid(row=i, column = 0, columnspan = 20, sticky=tk.N+tk.W)
+
+        k += 2
+        entryLabel = Tkinter.Label(self.generalInfoFrame, text="General Comments: ")
+        entryLabel.grid(row=k,column=0,sticky=tk.W)
+        k += 1
+        
+        comments = tk.Text(self.generalInfoFrame,width=60, height = 4, wrap=tk.WORD, borderwidth=3)
+        comments.insert(END, "addfks;lfjasdlkfjadsflk;ajflk;dfja;lskfjdslk;fajfl;kdjfa;lkfjadsf;\n\n\n\nn\n\adfksljfkaljf;lakdsfjadlks;fj;flk\n\n\n\n\n\n\n\nn\n\n\n\n\n\n\asdlfkjadslkfjadslk;fjafls;k")
+        
+        scroll = tk.Scrollbar(self.generalInfoFrame)
+        scroll.grid(row = k, column=3,sticky=tk.N+tk.S)
+        
+        xscroll = tk.Scrollbar(self.generalInfoFrame, orient=tk.HORIZONTAL)
+        xscroll.grid(row=k+1,column=0,columnspan=3,sticky=tk.W+tk.E)        
+        comments.config(yscrollcommand=scroll.set, xscrollcommand=xscroll.set)
+        scroll.config(command=comments.yview)
+        xscroll.config(command=comments.xview)
+        comments.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
+        comments.config(state=tk.DISABLED)
+        self.generalInfoVars['comments'] = comments
+    
+    
+    def liftGeneralInfo(self):
+        tk.Misc.lift(self.blankCanvasInfoFrame,aboveThis = None)
+        tk.Misc.lift(self.generalInfoFrame, aboveThis=None)
+        
+    def liftBytesInfo(self):
+        tk.Misc.lift(self.blankCanvasInfoFrame,aboveThis = None)
+        tk.Misc.lift(self.byteInfoFrame,aboveThis = None)
+        
+    def liftPackets(self):
+        tk.Misc.lift(self.blankCanvasInfoFrame, aboveThis = None)
+        tk.Misc.lift(self.packetInfoFrame, aboveThis = None)
+    
     def updateQueryInfo(self,name, index, mode):
         """
         This method will update the query tab so that it is correct and so that the user does not
@@ -809,6 +995,7 @@ class DisplayApp:
         print "index: ", index
         print "mode: ", mode
         print "change"  
+        
         
     def buildSQLCanvas(self):
         """
@@ -840,7 +1027,7 @@ class DisplayApp:
     
         i += 1
         self.sqlQueryInfo = tk.StringVar()
-        self.sqlQueryInfo.set("Select msg from %s"%self.SQL_TABLE)
+        self.sqlQueryInfo.set("Select msg from %s where"%self.SQL_TABLE)
         label = Tkinter.Label(self.sqlFrame,textvariable=self.sqlQueryInfo)
         label.grid(row=i,column=0,columnspan=3,sticky=tk.W)
         i +=1
@@ -1173,15 +1360,19 @@ class DisplayApp:
         self.buttons.append( ( 'sniff', tk.Button(self.cntlframe, \
                                     text="Sniff", command=self.sniffFrameLift,width=10)))
         self.buttons[-1][1].pack(side=tk.LEFT)
-        self.buttons.append( ( 'cmd1', tk.Button( self.cntlframe, text="Experiments", \
+        self.buttons.append( ( 'experiments', tk.Button( self.cntlframe, text="Experiments", \
                                           command=self.experimentFrameLift, width=10 ) ) )
         self.buttons[-1][1].pack(side=tk.LEFT)
-        self.buttons.append( ( 'SQL', tk.Button( self.cntlframe, text="SQL", \
-                                                    command=self.sqlFrameLift, width=10)))
-        self.buttons[-1][1].pack(side=tk.LEFT)
-        self.buttons.append( ('cmd3', tk.Button(self.cntlframe, text="ID Information",\
+        self.buttons.append( ('Info', tk.Button(self.cntlframe, text="ID Information",\
                                                  command=self.infoFrameLift, width=15)))
         self.buttons[-1][1].pack(side=tk.LEFT)
+        self.buttons.append( ( 'SQL', tk.Button( self.cntlframe, text="MySQL", \
+                                                    command=self.sqlFrameLift, width=10)))
+        self.buttons[-1][1].pack(side=tk.LEFT)
+        self.buttons.append( ('Our Car', tk.Button(self.cntlframe, text="Our Car", \
+                                                    command=self.ourCarFrameLift, width=10)))
+        self.buttons[-1][1].pack(side=tk.LEFT)
+        
         return
 
     #Bind callbacks with the keyboard/keys
@@ -1300,7 +1491,8 @@ class DisplayApp:
         if( self.running.get() == 1):
             return
         try:
-            self.comm = experiments(self.DATA_LOCATION)
+            self.comm = FordExperiments(self.DATA_LOCATION)
+            #self.comm = experiments(self.DATA_LOCATION)
             print "connected"
             self.statusString.set("Ready")
             self.statusLabel.config(bg="green")
@@ -1607,6 +1799,13 @@ class DisplayApp:
         """
         print "Request for information on %d" %id
         
+        
+    def loadJson(self):
+        self.packetInformationData = self.dm.loadJson(self.packetInformation)['Arbitration Ids']
+        
+        
+        
+        
     def write(self):
         """
         This method handles injecting packets onto the bus. It will load the user 
@@ -1767,6 +1966,10 @@ class DisplayApp:
         tk.Misc.lift(self.blankCanvas,aboveThis=None)
         tk.Misc.lift(self.experimentFrame,aboveThis=None)
         
+    def ourCarFrameLift(self, event = None):
+        tk.Misc.lift(self.blankCanvas, aboveThis = None)
+            
+    
     def idInfo(self):
         """ This method will open an info box for the user
             to gain information on a known arbID"""
@@ -1804,12 +2007,20 @@ class DisplayApp:
             os.mkdir(DATALOCATION+datestr)
         #create full path relative to this folder
         filename = path + "/" + filename
+        #The two different choices are different number of letters
+        #but we want to ensure that we remove just the .file extention
+        if( choice == 'csv'):
+            filenameL = filename[:-4]
+            filenameR = filename[-4:]
+        else:
+            filenameL = filename[:-5]
+            filenameR = filename[-5:]
         if( os.path.exists(filename)):
-            filename2 = filename[:-4]+"_1"+filename[-4:]
+            filename2 = filenameL+"_1"+filenameR
             i=2
             #find the first unused filename
             while( os.path.exists(filename2)):
-                filename2=filename[:-4]+("_%d" %i)+filename[-4:]
+                filename2=filenameL+("_%d" %i)+filenameR
                 i+=1
             filename=filename2
             print "file already exists name changed to %s" % filename

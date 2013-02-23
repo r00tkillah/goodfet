@@ -1,0 +1,31 @@
+{
+    "Arbitration Ids":{
+        "1056":{
+            "GeneralInfo":{
+                "frequeyncy":0,
+                "correlations":"INSERT CORRELATIONS",
+                "CANspeed":" 500",
+                "IgnitionBehavior": "INSERT COMMENT ignition",
+                "EngineOffBehavior": "INSERT COMMENT_ engine off",
+                "comment tags": [
+                       "INSERT TAG1",
+                       "INSERT TAG2"
+                       
+                       ]
+                
+            },
+        
+            "Bytes":{
+                "Byte1":"DOES THIS"
+                
+            },
+            "Packets": [
+                "PACKET 1"
+               ]
+        
+        
+        }
+    }
+    
+    
+}

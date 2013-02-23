@@ -6,13 +6,14 @@ import datetime
 import os
 from random import randrange
 from GoodFETMCPCAN import GoodFETMCPCAN;
+from experiments import experiments
 from GoodFETMCPCANCommunication import GoodFETMCPCANCommunication
 from intelhex import IntelHex;
 import Queue
 import math
 
 tT = time
-class FordExperiments(GoodFETMCPCANCommunication):
+class FordExperiments(experiments):
     
     def __init__(self, dataLocation = "../../contrib/ThayerData/"):
         GoodFETMCPCANCommunication.__init__(self, dataLocation)

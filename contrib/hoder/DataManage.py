@@ -10,6 +10,7 @@ import struct
 import glob
 import os
 import datetime
+import json
 #data parsing assumes an standard ID!!
 
 sys.path.insert(0,'../../trunk/client/')
@@ -995,6 +996,13 @@ class DataManage:
             print "file ",file
             print "filename ", filename
             os.rename(file, filename)        
+        
+        
+    def loadJson(self, filename):
+        json_data = open(filename).read()
+        data = json.loads(json_data)
+        #print data
+        return data
         
 # executes everything to run, inputs of the command lines
 if __name__ == "__main__":

@@ -845,7 +845,7 @@ class GoodFETMCPCANCommunication:
             packet = None;
 
             # catch a packet and check its db4 value
-            while (packet == None)
+            while (packet == None):
                 packet=self.client.rxpacket();
                 
             print "DB4 = %d" %packet[9]
@@ -861,22 +861,22 @@ class GoodFETMCPCANCommunication:
             starttime = time.time()
             
             # spit new value for 1 second
-            while (time.time()-starttime < 1)
+            while (time.time()-starttime < 1):
                 self.multiPacketSpit(packet0rts=True)
             
 
 
-[SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+            [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                       0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                       # lower nibble is DLC                   
                       packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
     
     
-        while((time.time()-starttime < duration)):
-                    
-                    if(faster):
-                        packet=self.client.fastrxpacket();
-                    else:
+#        while((time.time()-starttime < duration)):
+#                    
+#                    if(faster):
+#                        packet=self.client.fastrxpacket();
+#                    else:
 
 
                 

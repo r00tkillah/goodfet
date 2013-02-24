@@ -180,7 +180,8 @@ class DisplayApp:
         """
         self.running.set(0)
         self.running.trace('w',self.updateStatus)
-        self.connectBus()
+        #self.connectBus()
+        self.testConnect()
 #        if( self.experimentFile != None):
 #            try:
 #                pathInd = string.rfind(self.experimentFile,"/")
@@ -1598,6 +1599,58 @@ class DisplayApp:
         This method returns the rate that the GOODTHOPTER10 is set to
         """
         return self.freq
+    
+    def testConnect(self):
+        if( self.experimentFile != None):
+            
+            pathInd = string.rfind(self.experimentFile,"/")
+            path = self.experimentFile[:pathInd+1]
+            #do not want the / and don't wan the .py
+            sys.path.insert(0, path) #add path to file
+            classFile = self.experimentFile[pathInd+1:-3]
+                
+            guipathInd = string.rfind(self.experimentGUIFile,"/")
+            path = self.experimentGUIFile[:guipathInd+1]
+            classFileName = self.experimentGUIFile[guipathInd+1:-3]
+            sys.path.insert(0,path)
+            importClasses = [classFile, classFileName]
+                
+                 
+            self.mod = map(__import__, importClasses)
+            print self.mod
+            # need to get class name
+            fn = getattr(self.mod[0],classFile)
+            assert callable(fn), "Class is not the same name as file given!"
+            #get class for GUI addition
+            self.ourCarGuiClass = getattr(self.mod[1],classFileName)
+            assert callable(self.ourCarGuiClass), "Class is not the same as file given!"
+            #self.comm = self.mod[0].FordExperimennts(self.DATA_LOCATION)
+            print fn
+            self.comm = fn(self.DATA_LOCATION)
+                
+            print "connected"
+            self.statusLabel.config(bg="green")
+            self.statusString.set("Ready")
+            self.CarExtention = True
+            self.buildCarModule() #build the frame
+            for bt in self.buttons:
+                if( bt[0] == 'Our Car'):
+                    bt[1].config(state=tk.NORMAL)
+                
+            
+        
+        try:
+            #self.comm = GoodFETMCPCANCommunication()
+            self.comm = FordExperiments(self.DATA_LOCATION)
+            #self.comm = experiments(self.DATA_LOCATION)
+            """ Stores the communication with the CAN class methods """
+            self.statusLabel.config(bg="green")
+            self.statusString.set("Ready")
+        except:
+            print "Board not properly connected. please connect and reset"
+            self.comm = None
+            self.statusLabel.config(bg="red")
+            self.statusString.set("Not Connected")
 
     def connectBus(self):
         """ 

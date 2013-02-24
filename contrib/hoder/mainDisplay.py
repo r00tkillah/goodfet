@@ -17,6 +17,7 @@ import os
 import thread
 import ConfigParser
 from Tkinter import *
+from FordExperimentsFrame import FordExperimentsFrame
 
 sys.path.insert(0,'../../trunk/client/')
 from GoodFETMCPCANCommunication import *
@@ -110,6 +111,8 @@ class DisplayApp:
         print experimentInfo
         self.packetInformation = experimentInfo["packetinformation"]
         self.experimentFile = experimentInfo.get("experimentfile")
+        self.experimentGUIFile = experimentInfo.get("experiment_gui_file")
+        self.CarExtention = False
         self.loadJson()
         
         
@@ -163,10 +166,12 @@ class DisplayApp:
         self.buildExperimentCanvas()
         self.buildSQLCanvas()
         self.buildInfoFrame()
+        self.buildCarFrame()
+        
         self.RightSideCanvas.pack(side=tk.RIGHT,expand=tk.YES,fill=tk.BOTH)
         #tk.Misc.lift(self.blankCanvas, aboveThis=self.sniffFrame)
         self.sniffFrameLift()
-    
+        tk.Misc.lift(self.carFrame, aboveThis = None)
         self.running = Tkinter.IntVar()
         """ 
         This is a boolean value which when false tells you that there is a 
@@ -174,27 +179,61 @@ class DisplayApp:
         """
         self.running.set(0)
         self.running.trace('w',self.updateStatus)
+        self.connectBus()
 #        if( self.experimentFile != None):
 #            try:
-#                self.comm = 
+#                pathInd = string.rfind(self.experimentFile,"/")
+#                path = self.experimentFile[:pathInd+1]
+#                #do not want the / and don't wan the .py
+#                sys.path.insert(0, path) #add path to file
+#                classFile = self.experimentFile[pathInd+1:-3]
+#                
+#                guipathInd = string.rfind(self.experimentGUIFile,"/")
+#                path = self.experimentGUIFile[:guipathInd+1]
+#                classFileName = self.experimentGUIFile[guipathInd+1:-3]
+#                sys.path.insert(0,path)
+#                importClasses = [classFile, classFileName]
+#                
+#                 
+#                self.mod = map(__import__, importClasses)
+#                # need to get class name
+#                fn = getattr(mod[0],classFile)
+#                assert callable(fn), "Class is not the same name as file given!"
+#                #get class for GUI addition
+#                self.ourCarGuiClass = getattr(mod[1],classFileName)
+#                assert callable(self.ourCarGuiClass), "Class is not the same as file given!"
+#                #self.comm = self.mod[0].FordExperimennts(self.DATA_LOCATION)
+#                self.comm = fn(self.DATA_LOCATION)
+#                print "connected"
+#                self.statusLabel.config(bg="green")
+#                self.statusString.set("Ready")
+#                self.CarExtention = True
+#                self.buildCarModule() #build the frame
+#                for bt in self.buttons:
+#                    if( bt[0] == 'Our Car'):
+#                        bt[1].config(state=tk.NORMAL)
 #                
 #            except:
-#                
+#                tkMessageBox.showwarning('Unable to import Car Specific Module', \
+#                'Unable to import the following files included in settings: %s \n and %s'%(self.experimentFile, self.experimentGUIFile))
+#                for bt in self.buttons:
+#                    if( bt[0] == 'Our Car'):
+#                        bt[1].config(state=tk.DISABLED)
 #            else:
 #                return
-        
-        try:
-            #self.comm = GoodFETMCPCANCommunication()
-            self.comm = FordExperiments(self.DATA_LOCATION)
-            #self.comm = experiments(self.DATA_LOCATION)
-            """ Stores the communication with the CAN class methods """
-            self.statusLabel.config(bg="green")
-            self.statusString.set("Ready")
-        except:
-            print "Board not properly connected. please connect and reset"
-            self.comm = None
-            self.statusLabel.config(bg="red")
-            self.statusString.set("Not Connected")
+#        
+#        try:
+#            #self.comm = GoodFETMCPCANCommunication()
+#            self.comm = FordExperiments(self.DATA_LOCATION)
+#            #self.comm = experiments(self.DATA_LOCATION)
+#            """ Stores the communication with the CAN class methods """
+#            self.statusLabel.config(bg="green")
+#            self.statusString.set("Ready")
+#        except:
+#            print "Board not properly connected. please connect and reset"
+#            self.comm = None
+#            self.statusLabel.config(bg="red")
+#            self.statusString.set("Not Connected")
         #self.running = False 
         
   
@@ -833,7 +872,9 @@ class DisplayApp:
         self.blankCanvasInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx, height = self.ControlsDy)
         self.blankCanvasInfoFrame.grid(row=i, column = 0, columnspan=20,sticky=tk.N+tk.W+tk.E+tk.S)
         self.infoFrame.grid(row=0,column=0,sticky=tk.N+tk.W)
-    
+        
+        self.updateInfo() #load first set of data
+        self.liftGeneralInfo() #put the general info on the top
     
     def buildByteInfoFrame(self,i):
         self.byteInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx,height = self.ControlsDy)
@@ -861,8 +902,8 @@ class DisplayApp:
         
         self.packetInfoText.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
         self.packetInfoText.config(state=tk.DISABLED)
+        self.packetHyperlink = tkHyperlinkManager.HyperlinkManager(self.packetInfoText) 
         
-    
     def buildGeneralInfoFrame(self,i):
         self.generalInfoFrame = tk.Canvas(self.infoFrame, width=self.ControlsDx, height = self.ControlsDy)   
         k = 0; #row num
@@ -987,15 +1028,89 @@ class DisplayApp:
             
             
     
-    def updateInfo(self, name, index, mode):
+    def updateInfo(self, name = None, index = None, mode = None):
         """
         This method is called when the user clicks on an arbitration id in the data text area
         """
-        print "name: ", name
-        print "index: ", index
-        print "mode: ", mode
-        print "change"  
+        idChoice = self.IDchoice.get() # get arbitration id we want to know about
+        found = False
+        for element in self.options:
+            if( element == idChoice):
+                found = True
+                break
+        if( found == False):
+            tkMessageBox.showwarning('Unknown ID', \
+                'There is no information on the id, ' + idChoice)
+            return
+        GeneralInfo = self.packetInformationData[idChoice]['GeneralInfo']
+        self.generalInfoVars['canbus'].set(GeneralInfo['CANspeed'])
+        self.generalInfoVars['frequency'].set(GeneralInfo['frequency'])
+        correlations = GeneralInfo['correlations']
+        corrText = ""
+        for corr in correlations:
+            corrText += corr + "\n"
+        correlationsText = self.generalInfoVars['correlations']
+        correlationsText.config(state=tk.NORMAL) 
+        correlationsText.delete(1.0, END) # clear the text box for the data
+        correlationsText.insert(END,corrText)
+        correlationsText.config(state=tk.DISABLED)
         
+        commentTags = GeneralInfo['comment tags']
+        commentT = ""
+        for comm in commentTags:
+            commentT += comm + "\n"
+        commentText = self.generalInfoVars['commentTags']
+        commentText.config(state=tk.NORMAL)
+        commentText.delete(1.0,END)
+        commentText.insert(END,commentT)
+        commentText.config(state=tk.DISABLED)
+        
+        commentList = GeneralInfo['comments']
+        comment = ""
+        for comm in commentList:
+            comment += comm + "\n"
+        
+        commentText = self.generalInfoVars['comments']
+        commentText.config(state=tk.NORMAL)
+        commentText.delete(1.0,END)
+        commentText.insert(END,comment)
+        commentText.config(state=tk.DISABLED)
+        
+        
+        ### PACKET INFORMATION ###
+        self.packetHyperlink.reset() #remove all hyperlinks
+        self.packetInfoText.config(state=tk.NORMAL)
+        self.packetInfoText.delete(1.0,END)
+        packetDict =self.packetInformationData[idChoice]['Packets']
+        keys = packetDict.keys()
+        for key in keys:
+            packet = packetDict[key]
+            self.packetInfoText.insert(END, key + ":", self.packetHyperlink.add(self.injectPacket,[idChoice, packet]))
+            self.packetInfoText.insert(END,"\t\t\t " + packet + " \n")
+        self.packetInfoText.config(state=tk.DISABLED)
+        
+    def injectPacket(self, data):
+        #print data
+        self.writeData['sID'].set(data[0])
+        self.writeData['rtr'].set(0)
+        self.writeData['fromFile'].set(0)
+        packet = data[1]
+        packetData = packet.split(" ")
+        for i in range(0,8):
+            self.writeData['db%d'%i].set(packetData[i])
+            
+        self.sniffFrameLift()
+    
+    def buildCarFrame(self):
+        self.carFrame = tk.Frame(self.RightSideCanvas,width=self.ControlsDx, height=self.ControlsDy)
+        if( self.CarExtention == True):
+            self.buildCarModule()
+            #testM = FordExperimentsFrame(self.carFrame)
+        
+        self.carFrame.grid(row=0,column=0,sticky=tk.N+tk.W+tk.S+tk.E)
+        
+    def buildCarModule(self):
+        self.carMod = self.ourCarGuiClass(self.carFrame,self.comm)
         
     def buildSQLCanvas(self):
         """
@@ -1391,6 +1506,7 @@ class DisplayApp:
         self.root.bind( '<Control-s>', self.sniffFrameLift)
         self.root.bind( '<Control-e>', self.experimentFrameLift)
         self.root.bind( '<Control-u>', self.sqlFrameLift)
+        self.root.bind( '<Control-i>', self.infoFrameLift)
         #self.root.bind('<Return>',self.handleStim )
         #self.root.bind('<Key>',self.handleKeys)
 
@@ -1488,17 +1604,73 @@ class DisplayApp:
         It will first check to make sure that no
         method is currently communicating with the bus. 
         """
-        if( self.running.get() == 1):
-            return
+        if( self.experimentFile != None):
+            try:
+                pathInd = string.rfind(self.experimentFile,"/")
+                path = self.experimentFile[:pathInd+1]
+                #do not want the / and don't wan the .py
+                sys.path.insert(0, path) #add path to file
+                classFile = self.experimentFile[pathInd+1:-3]
+                
+                guipathInd = string.rfind(self.experimentGUIFile,"/")
+                path = self.experimentGUIFile[:guipathInd+1]
+                classFileName = self.experimentGUIFile[guipathInd+1:-3]
+                sys.path.insert(0,path)
+                importClasses = [classFile, classFileName]
+                
+                 
+                self.mod = map(__import__, importClasses)
+                # need to get class name
+                fn = getattr(mod[0],classFile)
+                assert callable(fn), "Class is not the same name as file given!"
+                #get class for GUI addition
+                self.ourCarGuiClass = getattr(mod[1],classFileName)
+                assert callable(self.ourCarGuiClass), "Class is not the same as file given!"
+                #self.comm = self.mod[0].FordExperimennts(self.DATA_LOCATION)
+                self.comm = fn(self.DATA_LOCATION)
+                print "connected"
+                self.statusLabel.config(bg="green")
+                self.statusString.set("Ready")
+                self.CarExtention = True
+                self.buildCarModule() #build the frame
+                for bt in self.buttons:
+                    if( bt[0] == 'Our Car'):
+                        bt[1].config(state=tk.NORMAL)
+                
+            except:
+                tkMessageBox.showwarning('Unable to import Car Specific Module', \
+                'Unable to import the following files included in settings: %s \n and %s'%(self.experimentFile, self.experimentGUIFile))
+                for bt in self.buttons:
+                    if( bt[0] == 'Our Car'):
+                        bt[1].config(state=tk.DISABLED)
+            else:
+                return
+        
         try:
+            #self.comm = GoodFETMCPCANCommunication()
             self.comm = FordExperiments(self.DATA_LOCATION)
             #self.comm = experiments(self.DATA_LOCATION)
-            print "connected"
-            self.statusString.set("Ready")
+            """ Stores the communication with the CAN class methods """
             self.statusLabel.config(bg="green")
+            self.statusString.set("Ready")
         except:
-            print "Board not properly connected. please plug in the GoodThopter10 and re-attempt"
+            print "Board not properly connected. please connect and reset"
             self.comm = None
+            self.statusLabel.config(bg="red")
+            self.statusString.set("Not Connected")
+        
+        
+#        if( self.running.get() == 1):
+#            return
+#        try:
+#            self.comm = FordExperiments(self.DATA_LOCATION)
+#            #self.comm = experiments(self.DATA_LOCATION)
+#            print "connected"
+#            self.statusString.set("Ready")
+#            self.statusLabel.config(bg="green")
+#        except:
+#            print "Board not properly connected. please plug in the GoodThopter10 and re-attempt"
+#            self.comm = None
 
     def checkComm(self):
         """
@@ -1799,7 +1971,7 @@ class DisplayApp:
         """
         print "Request for information on %d" %id
         
-        
+        self.IDchoice.set("%d"%id)
         
         
         
@@ -1973,7 +2145,7 @@ class DisplayApp:
         
     def ourCarFrameLift(self, event = None):
         tk.Misc.lift(self.blankCanvas, aboveThis = None)
-            
+        tk.Misc.lift(self.carFrame,aboveThis = None) 
     
     def idInfo(self):
         """ This method will open an info box for the user

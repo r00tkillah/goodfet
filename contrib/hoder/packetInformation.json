@@ -2,16 +2,22 @@
     "Arbitration Ids":{
         "1056":{
             "GeneralInfo":{
-                "frequeyncy":0,
-                "correlations":"INSERT CORRELATIONS",
-                "CANspeed":" 500",
+                "frequency":0,
+                "correlations":[
+                                "INSERT CORRELATIONS",
+                                "correlation2"
+                                ],
+                "CANspeed":"500",
                 "IgnitionBehavior": "INSERT COMMENT ignition",
                 "EngineOffBehavior": "INSERT COMMENT_ engine off",
                 "comment tags": [
                        "INSERT TAG1",
                        "INSERT TAG2"
                        
-                       ]
+                       ],
+                "comments":[
+                    "Comments about the packet"
+                ]
                 
             },
         
@@ -19,9 +25,11 @@
                 "Byte1":"DOES THIS"
                 
             },
-            "Packets": [
-                "PACKET 1"
-               ]
+            "Packets": {
+            
+                "fakeSpeodometer":"000 000 000 000 000 000 000 000",
+                "errors":"255 255 255 255 255 255 255 255"
+            }
         
         
         }

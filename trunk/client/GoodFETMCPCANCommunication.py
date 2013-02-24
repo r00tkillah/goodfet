@@ -830,55 +830,6 @@ class GoodFETMCPCANCommunication:
             self.client.txpacket(packet)
 
 
-    def speedometerHack(self):
-        
-        self.client.serInit()
-        self.spitSetup(500)
-
-        self.addFilter([513, 513, 513])
-        
-        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
-        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
-                
-        while(1):
-            
-            packet = None;
-
-            # catch a packet and check its db4 value
-            while (packet == None):
-                packet=self.client.rxpacket();
-                
-            print "DB4 = %d" %packet[9]
-            mph = 1.617*packet[9] - 63.5
-            print "Current MPH = 1.617(%d)-63.5 = %d" %(packet[9], mph)
-                
-            # calculate our new mph and db4 value
-            mph = mph + 15;
-            packet[9] = ( mph + 63.5 ) / 1.617
-
-            # load new packet into TXB0 and check time
-            self.multiPacketSpit(packet0=packet, packet0rts=True)
-            starttime = time.time()
-            
-            # spit new value for 1 second
-            while (time.time()-starttime < 1):
-                self.multiPacketSpit(packet0rts=True)
-            
-
-
-            [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
-                      0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-                      # lower nibble is DLC                   
-                      packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
-    
-    
-#        while((time.time()-starttime < duration)):
-#                    
-#                    if(faster):
-#                        packet=self.client.fastrxpacket();
-#                    else:
-
-
                 
         
         

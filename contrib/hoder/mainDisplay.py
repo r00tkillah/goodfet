@@ -18,13 +18,15 @@ import os
 import thread
 import ConfigParser
 from Tkinter import *
-from FordExperimentsFrame import FordExperimentsFrame
 
+###############################
+#### GOODTHOPTER 10 FILES #####
+###############################
 sys.path.insert(0,'../../trunk/client/')
 from GoodFETMCPCANCommunication import *
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from experiments import experiments
-from FordExperiments import FordExperiments
+#from FordExperiments import FordExperiments
 from intelhex import IntelHex;
 
 
@@ -109,17 +111,16 @@ class DisplayApp:
         
         
         experimentInfo = self.ConfigSectionMap(Config, "experimentInfo")
-        print experimentInfo
         self.packetInformation = experimentInfo["packetinformation"]
+        """ This file stores the user's known information about the packets. This is a json file"""
         self.experimentFile = experimentInfo.get("experimentfile")
+        """ This is the experiment file that is car specific. this is for adding a car specific module"""
         self.experimentGUIFile = experimentInfo.get("experiment_gui_file")
+        """ This is the GUI file that is needed to add the car specific module to the CAN Reader"""
         self.CarExtention = False
+        """ This is false when there is no car extension, true otherwise"""
         self.loadJson()
-        
-        
-        
-        
-        
+        """ This loads the json file with our packet information"""
         
         
         self.verbose = True 
@@ -163,6 +164,9 @@ class DisplayApp:
         """ This is a blank canvas to cover hidden layers """
         self.blankCanvas.grid(row=0,column=0)
         
+        ##################################
+        ### BUILD RIGHT HAND SIDE TABS ###
+        ##################################
         self.buildCanvas()
         self.buildExperimentCanvas()
         self.buildSQLCanvas()
@@ -170,9 +174,10 @@ class DisplayApp:
         self.buildCarFrame()
         
         self.RightSideCanvas.pack(side=tk.RIGHT,expand=tk.YES,fill=tk.BOTH)
-        #tk.Misc.lift(self.blankCanvas, aboveThis=self.sniffFrame)
+        
+        # LIFT THE SNIFF FRAME TO TOP
         self.sniffFrameLift()
-        tk.Misc.lift(self.carFrame, aboveThis = None)
+        
         self.running = Tkinter.IntVar()
         """ 
         This is a boolean value which when false tells you that there is a 
@@ -180,63 +185,10 @@ class DisplayApp:
         """
         self.running.set(0)
         self.running.trace('w',self.updateStatus)
-        #self.connectBus()
-        self.testConnect()
-#        if( self.experimentFile != None):
-#            try:
-#                pathInd = string.rfind(self.experimentFile,"/")
-#                path = self.experimentFile[:pathInd+1]
-#                #do not want the / and don't wan the .py
-#                sys.path.insert(0, path) #add path to file
-#                classFile = self.experimentFile[pathInd+1:-3]
-#                
-#                guipathInd = string.rfind(self.experimentGUIFile,"/")
-#                path = self.experimentGUIFile[:guipathInd+1]
-#                classFileName = self.experimentGUIFile[guipathInd+1:-3]
-#                sys.path.insert(0,path)
-#                importClasses = [classFile, classFileName]
-#                
-#                 
-#                self.mod = map(__import__, importClasses)
-#                # need to get class name
-#                fn = getattr(mod[0],classFile)
-#                assert callable(fn), "Class is not the same name as file given!"
-#                #get class for GUI addition
-#                self.ourCarGuiClass = getattr(mod[1],classFileName)
-#                assert callable(self.ourCarGuiClass), "Class is not the same as file given!"
-#                #self.comm = self.mod[0].FordExperimennts(self.DATA_LOCATION)
-#                self.comm = fn(self.DATA_LOCATION)
-#                print "connected"
-#                self.statusLabel.config(bg="green")
-#                self.statusString.set("Ready")
-#                self.CarExtention = True
-#                self.buildCarModule() #build the frame
-#                for bt in self.buttons:
-#                    if( bt[0] == 'Our Car'):
-#                        bt[1].config(state=tk.NORMAL)
-#                
-#            except:
-#                tkMessageBox.showwarning('Unable to import Car Specific Module', \
-#                'Unable to import the following files included in settings: %s \n and %s'%(self.experimentFile, self.experimentGUIFile))
-#                for bt in self.buttons:
-#                    if( bt[0] == 'Our Car'):
-#                        bt[1].config(state=tk.DISABLED)
-#            else:
-#                return
-#        
-#        try:
-#            #self.comm = GoodFETMCPCANCommunication()
-#            self.comm = FordExperiments(self.DATA_LOCATION)
-#            #self.comm = experiments(self.DATA_LOCATION)
-#            """ Stores the communication with the CAN class methods """
-#            self.statusLabel.config(bg="green")
-#            self.statusString.set("Ready")
-#        except:
-#            print "Board not properly connected. please connect and reset"
-#            self.comm = None
-#            self.statusLabel.config(bg="red")
-#            self.statusString.set("Not Connected")
-        #self.running = False 
+        
+        ### CONNECT TO GOODTHOPTER 10 BOARD ###
+        self.connectBus()
+
         
   
     def writeiniFile(self, filename, section, option, value):
@@ -830,33 +782,49 @@ class DisplayApp:
     def buildInfoFrame(self):
         """
         This builds the tab that displays our information about the
-        arbitration ids and any known information
-        about the packets at the moment.
+        arbitration ids and any known information about the packets at the moment.
+        This will itself have 3 sub tabs: General Information, Bytes, Packets. These are
+        rebuilt for each arbitration id chosen.
         """
         i = 0 # row num
         self.infoFrame = tk.Frame(self.RightSideCanvas, width=self.ControlsDx, height=self.ControlsDy)
+        """ Frame the holds the display widgets for our packet information"""
         entryLabel = Tkinter.Label(self.infoFrame, text="ArbID: ")
         entryLabel.grid(row=i,column=0)
+        
+        
+        
+        ####################################
+        #### ARBITRATION ID OPTION MENU ####
+        ####################################
+        
         
         # get all the arbIDS
         ids = self.packetInformationData.keys()
         intIds = []
-        #convert to integer to sort
+        #convert to integer to sort so that they are in order
         for element in ids:
             intIds.append(int(element))
         intIds = sorted(intIds)
         ids = []
+        #need to convert back to strings
         for element in intIds:
             ids.append(str(element))
             
         self.options = ids
+        """ These are the known arbitration ids"""
         self.IDchoice = Tkinter.StringVar()
         self.IDchoice.set(self.options[0])
         self.IDchoice.trace('w',self.updateInfo)
-        #self.splitChoice = OptionMenu(self.canvas, self.splitValue, *keys)
+        
+        
         idChoiceOptions= OptionMenu(self.infoFrame,self.IDchoice, *tuple(self.options))
         idChoiceOptions.grid(row=i,column=1)
         i += 1
+        
+        #############################
+        ##### CREATE TAB BUTTONS ####
+        #############################
         
         button = tk.Button(self.infoFrame, text="General Info", command=self.liftGeneralInfo)
         button.grid(row=i,column=0)
@@ -868,10 +836,14 @@ class DisplayApp:
         button.grid(row=i,column=2)
         
         i += 1
+        ###################
+        ### CREATE TABS ###
+        ###################
         self.buildGeneralInfoFrame(i)
         self.buildPacketInfoFrame(i)
         self.buildByteInfoFrame(i)
         self.blankCanvasInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx, height = self.ControlsDy)
+        """ This is a blank canvas to hide frames when they are not on top"""
         self.blankCanvasInfoFrame.grid(row=i, column = 0, columnspan=20,sticky=tk.N+tk.W+tk.E+tk.S)
         self.infoFrame.grid(row=0,column=0,sticky=tk.N+tk.W)
         
@@ -879,20 +851,43 @@ class DisplayApp:
         self.liftGeneralInfo() #put the general info on the top
     
     def buildByteInfoFrame(self,i):
+        """
+        This method will build the frame that will display our information about the specific
+        bytes of an arbitration ID. 
+        
+        @type i: Integer
+        @param i: This is the row to add our Frame to. This is for the grid formation 
+        """
         self.byteInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx,height = self.ControlsDy)
+        """ Byte info frame """
         self.byteInfoFrame.grid(row=i,column=0,columnspan=20, sticky=tk.N+tk.W+tk.E+tk.S)
         k = 0
         entryLabel  = tk.Label(self.byteInfoFrame,text="Byte Information: ", font=self.BOLDFONT)
         entryLabel.grid(row=k,column=0,sticky=tk.W)
         
     def buildPacketInfoFrame(self,i):
+        """
+        This method will build the frame that will display our information about the specific
+        packets of an arbitration ID. These are packets that we know what they are telling us or
+        broadcasting to the bus. Each packet description will be click-able. This will fill the 
+        write options under the sniff tab and then change focus to this tab. This will allow for
+        easy injection of these packets.
+        
+        @type i: Integer
+        @param i: This is the row to add our Frame to. This is for the grid formation 
+        """
         self.packetInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx, height = self.ControlsDy)
+        """ Packet Info tab"""
         self.packetInfoFrame.grid(row=i,column=0,columnspan=20, sticky=tk.N+tk.W+tk.E+tk.S)
+        
+        
         k = 0
         entryLabel = tk.Label(self.packetInfoFrame, text = "Known Packets", font = self.BOLDFONT)
         entryLabel.grid(row = k, column = 0, sticky=tk.W)
         k+=1
         self.packetInfoText = tk.Text(self.packetInfoFrame, width=80, height=30,wrap=tk.WORD,borderwidth=3)
+        """ This is the text widget where all the packets will be displayed to """
+        
         scroll = tk.Scrollbar(self.packetInfoFrame)
         scroll.grid(row = k, column = 3, sticky=tk.N+tk.S)
         
@@ -905,26 +900,48 @@ class DisplayApp:
         self.packetInfoText.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
         self.packetInfoText.config(state=tk.DISABLED)
         self.packetHyperlink = tkHyperlinkManager.HyperlinkManager(self.packetInfoText) 
+        """ 
+        This contains the links so that we can inject packets in this list by clicking on the
+        the provided description
+        """
         
     def buildGeneralInfoFrame(self,i):
+        """
+        This method will build the frame that will display our information about our
+        general knowledge of an arbitration ID.
+        
+        @type i: Integer
+        @param i: This is the row to add our Frame to. This is for the grid formation 
+        """
         self.generalInfoFrame = tk.Canvas(self.infoFrame, width=self.ControlsDx, height = self.ControlsDy)   
+        """ general information tab"""
+        self.generalInfoFrame.grid(row=i, column = 0, columnspan = 20, sticky=tk.N+tk.W + tk.E+tk.S)
+       
         k = 0; #row num
         entryLabel = Tkinter.Label(self.generalInfoFrame,text="General Information:",font = self.BOLDFONT)
         entryLabel.grid(row = k, column = 0, sticky = tk.W, columnspan = 2)
-        self.generalInfoFrame.grid(row=i, column = 0, columnspan = 20, sticky=tk.N+tk.W + tk.E+tk.S)
+       
        
         k += 1;
         self.generalInfoVars = {}
-        """ This will store all of the variables for resetting the General Infos page"""
+        """ This will store all of the variables for resetting the General Info's page"""
+        
+        # arbitration id frequency
         varId = tk.StringVar()
         self.generalInfoVars['frequency'] = varId
-        
         entryLabel = Tkinter.Label(self.generalInfoFrame, text="Frequency: ")
         entryLabel.grid(row = k, column = 0, sticky=tk.W)
         entryLabel = Tkinter.Label(self.generalInfoFrame, textvariable = varId)
         entryLabel.grid(row = k, column = 1, sticky=tk.W)
         
         k +=1 
+        
+        
+        #########################
+        ### CAN BUS FREQUENCY ###
+        #########################
+        
+        # bus speed that it is on
         varId = tk.StringVar()
         self.generalInfoVars['canbus'] = varId
         entryLabel = Tkinter.Label(self.generalInfoFrame, text="CAN Bus: ")
@@ -934,12 +951,17 @@ class DisplayApp:
         
         k += 1
         
+        
+        ##################################
+        ### KNOWN CORRELATIONS TEXTBOX ###
+        ##################################
+        
+        #known correlations to the arbitration id
         entryLabel = Tkinter.Label(self.generalInfoFrame,text="Correlations: ")
         entryLabel.grid(row = k, column = 0, sticky=tk.W)
         
         k += 1
         correlationsText = tk.Text(self.generalInfoFrame,width=60, height = 4, wrap=tk.WORD, borderwidth=3)
-        correlationsText.insert(END, "addfks;lfjasdlkfjadsflk;ajflk;dfja;lskfjdslk;fajfl;kdjfa;lkfjadsf;\n\n\n\nn\n\adfksljfkaljf;lakdsfjadlks;fj;flk\n\n\n\n\n\n\n\nn\n\n\n\n\n\n\asdlfkjadslkfjadslk;fjafls;k")
         
         scroll = tk.Scrollbar(self.generalInfoFrame)
         scroll.grid(row = k, column=3,sticky=tk.N+tk.S)
@@ -955,13 +977,17 @@ class DisplayApp:
         self.generalInfoVars['correlations'] = correlationsText
         
         k +=2
+        # Commment tags, this relates to our SQL database and the comment field
+        
+        ###########################
+        ### COMMENT TAG TEXTBOX ###
+        ###########################
         
         entryLabel = Tkinter.Label(self.generalInfoFrame, text="Comment Tags:")
         entryLabel.grid(row=k,column=0,sticky=tk.W)
         
         k += 1
         commentTags = tk.Text(self.generalInfoFrame,width=60, height = 4, wrap=tk.WORD, borderwidth=3)
-        commentTags.insert(END, "addfks;lfjasdlkfjadsflk;ajflk;dfja;lskfjdslk;fajfl;kdjfa;lkfjadsf;\n\n\n\nn\n\adfksljfkaljf;lakdsfjadlks;fj;flk\n\n\n\n\n\n\n\nn\n\n\n\n\n\n\asdlfkjadslkfjadslk;fjafls;k")
         
         scroll = tk.Scrollbar(self.generalInfoFrame)
         scroll.grid(row = k, column=3,sticky=tk.N+tk.S)
@@ -978,12 +1004,16 @@ class DisplayApp:
         self.generalInfoFrame.grid(row=i, column = 0, columnspan = 20, sticky=tk.N+tk.W)
 
         k += 2
+        
+        ################################
+        ### GENERAL COMMENTS TEXTBOX ###
+        ################################
+        
         entryLabel = Tkinter.Label(self.generalInfoFrame, text="General Comments: ")
         entryLabel.grid(row=k,column=0,sticky=tk.W)
         k += 1
         
         comments = tk.Text(self.generalInfoFrame,width=60, height = 4, wrap=tk.WORD, borderwidth=3)
-        comments.insert(END, "addfks;lfjasdlkfjadsflk;ajflk;dfja;lskfjdslk;fajfl;kdjfa;lkfjadsf;\n\n\n\nn\n\adfksljfkaljf;lakdsfjadlks;fj;flk\n\n\n\n\n\n\n\nn\n\n\n\n\n\n\asdlfkjadslkfjadslk;fjafls;k")
         
         scroll = tk.Scrollbar(self.generalInfoFrame)
         scroll.grid(row = k, column=3,sticky=tk.N+tk.S)
@@ -999,14 +1029,26 @@ class DisplayApp:
     
     
     def liftGeneralInfo(self):
+        """
+        This method lifts the General information tab to the top and 
+        makes it viewable to the screen.
+        """
         tk.Misc.lift(self.blankCanvasInfoFrame,aboveThis = None)
         tk.Misc.lift(self.generalInfoFrame, aboveThis=None)
         
     def liftBytesInfo(self):
+        """
+        This method lifts the Bytes information tab to the top and 
+        makes it viewable to the screen.
+        """
         tk.Misc.lift(self.blankCanvasInfoFrame,aboveThis = None)
         tk.Misc.lift(self.byteInfoFrame,aboveThis = None)
         
     def liftPackets(self):
+        """
+        This method lifts the Packets information tab to the top and 
+        makes it viewable to the screen.
+        """
         tk.Misc.lift(self.blankCanvasInfoFrame, aboveThis = None)
         tk.Misc.lift(self.packetInfoFrame, aboveThis = None)
     
@@ -1032,21 +1074,36 @@ class DisplayApp:
     
     def updateInfo(self, name = None, index = None, mode = None):
         """
-        This method is called when the user clicks on an arbitration id in the data text area
+        This method is called when the user changes the option menu for arbitration IDs under our
+        packetInformation tab. This will update these packet information tabs with our knowledge of
+        the new ID. If the set ID does not exist (was set when the user clicked on the id from sniffed
+        data) then a warning dialog will appear. 
         """
         idChoice = self.IDchoice.get() # get arbitration id we want to know about
         found = False
+        # make sure that the element exists
         for element in self.options:
             if( element == idChoice):
                 found = True
                 break
+        # the element does not exist -- throw a warning dialog
         if( found == False):
             tkMessageBox.showwarning('Unknown ID', \
                 'There is no information on the id, ' + idChoice)
             return
+        
+        
+        ###############################
+        ### UPDATE GENERAL INFO TAB ###
+        ###############################
+        
         GeneralInfo = self.packetInformationData[idChoice]['GeneralInfo']
+        # CAN BUS FREQUENCY
         self.generalInfoVars['canbus'].set(GeneralInfo['CANspeed'])
+        # FREQUENCY OF PACKET
         self.generalInfoVars['frequency'].set(GeneralInfo['frequency'])
+        
+        ### KNOWN CORRELATIONS ###
         correlations = GeneralInfo['correlations']
         corrText = ""
         for corr in correlations:
@@ -1057,6 +1114,8 @@ class DisplayApp:
         correlationsText.insert(END,corrText)
         correlationsText.config(state=tk.DISABLED)
         
+        
+        ### COMMENT TAGS ###
         commentTags = GeneralInfo['comment tags']
         commentT = ""
         for comm in commentTags:
@@ -1067,6 +1126,7 @@ class DisplayApp:
         commentText.insert(END,commentT)
         commentText.config(state=tk.DISABLED)
         
+        ### COMMENTS ###
         commentList = GeneralInfo['comments']
         comment = ""
         for comm in commentList:
@@ -1078,8 +1138,9 @@ class DisplayApp:
         commentText.insert(END,comment)
         commentText.config(state=tk.DISABLED)
         
-        
+        ##########################
         ### PACKET INFORMATION ###
+        ##########################
         self.packetHyperlink.reset() #remove all hyperlinks
         self.packetInfoText.config(state=tk.NORMAL)
         self.packetInfoText.delete(1.0,END)
@@ -1087,31 +1148,61 @@ class DisplayApp:
         keys = packetDict.keys()
         for key in keys:
             packet = packetDict[key]
+            # add a hyperlink to the description
             self.packetInfoText.insert(END, key + ":", self.packetHyperlink.add(self.injectPacket,[idChoice, packet]))
             self.packetInfoText.insert(END,"\t\t\t " + packet + " \n")
         self.packetInfoText.config(state=tk.DISABLED)
         
     def injectPacket(self, data):
-        #print data
+        """
+        This method will take the data that is given and fill the write method section
+        in the sniff tab. It will also switch the view to this tab so that the user
+        can easily inject this packet
+        
+        @type data: List
+        @param data: This is a list that contains the data packet that we want to inject.
+               data[0] contains the arbitration id as a string. data[1] contains the 
+               data bytes as a string. The format of the data within the string is assumed
+               to be in decimal form with spaces between the bytes.
+        """
+        #
+        
         self.writeData['sID'].set(data[0])
         self.writeData['rtr'].set(0)
         self.writeData['fromFile'].set(0)
         packet = data[1]
         packetData = packet.split(" ")
+        # fill the data byte section
         for i in range(0,8):
             self.writeData['db%d'%i].set(packetData[i])
-            
+        # lift the sniff tab to view 
         self.sniffFrameLift()
     
+    
     def buildCarFrame(self):
+        """
+        This method will build the car module tab. It will build the frame but will only build the module
+        if one has been set in the settings file. This allows users to create their own module that is car
+        specific but can still be run from the GUI. See L{connectBus} for information on the module connection.
+        """
         self.carFrame = tk.Frame(self.RightSideCanvas,width=self.ControlsDx, height=self.ControlsDy)
+        """ Car module frame """
+        
+        # Only build the car module if there is a file that has been set to do it ( indicated by the boolean).
         if( self.CarExtention == True):
             self.buildCarModule()
-            #testM = FordExperimentsFrame(self.carFrame)
+            
         
         self.carFrame.grid(row=0,column=0,sticky=tk.N+tk.W+tk.S+tk.E)
         
     def buildCarModule(self):
+        """
+        This will build the car module. This is specific to a car and the class method to do this
+        can be set by the user. The user's class should take in the frame where it will write all
+        of it's components as well as a reference to the experiment file that must also be specified
+        in the settings file. This experiment file class is a sub class of experiments which is a sub
+        class of GoodFETMCPCANCommunication. 
+        """
         self.carMod = self.ourCarGuiClass(self.carFrame,self.comm)
         
     def buildSQLCanvas(self):
@@ -1486,7 +1577,7 @@ class DisplayApp:
         self.buttons.append( ( 'SQL', tk.Button( self.cntlframe, text="MySQL", \
                                                     command=self.sqlFrameLift, width=10)))
         self.buttons[-1][1].pack(side=tk.LEFT)
-        self.buttons.append( ('Our Car', tk.Button(self.cntlframe, text="Our Car", \
+        self.buttons.append( ('Car Module', tk.Button(self.cntlframe, text="Car Module", \
                                                     command=self.ourCarFrameLift, width=10)))
         self.buttons[-1][1].pack(side=tk.LEFT)
         
@@ -1526,7 +1617,32 @@ class DisplayApp:
         """
         print 'Terminating'
         self.root.destroy()
-             
+        
+    def setCarModule(self,experimentFileLocation, experimentGUILocation):
+        """
+        This method will save the new car module file locations that can be set in the
+        settings dialog box. They will be saved to the settings ini file but will not update
+        the current window. The program must be restarted for changes to take effect. A warning
+        will appear to indicate this.
+        
+        @type experimentFileLocation: String
+        @param experimentFileLocation: path to the experiment file that will be part of the car module. This should be a 
+                                       file that contains a class of the same name. The class is assumed to be a sub class
+                                       of the experiments class. 
+                                       
+        @type experimentGUILocation: String
+        @param experimentGUILocation: path to the experiment gui module addition. This will be a file that contains a class
+                                      of the same name. This class will print the module's addition to the GUI for the user to 
+                                      run the experiments included in the experimentFileLocation class.
+        """
+        self.experimentFile = experimentFileLocation;
+        self.experimentGUIFile = experimentGUILocation;
+        self.writeiniFile(self.SETTINGS_FILE, "experimentinfo", "experimentfile", experimentFileLocation)
+        self.writeiniFile(self.SETTINGS_FILE, "experimentinfo", 'experiment_gui_file', experimentGUILocation)
+        tkMessageBox.showwarning('Settings Changed', \
+                'Please restart to use new car module')
+        
+        
     def setDataManage(self,table, name, host, username, password, database):
         """
         This method will update the stored information for accessing the MYSQL database. 
@@ -1601,6 +1717,7 @@ class DisplayApp:
         return self.freq
     
     def testConnect(self):
+        """ this is to test module files """
         if( self.experimentFile != None):
             
             pathInd = string.rfind(self.experimentFile,"/")
@@ -1634,7 +1751,7 @@ class DisplayApp:
             self.CarExtention = True
             self.buildCarModule() #build the frame
             for bt in self.buttons:
-                if( bt[0] == 'Our Car'):
+                if( bt[0] == 'Car Module'):
                     bt[1].config(state=tk.NORMAL)
                 
             
@@ -1691,14 +1808,14 @@ class DisplayApp:
                 self.CarExtention = True
                 self.buildCarModule() #build the frame
                 for bt in self.buttons:
-                    if( bt[0] == 'Our Car'):
+                    if( bt[0] == 'Car Module'):
                         bt[1].config(state=tk.NORMAL)
                 
             except:
                 tkMessageBox.showwarning('Unable to import Car Specific Module', \
-                'Unable to import the following files included in settings: %s \n and %s'%(self.experimentFile, self.experimentGUIFile))
+                'Unable to import the following modules included in settings:\n %s \n and\n %s'%(self.experimentFile, self.experimentGUIFile))
                 for bt in self.buttons:
-                    if( bt[0] == 'Our Car'):
+                    if( bt[0] == 'Car Module'):
                         bt[1].config(state=tk.DISABLED)
             else:
                 return
@@ -1716,18 +1833,6 @@ class DisplayApp:
             self.statusLabel.config(bg="red")
             self.statusString.set("Not Connected")
         
-        
-#        if( self.running.get() == 1):
-#            return
-#        try:
-#            self.comm = FordExperiments(self.DATA_LOCATION)
-#            #self.comm = experiments(self.DATA_LOCATION)
-#            print "connected"
-#            self.statusString.set("Ready")
-#            self.statusLabel.config(bg="green")
-#        except:
-#            print "Board not properly connected. please plug in the GoodThopter10 and re-attempt"
-#            self.comm = None
 
     def checkComm(self):
         """
@@ -1750,6 +1855,9 @@ class DisplayApp:
             return False
         
         return True
+    
+    def getExperimentFileLocations(self):
+        return [self.experimentFile, self.experimentGUIFile]
     
     def getDataLocation(self):
         """
@@ -2035,6 +2143,10 @@ class DisplayApp:
         
         
     def loadJson(self):
+        """
+        This method will load our packet informtion from the 
+        Json file specified in the settings.
+        """
         self.packetInformationData = self.dm.loadJson(self.packetInformation)['Arbitration Ids']
         
         
@@ -2915,6 +3027,41 @@ class settingsDialog(Toplevel):
         entryWidget.grid(row=i,column=2,columnspan=3,sticky=Tkinter.W)
         entryWidget["width"] = 30
         
+        i+=1
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Car Module file locations:"
+        entryLabel.grid(row=i,column=0,columnspan=2,sticky=tk.W)
+        i+=1
+        
+        fileLocations = self.dClass.getExperimentFileLocations()
+        
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "Module File: "
+        entryLabel.grid(row=i,column=1,columnspan=1,sticky=tk.W)
+        self.experimentFileLocation = Tkinter.StringVar()
+        if( fileLocations[0] == None):
+            self.experimentFileLocation.set("")
+        else:
+            self.experimentFileLocation.set(fileLocations[0])
+        
+        entryWidget = Tkinter.Entry(master, textvariable=self.experimentFileLocation)
+        entryWidget.grid(row=i,column=2,columnspan=3,sticky=tk.W)
+        entryWidget["width"] = 30
+        
+        i += 1
+        
+        entryLabel = Tkinter.Label(master)
+        entryLabel["text"] = "GUI Module File:"
+        entryLabel.grid(row=i,column=1,columnspan=1,sticky=tk.W)
+        self.experimentGUIFileLocation = Tkinter.StringVar()
+        if( fileLocations[1] == None):
+            self.experimentGUIFileLocation.set("")
+        else:
+            self.experimentGUIFileLocation.set(fileLocations[1])
+        entryWidget = Tkinter.Entry(master, textvariable = self.experimentGUIFileLocation)
+        entryWidget.grid(row=i,column=2,columnspan=3,sticky=tk.W)
+        entryWidget["width"] = 30
+        
         
     def setRate(self):
         """
@@ -2967,6 +3114,8 @@ class settingsDialog(Toplevel):
         database =self.sqlDB[5].get() 
         self.dClass.setDataManage(table = table, name = name, host = host, \
                                   username = username, password = password, database = database )
+        
+        self.dclass.setCarModule(self.experimentFileLocation.get(), self.experimentGUIFileLocation.get())
         
         
         self.withdraw()

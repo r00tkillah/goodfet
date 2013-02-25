@@ -263,7 +263,7 @@ class FordExperiments(experiments):
                        #send packets
                        self.multpackSpit(packet0rts=True,packet1rts=True,packet2rts=True)
                        
-    def speedometerHack(self):
+    def speedometerHack(self, inputs):
         
         self.client.serInit()
         self.spitSetup(500)
@@ -286,7 +286,7 @@ class FordExperiments(experiments):
             print "Current MPH = 1.617(%d)-63.5 = %d" %(packet[9], mph)
                 
             # calculate our new mph and db4 value
-            mph = mph + 15;
+            mph = mph + inputs[0];
             packet[9] = ( mph + 63.5 ) / 1.617
 
             # load new packet into TXB0 and check time
@@ -332,7 +332,7 @@ if __name__ == "__main__":
     fe = FordExperiments("../../contrib/ThayerData/");
     
     if( args.verb == 'speedometerHack'):
-        fe.speedometerHack()
+        fe.speedometerHack(inputs=inputs)
     elif( args.verb == 'fakeVIN'):
         fe.fakeVIN()
         

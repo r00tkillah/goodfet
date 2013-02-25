@@ -997,8 +997,27 @@ class DataManage:
             print "filename ", filename
             os.rename(file, filename)        
         
+    def saveJson(self, filename, data):
+        """ 
+        This method will dump a json data structure to the filename given.
+        
+        @type filename: String
+        @param filename: path to the .json file that the data will be saved to
+        
+        @type data: json data
+        @param data: Data to be saved to a json file
+        """
+        
+        with open(filename, 'wb') as fp:
+            json.dump(data,fp)
         
     def loadJson(self, filename):
+        """
+        This method will load a json file into memory.
+        
+        @type filename: String
+        @param filename: path to the .json file that is to be loaded into memory
+        """
         json_data = open(filename).read()
         data = json.loads(json_data)
         #print data

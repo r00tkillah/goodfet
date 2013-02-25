@@ -11,6 +11,7 @@ import binascii;
 import array;
 from DataManage import DataManage
 from tkFileDialog import askopenfilename
+import tkSimpleDialog
 import tkMessageBox
 import tkHyperlinkManager
 import datetime
@@ -99,6 +100,7 @@ class DisplayApp:
         #self.ControlsDx = (self.initDx - 80);
         self.ControlsDx = 400;
         """ Controls window width. This is the right side"""
+        
         self.ControlsDy = self.initDy;
         """ Controls window height """
         
@@ -111,7 +113,7 @@ class DisplayApp:
         
         
         experimentInfo = self.ConfigSectionMap(Config, "experimentInfo")
-        self.packetInformation = experimentInfo["packetinformation"]
+        self.packetInformationFile = experimentInfo.get("packetinformation")
         """ This file stores the user's known information about the packets. This is a json file"""
         self.experimentFile = experimentInfo.get("experimentfile")
         """ This is the experiment file that is car specific. this is for adding a car specific module"""
@@ -119,6 +121,9 @@ class DisplayApp:
         """ This is the GUI file that is needed to add the car specific module to the CAN Reader"""
         self.CarExtention = False
         """ This is false when there is no car extension, true otherwise"""
+        
+        
+        
         self.loadJson()
         """ This loads the json file with our packet information"""
         
@@ -363,7 +368,7 @@ class DisplayApp:
         i += 1
         j = 0
         entryLabel = Tkinter.Label(self.experimentFrame, font = self.BOLDFONT)
-        entryLabel["text"] = "RTR sweep response:"
+        entryLabel["text"] = "RTR Sweep Response:"
         entryLabel.grid(row=i,column=j,columnspan=3, sticky = tk.W)
         j += 3
         sweepButton = Button(self.experimentFrame, text="Start", width=3, command=self.RTRsweepID)
@@ -800,7 +805,7 @@ class DisplayApp:
         
         
         # get all the arbIDS
-        ids = self.packetInformationData.keys()
+        ids = (self.packetInformationFileData['Arbitration Ids']).keys()
         intIds = []
         #convert to integer to sort so that they are in order
         for element in ids:
@@ -818,8 +823,8 @@ class DisplayApp:
         self.IDchoice.trace('w',self.updateInfo)
         
         
-        idChoiceOptions= OptionMenu(self.infoFrame,self.IDchoice, *tuple(self.options))
-        idChoiceOptions.grid(row=i,column=1)
+        self.idChoiceOptions= OptionMenu(self.infoFrame,self.IDchoice, *tuple(self.options))
+        self.idChoiceOptions.grid(row=i,column=1)
         i += 1
         
         #############################
@@ -834,6 +839,12 @@ class DisplayApp:
         
         button = tk.Button(self.infoFrame,text="Packets", command=self.liftPackets)
         button.grid(row=i,column=2)
+        
+        button = tk.Button(self.infoFrame,text="Add ID", command=self.addArbID)
+        button.grid(row=i,column=3)
+        
+        button = tk.Button(self.infoFrame,text="Save", command=self.saveJsonInfo)
+        button.grid(row=i,column=4)
         
         i += 1
         ###################
@@ -850,6 +861,75 @@ class DisplayApp:
         self.updateInfo() #load first set of data
         self.liftGeneralInfo() #put the general info on the top
     
+    def buttonTest(self):
+        print 'asdfa'
+        
+    def addArbID(self):
+        """
+        This method will add a new arbitration id to the json file. It will first prompt the user
+        as to what id it wants to add. Then the new database entry will be created, added to the 
+        structure, saved and updated on the GUI. 
+        """
+        id = tkSimpleDialog.askstring('New Arbitration ID', 'What is the id you wish to add?')
+        if( id == None):
+            return
+        try:
+            int(id)
+        except:
+            tkMessageBox.showwarning('Not a correct Arbitration ID', \
+                'Arbitration ID must be an integer!')
+            return
+        GeneralInfo = {}
+        GeneralInfo['CANspeed'] = 0
+        GeneralInfo['frequency'] = 0
+        GeneralInfo['correlations'] = []
+        GeneralInfo['comment tags'] = []
+        GeneralInfo['comments'] = []
+        
+        ByteInfo = {}
+        for i in range(0,8):
+            dbVar = {}
+            dbVar['Continuous'] = 0
+            dbVar['Changes'] = 0
+            dbVar['Correlations'] =[]
+            dbVar['Comments'] = []
+            ByteInfo['db%d'%i] = dbVar
+        
+        PacketInfo = {}
+        
+        self.packetInformationFileData['Arbitration Ids'][id] = {'GeneralInfo':GeneralInfo, 'Bytes':ByteInfo, 'Packets':PacketInfo}
+        self.options.append(id)
+        self.options.sort(key=lambda x:[int(y) for y in x.split('.')])
+        
+        self._reset_option_menu(self.idChoiceOptions,self.options,self.IDchoice)
+        #self.idChoiceOptions= OptionMenu(self.infoFrame,self.IDchoice, *tuple(self.options))
+        self.dm.saveJson(self.packetInformationFile,self.packetInformationFileData)
+    
+    def _reset_option_menu(self,om, options, variable, index=None):
+        '''reset the values in the option menu
+
+        if index is given, set the value of the menu to
+        the option at the given index. This code was modified from code found on stack overflow question:
+        U{http://stackoverflow.com/questions/7393430/how-can-i-dynamic-populate-an-option-widget-in-tkinter-depending-on-a-choice-fro}
+        
+        @type om: option menu widget
+        @param om: Option menu to be edited
+        
+        @type options: List
+        @param options: List of the options that the option menu will have. This is expected to be a list of strings
+        
+        @type variable: Tkinter.StringVar
+        @param variable: The string variable that is associated with the option menu
+        '''
+        menu = om["menu"]
+        menu.delete(0, "end")
+        for string in options:
+            menu.add_command(label=string, 
+                             command=lambda value=string:
+                                    variable.set(value))
+        if index is not None:
+            variable.set(options[index])
+    
     def buildByteInfoFrame(self,i):
         """
         This method will build the frame that will display our information about the specific
@@ -858,12 +938,108 @@ class DisplayApp:
         @type i: Integer
         @param i: This is the row to add our Frame to. This is for the grid formation 
         """
-        self.byteInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx,height = self.ControlsDy)
+        self.byteInfoFrame = tk.Frame(self.infoFrame,width=self.ControlsDx,height = self.ControlsDy)
         """ Byte info frame """
         self.byteInfoFrame.grid(row=i,column=0,columnspan=20, sticky=tk.N+tk.W+tk.E+tk.S)
         k = 0
         entryLabel  = tk.Label(self.byteInfoFrame,text="Byte Information: ", font=self.BOLDFONT)
-        entryLabel.grid(row=k,column=0,sticky=tk.W)
+        entryLabel.grid(row=k,column=0,sticky=tk.W+tk.N)
+        k+=1
+        self.byteInfoSubCanvas = tk.Canvas(self.byteInfoFrame,width=self.ControlsDx+180,height=self.ControlsDy-150)
+        self.byteInfoSubCanvas.grid(row=k,column=0,columnspan=4,rowspan=1,sticky=tk.N+tk.E+tk.W+tk.S)
+        xscroll = tk.Scrollbar(self.byteInfoFrame,orient=tk.HORIZONTAL)
+        xscroll.grid(row=k+1,column=0,columnspan=4,sticky=tk.E+tk.W)
+        yscroll = tk.Scrollbar(self.byteInfoFrame)
+        yscroll.grid(row=k,column=4,sticky=tk.N+tk.S)
+        yscroll.config(command=self.byteInfoSubCanvas.yview)
+        xscroll.config(command=self.byteInfoSubCanvas.xview)
+        self.byteInfoSubCanvas.config(yscrollcommand=yscroll.set,xscrollcommand=xscroll.set)
+        #self.byteInfoFrame.grid_rowconfigure(0,weight=1)
+        #self.byteInfoFrame.grid_columnconfigure(0,weight=1)
+        
+        self.byteInfoSubFrame = tk.Frame(self.byteInfoSubCanvas)
+        self.byteInfoSubFrame.rowconfigure(1,weight=1)
+        self.byteInfoSubFrame.columnconfigure(1,weight=1)
+        
+        #entryLabel = tk.Label(self.byteInfoFrame,text="Changes:")
+        #entryLabe.grid(row=k,column=0,sticky=tk.W)
+        self.byteInfoData = {}
+        q = -1
+        for i in range(0,8):
+            q += 1
+            entryLabel = tk.Label(self.byteInfoSubFrame,text="Data Byte %d"%i)
+            entryLabel.grid(row=q,column=0,sticky=tk.W)
+            q += 1
+            dbByte = {}
+            var = tk.IntVar()
+            var.set(0)
+            c = tk.Checkbutton(self.byteInfoSubFrame,text="Changes", variable = var)
+            c.grid(row=q,column=0,sticky=tk.W)
+            dbByte['changes'] = var
+            
+            var = tk.IntVar()
+            var.set(0)
+            c = tk.Checkbutton(self.byteInfoSubFrame,text="Continuous", variable = var)
+            c.grid(row=q,column=1,sticky=tk.W)
+            dbByte['continuous'] = var
+            
+            q +=1
+            entryLabel = tk.Label(self.byteInfoSubFrame,text="Correlations")
+            entryLabel.grid(row=q,column=0,sticky=tk.W)
+            var = tk.StringVar()
+            dbByte['correlations'] = var
+            entryWidget = tk.Entry(self.byteInfoSubFrame,textvariable = var,width=40)
+            entryWidget.grid(row=q,column=1,columnspan=4)
+            
+            q+=1
+            entryLabel = tk.Label(self.byteInfoSubFrame,text="Comments")
+            entryLabel.grid(row=q,column=0,sticky=tk.W)
+            
+            q+= 1
+            textBox = tk.Text(self.byteInfoSubFrame,width=80,height=2,wrap=tk.WORD,borderwidth=3)
+            #textBox.insert(END,'asdflkafjlksdfjadl;kfjadfklafjadslkfdjasf;lkadjfdlkfjadslkfjadsfl;kajdf;lkfdj\naskfjdasfkajdskdl;fjadklfjdkl;fjafl;kdjkalsj\nakjfdlkasfjadkljdlfk;ajdflkadjfldas;kjdfkljdf\n')
+            scroll = tk.Scrollbar(self.byteInfoSubFrame)
+            scroll.grid(row = q, column = 3, sticky=tk.N+tk.S)
+            
+            #xscroll = tk.Scrollbar(self.byteInfoSubFrame,orient=tk.HORIZONTAL)
+            #xscroll.grid(row=q+1, column=0,columnspan=3,sticky=tk.W+tk.E)
+            #textBox.config(yscrollcommand=scroll.set, xscrollcommand=xscroll.set)
+            textBox.config(yscrollcommand=scroll.set)
+            scroll.config(command=textBox.yview)
+            #xscroll.config(command=textBox.xview)
+            
+            textBox.grid(row=q,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
+            #textBox.config(state=tk.DISABLED)
+            q += 1
+            dbByte['comments'] = textBox
+            self.byteInfoData['db%d'%i] = dbByte
+            
+#            
+#        self.byteInfoSubCanvas.grid(row=k,column=0,columnspan=4,sticky=tk.N+tk.E+tk.W+tk.S)
+#        xscroll = tk.Scrollbar(self.byteInfoFrame,orient=tk.HORIZONTAL)
+#        xscroll.grid(row=k+1,column=0,columnspan=4,sticky=tk.E+tk.W)
+#        yscroll = tk.Scrollbar(self.byteInfoFrame)
+#        yscroll.grid(row=k,column=4,sticky=tk.N+tk.S)
+#        self.byteInfoSubCanvas.config(yscrollcommand=xscroll.set, xscrollcommand=yscroll.set)
+#        xscroll.config(command=self.byteInfoSubCanvas.xview)
+#        yscroll.config(command=self.byteInfoSubCanvas.yview)
+#        self.byteInfoSubFrame.grid(row=k,column=0,columnspan =4, sticky=tk.E+tk.W)
+#        self.byteInfoSubCanvas.create_window(0,0,anchor=NW,window=self.byteInfoFrame)
+#        self.byteInfoSubFrame.config(width=30,height=3)
+#        self.byteInfoSubCanvas.config(scrollregion=self.byteInfoSubFrame.bbox("all"))
+#        
+        
+#        #byteInfoSubFrame.grid(row=0,column=0,sticky=tk.N+tk.W)
+#        rows = 5
+#        for i in range(1,rows):
+#            for j in range(1,10):
+#                button = Button(byteInfoSubFrame, text="[%d,%d]" % (i,j))
+#                button.grid(row=i, column=j, sticky='news')
+        self.byteInfoSubCanvas.create_window(0,0,anchor=tk.NW,window=self.byteInfoSubFrame)
+        self.byteInfoSubCanvas.update_idletasks()
+        self.byteInfoSubCanvas.config(scrollregion=self.byteInfoSubCanvas.bbox(tk.ALL))
+        
+        
         
     def buildPacketInfoFrame(self,i):
         """
@@ -898,7 +1074,7 @@ class DisplayApp:
         xscroll.config(command=self.packetInfoText.xview)
         
         self.packetInfoText.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
-        self.packetInfoText.config(state=tk.DISABLED)
+        #self.packetInfoText.config(state=tk.DISABLED)
         self.packetHyperlink = tkHyperlinkManager.HyperlinkManager(self.packetInfoText) 
         """ 
         This contains the links so that we can inject packets in this list by clicking on the
@@ -931,7 +1107,7 @@ class DisplayApp:
         self.generalInfoVars['frequency'] = varId
         entryLabel = Tkinter.Label(self.generalInfoFrame, text="Frequency: ")
         entryLabel.grid(row = k, column = 0, sticky=tk.W)
-        entryLabel = Tkinter.Label(self.generalInfoFrame, textvariable = varId)
+        entryLabel = Tkinter.Entry(self.generalInfoFrame, textvariable = varId)
         entryLabel.grid(row = k, column = 1, sticky=tk.W)
         
         k +=1 
@@ -946,7 +1122,7 @@ class DisplayApp:
         self.generalInfoVars['canbus'] = varId
         entryLabel = Tkinter.Label(self.generalInfoFrame, text="CAN Bus: ")
         entryLabel.grid(row = k, column = 0, sticky=tk.W)
-        entryLabel = Tkinter.Label(self.generalInfoFrame, textvariable = varId)
+        entryLabel = Tkinter.Entry(self.generalInfoFrame, textvariable = varId)
         entryLabel.grid(row = k, column = 1, sticky=tk.W)
         
         k += 1
@@ -972,7 +1148,7 @@ class DisplayApp:
         scroll.config(command=correlationsText.yview)
         xscroll.config(command=correlationsText.xview)
         correlationsText.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
-        correlationsText.config(state=tk.DISABLED)
+        #correlationsText.config(state=tk.DISABLED)
         
         self.generalInfoVars['correlations'] = correlationsText
         
@@ -998,7 +1174,7 @@ class DisplayApp:
         scroll.config(command=commentTags.yview)
         xscroll.config(command=commentTags.xview)
         commentTags.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
-        commentTags.config(state=tk.DISABLED)
+        #commentTags.config(state=tk.DISABLED)
         self.generalInfoVars['commentTags'] = commentTags
         
         self.generalInfoFrame.grid(row=i, column = 0, columnspan = 20, sticky=tk.N+tk.W)
@@ -1024,7 +1200,7 @@ class DisplayApp:
         scroll.config(command=comments.yview)
         xscroll.config(command=comments.xview)
         comments.grid(row=k,column=0,columnspan=3,sticky=tk.W+tk.N+tk.E+tk.S)
-        comments.config(state=tk.DISABLED)
+        #comments.config(state=tk.DISABLED)
         self.generalInfoVars['comments'] = comments
     
     
@@ -1070,8 +1246,100 @@ class DisplayApp:
             self.queryFilename.set(filename[:-3] + "pcap") #change filename ending
             
             
-            
+    def saveJsonInfo(self):
+        print "here"
+        idChoice = self.IDchoice.get()
     
+        ### GENERAL INFO ###
+        
+        #can bus frequency
+        GeneralInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['GeneralInfo']
+        try:
+            GeneralInfo['CANspeed']=float(self.generalInfoVars['canbus'].get())
+        except:
+            tkMessageBox.showwarning('Can speed not a number', \
+                'Incorrect input for CAN speed')
+            return
+        
+        try:
+            GeneralInfo['frequency']=float(self.generalInfoVars['frequency'].get())
+        except:
+            tkMessageBox.showwarning('Frequency not a number', \
+                'Incorrect input for frequency')
+            return
+        
+        try: 
+            correlations = self.generalInfoVars['correlations'].get(1.0,END)
+            corr = correlations.split('\n')
+            GeneralInfo['correlations'] = corr
+        except:
+            tkMessageBox.showwarning('Unable to save correlations', \
+                'Unable to save information in correlations')
+            return
+            
+        try:
+            comments = self.generalInfoVars['commentTags'].get(1.0,END)
+            comm = comments.split('\n')
+            GeneralInfo['comments tags'] = comm
+        except:
+            tkMessageBox.showwarning('Unable to save comment tags', \
+                'Unable to save information in comment tags text box')
+            return
+            
+        ByteInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['Bytes']
+        ByteData = self.byteInfoData
+        try:
+            for i in range(0,8):
+                dbInfo = ByteInfo['db%d'%i]
+                dbVars = ByteData['db%d'%i]
+                print "here1"
+                temp =  dbVars['changes'].get()
+                if( temp == ""):
+                    temp = 0
+                dbInfo['Changes'] = str(temp)
+                print "here2"
+                temp = dbVars['continuous']
+                if( temp == ""):
+                    temp = 0
+                dbInfo['Continuous'] = dbVars['continuous'].get()
+                print "here3"
+                dbInfo['Correlations'] = dbVars['correlations'].get().split(',')
+                print "here4"
+                dbInfo['Comments'] = (dbVars['comments'].get(1.0,END)).split('\n')
+                
+        except:
+            tkMessageBox.showwarning('Unable to save data bytes', \
+                'Unable to save information in data byte %d'%i)
+            return
+            
+        
+       # PacketInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['Packets']
+        
+        packets = self.packetInfoText.get(1.0,END).split('\n')
+        packetdb = {}
+        try:
+            for packet in packets:
+                print packet
+                elements = packet.split(':')
+                if(len(elements) == 0 or len(elements) == 1):
+                    continue
+                print elements
+                print elements[0].lstrip()
+                packetdb[elements[0].lstrip()] = elements[1].lstrip()
+                print elements[1].lstrip()
+            self.packetInformationFileData['Arbitration Ids'][idChoice]['Packets'] = packetdb
+        except:
+           tkMessageBox.showwarning('Unable to save known packets section', \
+                'Unable to save information on the known packets')         
+        
+           return
+            
+            
+        
+        print "saving information"
+        self.dm.saveJson(self.packetInformationFile,self.packetInformationFileData)
+           
+            
     def updateInfo(self, name = None, index = None, mode = None):
         """
         This method is called when the user changes the option menu for arbitration IDs under our
@@ -1097,7 +1365,7 @@ class DisplayApp:
         ### UPDATE GENERAL INFO TAB ###
         ###############################
         
-        GeneralInfo = self.packetInformationData[idChoice]['GeneralInfo']
+        GeneralInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['GeneralInfo']
         # CAN BUS FREQUENCY
         self.generalInfoVars['canbus'].set(GeneralInfo['CANspeed'])
         # FREQUENCY OF PACKET
@@ -1109,10 +1377,10 @@ class DisplayApp:
         for corr in correlations:
             corrText += corr + "\n"
         correlationsText = self.generalInfoVars['correlations']
-        correlationsText.config(state=tk.NORMAL) 
+        #correlationsText.config(state=tk.NORMAL) 
         correlationsText.delete(1.0, END) # clear the text box for the data
         correlationsText.insert(END,corrText)
-        correlationsText.config(state=tk.DISABLED)
+        #correlationsText.config(state=tk.DISABLED)
         
         
         ### COMMENT TAGS ###
@@ -1121,10 +1389,10 @@ class DisplayApp:
         for comm in commentTags:
             commentT += comm + "\n"
         commentText = self.generalInfoVars['commentTags']
-        commentText.config(state=tk.NORMAL)
+        #commentText.config(state=tk.NORMAL)
         commentText.delete(1.0,END)
         commentText.insert(END,commentT)
-        commentText.config(state=tk.DISABLED)
+        #commentText.config(state=tk.DISABLED)
         
         ### COMMENTS ###
         commentList = GeneralInfo['comments']
@@ -1133,25 +1401,49 @@ class DisplayApp:
             comment += comm + "\n"
         
         commentText = self.generalInfoVars['comments']
-        commentText.config(state=tk.NORMAL)
+        #commentText.config(state=tk.NORMAL)
         commentText.delete(1.0,END)
         commentText.insert(END,comment)
-        commentText.config(state=tk.DISABLED)
+        #commentText.config(state=tk.DISABLED)
+        
+        ##########################
+        #### BYTE INFORMATION ####
+        ##########################
+        PacketInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['Bytes']
+        for i in range(0,8):
+            dbVars = self.byteInfoData['db%d'%i]
+            dbInfo = PacketInfo['db%d'%i]
+            dbVars['continuous'].set(dbInfo['Continuous'])
+            dbVars['changes'].set(dbInfo['Changes'])
+            dbVars['correlations'].set(', '.join(dbInfo['Correlations']))
+            textBox = dbVars['comments']
+            #textBox.config(state=tk.NORMAL)
+            textBox.delete(1.0,END)
+            textBox.insert(END,'\n'.join(dbInfo['Comments']))
+            #textBox.config(state=tk.DISABLED)
+            #.set('\n'.join(dbInfo['Comments']))
+            
+        
+        
+        
         
         ##########################
         ### PACKET INFORMATION ###
         ##########################
         self.packetHyperlink.reset() #remove all hyperlinks
-        self.packetInfoText.config(state=tk.NORMAL)
+        #self.packetInfoText.config(state=tk.NORMAL)
         self.packetInfoText.delete(1.0,END)
-        packetDict =self.packetInformationData[idChoice]['Packets']
+        packetDict =self.packetInformationFileData['Arbitration Ids'][idChoice]['Packets']
         keys = packetDict.keys()
         for key in keys:
             packet = packetDict[key]
             # add a hyperlink to the description
             self.packetInfoText.insert(END, key + ":", self.packetHyperlink.add(self.injectPacket,[idChoice, packet]))
             self.packetInfoText.insert(END,"\t\t\t " + packet + " \n")
-        self.packetInfoText.config(state=tk.DISABLED)
+        #self.packetInfoText.config(state=tk.DISABLED)
+        
+        
+        
         
     def injectPacket(self, data):
         """
@@ -2147,8 +2439,9 @@ class DisplayApp:
         This method will load our packet informtion from the 
         Json file specified in the settings.
         """
-        self.packetInformationData = self.dm.loadJson(self.packetInformation)['Arbitration Ids']
-        
+        #self.packetInformationFileData = self.dm.loadJson(self.packetInformationFile)['Arbitration Ids']
+        self.packetInformationFileData = self.dm.loadJson(self.packetInformationFile)
+
         
         
         

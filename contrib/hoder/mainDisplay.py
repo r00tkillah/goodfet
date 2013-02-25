@@ -1247,10 +1247,17 @@ class DisplayApp:
             
             
     def saveJsonInfo(self):
-        print "here"
+        """
+        This file will save all of the user's information to the json file specified in settings.
+        The data will be saved to json data structure in memory and then dumped to the file via the
+        DataManager method, L{DataManage.saveJson}.
+        """
+        
         idChoice = self.IDchoice.get()
     
-        ### GENERAL INFO ###
+        ##########################
+        #### GET GENERAL INFO ####
+        ##########################
         
         #can bus frequency
         GeneralInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['GeneralInfo']
@@ -1261,6 +1268,7 @@ class DisplayApp:
                 'Incorrect input for CAN speed')
             return
         
+        # frequency of id 
         try:
             GeneralInfo['frequency']=float(self.generalInfoVars['frequency'].get())
         except:
@@ -1268,6 +1276,7 @@ class DisplayApp:
                 'Incorrect input for frequency')
             return
         
+        # correlations to the id
         try: 
             correlations = self.generalInfoVars['correlations'].get(1.0,END)
             corr = correlations.split('\n')
@@ -1276,7 +1285,7 @@ class DisplayApp:
             tkMessageBox.showwarning('Unable to save correlations', \
                 'Unable to save information in correlations')
             return
-            
+        #comment tags on the id   
         try:
             comments = self.generalInfoVars['commentTags'].get(1.0,END)
             comm = comments.split('\n')
@@ -1285,7 +1294,11 @@ class DisplayApp:
             tkMessageBox.showwarning('Unable to save comment tags', \
                 'Unable to save information in comment tags text box')
             return
-            
+        
+        #######################################
+        #### GET BYTE SPECIFIC INFORMATION ####
+        #######################################
+        
         ByteInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['Bytes']
         ByteData = self.byteInfoData
         try:
@@ -1312,8 +1325,9 @@ class DisplayApp:
                 'Unable to save information in data byte %d'%i)
             return
             
-        
-       # PacketInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['Packets']
+        #############################
+        #### GET EXAMPLE PACKETS ####
+        #############################
         
         packets = self.packetInfoText.get(1.0,END).split('\n')
         packetdb = {}
@@ -1336,7 +1350,7 @@ class DisplayApp:
             
             
         
-        print "saving information"
+        ### SAVE INFO
         self.dm.saveJson(self.packetInformationFile,self.packetInformationFileData)
            
             
@@ -1449,7 +1463,8 @@ class DisplayApp:
         """
         This method will take the data that is given and fill the write method section
         in the sniff tab. It will also switch the view to this tab so that the user
-        can easily inject this packet
+        can easily inject this packet. This method does not inject the packet onto the
+        CAN bus. It simple makes the entry ready for the user to do so.
         
         @type data: List
         @param data: This is a list that contains the data packet that we want to inject.

@@ -206,8 +206,8 @@ class FordExperimentsFrame:
         entryLabel = tk.Label(frame, text="fuel %:")
         entryLabel.grid(row=i,column=0,sticky=tk.W)
         self.fuelLevel = tk.StringVar()
-        entryWidget= tk.Entry(frame, textvariable=self.fuelLevel)
-        entryWidget.grid(row=i,column=1,width=5, sticky=tk.W)
+        entryWidget= tk.Entry(frame, textvariable=self.fuelLevel, width=5)
+        entryWidget.grid(row=i,column=1, sticky=tk.W)
         
         b = tk.Button(frame,command=self.fakeFuelLevel,text="Start")
         b.grid(row=i,column=2,sticky=tk.W)
@@ -217,8 +217,8 @@ class FordExperimentsFrame:
         entryLabel = tk.Label(frame, text="Fake OutsideTemp")
         entryLabel.grid(row=i,column=0,sticky=tk.W)
         self.outsideTemp = tk.StringVar()
-        entryWidget= tk.Entry(frame, textvariable=self.outsideTemp)
-        entryWidget.grid(row=i,column=1,width=5, sticky=tk.W)
+        entryWidget= tk.Entry(frame, textvariable=self.outsideTemp,width=5)
+        entryWidget.grid(row=i,column=1, sticky=tk.W)
         
         b = tk.Button(frame,command=self.fakeOutsideTemp,text="Start")
         b.grid(row=i,column=2,sticky=tk.W)
@@ -229,9 +229,9 @@ class FordExperimentsFrame:
             if( level > 100):
                 return
         except:
-            except:
             tkMessageBox.showwarning('Invalid input', \
-                'Input is not an number')   
+                'Input is not an number')
+            return
         self.comm.fakeOutsideTemp(level)
         
     
@@ -241,9 +241,9 @@ class FordExperimentsFrame:
             if( level > 100):
                 return
         except:
-            except:
             tkMessageBox.showwarning('Invalid input', \
-                'Input is not an number')   
+                'Input is not an number')
+            return   
         self.comm.fakeScanToolFuelLevel(level)
         
     def LockDoors(self):

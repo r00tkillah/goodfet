@@ -123,23 +123,51 @@ class FordExperimentsFrame:
         ch = tk.Checkbutton(frame, text="Battery Light", variable=self.batteryLight)
         ch.grid(row=i,column=1,sticky=tk.W)
         
+        self.checkTransmissionLight = tk.IntVar()
+        self.checkTransmissionLight.set(0)
+        ch = tk.Checkbutton(frame, text="Check Transmission", variable = self.checkTransmissionLight)
+        ch.grid(row=i,column=2,sticky=tk.W)
+        
+        self.transmissionOverheated = tk.IntVar()
+        self.transmissionOverheated.set(0)
+        ch = tk.Checkbutton(frame, text="Transmission Overheated",variable = self.transmissionOverheated)
+        ch.grid(row=i,column=3,sticky=tk.W)
+        
         i += 1
         self.engineLight = tk.IntVar()
         self.engineLight.set(0)
         ch = tk.Checkbutton(frame, text="Engine Light", variable=self.engineLight)
         ch.grid(row=i,column=0,sticky=tk.W)
         
+        self.checkEngine = tk.IntVar()
+        self.checkEngine.set(0)
+        ch = tk.Checkbutton(frame, text="Check Engine", variable = self.checkEngine)
+        ch.grid(row=i,column=1,sticky=tk.W)
+        
+        
         self.checkFuelCapLight = tk.IntVar()
         self.checkFuelCapLight.set(0)
         ch = tk.Checkbutton(frame, text="Fuel Cap Light", variable =self.checkFuelCapLight)
-        ch.grid(row=i,column=1,sticky=tk.W)
+        ch.grid(row=i,column=2,sticky=tk.W)
         
         self.dashBoardErrors = tk.IntVar()
         self.dashBoardErrors.set(0)
         ch = tk.Checkbutton(frame, text="-- dashboard", variable=self.dashBoardErrors)
-        ch.grid(row=i,column=2,sticky=tk.W)
+        ch.grid(row=i,column=3,sticky=tk.W)
         
         i += 1
+        
+        self.checkBreakSystem = tk.IntVar()
+        self.checkBreakSystem.set(0)
+        ch = tk.Checkbutton(frame, text="Check Breaks", variable = self.checkBreakSystem)
+        ch.grid(row=i,column=0,sticky=tk.W)
+        
+        self.ABSLight = tk.IntVar()
+        self.ABSLight.set(0)
+        ch = tk.Checkbutton(frame, text="ABS Light", variable = self.ABSLight)
+        ch.grid(row=i,column=1,sticky=tk.W)
+        
+        
         b = tk.Button(frame, command=self.warningLights,text="Warning Lights")
         b.grid(row=i,column=0,columnspan=2,sticky=tk.W)
         
@@ -151,15 +179,28 @@ class FordExperimentsFrame:
         b = tk.Button(frame, command = self.overHeatEngine, text="Overheat Engine")
         b.grid(row=i,column=0,columnspan=2)
         
+        b = tk.Button(frame, command=self.oscillateTemp, text="Oscillate Temp")
+        b.grid(row=i,column=2)
+        
+    def oscillateTemp(self):
+        self.comm.oscillateTemperature(20)
     
     def overHeatEngine(self):
-        pass
+        """
+        This method will run the hack that sets the heat dashboard indicator to 
+        show that the engine is overheated. This triggers an alarm
+        """
+        self.comm.overHeatEngine()
         
     def warningLights(self):
         """
         This method will call the hack that sets the warning lights on the display   
         """
-        pass
+        
+        self.comm.warningLightsOn(self,self.checkEngine.get(),self.checkTransmissionLight.get(), \
+        self.transmissionOverheated.get(), self.engineLight.get(), self.batteryLight.get(), \
+        self.checkFuelCapLight.get(), self.checkBreakSystem.get(), self.ABSLight.get())              
+
     def runOdometer(self):
         """
         This method will call the hack that runs the odometer up
@@ -179,17 +220,17 @@ class FordExperimentsFrame:
         
         
     def speedIncremement(self):
-       try:
+        """
+        This method will increment the speedometer by the given amount
+        """
+        try:
             setValue = int(self.speedIncrementVar.get())
        except:
             tkMessageBox.showwarning('Invalid input', \
                 'Input is not an integer')
        self.comm.speedometerHack([setValue])
         
-         
-        
-        
-        
+    
     def setRPM(self):
         """
         This method will call the hack that sets the RPM
@@ -205,6 +246,7 @@ class FordExperimentsFrame:
     def rpmIncrement(self):
         """
         This method will call the hack that sets the RPM
+        a given amount above what it actually is.
         """
         try:
             rpmVal = int(self.rpmVarIncrement.get())

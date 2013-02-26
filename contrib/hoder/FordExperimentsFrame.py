@@ -195,11 +195,51 @@ class FordExperimentsFrame:
         b = tk.Button(frame, command = self.runOdometer, text="Increment Odometer")
         b.grid(row=i,column=2,columnspan = 2,sticky=tk.W)
         
+        ########################
+        #### FAKE SCAN TOOL ####
+        ########################
+        i+=1
+        entryLabel = tk.Label(frame, text="Fake Scan tool")
+        entryLabel.grid(row=i,column=0)
     
+        i+=1
+        entryLabel = tk.Label(frame, text="fuel %:")
+        entryLabel.grid(row=i,column=0,sticky=tk.W)
+        self.fuelLevel = tk.StringVar()
+        entryWidget= tk.Entry(frame, textvariable=self.fuelLevel)
+        entryWidget.grid(row=i,column=1,width=5, sticky=tk.W)
+        
+        b = tk.Button(frame,command=self.fakeFuelLevel,text="Start")
+        b.grid(row=i,column=2,sticky=tk.W)
+        
+        i += 1
+        
+        entryLabel = tk.Label(frame, text="Fake OutsideTemp")
+        entryLabel.grid(row=i,column=0,sticky=tk.W)
+        self.outsideTemp = tk.StringVar()
+        entryWidget= tk.Entry(frame, textvariable=self.outsideTemp)
+        entryWidget.grid(row=i,column=1,width=5, sticky=tk.W)
+        
+        b = tk.Button(frame,command=self.fakeOutsideTemp,text="Start")
+        b.grid(row=i,column=2,sticky=tk.W)
+    
+    def 
+    
+    def fakeFuelLevel(self):
+        try:
+            level = float(self.fuelLevel.get())
+            if( level > 100):
+                return
+        except:
+            except:
+            tkMessageBox.showwarning('Invalid input', \
+                'Input is not an number')   
+        self.comm.fakeScanToolFuelLevel(level)
+        
     def LockDoors(self):
         pass
     def oscillateMPH(self):
-        pass    
+        self.comm.oscillateMPH()
     def oscillateRPM(self):
         pass
     def oscillateTemp(self):

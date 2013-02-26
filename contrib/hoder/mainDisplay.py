@@ -193,7 +193,7 @@ class DisplayApp:
         
         ### CONNECT TO GOODTHOPTER 10 BOARD ###
         self.connectBus()
-
+        #self.testConnect()
         
   
     def writeiniFile(self, filename, section, option, value):

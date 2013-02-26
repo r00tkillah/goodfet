@@ -56,7 +56,7 @@ class FordExperimentsFrame:
         self.speedIncrementVar = tk.StringVar()
         self.speedIncrementVar.set("")
         entryWidget = tk.Entry(frame,textvariable=self.speedIncrementVar,width=5)
-        entryWidget.grid(row=i,column=1,stiky=tk.W)
+        entryWidget.grid(row=i,column=1,sticky=tk.W)
         b = tk.Button(frame, command=self.speedIncremement,text="Run")
         b.grid(row=i,column=2,sticky=tk.W)
         
@@ -81,7 +81,7 @@ class FordExperimentsFrame:
         entryLabel.grid(row=i,column=0,sticky=tk.W)
         self.rpmVarIncrement = tk.StringVar()
         self.rpmVarIncrement.set("")
-        entryWidget = tk.Entry(frame, textariable=self.rpmVarIncrement, widht=5)
+        entryWidget = tk.Entry(frame, textvariable=self.rpmVarIncrement, width=5)
         entryWidget.grid(row=i,column=1,sticky=tk.W)
         b = tk.Button(frame, command=self.rpmIncrement, text="Run")
         
@@ -121,7 +121,7 @@ class FordExperimentsFrame:
         self.batteryLight = tk.IntVar()
         self.batteryLight.set(0)
         ch = tk.Checkbutton(frame, text="Battery Light", variable=self.batteryLight)
-        ch..grid(row=i,column=1,sticky=tk.W)
+        ch.grid(row=i,column=1,sticky=tk.W)
         
         i += 1
         self.engineLight = tk.IntVar()
@@ -134,7 +134,7 @@ class FordExperimentsFrame:
         ch = tk.Checkbutton(frame, text="Fuel Cap Light", variable =self.checkFuelCapLight)
         ch.grid(row=i,column=1,sticky=tk.W)
         
-        self.dashBoardErrors = tk.IntVar
+        self.dashBoardErrors = tk.IntVar()
         self.dashBoardErrors.set(0)
         ch = tk.Checkbutton(frame, text="-- dashboard", variable=self.dashBoardErrors)
         ch.grid(row=i,column=2,sticky=tk.W)
@@ -181,10 +181,10 @@ class FordExperimentsFrame:
     def speedIncremement(self):
        try:
             setValue = int(self.speedIncrementVar.get())
-        except:
+       except:
             tkMessageBox.showwarning('Invalid input', \
                 'Input is not an integer')
-        self.comm.speedometerHack([setValue])
+       self.comm.speedometerHack([setValue])
         
          
         
@@ -224,4 +224,4 @@ class FordExperimentsFrame:
             tkMessageBox.showwarning('Invalid input', \
                 'Input is not an integer')
         #CALL METHOD    
-        
+        return

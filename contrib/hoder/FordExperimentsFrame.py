@@ -47,6 +47,19 @@ class FordExperimentsFrame:
         b.grid(row=i,column=2,sticky=tk.W)
         
         
+        ##########################
+        #### FAKE SPEEDOMETER ####
+        ##########################
+        i+= 1
+        entryLabel = tk.Label(frame, text="Move Speedometer Up:")
+        entryLabel.grid(row=i,column=0,sticky=tk.W)
+        self.speedIncrementVar = tk.StringVar()
+        self.speedIncrementVar.set("")
+        entryWidget = tk.Entry(frame,textvariable=self.speedIncrementVar,width=5)
+        entryWidget.grid(row=i,column=1,stiky=tk.W)
+        b = tk.Button(frame, command=self.speedIncremement,text="Run")
+        b.grid(row=i,column=2,sticky=tk.W)
+        
         ###############
         ### SET RPM ###
         ###############
@@ -60,6 +73,19 @@ class FordExperimentsFrame:
         entryWidget.grid(row=i,column=1,sticky=tk.W)
         b = tk.Button(frame, command=self.setRPM, text = "Run")
         b.grid(row=i,column=2,sticky=tk.W)
+        
+        ##################
+        #### FAKE RPM ####
+        ##################
+        entryLabel = tk.Label(frame, text="Fake RPM:")
+        entryLabel.grid(row=i,column=0,sticky=tk.W)
+        self.rpmVarIncrement = tk.StringVar()
+        self.rpmVarIncrement.set("")
+        entryWidget = tk.Entry(frame, textariable=self.rpmVarIncrement, widht=5)
+        entryWidget.grid(row=i,column=1,sticky=tk.W)
+        b = tk.Button(frame, command=self.rpmIncrement, text="Run")
+        
+   
         
         #######################
         ### SET TEMPERATURE ###
@@ -76,6 +102,70 @@ class FordExperimentsFrame:
         b = tk.Button(frame, command = self.setEngineTemp, text="Run")
         b.grid(row=i,column=2,sticky=tk.W)
     
+        #######################
+        ### RUN UP ODOMETER ###
+        #######################
+        i += 1
+        b = tk.Button(frame, command = self.runOdometer, text="Increment Odometer")
+        b.grid(row=i,column=0,columnspan = 2,sticky=tk.W)
+        
+        ############################
+        #### SET WARNING LIGHTS ####
+        ############################
+        i += 1
+        self.breakLight = tk.IntVar()
+        self.breakLight.set(0)
+        ch = tk.Checkbutton(frame, text="Break Light",variable =self.breakLight)
+        ch.grid(row=i,column=0,sticky=tk.W)
+        
+        self.batteryLight = tk.IntVar()
+        self.batteryLight.set(0)
+        ch = tk.Checkbutton(frame, text="Battery Light", variable=self.batteryLight)
+        ch..grid(row=i,column=1,sticky=tk.W)
+        
+        i += 1
+        self.engineLight = tk.IntVar()
+        self.engineLight.set(0)
+        ch = tk.Checkbutton(frame, text="Engine Light", variable=self.engineLight)
+        ch.grid(row=i,column=0,sticky=tk.W)
+        
+        self.checkFuelCapLight = tk.IntVar()
+        self.checkFuelCapLight.set(0)
+        ch = tk.Checkbutton(frame, text="Fuel Cap Light", variable =self.checkFuelCapLight)
+        ch.grid(row=i,column=1,sticky=tk.W)
+        
+        self.dashBoardErrors = tk.IntVar
+        self.dashBoardErrors.set(0)
+        ch = tk.Checkbutton(frame, text="-- dashboard", variable=self.dashBoardErrors)
+        ch.grid(row=i,column=2,sticky=tk.W)
+        
+        i += 1
+        b = tk.Button(frame, command=self.warningLights,text="Warning Lights")
+        b.grid(row=i,column=0,columnspan=2,sticky=tk.W)
+        
+        
+        #########################
+        #### OVERHEAT ENGINE ####
+        #########################
+        i +=1
+        b = tk.Button(frame, command = self.overHeatEngine, text="Overheat Engine")
+        b.grid(row=i,column=0,columnspan=2)
+        
+    
+    def overHeatEngine(self):
+        pass
+        
+    def warningLights(self):
+        """
+        This method will call the hack that sets the warning lights on the display   
+        """
+        pass
+    def runOdometer(self):
+        """
+        This method will call the hack that runs the odometer up
+        """
+        self.comm.runOdometer()
+        
     def setSpeedometer(self):
         """
         This method will call the hack that sets the speedometer
@@ -85,9 +175,20 @@ class FordExperimentsFrame:
         except:
             tkMessageBox.showwarning('Invalid input', \
                 'Input is not an integer')
-        self.comm.cycledb1_1056(10)
+        self.comm.setMPH(setValue)
         
-        #CALL METHOD
+        
+    def speedIncremement(self):
+       try:
+            setValue = int(self.speedIncrementVar.get())
+        except:
+            tkMessageBox.showwarning('Invalid input', \
+                'Input is not an integer')
+        self.comm.speedometerHack([setValue])
+        
+         
+        
+        
         
     def setRPM(self):
         """
@@ -98,7 +199,20 @@ class FordExperimentsFrame:
         except:
             tkMessageBox.showwarning('Invalid input', \
                 'Input is not an integer')
-        #CALL METHOD    
+        #CALL METHOD 
+        self.comm.setRPM(rpmVal)   
+        
+    def rpmIncrement(self):
+        """
+        This method will call the hack that sets the RPM
+        """
+        try:
+            rpmVal = int(self.rpmVarIncrement.get())
+        except:
+            tkMessageBox.showwarning('Invalid input', \
+                'Input is not an integer')
+        #CALL METHOD 
+        self.comm.rpmHack(rpmVal) 
         
     def setEngineTemp(self):
         """

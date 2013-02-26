@@ -263,6 +263,58 @@ class FordExperiments(experiments):
                        #send packets
                        self.multpackSpit(packet0rts=True,packet1rts=True,packet2rts=True)
                        
+    def mphToByteValue(self, mph):
+        return ( mph + 63.5 ) / 1.617
+
+    def ByteValuToMph(self, value):
+        return 1.617*ord(packet[9]) - 63.5
+
+    def setMPH(self, mph):
+        self.client.serInit()
+        self.spitSetup(500)
+
+        self.addFilter([513, 513, 513])
+        self.client.rxpacket()
+        self.client.rxpacket()
+        self.client.rxpacket()
+        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+              
+        startTime = time.time()  
+        #while((time.time() - startTime) < 10):
+            
+        packet = None;
+
+        # catch a packet and check its db4 value
+        while (packet == None):
+            packet=self.client.rxpacket();
+        
+        #print self.client.packet2str(packet)
+
+        #print "DB4 = %02d " %ord(packet[9])
+       
+        #print "Current MPH = 1.617(%d)-63.5 = %d" %(ord(packet[9]), mph)
+            
+        # calculate our new mph and db4 value
+        
+        newSpeed = self.mphToByteValue(mph)
+        #print "Fake MPH = 1.617(%d)-63.5 = %d" %(newSpeed, mph)
+
+            
+        newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                       0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                       # lower nibble is DLC                   
+                       ord(packet[5]),ord(packet[6]),ord(packet[7]),ord(packet[8]),int(newSpeed),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+
+        # load new packet into TXB0 and check time
+        self.multiPacketSpit(packet0=newPacket, packet0rts=True)
+        starttime = time.time()
+        
+        # spit new value for 1 second
+        while (time.time()-starttime < 10):
+            self.multiPacketSpit(packet0rts=True)
+
+
     def speedometerHack(self, inputs):
         
         self.client.serInit()
@@ -273,35 +325,89 @@ class FordExperiments(experiments):
         SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
                 
-        while(1):
+       #while(1):
             
-            packet = None;
+        packet = None;
 
+        # catch a packet and check its db4 value
+        while (packet == None):
+            packet=self.client.rxpacket();
+        
+        print self.client.packet2str(packet)
+
+        print "DB4 = %02d " %ord(packet[9])
+        mph = 1.617*ord(packet[9]) - 63.5
+        print "Current MPH = 1.617(%d)-63.5 = %d" %(ord(packet[9]), mph)
+            
+        # calculate our new mph and db4 value
+        mph = mph + inputs[0];
+        newSpeed = ( mph + 63.5 ) / 1.617
+        print "Fake MPH = 1.617(%d)-63.5 = %d" %(newSpeed, mph)
+
+            
+        newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                       0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                       # lower nibble is DLC                   
+                       ord(packet[5]),ord(packet[6]),ord(packet[7]),ord(packet[8]),int(newSpeed),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+
+        # load new packet into TXB0 and check time
+        self.multiPacketSpit(packet0=newPacket, packet0rts=True)
+        starttime = time.time()
+        
+        # spit new value for 1 second
+        while (time.time()-starttime < 1):
+            self.multiPacketSpit(packet0rts=True)
+                
+    def rpmToByteValue(self, rpm):
+        value = ( rpm + 61.88 ) / 64.5
+        return value
+    
+    def ValueTorpm(self, value):
+        rpm = 64.5*value - 61.88
+        return rpm
+    
+    def setRPM(self, rpm):
+        self.client.serInit()
+        self.spitSetup(500)
+    
+        self.addFilter([513, 513, 513,513])
+    
+        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        
+        #clear buffers
+        self.client.rxpacket()
+        self.client.rxpacket()
+        self.client.rxpacket()
+
+        startTime = tT.time()
+        while((tT.time() - startTime )< 10):
+        
+            packet = None;
+        
             # catch a packet and check its db4 value
             while (packet == None):
                 packet=self.client.rxpacket();
+        
+            #print self.client.packet2str(packet)
+        
+            #print "DB4 = %02d " %ord(packet[5])
+           
+            #print "Current RPM = 64.5(%d)-61.88 = %d" %(ord(packet[5]), rpm)
+        
+            newRPM = self.rpmToByteValue(rpm)
+            #print "Fake RPM = 64.5(%d)-61.88 = %d" %(newRPM, rpm)
             
-            print self.client.packet2str(packet)
-
-            print "DB4 = %02d " %ord(packet[9])
-            mph = 1.617*ord(packet[9]) - 63.5
-            print "Current MPH = 1.617(%d)-63.5 = %d" %(ord(packet[9]), mph)
-                
-            # calculate our new mph and db4 value
-            mph = mph + inputs[0];
-            newSpeed = ( mph + 63.5 ) / 1.617
-            print "Fake MPH = 1.617(%d)-63.5 = %d" %(newSpeed, mph)
-
-                
+        
             newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
-                           0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
-                           # lower nibble is DLC                   
-                           ord(packet[5]),ord(packet[6]),ord(packet[7]),ord(packet[8]),int(newSpeed),ord(packet[10]),ord(packet[11]),ord(packet[12])]
-
+                     0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                     # lower nibble is DLC                   
+                     int(newRPM),ord(packet[6]),ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+        
             # load new packet into TXB0 and check time
             self.multiPacketSpit(packet0=newPacket, packet0rts=True)
             starttime = time.time()
-            
+        
             # spit new value for 1 second
             while (time.time()-starttime < 1):
                 self.multiPacketSpit(packet0rts=True)
@@ -322,8 +428,8 @@ class FordExperiments(experiments):
     
         SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
-    
-        while(1):
+        startTime = tT.time()
+        while((tT.time() - startTime )< 10):
         
             packet = None;
         
@@ -356,7 +462,9 @@ class FordExperiments(experiments):
             while (time.time()-starttime < 1):
                 self.multiPacketSpit(packet0rts=True)
 
-       
+
+    def runOdometer(self):
+        pass
         
 if __name__ == "__main__":
     

@@ -864,6 +864,33 @@ class DisplayApp:
     def buttonTest(self):
         print 'asdfa'
         
+    def deleteArbID(self):
+        """
+        This method will delete an ID from the JSON file that stores packet
+        information. The user will first be prompted to ask if they really
+        want to. If they say yes then the another dialog box will open for 
+        the user to input the id they want to delete. This will delete the 
+        ID, save the new JSON document, and update the ID drop down menu.
+        """
+        msg = "Are you sure you want to delete an Arbitration ID? This cannot be"\
+            + " undone"
+        #double check that the user wants to upload
+        response = tkMessageBox.askyesno(title = "Delete ID", message = msg)
+        
+        if(response):
+           id = tkSimpleDialog.askstring('Delete Arbitration ID', 'Enter ID to delete') 
+           if( id == None or id == ""):
+               return
+           iterationNum = 0
+           for existingID in self.options:
+               if( existingID == id):
+                   self.packetInformationFileData['Arbitration Ids'].pop(id)
+                   self.options.pop(iterationNum)
+               iterationNum += 1
+               
+           self._reset_option_menu(self.idChoiceOptions,self.options,self.IDchoice)
+           self.dm.saveJson(self.packetInformationFile,self.packetInformationFileData)
+            
     def addArbID(self):
         """
         This method will add a new arbitration id to the json file. It will first prompt the user
@@ -878,6 +905,15 @@ class DisplayApp:
         except:
             tkMessageBox.showwarning('Not a correct Arbitration ID', \
                 'Arbitration ID must be an integer!')
+            return
+        
+        try:
+            for existingID in self.options:
+                if( existingID == id):
+                    raise Exception
+        except:
+            tkMessageBox.showwarning('Arbitration ID already exists', \
+                'Arbitration ID %s, is already in the system'%id)
             return
         GeneralInfo = {}
         GeneralInfo['CANspeed'] = 0
@@ -1301,23 +1337,26 @@ class DisplayApp:
         
         ByteInfo = self.packetInformationFileData['Arbitration Ids'][idChoice]['Bytes']
         ByteData = self.byteInfoData
+        dbVars = ByteData['db0']
+        
         try:
             for i in range(0,8):
                 dbInfo = ByteInfo['db%d'%i]
                 dbVars = ByteData['db%d'%i]
-                print "here1"
+                
                 temp =  dbVars['changes'].get()
+            
                 if( temp == ""):
                     temp = 0
                 dbInfo['Changes'] = str(temp)
-                print "here2"
+                
                 temp = dbVars['continuous']
                 if( temp == ""):
                     temp = 0
                 dbInfo['Continuous'] = dbVars['continuous'].get()
-                print "here3"
+                
                 dbInfo['Correlations'] = dbVars['correlations'].get().split(',')
-                print "here4"
+                
                 dbInfo['Comments'] = (dbVars['comments'].get(1.0,END)).split('\n')
                 
         except:
@@ -1943,10 +1982,12 @@ class DisplayApp:
                                       of the same name. This class will print the module's addition to the GUI for the user to 
                                       run the experiments included in the experimentFileLocation class.
         """
+        print "here"
+        print experimentFileLocation
         self.experimentFile = experimentFileLocation;
         self.experimentGUIFile = experimentGUILocation;
-        self.writeiniFile(self.SETTINGS_FILE, "experimentinfo", "experimentfile", experimentFileLocation)
-        self.writeiniFile(self.SETTINGS_FILE, "experimentinfo", 'experiment_gui_file', experimentGUILocation)
+        self.writeiniFile(self.SETTINGS_FILE, "experimentInfo", "experimentfile", experimentFileLocation)
+        self.writeiniFile(self.SETTINGS_FILE, "experimentInfo", 'experiment_gui_file', experimentGUILocation)
         tkMessageBox.showwarning('Settings Changed', \
                 'Please restart to use new car module')
         
@@ -2083,7 +2124,7 @@ class DisplayApp:
         It will first check to make sure that no
         method is currently communicating with the bus. 
         """
-        if( self.experimentFile != None):
+        if( self.experimentFile != None and self.experimentFile != ""):
             try:
                 pathInd = string.rfind(self.experimentFile,"/")
                 path = self.experimentFile[:pathInd+1]
@@ -2561,6 +2602,7 @@ class DisplayApp:
          self.comm.spit(self.freq,sID,repeat, writes, period=period, debug=False, packet=packet)
          self.unsetRunning()
               
+
 
         
     def uploaddb(self):
@@ -3342,6 +3384,8 @@ class settingsDialog(Toplevel):
         entryLabel.grid(row=i,column=0,columnspan=2,sticky=tk.W)
         i+=1
         
+        
+        # EXPERIMENT MODULE FILE
         fileLocations = self.dClass.getExperimentFileLocations()
         
         entryLabel = Tkinter.Label(master)
@@ -3359,6 +3403,7 @@ class settingsDialog(Toplevel):
         
         i += 1
         
+        # GUI module file
         entryLabel = Tkinter.Label(master)
         entryLabel["text"] = "GUI Module File:"
         entryLabel.grid(row=i,column=1,columnspan=1,sticky=tk.W)
@@ -3371,6 +3416,11 @@ class settingsDialog(Toplevel):
         entryWidget.grid(row=i,column=2,columnspan=3,sticky=tk.W)
         entryWidget["width"] = 30
         
+        i +=1
+        
+        # DELETE arb ID
+        b = Tkinter.Button(master, command=self.dClass.deleteArbID,text="Delete ID from database")
+        b.grid(row=i,column=0,columnspan=2)
         
     def setRate(self):
         """

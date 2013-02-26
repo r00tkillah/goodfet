@@ -223,7 +223,17 @@ class FordExperimentsFrame:
         b = tk.Button(frame,command=self.fakeOutsideTemp,text="Start")
         b.grid(row=i,column=2,sticky=tk.W)
     
-    def 
+    def fakeOutsideTemp(self):
+        try:
+            level = float(self.outsideTemp.get())
+            if( level > 100):
+                return
+        except:
+            except:
+            tkMessageBox.showwarning('Invalid input', \
+                'Input is not an number')   
+        self.comm.fakeOutsideTemp(level)
+        
     
     def fakeFuelLevel(self):
         try:

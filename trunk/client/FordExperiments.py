@@ -307,6 +307,13 @@ class FordExperiments(experiments):
                 self.multiPacketSpit(packet0rts=True)
 
     def rpmHack(self, inputs):
+        """
+        This method will increase the rpm by the given rpm amount.
+        
+        @type inputs: List
+        @param inputs: Single element of a list that corresponds to the amount the user
+                       wishses to 
+        """
     
         self.client.serInit()
         self.spitSetup(500)
@@ -359,6 +366,7 @@ if __name__ == "__main__":
         
             speedometerHack
             fakeVIN
+            rpmHack
         ''')
     parser.add_argument('verb', choices=['speedometerHack', 'rpmHack']);
     parser.add_argument('-v', '--variable', type=int, action='append', help='Input values to the method of choice', default=None);

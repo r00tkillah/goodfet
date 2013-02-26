@@ -1055,7 +1055,7 @@ class DisplayApp:
         self.packetInfoFrame = tk.Canvas(self.infoFrame,width=self.ControlsDx, height = self.ControlsDy)
         """ Packet Info tab"""
         self.packetInfoFrame.grid(row=i,column=0,columnspan=20, sticky=tk.N+tk.W+tk.E+tk.S)
-        
+        self.packetInfoFrame.config(selectborderwidth=0)
         
         k = 0
         entryLabel = tk.Label(self.packetInfoFrame, text = "Known Packets", font = self.BOLDFONT)
@@ -1089,7 +1089,7 @@ class DisplayApp:
         @type i: Integer
         @param i: This is the row to add our Frame to. This is for the grid formation 
         """
-        self.generalInfoFrame = tk.Canvas(self.infoFrame, width=self.ControlsDx, height = self.ControlsDy)   
+        self.generalInfoFrame = tk.Frame(self.infoFrame, width=self.ControlsDx, height = self.ControlsDy)   
         """ general information tab"""
         self.generalInfoFrame.grid(row=i, column = 0, columnspan = 20, sticky=tk.N+tk.W + tk.E+tk.S)
        
@@ -1900,6 +1900,7 @@ class DisplayApp:
         #self.root.bind( '<Button-3>', self.handleButton3 )
         #self.root.bind( '<B1-Motion>', self.handleButton1Motion )
         self.root.bind( '<Command-q>', self.handleModQ )
+        self.root.bind( '<Command-s>', self.saveJsonInfo)
         self.root.bind( '<Control-z>', self.handleSettings)
         #self.root.bind( '<Command-o>', self.handleModO )
         self.root.bind( '<Control-q>', self.handleQuit )
@@ -3423,7 +3424,8 @@ class settingsDialog(Toplevel):
         self.dClass.setDataManage(table = table, name = name, host = host, \
                                   username = username, password = password, database = database )
         
-        self.dclass.setCarModule(self.experimentFileLocation.get(), self.experimentGUIFileLocation.get())
+        self.dClass.setCarModule(self.experimentFileLocation.get(), self.experimentGUIFileLocation.get())
+        
         
         
         self.withdraw()

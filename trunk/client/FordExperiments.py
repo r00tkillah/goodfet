@@ -171,7 +171,41 @@ class FordExperiments(experiments):
         # print the packet we are transmitting
         print packetParsed
         
+    def oscillateMPH(self,time):
+        self.client.serInit()
+        self.spitSetup(500)
+        #FIGURE out how to clear buffers
+        self.addFilter([513, 513, 513, 513,513, 513], verbose=False)
+        packetParsed = self.getBackground(513)
+        packet = []
+        #set data packet to match what was sniffed or at least what was input
+        for i in range(0,8):
+            idx = "db%d"%i
+            packet.append(ord(packetParsed.get(idx)))
+        packetValue = 0
+        packet[1] = packetValue;
         
+        print packet
+        #### split SID into different regs
+        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        packet = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                  0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                  # lower nibble is DLC                   
+                 packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6],packet[7]]
+        packetCount = 1;
+        self.client.txpacket(packet);
+        startTime = tT.time()
+        while( (tT.time()-startTime) < runTime):
+            dt = tT.time()-startTime
+            inputValue = ((2.0*math.pi)/20.0)*dt
+            value =         112*math.sin(inputValue)+141
+            print value
+            
+            packet[9] = value
+            print packet
+            self.client.txpacket(packet)
+            packetCount += 1
     def oscillateTemperature(self,time):
         """
         
@@ -280,8 +314,8 @@ class FordExperiments(experiments):
         self.client.rxpacket()
         self.client.rxpacket()
         self.client.rxpacket()
-        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
-        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        SIDlow = (2024 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (2024 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
               
         startTime = time.time()  
         #while((time.time() - startTime) < 10):
@@ -485,8 +519,8 @@ class FordExperiments(experiments):
         self.client.rxpacket()
         self.client.rxpacket()
         self.client.rxpacket()
-        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
-        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        SIDlow = (2024 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (2024 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
               
         startTime = time.time()  
         #while((time.time() - startTime) < 10):
@@ -523,8 +557,8 @@ class FordExperiments(experiments):
         self.client.rxpacket()
         self.client.rxpacket()
         self.client.rxpacket()
-        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
-        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        SIDlow = (2024 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (2024 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
               
         startTime = time.time()  
         #while((time.time() - startTime) < 10):
@@ -755,8 +789,7 @@ class FordExperiments(experiments):
                 self.multiPacketSpit(packet0rts=True)
 
 
-    def runOdometer(self):
-        pass
+    
         
 if __name__ == "__main__":
     

@@ -20,7 +20,7 @@ class FordExperimentsFrame:
                                   this class will create GUI widgets to run.
     """
 
-    def __init__(self, frame, communicationLink):
+    def __init__(self, frame, communicationLink, mainDisplay):
         """
         This constructor will create all the widgets for the display
         as well as set all the bindings for the various hacks that can be
@@ -29,6 +29,7 @@ class FordExperimentsFrame:
         """
         i = 0
         self.comm = communicationLink
+        self.mainDisplay = mainDisplay
         entryLabel = tk.Label(frame, text="Ford Focus 2004 -- High Speed CAN demonstrations", font = "Helvetica 16 bold italic")
         entryLabel.grid(row=i,column=0,columnspan=5,sticky=tk.W)
         
@@ -51,7 +52,7 @@ class FordExperimentsFrame:
         #### FAKE SPEEDOMETER ####
         ##########################
         i+= 1
-        entryLabel = tk.Label(frame, text="Move Speedometer Up:")
+        entryLabel = tk.Label(frame, text="Move MPH Up:")
         entryLabel.grid(row=i,column=0,sticky=tk.W)
         self.speedIncrementVar = tk.StringVar()
         self.speedIncrementVar.set("")
@@ -102,12 +103,6 @@ class FordExperimentsFrame:
         b = tk.Button(frame, command = self.setEngineTemp, text="Run")
         b.grid(row=i,column=2,sticky=tk.W)
     
-        #######################
-        ### RUN UP ODOMETER ###
-        #######################
-        i += 1
-        b = tk.Button(frame, command = self.runOdometer, text="Increment Odometer")
-        b.grid(row=i,column=0,columnspan = 2,sticky=tk.W)
         
         ############################
         #### SET WARNING LIGHTS ####
@@ -167,7 +162,7 @@ class FordExperimentsFrame:
         ch = tk.Checkbutton(frame, text="ABS Light", variable = self.ABSLight)
         ch.grid(row=i,column=1,sticky=tk.W)
         
-        
+        i +=1
         b = tk.Button(frame, command=self.warningLights,text="Warning Lights")
         b.grid(row=i,column=0,columnspan=2,sticky=tk.W)
         
@@ -175,13 +170,38 @@ class FordExperimentsFrame:
         #########################
         #### OVERHEAT ENGINE ####
         #########################
-        i +=1
-        b = tk.Button(frame, command = self.overHeatEngine, text="Overheat Engine")
-        b.grid(row=i,column=0,columnspan=2)
-        
+        i += 1
         b = tk.Button(frame, command=self.oscillateTemp, text="Oscillate Temp")
-        b.grid(row=i,column=2)
+        b.grid(row=i,column=0,sticky=tk.W)
         
+        b = tk.Button(frame, command=self.oscillateRPM, text="Oscillate RPM")
+        b.grid(row=i,column=1,sticky=tk.W)
+        
+        b = tk.Button(frame, command=self.oscillateMPH, text="Oscillate MPH")
+        b.grid(row=i,column=2,sticky=tk.W)
+        
+        i +=1
+        
+        b = tk.Button(frame, command = self.overHeatEngine, text="Overheat Engine")
+        b.grid(row=i,column=0,columnspan=1,sticky=tk.W)
+        
+        b = tk.Button(frame, command = self.LockDoors, text="Lock Doors")
+        b.grid(row=i,column=1,sticky=tk.W)
+        
+        #######################
+        ### RUN UP ODOMETER ###
+        #######################
+        
+        b = tk.Button(frame, command = self.runOdometer, text="Increment Odometer")
+        b.grid(row=i,column=2,columnspan = 2,sticky=tk.W)
+        
+    
+    def LockDoors(self):
+        pass
+    def oscillateMPH(self):
+        pass    
+    def oscillateRPM(self):
+        pass
     def oscillateTemp(self):
         self.comm.oscillateTemperature(20)
     
@@ -225,10 +245,10 @@ class FordExperimentsFrame:
         """
         try:
             setValue = int(self.speedIncrementVar.get())
-       except:
+        except:
             tkMessageBox.showwarning('Invalid input', \
                 'Input is not an integer')
-       self.comm.speedometerHack([setValue])
+        self.comm.speedometerHack([setValue])
         
     
     def setRPM(self):

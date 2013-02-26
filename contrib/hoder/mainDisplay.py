@@ -1549,7 +1549,7 @@ class DisplayApp:
         in the settings file. This experiment file class is a sub class of experiments which is a sub
         class of GoodFETMCPCANCommunication. 
         """
-        self.carMod = self.ourCarGuiClass(self.carFrame,self.comm)
+        self.carMod = self.ourCarGuiClass(self.carFrame,self.comm,self)
         
     def buildSQLCanvas(self):
         """

@@ -249,7 +249,7 @@ class FordExperimentsFrame:
     def LockDoors(self):
         pass
     def oscillateMPH(self):
-        self.comm.oscillateMPH()
+        self.comm.oscillateMPH(20)
     def oscillateRPM(self):
         pass
     def oscillateTemp(self):
@@ -267,7 +267,7 @@ class FordExperimentsFrame:
         This method will call the hack that sets the warning lights on the display   
         """
         
-        self.comm.warningLightsOn(self,self.checkEngine.get(),self.checkTransmissionLight.get(), \
+        self.comm.warningLightsOn(self.checkEngine.get(),self.checkTransmissionLight.get(), \
         self.transmissionOverheated.get(), self.engineLight.get(), self.batteryLight.get(), \
         self.checkFuelCapLight.get(), self.checkBreakSystem.get(), self.ABSLight.get())              
 

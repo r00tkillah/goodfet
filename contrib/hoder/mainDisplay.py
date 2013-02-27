@@ -1343,7 +1343,7 @@ class DisplayApp:
             for i in range(0,8):
                 dbInfo = ByteInfo['db%d'%i]
                 dbVars = ByteData['db%d'%i]
-                
+                print dbVars['changes'].get()
                 temp =  dbVars['changes'].get()
             
                 if( temp == ""):
@@ -1353,6 +1353,7 @@ class DisplayApp:
                 temp = dbVars['continuous']
                 if( temp == ""):
                     temp = 0
+                print dbVars['continuous'].get()
                 dbInfo['Continuous'] = dbVars['continuous'].get()
                 
                 dbInfo['Correlations'] = dbVars['correlations'].get().split(',')
@@ -1466,8 +1467,15 @@ class DisplayApp:
         for i in range(0,8):
             dbVars = self.byteInfoData['db%d'%i]
             dbInfo = PacketInfo['db%d'%i]
-            dbVars['continuous'].set(dbInfo['Continuous'])
-            dbVars['changes'].set(dbInfo['Changes'])
+            dbCont = dbInfo['Continuous']
+            if( dbCont != '0' or dbCont != '1' or dbCont != 0 or dbCont != 1):
+                dbCont = 0
+            dbVars['continuous'].set(dbCont)
+            #dbVars['changes'].set(dbInfo['Changes'])
+            dbcorr = dbInfo['Changes']
+            if( dbcorr != '0' or dbcorr !='1' or dbcorr != 0 or dbcorr !=1):
+                dbcorr = 0
+            dbVars['changes'].set(dbcorr)
             dbVars['correlations'].set(', '.join(dbInfo['Correlations']))
             textBox = dbVars['comments']
             #textBox.config(state=tk.NORMAL)

@@ -4,6 +4,7 @@ import array;
 import csv, time, argparse;
 import datetime
 import os
+import random
 from random import randrange
 from GoodFETMCPCAN import GoodFETMCPCAN;
 from experiments import experiments
@@ -144,7 +145,8 @@ class FordExperiments(experiments):
         if(packet1 != None):
             packetParsed = self.client.packet2parsed(packet1);
         #keep sniffing till we read a packet
-        while( packet1 == None or packetParsed.get('sID') != sId ):
+        startTime = time.time()
+        while( packet1 == None or packetParsed.get('sID') != sId and (time.time() - startTime) < 20):
             packet1 = self.client.rxpacket()
             if(packet1 != None):
                 packetParsed = self.client.packet2parsed(packet1)
@@ -171,7 +173,7 @@ class FordExperiments(experiments):
         # print the packet we are transmitting
         print packetParsed
         
-    def oscillateMPH(self,time):
+    def oscillateMPH(self,runTime):
         self.client.serInit()
         self.spitSetup(500)
         #FIGURE out how to clear buffers
@@ -181,7 +183,7 @@ class FordExperiments(experiments):
         #set data packet to match what was sniffed or at least what was input
         for i in range(0,8):
             idx = "db%d"%i
-            packet.append(ord(packetParsed.get(idx)))
+            packet.append(packetParsed.get(idx))
         packetValue = 0
         packet[1] = packetValue;
         
@@ -199,14 +201,18 @@ class FordExperiments(experiments):
         while( (tT.time()-startTime) < runTime):
             dt = tT.time()-startTime
             inputValue = ((2.0*math.pi)/20.0)*dt
-            value =         112*math.sin(inputValue)+141
+            value =         35*math.sin(inputValue)+70
             print value
-            
-            packet[9] = value
+            #if( value%4 == 0):
+            #    packet[5] = 95
+            #else:
+            #    packet[5] = 0
+            #packet[9] = int(value)
+            packet[5] = int(value)
             print packet
             self.client.txpacket(packet)
             packetCount += 1
-    def oscillateTemperature(self,time):
+    def oscillateTemperature(self,runTime):
         """
         
         
@@ -221,7 +227,7 @@ class FordExperiments(experiments):
         #set data packet to match what was sniffed or at least what was input
         for i in range(0,8):
             idx = "db%d"%i
-            packet.append(ord(packetParsed.get(idx)))
+            packet.append(packetParsed.get(idx))
         packetValue = 0
         packet[1] = packetValue;
         
@@ -356,7 +362,7 @@ class FordExperiments(experiments):
         newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                        0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                        # lower nibble is DLC                   
-                       255,ord(packet[6]),ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+                       0xfa,packet['db1'],packet['db2'],packet['db3'],packet['db4'],packet['db5'],packet['db6'],packet['db7']]
         startTime = time.time()
         self.multiPacketSpit(packet0=newPacket, packet0rts=True)
         while( time.time()- startTime < 10):
@@ -371,15 +377,17 @@ class FordExperiments(experiments):
         SIDlow = (1056 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (1056 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
         odomFuzz = random.randint(0,255)
+        print packet
         newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                        0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                        # lower nibble is DLC                   
-                       ord(packet[5]),odomFuzz,ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
-        startTime = time.time()
+                       packet['db0'],packet['db1'],packet['db2'],packet['db3'],packet['db4'],packet['db5'],packet['db6'],packet['db7']]
         
+        startTime = time.time()
+        packet[6] = odomFuzz;
         while( time.time()- startTime < 10):
             odomFuzz = random.randint(0,255)
-            newPacket[5] = odomFuzz
+            newPacket[6] = odomFuzz
             self.client.txpacket(newPacket)
         
     def setDashboardTemp(self, temp):
@@ -441,7 +449,7 @@ class FordExperiments(experiments):
         else:
             packet2rts = False
             packet2 = None
-        
+        print packet2
         SIDlow = (1056 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (1056 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
         packet = self.getBackground(1056)
@@ -451,27 +459,28 @@ class FordExperiments(experiments):
                    ord(packet[5]),ord(packet[6]),ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
         if( checkEngine == 1):
             packet1[9] += 2;
-            
+            print packet1
         if( checkTransmission == 1):
             packet1[9] += 3;
-            
+            print packet1
         if( transmissionOverheated == 1):
             packet1[9] += 4
-            
+            print packet1
         if( engineLight == 1):
             packet1[9] += 64
-            
+            print packet1
         if( fuelCap == 1):
             packet1[10] = 255
+            print packet1
         if( batter == 1):
             packet1[6] = 33
-        
+            print packet1
         # load new packet into TXB0 and check time
         self.multiPacketSpit(packet0=packet1,packet1=packet2, packet0rts=True,packet1rts=packet2rts )
         starttime = time.time()
         
         # spit new value for 1 second
-        while (time.time()-starttime < 10):
+        while ((time.time()-starttime) < 10):
             self.multiPacketSpit(packet0rts=True,packet1rts = packet2rts)
     
     def fakeScanToolFuelLevel(self,level):
@@ -501,7 +510,7 @@ class FordExperiments(experiments):
         newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                        0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                        # lower nibble is DLC                   
-                       ord(packet[5]),ord(packet[6]),ord(packet[7]),level,ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+                       3,65,47,level,ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
 
         # load new packet into TXB0 and check time
         self.multiPacketSpit(packet0=newPacket, packet0rts=True)
@@ -515,7 +524,7 @@ class FordExperiments(experiments):
         self.client.serInit()
         self.spitSetup(500)
 
-        self.addFilter([2024, 2024, 2024])
+        self.addFilter([2024, 2024, 2024,2024,2024,2024])
         self.client.rxpacket()
         self.client.rxpacket()
         self.client.rxpacket()
@@ -531,19 +540,19 @@ class FordExperiments(experiments):
         while (packet == None):
             packet=self.client.rxpacket();
         
-        newTemp = math.ceil(level/1.8 + 22)
+        newTemp = int(math.ceil(level/1.8 + 22))
         #print "Fake MPH = 1.617(%d)-63.5 = %d" %(newSpeed, mph)
-
-            
+        print newTemp
+        
         newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                        0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                        # lower nibble is DLC                   
-                       ord(packet[5]),ord(packet[6]),ord(packet[7]),newTemp,ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+                       03,65,70,newTemp,0,0,0,0]
 
         # load new packet into TXB0 and check time
         self.multiPacketSpit(packet0=newPacket, packet0rts=True)
         starttime = time.time()
-        
+        print newPacket
         # spit new value for 1 second
         while (time.time()-starttime < 10):
             self.multiPacketSpit(packet0rts=True)

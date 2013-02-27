@@ -1282,7 +1282,7 @@ class DisplayApp:
             self.queryFilename.set(filename[:-3] + "pcap") #change filename ending
             
             
-    def saveJsonInfo(self):
+    def saveJsonInfo(self, event = None):
         """
         This file will save all of the user's information to the json file specified in settings.
         The data will be saved to json data structure in memory and then dumped to the file via the

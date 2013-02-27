@@ -797,6 +797,106 @@ class FordExperiments(experiments):
             while (time.time()-starttime < 1):
                 self.multiPacketSpit(packet0rts=True)
 
+    def imbeethovenbitch(self):
+        
+        
+        ### USUAL SETUP STUFF  ######
+        self.client.serInit()
+        self.spitSetup(500)
+        self.addFilter([513, 513, 513,513])
+        SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        
+        #clear buffers
+        self.client.rxpacket()
+        self.client.rxpacket()
+        self.client.rxpacket()
+        
+        
+        packet = None;
+        
+        #catch a packet to mutate
+        while (packet == None):
+            packet=self.client.rxpacket();
+        newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                     0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                     # lower nibble is DLC                   
+                     ord(packet[5]),ord(packet[6]),ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+        
+        
+        # NOW THE FUN STUFF!!!!!
+        
+        music = wave.open("../../contrib/ted/beethovensfifth.wav", 'r');
+        print "number of frames: %d " %music.getnframes()
+        print "number of channels: %d " %music.getnchannels()
+        print "sample width: %d " %music.getsampwidth()
+        print "framerate: %d " %music.getframerate()
+        print "compression: %s " %music.getcompname()
+        
+        length = music.getnframes()
+        pos = music.tell()
+        print " NOW NOW NOW NOW NOW NOW NOW NOW NOW"
+        
+        while(pos < music.getnframes()):
+            runningaverage = 0
+            
+            pos = music.tell()
+            sample = music.readframes(8820) #approximately .2 seconds of audio --> 7133184/44100/.1
+            #print "NEXT FRAME"
+            
+            length = len(sample)
+            #print length
+            
+            for i in range(0, length,4):
+                runningaverage += max(ord(sample[i]), ord(sample[i+2]))#ord(sample[i]) 
+            
+            avg = runningaverage/(length / 4)
+            #print avg
+            
+            
+            #print avg-165
+            val = (40 + 3*(avg-165))
+            
+            print "speedometerVal = %f " %val;
+            print "speed = %f" %(1.617*val-63.5)
+            
+            if (val > 255):
+                val = 255
+            elif (val < 0):
+                val = 0
+            
+            newPacket[9] = int(val)
+            
+            # load new packet into TXB0 and check time
+            self.multiPacketSpit(packet0=newPacket, packet0rts=True)
+            starttime = time.time()
+            
+            # spit new value for 1 second
+            while (time.time()-starttime < .2):
+                self.multiPacketSpit(packet0rts=True)
+
+#for foo in byte:
+#  print "%d" %ord(foo)
+
+#39.27
+#113
+
+
+
+
+
+# read in 26 frames
+# average them
+# normalize to our range of values (conversion 1.6167*x-63.5
+# x --> 0 to 120
+
+#sample width = 2??
+#number of frames: 7133184 
+#number of channels: 2 
+#sample width: 2 --> 2 bytes per sample
+#framerate: 44100 
+
+
 
     
         
@@ -810,7 +910,7 @@ if __name__ == "__main__":
             fakeVIN
             rpmHack
         ''')
-    parser.add_argument('verb', choices=['speedometerHack', 'rpmHack']);
+    parser.add_argument('verb', choices=['speedometerHack', 'rpmHack', 'thefifth']);
     parser.add_argument('-v', '--variable', type=int, action='append', help='Input values to the method of choice', default=None);
 
 
@@ -824,5 +924,7 @@ if __name__ == "__main__":
         fe.rpmHack(inputs=inputs)
     elif( args.verb == 'fakeVIN'):
         fe.fakeVIN()
+    elif( args.verb == 'thefifth'):
+        fe.imbeethovenbitch()
         
         

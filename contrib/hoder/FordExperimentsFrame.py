@@ -269,7 +269,7 @@ class FordExperimentsFrame:
         
         self.comm.warningLightsOn(self.checkEngine.get(),self.checkTransmissionLight.get(), \
         self.transmissionOverheated.get(), self.engineLight.get(), self.batteryLight.get(), \
-        self.checkFuelCapLight.get(), self.checkBreakSystem.get(), self.ABSLight.get())              
+        self.checkFuelCapLight.get(), self.checkBreakSystem.get(), self.ABSLight.get(),self.dashBoardErrors.get())              
 
     def runOdometer(self):
         """

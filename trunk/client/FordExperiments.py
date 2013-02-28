@@ -12,6 +12,7 @@ from GoodFETMCPCANCommunication import GoodFETMCPCANCommunication
 from intelhex import IntelHex;
 import Queue
 import math
+import wave
 
 tT = time
 class FordExperiments(experiments):
@@ -141,16 +142,22 @@ class FordExperiments(experiments):
         is a simple "background" retriever in that it returns the packet
         that is of the given id that was sniffed off the bus.
         """
+        self.client.serInit()
+        self.spitSetup(500)
+        self.addFilter([sId,sId,sId,sId,sId,sId])
         packet1 = self.client.rxpacket();
         if(packet1 != None):
             packetParsed = self.client.packet2parsed(packet1);
         #keep sniffing till we read a packet
         startTime = time.time()
-        while( packet1 == None or packetParsed.get('sID') != sId and (time.time() - startTime) < 20):
+        while( (packet1 == None or packetParsed.get('sID') != sId) and (time.time() - startTime) < 5):
             packet1 = self.client.rxpacket()
+            print packet1
             if(packet1 != None):
                 packetParsed = self.client.packet2parsed(packet1)
-            
+        if( packet1 == None or packetParsed.get('sID') != sId):
+            print "exiting without packet"
+        #print "returning", packetParsed
         #recieveTime = time.time()
         return packetParsed
 
@@ -376,7 +383,7 @@ class FordExperiments(experiments):
         packet = self.getBackground(1056)
         SIDlow = (1056 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (1056 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
-        odomFuzz = random.randint(0,255)
+        odomFuzz = random.randint(1,254)
         print packet
         newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                        0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
@@ -386,7 +393,7 @@ class FordExperiments(experiments):
         startTime = time.time()
         packet[6] = odomFuzz;
         while( time.time()- startTime < 10):
-            odomFuzz = random.randint(0,255)
+            odomFuzz = random.randint(1,254)
             newPacket[6] = odomFuzz
             self.client.txpacket(newPacket)
         
@@ -429,16 +436,18 @@ class FordExperiments(experiments):
             self.multiPacketSpit(packet0rts=True)
 
       
-    def warningLightsOn(self,checkEngine, checkTransmission, transmissionOverheated, engineLight, battery, fuelCap, checkBreakSystem,ABSLight):                 
-        self.addFilter([1056, 1056, 530, 530, 1056])
+    def warningLightsOn(self,checkEngine, checkTransmission, transmissionOverheated, engineLight, battery, fuelCap, checkBreakSystem,ABSLight, dashB):                 
+        
         if( checkBreakSystem == 1 or ABSLight == 1):
             SIDlow = (530 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
             SIDhigh = (530 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+            print "looking for 530"
             packet = self.getBackground(530)
+            print "found"
             packet2 = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                        0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                        # lower nibble is DLC                   
-                       ord(packet[5]),ord(packet[6]),ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+                       packet['db0'],packet['db1'],packet['db2'],packet['db3'],packet['db4'],packet['db5'],packet['db6'],packet['db7']]
             if( checkBreakSystem == 1 and ABSLight == 1):
                 packet2[9] = 97
             elif( checkBreakSystem == 0 and ABSLight == 1):
@@ -452,11 +461,13 @@ class FordExperiments(experiments):
         print packet2
         SIDlow = (1056 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (1056 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        print "looking for 1056"
         packet = self.getBackground(1056)
+        print "found"
         packet1 = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
                    0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
                    # lower nibble is DLC                   
-                   ord(packet[5]),ord(packet[6]),ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+                   packet['db0'],packet['db1'],packet['db2'],packet['db3'],packet['db4'],packet['db5'],packet['db6'],packet['db7']] 
         if( checkEngine == 1):
             packet1[9] += 2;
             print packet1
@@ -472,13 +483,18 @@ class FordExperiments(experiments):
         if( fuelCap == 1):
             packet1[10] = 255
             print packet1
-        if( batter == 1):
-            packet1[6] = 33
+        if( battery == 1):
+            packet1[7] = 33
             print packet1
+        if( dashB == 1):
+            packet1[6] = 255
+        print "hello"
+        self.client.serInit()
+        self.spitSetup(500)
         # load new packet into TXB0 and check time
         self.multiPacketSpit(packet0=packet1,packet1=packet2, packet0rts=True,packet1rts=packet2rts )
         starttime = time.time()
-        
+        print "starting"
         # spit new value for 1 second
         while ((time.time()-starttime) < 10):
             self.multiPacketSpit(packet0rts=True,packet1rts = packet2rts)
@@ -841,21 +857,22 @@ class FordExperiments(experiments):
             runningaverage = 0
             
             pos = music.tell()
-            sample = music.readframes(8820) #approximately .2 seconds of audio --> 7133184/44100/.1
+            sample = music.readframes(2300) #approximately .05 seconds of audio --> 7133184/44100/.1
             #print "NEXT FRAME"
             
             length = len(sample)
             #print length
             
             for i in range(0, length,4):
-                runningaverage += max(ord(sample[i]), ord(sample[i+2]))#ord(sample[i]) 
+                runningaverage += ord(sample[i])#ord(sample[i])
+                runningaverage += ord(sample[i+2])
             
-            avg = runningaverage/(length / 4)
+            avg = runningaverage/(length / 4)/2
             #print avg
             
             
-            #print avg-165
-            val = (40 + 3*(avg-165))
+            #print avg-120
+            val = (40 + 5*(avg-120))
             
             print "speedometerVal = %f " %val;
             print "speed = %f" %(1.617*val-63.5)
@@ -872,7 +889,7 @@ class FordExperiments(experiments):
             starttime = time.time()
             
             # spit new value for 1 second
-            while (time.time()-starttime < .2):
+            while (time.time()-starttime < .05):
                 self.multiPacketSpit(packet0rts=True)
 
 #for foo in byte:

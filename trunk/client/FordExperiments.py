@@ -886,10 +886,6 @@ class FordExperiments(experiments):
             while (time.time()-starttime < .1):
                 self.multiPacketSpit(packet0rts=True)
 
-
-
-
-
 # read in 26 frames
 # average them
 # normalize to our range of values (conversion 1.6167*x-63.5
@@ -901,6 +897,24 @@ class FordExperiments(experiments):
 #sample width: 2 --> 2 bytes per sample
 #framerate: 44100 
 
+	def engineDiagnostic(self, data):
+	
+		self.addFilter([513, 513, 513,513])
+		
+		startTime = tT.time()
+        while((tT.time() - startTime ) < 15):
+			packet = None;
+        
+       	 	#catch a packet to decode
+        	while (packet == None):
+        	    packet=self.client.rxpacket();
+            
+      	  	rpm = 64.5 * ord(packet[5]) - 61.88
+      	  	mph = 1.617 * ord(packet[9]) - 63.5
+
+     	  	data.put("Engine RPM: %d Current Speed: %d mph", %(rpm, mph))
+     	  	time.sleep(.5)
+        
 
 
     

@@ -842,61 +842,49 @@ class FordExperiments(experiments):
         
         # NOW THE FUN STUFF!!!!!
         
-        music = wave.open("../../contrib/ted/GBtheme.wav", 'r');
+        music = wave.open("../../contrib/ted/beethovensfifth.wav.wav", 'r');
         print "number of frames: %d " %music.getnframes()
         print "number of channels: %d " %music.getnchannels()
         print "sample width: %d " %music.getsampwidth()
         print "framerate: %d " %music.getframerate()
         print "compression: %s " %music.getcompname()
         
-        length = music.getnframes()
-        pos = music.tell()
-        print " NOW NOW NOW NOW NOW NOW NOW NOW NOW"
         
-        while(pos < music.getnframes()):
-            runningaverage = 0
+        numFramesToRead = music.getframerate()*.1 # grab .1s of audio
+                
+        while(1):
+
+            runningSum = 0
             
-            pos = music.tell()
-            sample = music.readframes(2300) #approximately .05 seconds of audio --> 7133184/44100/.1
-            #print "NEXT FRAME"
+            sample = music.readframes(numFramesToRead) # grab .1s of audio
             
             length = len(sample)
-            #print length
             
             for i in range(0, length,4):
-                runningaverage += ord(sample[i])#ord(sample[i])
-                runningaverage += ord(sample[i+2])
+                runningSum += ord(sample[i]) 	#average the dual-channel
+                runningSum += ord(sample[i+2])
             
-            avg = runningaverage/(length / 4)/2
-            #print avg
-            
-            
-            #print avg-120
-            val = (40 + 5*(avg-120))
+            avg = runningSum/(length / 2)		# we used 2 of every 4 frames, so divide length by 2
+
+            val = (40 + 5*(avg-120))			# normalize to speedometer range of values
             
             print "speedometerVal = %f " %val;
-            print "speed = %f" %(1.617*val-63.5)
+            print "speed = %f" %(1.617*val-63.5)	# speed we're trying to display
             
-            if (val > 255):
+            if (val > 255):						# ensure we don't run off acceptable range
                 val = 255
             elif (val < 0):
                 val = 0
             
-            newPacket[9] = int(val)
+            newPacket[9] = int(val)				# write it to the packet
             
             # load new packet into TXB0 and check time
             self.multiPacketSpit(packet0=newPacket, packet0rts=True)
             starttime = time.time()
             
             # spit new value for 1 second
-            while (time.time()-starttime < .05):
+            while (time.time()-starttime < .1):
                 self.multiPacketSpit(packet0rts=True)
-
-#for foo in byte:
-#  print "%d" %ord(foo)
-
-#39.27
-#113
 
 
 

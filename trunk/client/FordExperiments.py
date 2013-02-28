@@ -842,7 +842,7 @@ class FordExperiments(experiments):
         
         # NOW THE FUN STUFF!!!!!
         
-        music = wave.open("../../contrib/ted/beethovensfifth.wav", 'r');
+        music = wave.open("../../contrib/ted/GBtheme.wav", 'r');
         print "number of frames: %d " %music.getnframes()
         print "number of channels: %d " %music.getnchannels()
         print "sample width: %d " %music.getsampwidth()

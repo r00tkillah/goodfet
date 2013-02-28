@@ -241,18 +241,20 @@ class FordExperimentsFrame:
         if( not self.mainDisplay.checkComm() ):
             return
         self.data = Queue.Queue()
-        thread.start_new_thread(self.getEngineStatusControl)
+        #self.getEngineStatusControl()
+        thread.start_new_thread(self.getEngineStatusControl, ())
         
-    def getEngineStatusControl(self):
+    def getEngineStatusControl(self, data = None):
         self.mainDisplay.setRunning()
         self.mainDisplay.dataText.config(state=tk.NORMAL) 
-        self.mainDisplay.dataText.delete(1.0, END) # clear the text box for the data
+        self.mainDisplay.dataText.delete(1.0, tk.END) # clear the text box for the data
         self.mainDisplay.dataText.config(state=tk.DISABLED)
-        self.engineDiagnostic(self.data)
+        self.comm.engineDiagnostic(self.data)
         self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus)
         self.mainDisplay.unsetRunning()
         #call engine status method
         
+
     def updateEngineStatus(self):
         while( not self.data.empty()):
             try:

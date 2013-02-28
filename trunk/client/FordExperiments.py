@@ -356,7 +356,45 @@ class FordExperiments(experiments):
         # spit new value for 1 second
         while (time.time()-starttime < 10):
             self.multiPacketSpit(packet0rts=True)
+       
+    def setEngineTemp(self,temp):
+        self.client.serInit()
+        self.spitSetup(500)
+
+        self.addFilter([1056, 1056, 1056,1056,1056,1056])
+        self.client.rxpacket()
+        self.client.rxpacket()
+        self.client.rxpacket()
+        SIDlow = (1056 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        SIDhigh = (1056 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+              
+        startTime = time.time()  
+        #while((time.time() - startTime) < 10):
             
+        packet = None;
+
+        # catch a packet and check its db4 value
+        while (packet == None):
+            packet=self.client.rxpacket();
+
+        
+        newTemp = int(math.ceil(level/1.8 + 22))
+        #print "Fake MPH = 1.617(%d)-63.5 = %d" %(newSpeed, mph)
+
+            
+        newPacket = [SIDhigh, SIDlow, 0x00,0x00, # pad out EID regs
+                       0x08, # bit 6 must be set to 0 for data frame (1 for RTR) 
+                       # lower nibble is DLC                   
+                       newTemp,ord(packet[6]),ord(packet[7]),ord(packet[8]),ord(packet[9]),ord(packet[10]),ord(packet[11]),ord(packet[12])]
+
+        # load new packet into TXB0 and check time
+        self.multiPacketSpit(packet0=newPacket, packet0rts=True)
+        starttime = time.time()
+        
+        # spit new value for 1 second
+        while (time.time()-starttime < 10):
+            self.multiPacketSpit(packet0rts=True)
+                    
     def overHeatEngine(self):
         self.client.serInit()
         self.spitSetup(500)

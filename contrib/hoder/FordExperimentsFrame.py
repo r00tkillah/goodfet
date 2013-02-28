@@ -1,6 +1,10 @@
 import Tkinter
-
+import Queue
+import thread
+import tkMessageBox
+import tkSimpleDialog
 tk = Tkinter
+
 
 
 class FordExperimentsFrame:
@@ -222,7 +226,44 @@ class FordExperimentsFrame:
         
         b = tk.Button(frame,command=self.fakeOutsideTemp,text="Start")
         b.grid(row=i,column=2,sticky=tk.W)
-    
+        
+        ########################### 
+        #### GET ENGINE STATUS ####
+        ###########################
+        i += 1
+        b = tk.Button(frame,command=self.getEngineStatus,text="Read Engine Status")
+        b.grid(row=i,column=0,columnspan=2,sticky=tk.W)
+        
+        
+        
+        
+    def getEngineStatus(self):
+        if( not self.mainDisplay.checkComm() ):
+            return
+        self.data = Queue.Queue()
+        thread.start_new_thread(self.getEngineStatusControl)
+        
+    def getEngineStatusControl(self):
+        self.mainDisplay.setRunning()
+        self.mainDisplay.dataText.config(state=tk.NORMAL) 
+        self.mainDisplay.dataText.delete(1.0, END) # clear the text box for the data
+        self.mainDisplay.dataText.config(state=tk.DISABLED)
+        self.engineDiagnostic(self.data)
+        self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus)
+        self.mainDisplay.unsetRunning()
+        #call engine status method
+        
+    def updateEngineStatus(self):
+        while( not self.data.empty()):
+            try:
+                line = self.data.get_nowait()
+            except:
+                self.mainDisplay.dataText.config(state = tk.NORMAL)
+                self.mainDisplay.dataText.insert(tk.END, line)
+                self.mainDisplay.dataText.config(state=tk.DISABLED)
+        if( self.mainDisplay.running.get() == 1):
+            self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus)
+            
     def fakeOutsideTemp(self):
         try:
             level = float(self.outsideTemp.get())

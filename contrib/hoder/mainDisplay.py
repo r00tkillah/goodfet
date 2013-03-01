@@ -1503,7 +1503,7 @@ class DisplayApp:
             self.packetInfoText.insert(END,"\t\t\t " + packet + " \n")
         #self.packetInfoText.config(state=tk.DISABLED)
         
-        
+        self.infoFrameLift()
         
         
     def injectPacket(self, data):
@@ -1900,7 +1900,10 @@ class DisplayApp:
         
         # this will allow us to link to our information about our arbitration IDS
         self.hyperlink = tkHyperlinkManager.HyperlinkManager(self.dataText) 
-        
+    def addtextToScreen(self,text):
+        self.dataText.config(state=NORMAL)
+        self.dataText.insert(END,text);
+        self.dataText.config(state=DISABLED)
     # build a frame and put controls in it
     def buildControls(self):
         """

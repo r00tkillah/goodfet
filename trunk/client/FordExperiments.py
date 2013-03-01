@@ -667,7 +667,11 @@ class FordExperiments(experiments):
         self.client.rxpacket()
         SIDlow = (513 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
         SIDhigh = (513 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
-              
+        
+        SID2 = (1056 & 0x07) << 5;
+        SID2high = (1056 >>3) & 0xFF;
+        packet_odometer = [SID2high, SID2, 0 ,0,8, 65, 0, 32, 120, 0, 0, 1, 247]
+        
         startTime = time.time()  
         #while((time.time() - startTime) < 10):
             
@@ -700,8 +704,10 @@ class FordExperiments(experiments):
         
         # spit new value for 1 second
         while (time.time()-starttime < 10):
-            self.multiPacketSpit(packet0rts=True)
-
+            #self.multiPacketSpit(packet0rts=True)
+            odomFuzz = random.randint(1,254)
+            packet_odometer[6] = odomFuzz
+            self.multiPacketSpit(packet0=newPacket, packet1 =packet_odometer,packet0rts = True, packet1rts=True)
 
     def speedometerHack(self, inputs):
         
@@ -744,6 +750,7 @@ class FordExperiments(experiments):
         
         # spit new value for 1 second
         while (time.time()-starttime < 1):
+            
             self.multiPacketSpit(packet0rts=True)
                 
     def rpmToByteValue(self, rpm):
@@ -880,7 +887,7 @@ class FordExperiments(experiments):
         
         # NOW THE FUN STUFF!!!!!
         
-        music = wave.open("../../contrib/ted/beethovensfifth.wav.wav", 'r');
+        music = wave.open("../../contrib/ted/beethovensfifth.wav", 'r');
         print "number of frames: %d " %music.getnframes()
         print "number of channels: %d " %music.getnchannels()
         print "sample width: %d " %music.getsampwidth()
@@ -938,8 +945,9 @@ class FordExperiments(experiments):
 #framerate: 44100 
 
     def engineDiagnostic(self, data):
-	
-        self.addFilter([513, 513, 513,513])
+        self.client.serInit()
+        self.spitSetup(500)	
+        self.addFilter([513, 513, 513,513,513,513])
 		
         startTime = tT.time()
         while((tT.time() - startTime ) < 15):
@@ -951,8 +959,8 @@ class FordExperiments(experiments):
             
       	  	rpm = 64.5 * ord(packet[5]) - 61.88
       	  	mph = 1.617 * ord(packet[9]) - 63.5
-
-     	  	data.put("Engine RPM: %d Current Speed: %d mph"%(rpm, mph))
+                print "putting data in"
+     	  	data.put("Engine RPM: %d Current Speed: %d mph\n"%(rpm, mph))
      	  	time.sleep(.5)
         
 

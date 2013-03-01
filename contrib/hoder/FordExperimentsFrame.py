@@ -73,7 +73,7 @@ class FordExperimentsFrame:
         entryLabel = tk.Label(frame, text="Set RPMs:")
         entryLabel.grid(row=i,column=0,sticky=tk.W)
         self.rpmVar = tk.StringVar()
-        self.rpmVar.set("")
+        self.rpmVar.set("100")
         entryWidget = tk.Entry(frame, textvariable= self.rpmVar, width=5)
         entryWidget.grid(row=i,column=1,sticky=tk.W)
         b = tk.Button(frame, command=self.setRPM, text = "Run")
@@ -82,6 +82,7 @@ class FordExperimentsFrame:
         ##################
         #### FAKE RPM ####
         ##################
+        i += 1
         entryLabel = tk.Label(frame, text="Fake RPM:")
         entryLabel.grid(row=i,column=0,sticky=tk.W)
         self.rpmVarIncrement = tk.StringVar()
@@ -89,7 +90,7 @@ class FordExperimentsFrame:
         entryWidget = tk.Entry(frame, textvariable=self.rpmVarIncrement, width=5)
         entryWidget.grid(row=i,column=1,sticky=tk.W)
         b = tk.Button(frame, command=self.rpmIncrement, text="Run")
-        
+        b.grid(row=i,column=2,sticky=tk.W)
    
         
         #######################
@@ -241,6 +242,8 @@ class FordExperimentsFrame:
         if( not self.mainDisplay.checkComm() ):
             return
         self.data = Queue.Queue()
+        self.mainDisplay.setRunning()
+        self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus2)
         #self.getEngineStatusControl()
         thread.start_new_thread(self.getEngineStatusControl, ())
         
@@ -248,23 +251,30 @@ class FordExperimentsFrame:
         self.mainDisplay.setRunning()
         self.mainDisplay.dataText.config(state=tk.NORMAL) 
         self.mainDisplay.dataText.delete(1.0, tk.END) # clear the text box for the data
+        #self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus2)
         self.mainDisplay.dataText.config(state=tk.DISABLED)
         self.comm.engineDiagnostic(self.data)
-        self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus)
+        #self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus2)
         self.mainDisplay.unsetRunning()
         #call engine status method
         
 
-    def updateEngineStatus(self):
+    def updateEngineStatus2(self):
+        print "called upate method"
         while( not self.data.empty()):
             try:
                 line = self.data.get_nowait()
+                print line
             except:
+                print "no packet"
+            else:
+                #self.mainDisplay.addtextToScreen(line)
                 self.mainDisplay.dataText.config(state = tk.NORMAL)
                 self.mainDisplay.dataText.insert(tk.END, line)
                 self.mainDisplay.dataText.config(state=tk.DISABLED)
+        print "called"
         if( self.mainDisplay.running.get() == 1):
-            self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus)
+            self.statusID = self.mainDisplay.root.after(50,self.updateEngineStatus2)
             
     def fakeOutsideTemp(self):
         try:
@@ -349,10 +359,13 @@ class FordExperimentsFrame:
         This method will call the hack that sets the RPM
         """
         try:
+            print self.rpmVar.get()
             rpmVal = int(self.rpmVar.get())
+            #rpmVal = int(self.rpmVar.get())
         except:
             tkMessageBox.showwarning('Invalid input', \
                 'Input is not an integer')
+            return
         #CALL METHOD 
         self.comm.setRPM(rpmVal)   
         
@@ -366,8 +379,9 @@ class FordExperimentsFrame:
         except:
             tkMessageBox.showwarning('Invalid input', \
                 'Input is not an integer')
+            return
         #CALL METHOD 
-        self.comm.rpmHack(rpmVal) 
+        self.comm.rpmHack([rpmVal]) 
         
     def setEngineTemp(self):
         """

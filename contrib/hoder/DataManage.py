@@ -787,7 +787,7 @@ class DataManage:
         data = []
         
         #it was a sniff file or sniff file format
-        if( row[0] == "# Time     Error        Bytes 1-13" or len(row[1] == 18)):
+        if( reader[0] == "# Time     Error        Bytes 1-13" or len(reader[1] == 18)):
             # for every row
             for row in reader:
                 packet = []

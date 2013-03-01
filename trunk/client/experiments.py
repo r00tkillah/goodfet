@@ -326,6 +326,13 @@ class experiments(GoodFETMCPCANCommunication):
                 tT.sleep(period/1000)
             fuzzNumber += 1
         print "Fuzzing Complete"   
+        SIDhigh = (1056 >> 3) & 0xFF; # get SID bits 10:3, rotate them to bits 7:0
+        SIDlow = (1056 & 0x07) << 5;  # get SID bits 2:0, rotate them to bits 7:5
+        packet = [SIDhigh, SIDlow, 0, 0, 8, 65, 255, 32, 120, 0, 0, 1, 247]
+        self.client.txpacket(packet)
+        for i in range(0,100):
+            self.client.MCPrts(TXB0=True)
+            tT.sleep(.01)
         outfile.close()
             
     def generalFuzz(self,freq, Fuzzes, period, writesPerFuzz):

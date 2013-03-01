@@ -896,9 +896,11 @@ class FordExperiments(experiments):
         
         
         numFramesToRead = music.getframerate()*.05 # grab .1s of audio
-                
+        sampNum = 0
+        avgprev = 0
+        avg = 0
         while(1):
-
+            avgprev = avg
             runningSum = 0
             
             sample = music.readframes(int(numFramesToRead)) # grab .1s of audio
@@ -909,10 +911,11 @@ class FordExperiments(experiments):
                 runningSum += ord(sample[i]) 	#average the dual-channel
                 runningSum += ord(sample[i+2])
             
-             avg = math.fabs(runningSum/(length /2) -127)       # we used 2 of every 4 frames, so divide length by 2
-             if( sampNum > 0):
+            avg = math.fabs(runningSum/(length /2) -127)       # we used 2 of every 4 frames, so divide length by 2
+            if( sampNum > 0):
                  avg = (avg+avgprev)/2
-                 
+            sampNum = 1
+
             val = int(avg*15 + 40)			# normalize to speedometer range of values
             
             print "speedometerVal = %f " %val;

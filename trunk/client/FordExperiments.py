@@ -888,13 +888,13 @@ class FordExperiments(experiments):
         print "compression: %s " %music.getcompname()
         
         
-        numFramesToRead = music.getframerate()*.1 # grab .1s of audio
+        numFramesToRead = music.getframerate()*.05 # grab .1s of audio
                 
         while(1):
 
             runningSum = 0
             
-            sample = music.readframes(numFramesToRead) # grab .1s of audio
+            sample = music.readframes(int(numFramesToRead)) # grab .1s of audio
             
             length = len(sample)
             
@@ -902,9 +902,11 @@ class FordExperiments(experiments):
                 runningSum += ord(sample[i]) 	#average the dual-channel
                 runningSum += ord(sample[i+2])
             
-            avg = runningSum/(length / 2)		# we used 2 of every 4 frames, so divide length by 2
-
-            val = (40 + 5*(avg-120))			# normalize to speedometer range of values
+             avg = math.fabs(runningSum/(length /2) -127)       # we used 2 of every 4 frames, so divide length by 2
+             if( sampNum > 0):
+                 avg = (avg+avgprev)/2
+                 
+            val = int(avg*15 + 40)			# normalize to speedometer range of values
             
             print "speedometerVal = %f " %val;
             print "speed = %f" %(1.617*val-63.5)	# speed we're trying to display

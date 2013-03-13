@@ -29,7 +29,7 @@ mcu ?= msp430f2618
 platform := goodfet
 endif
 
-ifneq (,$(findstring $(board),goodfet30 goodfet31))
+ifneq (,$(findstring $(board),goodfet30 goodfet31 goodfet32))
 mcu ?= msp430f2274
 platform := goodfet
 # This will link to fit in a '2254, so unneeded packages should be omited.

@@ -20,17 +20,14 @@
 #define ATMEL_RADIO_RX_FLUSH 0x82
 //Flush TX
 #define ATMEL_RADIO_TX_FLUSH 0x83
-
-
-//Nordic RF SPI Instructions
-#define ATMEL_RADIO_R_REGISTER   0x00
-#define ATMEL_RADIO_W_REGISTER   0x20
-#define ATMEL_RADIO_R_RX_PAYLOAD 0x61
-#define ATMEL_RADIO_W_TX_PAYLOAD 0xA0
-#define ATMEL_RADIO_FLUSH_TX     0xE1
-#define ATMEL_RADIO_FLUSH_RX     0xE2
-#define ATMEL_RADIO_REUSE_TX_PL  0xE3
-#define ATMEL_RADIO_NOP          0xFF
+//Start sniffing in extented oparating (AACK) mode
+#define ATMEL_RADIO_AACK_ON 0x84
+//Sopt sniffing in extented oparating (AACK) mode, sniff in basic operating mode
+#define ATMEL_RADIO_AACK_OFF 0x85
+// enable auto CRC generation
+#define ATMEL_RADIO_AUTOCRC_ON 0x86
+// diasble auto CRC generation (disabled by default)
+#define ATMEL_RADIO_AUTOCRC_OFF 0x87
 
 
 //ATMEL_RADIO24L01+ Registers

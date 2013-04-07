@@ -8606,8 +8606,8 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <part name="IC2" library="SparkFun" deviceset="FT232RL-BASIC" device="SSOP"/>
 <part name="P+3" library="supply1" deviceset="VCC" device=""/>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
-<part name="RXLED" library="led" deviceset="LED" device="CHIP-LED0603"/>
-<part name="TXLED" library="led" deviceset="LED" device="CHIP-LED0603"/>
+<part name="USBRX" library="led" deviceset="LED" device="CHIP-LED0603"/>
+<part name="USBTX" library="led" deviceset="LED" device="CHIP-LED0603"/>
 <part name="P+4" library="supply1" deviceset="VCC" device=""/>
 <part name="R10" library="rcl" deviceset="R-US_" device="R0603" value="330"/>
 <part name="C4" library="rcl" deviceset="C-EU" device="C0603" value="0.1µF"/>
@@ -8629,8 +8629,8 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="C5" library="rcl" deviceset="C-EU" device="C0603" value="0.1uF"/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
-<part name="TX_LED" library="led" deviceset="LED" device="CHIP-LED0603"/>
-<part name="RX_LED" library="led" deviceset="LED" device="CHIP-LED0603"/>
+<part name="CANTX" library="led" deviceset="LED" device="CHIP-LED0603"/>
+<part name="CANRX" library="led" deviceset="LED" device="CHIP-LED0603"/>
 <part name="R2" library="rcl" deviceset="R-US_" device="R0603" value="330"/>
 <part name="R3" library="rcl" deviceset="R-US_" device="R0603" value="330"/>
 <part name="P+7" library="supply1" deviceset="VCC" device=""/>
@@ -8672,8 +8672,8 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <instance part="IC2" gate="G$1" x="12.7" y="53.34"/>
 <instance part="P+3" gate="VCC" x="-15.24" y="55.88" rot="R90"/>
 <instance part="GND4" gate="1" x="-2.54" y="33.02"/>
-<instance part="RXLED" gate="G$1" x="38.1" y="38.1" rot="R270"/>
-<instance part="TXLED" gate="G$1" x="38.1" y="45.72" rot="R270"/>
+<instance part="USBRX" gate="G$1" x="38.1" y="38.1" rot="R270"/>
+<instance part="USBTX" gate="G$1" x="38.1" y="45.72" rot="R270"/>
 <instance part="P+4" gate="VCC" x="43.18" y="58.42"/>
 <instance part="R10" gate="G$1" x="43.18" y="50.8" rot="R90"/>
 <instance part="C4" gate="G$1" x="5.08" y="88.9" rot="R180"/>
@@ -8695,8 +8695,8 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <instance part="GND9" gate="1" x="-35.56" y="132.08"/>
 <instance part="C5" gate="G$1" x="-22.86" y="154.94" rot="R180"/>
 <instance part="GND10" gate="1" x="-22.86" y="149.86"/>
-<instance part="TX_LED" gate="G$1" x="30.48" y="114.3"/>
-<instance part="RX_LED" gate="G$1" x="22.86" y="114.3"/>
+<instance part="CANTX" gate="G$1" x="30.48" y="114.3"/>
+<instance part="CANRX" gate="G$1" x="22.86" y="114.3"/>
 <instance part="R2" gate="G$1" x="30.48" y="124.46" rot="R180"/>
 <instance part="R3" gate="G$1" x="43.18" y="121.92" rot="R180"/>
 <instance part="P+7" gate="VCC" x="55.88" y="132.08"/>
@@ -8948,7 +8948,7 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <segment>
 <wire x1="27.94" y1="38.1" x2="33.02" y2="38.1" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="G$1" pin="RXLED"/>
-<pinref part="RXLED" gate="G$1" pin="C"/>
+<pinref part="USBRX" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="N$7" class="0">
@@ -8957,15 +8957,15 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <wire x1="30.48" y1="40.64" x2="30.48" y2="45.72" width="0.1524" layer="91"/>
 <wire x1="30.48" y1="45.72" x2="33.02" y2="45.72" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="G$1" pin="TXLED"/>
-<pinref part="TXLED" gate="G$1" pin="C"/>
+<pinref part="USBTX" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="TXLED" gate="G$1" pin="A"/>
+<pinref part="USBTX" gate="G$1" pin="A"/>
 <pinref part="R10" gate="G$1" pin="1"/>
 <wire x1="43.18" y1="45.72" x2="40.64" y2="45.72" width="0.1524" layer="91"/>
-<pinref part="RXLED" gate="G$1" pin="A"/>
+<pinref part="USBRX" gate="G$1" pin="A"/>
 <wire x1="40.64" y1="38.1" x2="43.18" y2="38.1" width="0.1524" layer="91"/>
 <wire x1="43.18" y1="38.1" x2="43.18" y2="45.72" width="0.1524" layer="91"/>
 <junction x="43.18" y="45.72"/>
@@ -9067,7 +9067,7 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <pinref part="U$1" gate="G$1" pin="TXCAN"/>
 <wire x1="43.18" y1="109.22" x2="30.48" y2="109.22" width="0.1524" layer="91"/>
 <label x="35.56" y="109.22" size="1.778" layer="95"/>
-<pinref part="TX_LED" gate="G$1" pin="C"/>
+<pinref part="CANTX" gate="G$1" pin="C"/>
 </segment>
 <segment>
 <wire x1="-20.32" y1="139.7" x2="-27.94" y2="139.7" width="0.1524" layer="91"/>
@@ -9081,7 +9081,7 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <label x="35.56" y="106.68" size="1.778" layer="95"/>
 <wire x1="43.18" y1="106.68" x2="22.86" y2="106.68" width="0.1524" layer="91"/>
 <wire x1="22.86" y1="106.68" x2="22.86" y2="109.22" width="0.1524" layer="91"/>
-<pinref part="RX_LED" gate="G$1" pin="C"/>
+<pinref part="CANRX" gate="G$1" pin="C"/>
 </segment>
 <segment>
 <wire x1="-20.32" y1="132.08" x2="-27.94" y2="132.08" width="0.1524" layer="91"/>
@@ -9137,7 +9137,7 @@ Typically, each node in a CAN system must have a device to convert the digital s
 </net>
 <net name="N$1" class="0">
 <segment>
-<pinref part="RX_LED" gate="G$1" pin="A"/>
+<pinref part="CANRX" gate="G$1" pin="A"/>
 <wire x1="22.86" y1="116.84" x2="22.86" y2="124.46" width="0.1524" layer="91"/>
 <wire x1="22.86" y1="124.46" x2="25.4" y2="124.46" width="0.1524" layer="91"/>
 <pinref part="R2" gate="G$1" pin="2"/>
@@ -9145,7 +9145,7 @@ Typically, each node in a CAN system must have a device to convert the digital s
 </net>
 <net name="N$2" class="0">
 <segment>
-<pinref part="TX_LED" gate="G$1" pin="A"/>
+<pinref part="CANTX" gate="G$1" pin="A"/>
 <wire x1="30.48" y1="116.84" x2="30.48" y2="121.92" width="0.1524" layer="91"/>
 <wire x1="30.48" y1="121.92" x2="38.1" y2="121.92" width="0.1524" layer="91"/>
 <pinref part="R3" gate="G$1" pin="2"/>

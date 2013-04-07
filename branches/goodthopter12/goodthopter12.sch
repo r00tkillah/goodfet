@@ -8640,9 +8640,7 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <part name="P+1" library="supply1" deviceset="VCC" device=""/>
 <part name="Q2" library="crystal" deviceset="CRYSTAL" device="HC49UP" value="20MHz"/>
 <part name="U$2" library="MCP2551" deviceset="MCP2551" device=""/>
-<part name="R7" library="rcl" deviceset="R-US_" device="R0603" value="0"/>
 <part name="R8" library="rcl" deviceset="R-US_" device="R0603" value="0"/>
-<part name="R5" library="rcl" deviceset="R-US_" device="R0603" value="0"/>
 <part name="R6" library="rcl" deviceset="R-US_" device="R0603" value="0"/>
 </parts>
 <sheets>
@@ -8662,10 +8660,11 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <text x="-17.78" y="0" size="1.778" layer="91">Ryan Barnes</text>
 <text x="101.6" y="132.08" size="1.778" layer="104">PAY ATTENTION!</text>
 <text x="101.6" y="129.54" size="1.778" layer="104">Different CAN cables need different pins.</text>
-<text x="101.6" y="127" size="1.778" layer="104">Populate *TWO* of R5, R6, R7, and R8 to choose your cable.</text>
-<text x="101.6" y="124.46" size="1.778" layer="104">Known cables:</text>
-<text x="104.14" y="121.92" size="1.778" layer="104">R5,R7 -- Pins 3,5 -- Sparkfun</text>
-<text x="104.14" y="119.38" size="1.778" layer="104">R6,R8 -- Pins 7,2 -- Intrepid Control Systems</text>
+<text x="101.6" y="127" size="1.778" layer="104">Do *NOT* populate R7 and R8 if using the Sparkfun cable.</text>
+<text x="101.6" y="121.92" size="1.778" layer="104">Known cables:</text>
+<text x="104.14" y="119.38" size="1.778" layer="104">Pins 3,5 -- Sparkfun</text>
+<text x="104.14" y="116.84" size="1.778" layer="104">Pins 7,2 -- ICS, GoodThopter11</text>
+<text x="101.6" y="124.46" size="1.778" layer="104">Cut the traces for pins 3 and 5 if not using a Sparkfun cable.</text>
 </plain>
 <instances>
 <instance part="GND3" gate="1" x="-20.32" y="78.74" rot="R180"/>
@@ -8706,9 +8705,7 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <instance part="P+1" gate="VCC" x="81.28" y="139.7"/>
 <instance part="Q2" gate="G$1" x="-22.86" y="104.14" rot="R90"/>
 <instance part="U$2" gate="G$1" x="-5.08" y="137.16"/>
-<instance part="R7" gate="G$1" x="124.46" y="104.14"/>
 <instance part="R8" gate="G$1" x="116.84" y="106.68"/>
-<instance part="R5" gate="G$1" x="116.84" y="99.06"/>
 <instance part="R6" gate="G$1" x="152.4" y="104.14"/>
 </instances>
 <busses>
@@ -9113,9 +9110,9 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <label x="104.14" y="106.68" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="R5" gate="G$1" pin="1"/>
-<wire x1="111.76" y1="99.06" x2="104.14" y2="99.06" width="0.1524" layer="91"/>
 <label x="104.14" y="99.06" size="1.778" layer="95"/>
+<pinref part="CAN(12V)" gate="G$1" pin="5"/>
+<wire x1="104.14" y1="99.06" x2="129.54" y2="99.06" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="CANH" class="0">
@@ -9125,9 +9122,9 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <pinref part="U$2" gate="G$1" pin="CANH"/>
 </segment>
 <segment>
-<pinref part="R7" gate="G$1" pin="1"/>
-<wire x1="119.38" y1="104.14" x2="104.14" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="129.54" y1="104.14" x2="104.14" y2="104.14" width="0.1524" layer="91"/>
 <label x="104.14" y="104.14" size="1.778" layer="95"/>
+<pinref part="CAN(12V)" gate="G$1" pin="3"/>
 </segment>
 <segment>
 <pinref part="R6" gate="G$1" pin="2"/>
@@ -9204,19 +9201,6 @@ Typically, each node in a CAN system must have a device to convert the digital s
 <pinref part="CAN(12V)" gate="G$1" pin="2"/>
 <pinref part="R8" gate="G$1" pin="2"/>
 <wire x1="121.92" y1="106.68" x2="129.54" y2="106.68" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$4" class="0">
-<segment>
-<pinref part="CAN(12V)" gate="G$1" pin="3"/>
-<pinref part="R7" gate="G$1" pin="2"/>
-</segment>
-</net>
-<net name="N$11" class="0">
-<segment>
-<pinref part="CAN(12V)" gate="G$1" pin="5"/>
-<pinref part="R5" gate="G$1" pin="2"/>
-<wire x1="121.92" y1="99.06" x2="129.54" y2="99.06" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$12" class="0">

@@ -31,7 +31,7 @@
 
 import sys, time, string, cStringIO, struct
 #sys.path.append("/usr/lib/tinyos")  #We no longer require TinyOS.
-import serial, os, glob
+import serial, os, subprocess, glob
 
 #forked from TinyOS Telos version.
 VERSION = string.split("Revision: 1.39-goodfet-8 ")[1] 
@@ -1294,7 +1294,15 @@ class BootStrapLoader(LowLevel):
         url="%s%s.hex" % (FIRMWARE_BASEURL, self.board);
         print "Grabbing %s firmware from %s" % (self.board, url);
         fn="/tmp/.%s.hex" % self.board
-        os.system("curl %s >%s" % (url,fn))
+	try:
+	    subprocess.call(['curl', '-sS', url, '-o', fn])
+	except OSError:
+	    print "Failed to run curl, trying wget"
+	    try:
+		subprocess.call(['wget', '-nv', url, '-O', fn])
+	    except OSError:
+		print "Failed to fetch firmware.  Maybe you need to install curl or wget?"
+		sys.exit()
         
         fw=Memory(fn);
         
@@ -1447,6 +1455,8 @@ General options:
                         in the device would have the required features)
   --slow                Add delays when operating the conrol pins. Useful if
                         the pins/circuit has high capacitance.
+  --dumpinfo		Print the info flash timing data so you can save a copy
+                        for later.  You must provide -P if flash is not	empty.
 
 Program Flow Specifiers:
   -e, --masserase       Mass Erase (clear all flash memory)
@@ -1541,58 +1551,7 @@ def main(itest=1):
     
     bsl.invertRST = 1
     bsl.invertTEST = itest
-    
-    if os.environ.get("board")==None:
-      if board==None:
-	print "Board not specified.  Defaulting to goodfet41.";
-	raw_input("Press Ctrl+C to cancel, or Enter to continue.");
-	board='goodfet41';
-      bsl.board=board;
-    else:
-      bsl.board=None;
-      try:
-	bsl.board=BOARDS[os.environ.get("board").lower()];
-      except:
-        pass;
-    if bsl.board==None:
-      print "Unknown board specified.  Try goodfet41, facedancer11, or similar.";
-      sys.exit(2);
-      
-    if bsl.board=='telosb':
-        bsl.swapRSTTEST = 1
-        bsl.telosI2C = 1
-        mayuseBSL = 0
-    if bsl.board=='z1':
-        bsl.z1 = 1
-    if bsl.board=='apimote':
-        bsl.swapRSTTEST = 1;
-    
-    
-    if comPort is None and os.environ.get("GOODFET")!=None:
-        glob_list = glob.glob(os.environ.get("GOODFET"));
-        if len(glob_list) > 0:
-            comPort = glob_list[0];
-    if comPort is None:
-        glob_list = glob.glob("/dev/tty.usbserial*");
-        if len(glob_list) > 0:
-            comPort = glob_list[0];
-    if comPort is None:
-        glob_list = glob.glob("/dev/ttyUSB*");
-        if len(glob_list) > 0:
-            comPort = glob_list[0];
-    if os.name=='nt':
-            from scanwin32 import winScan;
-            scan=winScan();
-            for order,comport,desc,hwid in sorted(scan.comports()):
-                try:
-                    if hwid.index('FTDI')==0:
-                        comPort=comport;
-                        #print "Using FTDI port %s" % port
-                except:
-                    #Do nothing.
-                    a=1;
-    sys.stderr.write("MSP430 Bootstrap Loader Version: %s\n" % VERSION)
-
+   
     try:
         opts, args = getopt.getopt(sys.argv[1:],
             "hc:P:wf:m:eEpvrg:UDudsxbITNB:S:V14",
@@ -1822,6 +1781,58 @@ def main(itest=1):
     if startaddr and reset:
         sys.stderr.write("Warning: option --reset ignored as --upload is specified!\n")
         reset = 0
+
+
+    if os.environ.get("board")==None:
+      if board==None:
+	print "Board not specified.  Defaulting to goodfet41.";
+	raw_input("Press Ctrl+C to cancel, or Enter to continue.");
+	board='goodfet41';
+      bsl.board=board;
+    else:
+      bsl.board=None;
+      try:
+	bsl.board=BOARDS[os.environ.get("board").lower()];
+      except:
+        pass;
+    if bsl.board==None:
+      print "Unknown board specified.  Try goodfet41, facedancer11, or similar.";
+      sys.exit(2);
+      
+    if bsl.board=='telosb':
+        bsl.swapRSTTEST = 1
+        bsl.telosI2C = 1
+        mayuseBSL = 0
+    if bsl.board=='z1':
+        bsl.z1 = 1
+    if bsl.board=='apimote':
+        bsl.swapRSTTEST = 1;
+    
+    
+    if comPort is None and os.environ.get("GOODFET")!=None:
+        glob_list = glob.glob(os.environ.get("GOODFET"));
+        if len(glob_list) > 0:
+            comPort = glob_list[0];
+    if comPort is None:
+        glob_list = glob.glob("/dev/tty.usbserial*");
+        if len(glob_list) > 0:
+            comPort = glob_list[0];
+    if comPort is None:
+        glob_list = glob.glob("/dev/ttyUSB*");
+        if len(glob_list) > 0:
+            comPort = glob_list[0];
+    if os.name=='nt':
+            from scanwin32 import winScan;
+            scan=winScan();
+            for order,comport,desc,hwid in sorted(scan.comports()):
+                try:
+                    if hwid.index('FTDI')==0:
+                        comPort=comport;
+                        #print "Using FTDI port %s" % port
+                except:
+                    #Do nothing.
+                    a=1;
+    sys.stderr.write("MSP430 Bootstrap Loader Version: %s\n" % VERSION)
 
     sys.stderr.flush()
     

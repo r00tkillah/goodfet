@@ -40,8 +40,10 @@ free to omit GDB if you don't need it.</p>
 
 <p><i>Can I install the firmware without MSPGCC?</i><br/>
 Sure.  'goodfet.bsl --fromweb' will download the most recent firmware from
-the website.  This does not work for special platforms like the Next Hope Badge
-or the Telos B.
+the website.  If you are working with special platforms like the Next Hope Badge,
+Facedancer or the Telos B, you will need to specify the board environment variable.
+'board=facedancer20 goodfet.bsl --fromweb' should do the trick if you are
+programming a facedancer20 board.
 </p>
 
 
@@ -69,6 +71,10 @@ unit?</i><br/>
 Unless you are willing to pay an absurd markup, it is best to build your own.  Bring
 the components to your local <a href="http://hackerspaces.org">hackerspace</a>, and
 ask a neighbor to help you out.</p>
+
+<p><i>In the * BOM are the 0603 componentss imperial or metric?</i><br/>
+These are imperial measurements.  0603 (0.063 in x 0.031 in) are equivalent
+to 1608 metric (1.6mm x 0.8mm).</p>
 
 <h3>Distribution</h3>
 

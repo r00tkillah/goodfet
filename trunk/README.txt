@@ -25,6 +25,9 @@ svn co https://goodfet.svn.sourceforge.net/svnroot/goodfet
 cd ~/svn/goodfet/trunk/client
 sudo make link
 
+# Define which board you are working with, maybe in your ~/.profile
+export board=goodfet41
+
 # Load firmware, not yet building it locally.
 goodfet.bsl --fromweb
 goodfet.monitor test

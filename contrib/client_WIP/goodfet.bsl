@@ -19,9 +19,9 @@
 #  - Make actionFromweb use board name to get the right firmware image
 #  - Program saved info after other programming is complete
 #  - Make saveinfo detect missing info (all 0xFF)
+#  - Download image from web before erasing
 # TODO:
 #  - Trim unnecessary BSL unlocks
-#  - Download image from web before erasing
 #  - Add param to override saveinfo with a provided info.txt
 #  - Figure out better way to saveinfo when -P is required
 #  - Maybe use the best guess from contrib/infos/ when nothing better is provided?
@@ -1289,8 +1289,8 @@ class BootStrapLoader(LowLevel):
         else:
             raise BSLException, "programming without data not possible"
 
-    def actionFromweb(self):
-        """Grab GoodFET firmware from the web, then flash it."""
+    def prepareFromweb(self):
+        """Grab GoodFET firmware from the web."""
         url="%s%s.hex" % (FIRMWARE_BASEURL, self.board);
         print "Grabbing %s firmware from %s" % (self.board, url);
         fn="/tmp/.%s.hex" % self.board
@@ -1303,7 +1303,10 @@ class BootStrapLoader(LowLevel):
 	    except OSError:
 		print "Failed to fetch firmware.  Maybe you need to install curl or wget?"
 		sys.exit()
-        
+
+    def actionFromweb(self):
+        """Flash the GoodFET firmware which has been downloaded in an earlier step."""
+        fn="/tmp/.%s.hex" % self.board
         fw=Memory(fn);
         
         sys.stderr.write("Program ...\n")
@@ -1627,6 +1630,7 @@ def main(itest=1):
         elif o in ("-p", "--program"):
             todo.append(bsl.actionProgram)          #Program file
         elif o in ("--fromweb"):
+            deviceinit.append(bsl.prepareFromweb)         #Download firmware
             deviceinit.append(bsl.actionMassErase)        #Erase Flash
             todo.append(bsl.actionFromweb)          #Program GoodFET code
         elif o in ("-v", "--verify"):

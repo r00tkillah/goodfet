@@ -232,6 +232,7 @@ BOARDS = {
     'facedancer21': "facedancer21",
     'goodfet11': "goodfet11",
     'goodfet31': "goodfet31",
+    'goodfet32': "goodfet32",
     'goodfet41': "goodfet41",
     'goodfet42': "goodfet42",
     'goodthopter10': "goodthopter10",
@@ -1720,7 +1721,7 @@ def main(itest=1):
         elif o in ("--goodfet20", ):
             bsl.invertRST = 1
             bsl.invertTEST = 1
-        elif o in ("--goodfet30", "--goodfet31", "--goodthopter" ):
+        elif o in ("--goodfet30", "--goodfet31", "--goodfet32", "--goodthopter" ):
             bsl.invertRST = 1
             bsl.invertTEST = 0
         elif o in ("--goodfet40", ):

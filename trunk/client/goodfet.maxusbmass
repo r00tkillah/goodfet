@@ -395,7 +395,7 @@ class GoodFETMAXUSBMass(GoodFETMAXUSBDevice):
                 #                 64);
             #sys.exit();
         elif verb==0x2A: #WRITE SECTOR
-            print "Haven't implemented WRITE SECTOR.";
+            print "Haven't implemented WRITE SECTOR.  This will end badly.";
             #sys.exit();
         elif verb==0x1B: #EJECT/RETRACT DISK
             print "Haven't implemented SCSI Start Stop Unit Command (1B)";

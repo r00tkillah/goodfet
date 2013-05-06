@@ -11,7 +11,8 @@ class GoodFET:
     def __init__(self, *args, **kargs):
         GPIO.setmode(GPIO.BOARD)
         # pin15=GPIO22 is linked to MAX3420 -RST
-        GPIO.setup(15, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(15, GPIO.OUT)
+        GPIO.output(15,GPIO.LOW)
         GPIO.output(15,GPIO.HIGH)
         spi.openSPI(speed=26000000)
     def __del__(self):

@@ -1,4 +1,5 @@
 raspdancer11 is a variant of facedancer11 tailored for Raspberry Pi
+raspdancer21 is a variant of facedancer21 tailored for Raspberry Pi
 
 More info & contact:
 ====================
@@ -7,13 +8,13 @@ More info & contact:
 
 Rationale:
 ==========
-    Facedancer11 is a one-purpose version of the flexible GoodFET board.
+    Facedancer11/21 is a one-purpose version of the flexible GoodFET board.
 It was well designed to move all the intelligence into the host controller,
 not in the embedded uC. Therefore GoodFET part of the Facedancer11 design
 can be seen as "just" a SPI over UART over USB bridge.
 But Raspberry Pi has a native SPI support so let's make a dedicated version.
 It's cheaper (you save FT232RL & MSP430F2618TPM).
-It's faster  (SPI communication with MAX3420E gets boosted to 26MHz!).
+It's faster (SPI communication with MAX3420E/MAX3421E gets boosted to 26MHz!).
 It still uses the same GoodFETMAXUSB.py library.
 
 Construction & components:
@@ -21,21 +22,22 @@ Construction & components:
     See pcb/ for Eagle files.
 Many thanks to Jean-Christophe Nicaise for the initial Eagle design.
 
-Name   Package Description
------- ------- -----------
-IC1    LQFP32  MAX3420E
-R1     0603    33R USB Serie Resistor
-R2     0603    33R USB Serie Resistor
-C1     0603    1.0µF Capacitor
-C2     0603    0.1µF Decoupling Capacitor
-C3     0603    18pF Capacitor
-C4     0603    18pF Capacitor
-C5     0603    1.0µF Capacitor
-Q1     5x3.2   12MHz SMD Crystal, 18pF      (see note)
-USB    USB Mini Receptacle e.g. UX60-MB-5ST
-J_RASP 2x13    Receptacle, 2.54mm, 26way    (see note)
+Name   Package    Description
+------ -------    -----------
+U1     LQFP32-08  MAX3420E           (for facedancer11)
+U1     TQPF32-5MM MAX3421E           (for facedancer21)
+R1     0603       33R USB Serie Resistor
+R2     0603       33R USB Serie Resistor
+C1     0603       1.0µF Capacitor
+C2     0603       0.1µF Decoupling Capacitor
+C3     0603       18pF Capacitor
+C4     0603       18pF Capacitor
+C5     0603       1.0µF Capacitor
+Q1     5x3.2      12MHz SMD Crystal, 18pF      (see note)
+USB    USB Mini   Receptacle e.g. UX60-MB-5ST
+J_RASP 2x13       Receptacle, 2.54mm, 26way    (see note)
 
-Differences with original Facedancer11 (besides removal of GoodFET parts):
+Differences with original Facedancer11/21 (besides removal of GoodFET parts):
 * smaller crystal package
 * 2x13 connector towards RPi, e.g. a SAMTEC BCS-113-L-D-TE, or even a smaller
   one as 2x6 is enough, but then be the sure to plug the board correctly

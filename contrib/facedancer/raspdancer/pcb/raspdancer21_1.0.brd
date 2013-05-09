@@ -144,8 +144,8 @@ by JCN &amp; doegox</text>
 <text x="15.748" y="17.8435" size="1.016" layer="21" font="vector">INT</text>
 <text x="15.494" y="0.508" size="0.9144" layer="21" font="vector" rot="R90">PoUSB</text>
 <text x="15.5575" y="14.0335" size="1.016" layer="21" font="vector">GPX</text>
-<text x="2.4765" y="13.3985" size="0.8128" layer="21" rot="R90">http://wiki.yobi.be/wiki/Raspdancer
-phil@teuwen.org</text>
+<text x="2.54" y="4.318" size="0.8128" layer="21" rot="R90">http://     wiki.yobi.be/wiki/Raspdancer
+           phil@teuwen.org</text>
 <wire x1="19.558" y1="18.669" x2="20.32" y2="17.907" width="0.1524" layer="21" curve="90"/>
 <wire x1="20.32" y1="17.907" x2="24.892" y2="17.907" width="0.1524" layer="21"/>
 <wire x1="24.892" y1="17.907" x2="25.654" y2="18.669" width="0.1524" layer="21" curve="90"/>
@@ -677,25 +677,25 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
-<element name="Q1" library="crystal" package="CTS406" value="12Mhz" x="15.367" y="29.0195" smashed="yes" rot="R180">
-<attribute name="NAME" x="16.129" y="29.4005" size="0.8128" layer="25" rot="R180"/>
-<attribute name="VALUE" x="13.843" y="31.4325" size="0.8128" layer="21"/>
-<attribute name="MF" value="" x="15.367" y="29.0195" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MPN" value="" x="15.367" y="29.0195" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="OC_FARNELL" value="unknown" x="15.367" y="29.0195" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="OC_NEWARK" value="unknown" x="15.367" y="29.0195" size="1.778" layer="27" rot="R180" display="off"/>
+<element name="Q1" library="crystal" package="CTS406" value="12Mhz" x="15.748" y="29.0195" smashed="yes" rot="R180">
+<attribute name="NAME" x="16.51" y="29.4005" size="0.8128" layer="25" rot="R180"/>
+<attribute name="VALUE" x="14.224" y="31.4325" size="0.8128" layer="21"/>
+<attribute name="MF" value="" x="15.748" y="29.0195" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="" x="15.748" y="29.0195" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="OC_FARNELL" value="unknown" x="15.748" y="29.0195" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="15.748" y="29.0195" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="C2" library="00_mylib" package="C1206" value="100nF" x="16.637" y="23.4315" smashed="yes" rot="R90">
 <attribute name="NAME" x="15.113" y="23.876" size="0.8128" layer="21" rot="R90"/>
 <attribute name="VALUE" x="18.8595" y="22.4155" size="0.8128" layer="21" rot="R90"/>
 </element>
-<element name="C3" library="00_mylib" package="C1206" value="18pF" x="8.89" y="30.48" smashed="yes" rot="R180">
-<attribute name="NAME" x="6.731" y="28.3845" size="0.8128" layer="21"/>
-<attribute name="VALUE" x="8.5725" y="28.3845" size="0.8128" layer="21"/>
+<element name="C3" library="00_mylib" package="C1206" value="18pF" x="9.4615" y="30.48" smashed="yes" rot="R180">
+<attribute name="NAME" x="7.3025" y="28.3845" size="0.8128" layer="21"/>
+<attribute name="VALUE" x="9.144" y="28.3845" size="0.8128" layer="21"/>
 </element>
-<element name="C4" library="00_mylib" package="C1206" value="18pF" x="3.6195" y="29.5275" smashed="yes" rot="R180">
-<attribute name="NAME" x="3.6195" y="31.5595" size="0.8128" layer="21" rot="R180"/>
-<attribute name="VALUE" x="4.8895" y="28.194" size="0.8128" layer="21" rot="R180"/>
+<element name="C4" library="00_mylib" package="C1206" value="18pF" x="4.064" y="29.5275" smashed="yes" rot="R180">
+<attribute name="NAME" x="4.064" y="31.5595" size="0.8128" layer="21" rot="R180"/>
+<attribute name="VALUE" x="5.334" y="28.194" size="0.8128" layer="21" rot="R180"/>
 </element>
 <element name="C1" library="00_mylib" package="C1206" value="1uF" x="18.2245" y="8.128" smashed="yes" rot="R270">
 <attribute name="NAME" x="15.24" y="7.62" size="0.8128" layer="21" rot="R270"/>
@@ -737,7 +737,7 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="3.81" y="20.1295" size="0.6096" layer="27" rot="R90"/>
 <attribute name="NAME" x="10.2235" y="24.384" size="0.8128" layer="25" rot="R180"/>
 </element>
-<element name="JP5" library="SparkFun-Connectors" package="USB-A-S" value="USB-A-S" x="8.636" y="10.287" rot="MR90"/>
+<element name="USB-A" library="SparkFun-Connectors" package="USB-A-S" value="USB-A-S" x="8.636" y="10.287" rot="MR90"/>
 </elements>
 <signals>
 <signal name="GND">
@@ -762,22 +762,13 @@ design rules under a new name.</description>
 <contactref element="USB-MINIB" pad="GND"/>
 <wire x1="4.882" y1="23.1655" x2="3.314" y2="23.1655" width="0.254" layer="1"/>
 <wire x1="3.314" y1="23.1655" x2="3.302" y2="23.1775" width="0.254" layer="1"/>
-<wire x1="3.302" y1="23.1775" x2="2.2195" y2="24.26" width="0.4064" layer="1"/>
-<wire x1="2.2195" y1="24.26" x2="2.2195" y2="24.384" width="0.4064" layer="1"/>
-<wire x1="2.2195" y1="24.384" x2="2.2195" y2="29.5275" width="0.4064" layer="1"/>
 <wire x1="11.882" y1="21.6655" x2="16.525" y2="21.6655" width="0.254" layer="1"/>
 <wire x1="17.142" y1="22.2885" x2="16.637" y2="22.0315" width="0.4064" layer="1"/>
 <wire x1="16.637" y1="22.0315" x2="16.637" y2="19.2405" width="0.4064" layer="1"/>
 <via x="16.637" y="19.2405" extent="1-16" drill="0.6"/>
-<wire x1="2.2225" y1="26.4795" x2="2.2225" y2="24.387" width="0.4064" layer="1"/>
-<wire x1="2.2225" y1="24.387" x2="2.2195" y2="24.384" width="0.4064" layer="1"/>
-<wire x1="7.49" y1="30.48" x2="6.347" y2="31.623" width="0.4064" layer="1"/>
-<wire x1="6.347" y1="31.623" x2="4.699" y2="31.623" width="0.4064" layer="1"/>
-<wire x1="4.699" y1="31.623" x2="3.556" y2="31.623" width="0.4064" layer="1"/>
-<wire x1="3.556" y1="31.623" x2="2.159" y2="30.226" width="0.4064" layer="1"/>
 <wire x1="2.159" y1="30.226" x2="2.159" y2="29.588" width="0.4064" layer="1"/>
-<wire x1="2.159" y1="29.588" x2="2.2195" y2="29.5275" width="0.4064" layer="1"/>
-<contactref element="JP5" pad="GND"/>
+<wire x1="2.159" y1="29.588" x2="2.664" y2="29.5275" width="0.4064" layer="1"/>
+<contactref element="USB-A" pad="GND"/>
 <via x="11.2395" y="7.6835" extent="1-16" drill="0.6"/>
 <wire x1="5.588" y1="13.689" x2="5.636" y2="13.737" width="0.508" layer="16"/>
 <wire x1="16.525" y1="21.6655" x2="16.637" y2="22.0315" width="0.254" layer="1"/>
@@ -792,6 +783,14 @@ design rules under a new name.</description>
 <wire x1="11.049" y1="8.5725" x2="11.2395" y2="8.382" width="0.4064" layer="1"/>
 <wire x1="11.2395" y1="8.382" x2="11.2395" y2="7.6835" width="0.4064" layer="1"/>
 <via x="4.699" y="31.623" extent="1-16" drill="0.6"/>
+<wire x1="4.699" y1="31.623" x2="6.9185" y2="31.623" width="0.4064" layer="1"/>
+<wire x1="6.9185" y1="31.623" x2="8.0615" y2="30.48" width="0.4064" layer="1"/>
+<wire x1="4.699" y1="31.623" x2="3.1115" y2="31.623" width="0.4064" layer="1"/>
+<wire x1="3.1115" y1="31.623" x2="2.667" y2="31.1785" width="0.4064" layer="1"/>
+<wire x1="2.667" y1="31.1785" x2="2.667" y2="29.5305" width="0.4064" layer="1"/>
+<wire x1="2.667" y1="29.5305" x2="2.664" y2="29.5275" width="0.4064" layer="1"/>
+<wire x1="2.664" y1="29.5275" x2="2.664" y2="23.8155" width="0.4064" layer="1"/>
+<wire x1="2.664" y1="23.8155" x2="3.302" y2="23.1775" width="0.4064" layer="1"/>
 <wire x1="25.0825" y1="29.845" x2="25.0825" y2="24.3205" width="0" layer="19" extent="16-16"/>
 </signal>
 <signal name="VCC">
@@ -822,29 +821,29 @@ design rules under a new name.</description>
 <wire x1="10.132" y1="25.9155" x2="10.132" y2="26.8325" width="0.254" layer="1"/>
 <wire x1="10.132" y1="26.8325" x2="10.16" y2="26.8605" width="0.254" layer="1"/>
 <wire x1="10.16" y1="26.8605" x2="11.119" y2="27.8195" width="0.4064" layer="1"/>
-<wire x1="11.119" y1="27.8195" x2="13.167" y2="27.8195" width="0.4064" layer="1"/>
+<wire x1="11.119" y1="27.8195" x2="13.548" y2="27.8195" width="0.4064" layer="1"/>
 <wire x1="8.636" y1="28.3845" x2="10.16" y2="26.8605" width="0.4064" layer="1"/>
-<wire x1="8.636" y1="28.3845" x2="6.1625" y2="28.3845" width="0.4064" layer="1"/>
-<wire x1="6.1625" y1="28.3845" x2="5.0195" y2="29.5275" width="0.4064" layer="1"/>
+<wire x1="8.636" y1="28.3845" x2="6.607" y2="28.3845" width="0.4064" layer="1"/>
+<wire x1="6.607" y1="28.3845" x2="5.464" y2="29.5275" width="0.4064" layer="1"/>
 </signal>
 <signal name="XO">
 <contactref element="U1" pad="24"/>
 <contactref element="Q1" pad="1"/>
 <contactref element="C3" pad="1"/>
-<wire x1="10.29" y1="30.48" x2="11.4965" y2="31.6865" width="0.4064" layer="1"/>
-<wire x1="17.567" y1="30.5025" x2="17.567" y2="30.2195" width="0.4064" layer="1"/>
+<wire x1="17.567" y1="30.5025" x2="17.948" y2="30.2195" width="0.4064" layer="1"/>
 <wire x1="11.882" y1="24.1655" x2="11.8745" y2="24.173" width="0.254" layer="1"/>
 <wire x1="11.8745" y1="24.173" x2="11.8745" y2="24.3205" width="0.254" layer="1"/>
 <wire x1="11.8745" y1="24.3205" x2="13.5255" y2="25.9715" width="0.4064" layer="1"/>
-<wire x1="13.5255" y1="25.9715" x2="14.7955" y2="25.9715" width="0.4064" layer="1"/>
-<wire x1="14.7955" y1="25.9715" x2="15.367" y2="26.543" width="0.4064" layer="1"/>
-<wire x1="15.367" y1="26.543" x2="15.367" y2="29.5275" width="0.4064" layer="1"/>
-<wire x1="15.367" y1="29.5275" x2="16.002" y2="30.1625" width="0.4064" layer="1"/>
+<wire x1="13.5255" y1="25.9715" x2="15.367" y2="25.9715" width="0.4064" layer="1"/>
+<wire x1="15.367" y1="25.9715" x2="16.0655" y2="26.67" width="0.4064" layer="1"/>
+<wire x1="16.0655" y1="26.67" x2="16.002" y2="29.5275" width="0.4064" layer="1"/>
+<wire x1="16.002" y1="29.5275" x2="16.002" y2="30.1625" width="0.4064" layer="1"/>
 <wire x1="16.002" y1="30.1625" x2="17.51" y2="30.1625" width="0.4064" layer="1"/>
-<wire x1="17.51" y1="30.1625" x2="17.567" y2="30.2195" width="0.4064" layer="1"/>
-<wire x1="11.4965" y1="31.6865" x2="15.367" y2="31.6865" width="0.4064" layer="1"/>
+<wire x1="17.51" y1="30.1625" x2="17.948" y2="30.2195" width="0.4064" layer="1"/>
 <wire x1="15.367" y1="31.6865" x2="16.002" y2="31.0515" width="0.4064" layer="1"/>
 <wire x1="16.002" y1="31.0515" x2="16.002" y2="30.1625" width="0.4064" layer="1"/>
+<wire x1="15.367" y1="31.6865" x2="12.068" y2="31.6865" width="0.4064" layer="1"/>
+<wire x1="12.068" y1="31.6865" x2="10.8615" y2="30.48" width="0.4064" layer="1"/>
 </signal>
 <signal name="VBUS">
 <contactref element="C1" pad="2"/>
@@ -863,7 +862,7 @@ design rules under a new name.</description>
 <wire x1="7.036" y1="8.5725" x2="7.036" y2="7.188" width="0.508" layer="1"/>
 <wire x1="11.882" y1="23.1655" x2="10.91" y2="23.1655" width="0.254" layer="1"/>
 <wire x1="10.91" y1="23.1655" x2="10.2235" y2="22.479" width="0.254" layer="1"/>
-<contactref element="JP5" pad="VBUS"/>
+<contactref element="USB-A" pad="VBUS"/>
 <wire x1="6.2865" y1="18.542" x2="6.2865" y2="16.764" width="0.4064" layer="16"/>
 <wire x1="11.684" y1="14.986" x2="11.684" y2="13.785" width="0.4064" layer="16"/>
 <wire x1="11.684" y1="13.785" x2="11.636" y2="13.737" width="0.4064" layer="16"/>
@@ -880,7 +879,7 @@ design rules under a new name.</description>
 <signal name="D+2">
 <contactref element="R1" pad="1"/>
 <contactref element="USB-MINIB" pad="D+"/>
-<contactref element="JP5" pad="D+"/>
+<contactref element="USB-A" pad="D+"/>
 <wire x1="8.636" y1="8.5725" x2="8.636" y2="11.43" width="0.4064" layer="1"/>
 <wire x1="8.636" y1="11.43" x2="8.636" y2="12.217" width="0.4064" layer="1"/>
 <wire x1="8.636" y1="12.217" x2="9.881" y2="13.462" width="0.4064" layer="1"/>
@@ -895,7 +894,7 @@ design rules under a new name.</description>
 <signal name="D-2">
 <contactref element="R2" pad="1"/>
 <contactref element="USB-MINIB" pad="D-"/>
-<contactref element="JP5" pad="D-"/>
+<contactref element="USB-A" pad="D-"/>
 <wire x1="7.836" y1="8.5725" x2="7.8105" y2="8.598" width="0.4064" layer="1"/>
 <wire x1="7.8105" y1="8.598" x2="7.84225" y2="9.652" width="0.4064" layer="1"/>
 <wire x1="7.84225" y1="9.652" x2="7.84225" y2="9.93775" width="0.4064" layer="1"/>

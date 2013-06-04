@@ -656,7 +656,7 @@ class GoodFETMAXUSBHID(GoodFETMAXUSB):
 	0x95,0x01,		#   Report Count = 1
 	0x81,0x00,		#  Input(Data,Variable,Array)
 	0xC0]
-    def send_descriptor(self,SUD):
+    def send_descriptor(self, SUD):
         """Send the USB descriptors based upon the setup data."""
         desclen=0;
         reqlen=SUD.getRequestLength(); #16-bit length

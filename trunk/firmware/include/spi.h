@@ -25,6 +25,7 @@
 # define TST  BIT0
 # define RST  BIT6
 #endif
+//Apimotev2 SET/CLRRST needs to be on pin 21, so 2.1 -- just redefine RST to BIT0
 
 #define SETMOSI SPIOUT|=MOSI
 #define CLRMOSI SPIOUT&=~MOSI

@@ -13,6 +13,9 @@ import array, time;
 
 from GoodFETCCSPI import GoodFETCCSPI;
 
+#PORTNAME=None
+PORTNAME="/dev/ttyUSB0"
+print "ON:", PORTNAME
 
 #Some quick functions for yanking values out of a packet.
 def srcadr(packet):
@@ -65,7 +68,7 @@ if(len(sys.argv)==1):
 
 #Initialize FET and set baud rate
 client=GoodFETCCSPI();
-client.serInit()
+client.serInit(port=PORTNAME)
 
 client.setup();
 
@@ -74,7 +77,12 @@ client.setup();
 
 if(sys.argv[1]=="carrier"):
     if len(sys.argv)>2:
-        client.RF_setfreq(eval(sys.argv[2]));
+        freq=eval(sys.argv[2]);
+        if freq>100:
+            client.RF_setfreq(freq);
+        else:
+            client.RF_setchan(freq);
+            print "Channel set to:", freq
     while 1:
         client.RF_carrier();
     while(1):

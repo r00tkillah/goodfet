@@ -7,8 +7,13 @@
 
 
 import sys, time, string, cStringIO, struct, glob, os;
+import warnings
 
 from GoodFET import GoodFET;
+
+warnings.warn(
+"""This library will soon be deprecated in favor of the USB*.py libraries."""
+)
 
 #Handy registers.
 rEP0FIFO=0

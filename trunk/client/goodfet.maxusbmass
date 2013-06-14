@@ -8,9 +8,15 @@ import sys;
 import binascii;
 import array;
 import time;
+import warnings
 
 from GoodFETMAXUSB import *;
 
+warnings.warn(
+"""The libraries upon which this program depends will soon be deprecated in
+favor of the USB*.py libraries.  See facedancer-umass.py (forthcoming) for an
+example of this program written using the new libraries."""
+)
 
 # This constant is kinda complicated and very ugly.  The idea is that
 # if we take too long in any given transaction, the host will abort.

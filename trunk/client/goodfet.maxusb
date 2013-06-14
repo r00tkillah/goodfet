@@ -6,8 +6,15 @@
 import sys;
 import binascii;
 import array;
+import warnings
 
 from GoodFETMAXUSB import GoodFETMAXUSB;
+
+warnings.warn(
+"""The libraries upon which this program depends will soon be deprecated in
+favor of the USB*.py libraries.  See facedancer-monitor.py for an example of
+this program written using the new libraries."""
+)
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];

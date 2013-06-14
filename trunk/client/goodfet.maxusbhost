@@ -7,8 +7,15 @@ import sys;
 import binascii;
 import array;
 import time;
+import warnings
 
 from GoodFETMAXUSB import GoodFETMAXUSBHost;
+
+warnings.warn(
+"""The libraries upon which this program depends will soon be deprecated in
+favor of the USB*.py libraries.  The new libraries do not yet support host
+mode, but an example will be written and documented when they do."""
+)
 
 if(len(sys.argv)==1):
     print "Usage: %s verb [objects]\n" % sys.argv[0];

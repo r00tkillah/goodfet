@@ -2,10 +2,10 @@
 #maintained when Travis gets stuck doing MSP430 manufacturing.
 
 link:
-	rm -f /usr/local/bin/goodfet.* /usr/local/bin/goodfet
+	rm -f /usr/local/bin/goodfet.* /usr/local/bin/goodfet /usr/local/bin/facedancer*
 	rm -rf *~
 	mkdir -p /usr/local/bin
-	ln -s `pwd`/goodfet `pwd`/goodfet.* /usr/local/bin/
+	ln -s `pwd`/goodfet `pwd`/goodfet.* `pwd`/facedancer* /usr/local/bin/
 install:
 	echo "Try 'make link' instead."
 

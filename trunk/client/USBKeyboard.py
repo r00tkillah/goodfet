@@ -45,14 +45,17 @@ class USBKeyboardInterface(USBInterface):
                 descriptors
         )
 
-        # "ls<ENTER><KEY UP>"
-        self.text = [ chr(x) for x in [ 0x0f, 0x16, 0x28, 0x00 ] ]
+        # "l<KEY UP>s<KEY UP><ENTER><KEY UP>"
+        empty_preamble = [ 0x00 ] * 10
+        text = [ 0x0f, 0x00, 0x16, 0x00, 0x28, 0x00 ]
+
+        self.keys = [ chr(x) for x in empty_preamble + text ]
 
     def handle_buffer_available(self):
-        if not self.text:
+        if not self.keys:
             return
 
-        letter = self.text.pop(0)
+        letter = self.keys.pop(0)
         self.type_letter(letter)
 
     def type_letter(self, letter, modifiers=0):

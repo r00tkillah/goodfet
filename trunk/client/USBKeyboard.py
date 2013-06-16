@@ -70,7 +70,7 @@ class USBKeyboardDevice(USBDevice):
     def __init__(self, maxusb_app, verbose=0):
         config = USBConfiguration(
                 1,                                          # index
-                "Maxim Emulated Keyboard Configuration",    # string desc
+                "Emulated Keyboard",    # string desc
                 [ USBKeyboardInterface() ]                  # interfaces
         )
 

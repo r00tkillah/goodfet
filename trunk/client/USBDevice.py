@@ -133,7 +133,11 @@ class USBDevice:
         elif req.get_recipient() == USB.request_recipient_interface:
             recipient = self.configuration.interfaces[req.index]
         elif req.get_recipient() == USB.request_recipient_endpoint:
-            recipient = self.configuration.endpoints[req.index]
+            try:
+                recipient = self.endpoints[req.index]
+            except KeyError:
+                self.maxusb_app.stall_ep0()
+                return
 
         # and then the type
         if req.get_type() == USB.request_type_standard:
@@ -148,12 +152,12 @@ class USBDevice:
             self.maxusb_app.stall_ep0()
 
     def handle_data_available(self, ep_num, data):
-        if self.ready and ep_num in self.endpoints:
+        if self.state == USB.state_configured and ep_num in self.endpoints:
             endpoint = self.endpoints[ep_num]
             endpoint.handler(data)
 
     def handle_buffer_available(self, ep_num):
-        if self.ready and ep_num in self.endpoints:
+        if self.state == USB.state_configured and ep_num in self.endpoints:
             endpoint = self.endpoints[ep_num]
             endpoint.handler()
     
@@ -230,6 +234,11 @@ class USBDevice:
         else:
             # string descriptors start at 1
             s = self.strings[num-1].encode('utf-16')
+
+            # Linux doesn't like the leading 2-byte Byte Order Mark (BOM);
+            # FreeBSD is okay without it
+            s = s[2:]
+
             d = bytearray([
                     len(s) + 2,     # length of descriptor in bytes
                     3               # descriptor type 3 == string

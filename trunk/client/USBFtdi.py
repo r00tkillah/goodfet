@@ -137,7 +137,7 @@ class USBFtdiInterface(USBInterface):
                 USBEndpoint.usage_type_data,
                 16384,      # max packet size
                 0,          # polling interval, see USB 2.0 spec Table 9-13
-                self.handle_buffer_available    # handler function
+                None        # handler function
             )
         ]
 
@@ -155,11 +155,16 @@ class USBFtdiInterface(USBInterface):
                 descriptors
         )
 
-    def handle_buffer_available(self):
-        pass
-
     def handle_data_available(self, data):
-        print(bytes_as_hex(data))
+        s = data[1:]
+        if self.verbose > 0:
+            print(self.name, "received string", s)
+
+        s = s.replace(b'\r', b'\r\n')
+
+        reply = b'\x01\x00' + s
+
+        self.configuration.device.maxusb_app.send_on_endpoint(3, reply)
 
 
 class USBFtdiDevice(USBDevice):

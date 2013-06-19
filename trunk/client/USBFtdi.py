@@ -181,8 +181,8 @@ class USBFtdiDevice(USBDevice):
                 0,                      # device subclass
                 0,                      # protocol release number
                 64,                     # max packet size for endpoint 0
-                0x0304,                 # vendor id: FTDI
-                0x0160,                 # product id: FT232 USB-Serial (UART) IC
+                0x0403,                 # vendor id: FTDI
+                0x6001,                 # product id: FT232 USB-Serial (UART) IC
                 0x0001,                 # device revision
                 "GoodFET",              # manufacturer string
                 "FTDI Emulator",        # product string

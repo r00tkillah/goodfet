@@ -223,8 +223,7 @@ class USBDevice:
                     + "language 0x%04x, length %d") \
                     % (dtype, dindex, lang, n))
 
-        # TODO: handle KeyError
-        response = self.descriptors[dtype]
+        response = self.descriptors.get(dtype, None)
         if callable(response):
             response = response(dindex)
 
@@ -236,6 +235,8 @@ class USBDevice:
 
             if self.verbose > 5:
                 print(self.name, "sent", n, "bytes in response")
+        else:
+            self.maxusb_app.stall_ep0()
 
     def handle_get_configuration_descriptor_request(self, num):
         return self.configurations[num].get_descriptor()

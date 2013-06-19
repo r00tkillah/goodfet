@@ -38,10 +38,10 @@ class USBFtdiVendor(USBVendor):
         if self.verbose > 0:
             print(self.name, "received modem_ctrl request")
 
-        dtr = req.value[1] & 0x01
-        rts = (req.value[1] & 0x02) >> 1
-        dtren = req.value[0] & 0x01
-        rtsen = (req.value[0] & 0x02) >> 1
+        dtr = req.value & 0x0001
+        rts = (req.value & 0x0002) >> 1
+        dtren = (req.value & 0x0100) >> 8
+        rtsen = (req.value & 0x0200) >> 9
 
         if dtren:
             print("DTR is enabled, value", dtr)
@@ -54,14 +54,13 @@ class USBFtdiVendor(USBVendor):
         if self.verbose > 0:
             print(self.name, "received set_flow_ctrl request")
 
-        dtr = req.value[1] & 0x01
-        if req.value[1] == 0:
+        if req.value == 0x000:
             print("SET_FLOW_CTRL to no handshaking")
-        if req.value[1] & 0x01:
+        if req.value & 0x0001:
             print("SET_FLOW_CTRL for RTS/CTS handshaking")
-        if req.value[1] & 0x02:
+        if req.value & 0x0002:
             print("SET_FLOW_CTRL for DTR/DSR handshaking")
-        if req.value[1] & 0x04:
+        if req.value & 0x0004:
             print("SET_FLOW_CTRL for XON/XOFF handshaking")
 
         self.device.maxusb_app.send_on_endpoint(0, b'')
@@ -70,8 +69,8 @@ class USBFtdiVendor(USBVendor):
         if self.verbose > 0:
             print(self.name, "received set_baud_rate request")
 
-        dtr = req.value[1] & 0x01
-        print("baud rate set to", req.value[1])
+        dtr = req.value & 0x0001
+        print("baud rate set to", dtr)
 
         self.device.maxusb_app.send_on_endpoint(0, b'')
 
@@ -160,7 +159,7 @@ class USBFtdiInterface(USBInterface):
         pass
 
     def handle_data_available(self, data):
-        pass
+        print(bytes_as_hex(data))
 
 
 class USBFtdiDevice(USBDevice):

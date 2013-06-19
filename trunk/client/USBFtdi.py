@@ -32,7 +32,7 @@ class USBFtdiVendor(USBVendor):
         if self.verbose > 0:
             print(self.name, "received reset request")
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_modem_ctrl_request(self, req):
         if self.verbose > 0:
@@ -48,7 +48,7 @@ class USBFtdiVendor(USBVendor):
         if rtsen:
             print("RTS is enabled, value", rts)
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_set_flow_ctrl_request(self, req):
         if self.verbose > 0:
@@ -64,7 +64,7 @@ class USBFtdiVendor(USBVendor):
         if req.value[1] & 0x04:
             print("SET_FLOW_CTRL for XON/XOFF handshaking")
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_set_baud_rate_request(self, req):
         if self.verbose > 0:
@@ -73,44 +73,44 @@ class USBFtdiVendor(USBVendor):
         dtr = req.value[1] & 0x01
         print("baud rate set to", req.value[1])
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_set_data_request(self, req):
         if self.verbose > 0:
             print(self.name, "received set_data request")
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_get_status_request(self, req):
         if self.verbose > 0:
             print(self.name, "received get_status request")
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_set_event_char_request(self, req):
         if self.verbose > 0:
             print(self.name, "received set_event_char request")
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_set_error_char_request(self, req):
         if self.verbose > 0:
             print(self.name, "received set_error_char request")
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_set_latency_timer_request(self, req):
         if self.verbose > 0:
             print(self.name, "received set_latency_timer request")
 
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.device.maxusb_app.send_on_endpoint(0, b'')
 
     def handle_get_latency_timer_request(self, req):
         if self.verbose > 0:
             print(self.name, "received get_latency_timer request")
 
         # bullshit value
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'\x01')
+        self.device.maxusb_app.send_on_endpoint(0, b'\x01')
 
 
 class USBFtdiInterface(USBInterface):
@@ -156,9 +156,6 @@ class USBFtdiInterface(USBInterface):
                 descriptors
         )
 
-        self.device_vendor = USBFtdiVendor()
-        self.device_vendor.set_interface(self)
-
     def handle_buffer_available(self):
         pass
 
@@ -185,8 +182,8 @@ class USBFtdiDevice(USBDevice):
                 0,                      # device subclass
                 0,                      # protocol release number
                 64,                     # max packet size for endpoint 0
-                0x0403,                 # vendor id: FTDI
-                0x8372,                 # product id: FT232 USB-Serial (UART) IC
+                0x0304,                 # vendor id: FTDI
+                0x0160,                 # product id: FT232 USB-Serial (UART) IC
                 0x0001,                 # device revision
                 "GoodFET",              # manufacturer string
                 "FTDI Emulator",        # product string
@@ -194,4 +191,7 @@ class USBFtdiDevice(USBDevice):
                 [ config ],
                 verbose=verbose
         )
+
+        self.device_vendor = USBFtdiVendor()
+        self.device_vendor.set_device(self)
 

@@ -10,13 +10,13 @@ class USBVendor:
     request_handlers = { }
 
     def __init__(self, verbose=0):
-        self.interface = None
+        self.device = None
         self.verbose = verbose
 
         self.setup_request_handlers()
 
-    def set_interface(self, interface):
-        self.interface = interface
+    def set_device(self, device):
+        self.device = device
 
     def setup_request_handlers(self):
         """To be overridden for subclasses to modify self.request_handlers"""

@@ -142,6 +142,17 @@ class USBMassStorageInterface(USBInterface):
             #diff = cbw.data_transfer_length - len(response)
             #response += bytes([0] * diff)
 
+        elif opcode == 0x1a or opcode == 0x5a:    # Mode Sense (6 or 10)
+            page = cbw.cb[2] & 0x3f
+
+            if self.verbose > 0:
+                print(self.name, "got SCSI Mode Sense, page code 0x%02x" % page)
+
+            response = b'\x07\x00\x00\x00\x00\x00\x00\x1c'
+            if page != 0x3f:
+                print(self.name, "unkonwn page, returning empty page")
+                response = b'\x07\x00\x00\x00\x00\x00\x00\x00'
+
         elif opcode == 0x1e:    # Prevent/Allow Removal: feign success
             if self.verbose > 0:
                 print(self.name, "got SCSI Prevent/Allow Removal")

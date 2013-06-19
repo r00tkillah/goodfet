@@ -12,6 +12,14 @@ class USBConfiguration:
         self.attributes = 0xe0
         self.max_power = 0x01
 
+        self.device = None
+
+        for i in self.interfaces:
+            i.set_configuration(self)
+
+    def set_device(self, device):
+        self.device = device
+
     def set_configuration_string_index(self, i):
         self.configuration_string_index = i
 

@@ -30,6 +30,16 @@ class USBInterface:
             11 : self.handle_set_interface_request
         }
 
+        self.configuration = None
+
+        for e in self.endpoints:
+            e.set_interface(self)
+
+        self.device_class = None
+
+    def set_configuration(self, config):
+        self.configuration = config
+
     # USB 2.0 specification, section 9.4.3 (p 281 of pdf)
     # HACK: blatant copypasta from USBDevice pains me deeply
     def handle_get_descriptor_request(self, req):
@@ -52,13 +62,13 @@ class USBInterface:
 
         if response:
             n = min(n, len(response))
-            self.device.maxusb_app.send_on_endpoint(0, response[:n])
+            self.configuration.device.maxusb_app.send_on_endpoint(0, response[:n])
 
             if self.verbose > 5:
                 print(self.name, "sent", n, "bytes in response")
 
     def handle_set_interface_request(self, req):
-        self.device.maxusb_app.stall_ep0()
+        self.configuration.device.maxusb_app.stall_ep0()
 
     # Table 9-12 of USB 2.0 spec (pdf page 296)
     def get_descriptor(self):
@@ -77,7 +87,8 @@ class USBInterface:
 
         if self.iclass:
             iclass_desc_num = USB.interface_class_to_descriptor_type(self.iclass)
-            d += self.descriptors[iclass_desc_num]
+            if iclass_desc_num:
+                d += self.descriptors[iclass_desc_num]
 
         for e in self.endpoints:
             d += e.get_descriptor()

@@ -64,7 +64,7 @@ class USBKeyboardInterface(USBInterface):
         if self.verbose > 2:
             print(self.name, "sending keypress 0x%02x" % ord(letter))
 
-        self.device.maxusb_app.send_on_endpoint(3, data)
+        self.configuration.device.maxusb_app.send_on_endpoint(3, data)
 
 
 class USBKeyboardDevice(USBDevice):

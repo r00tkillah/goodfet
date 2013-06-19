@@ -168,6 +168,13 @@ class MAXUSBApp(FacedancerApp):
         else:
             raise ValueError('endpoint ' + str(ep_num) + ' not supported')
 
+        # FIFO buffer is only 64 bytes, must loop
+        while len(data) > 64:
+            self.write_bytes(fifo_reg, data[:64])
+            self.write_register(bc_reg, 64, ack=True)
+
+            data = data[64:]
+
         self.write_bytes(fifo_reg, data)
         self.write_register(bc_reg, len(data), ack=True)
 
@@ -175,9 +182,22 @@ class MAXUSBApp(FacedancerApp):
             print(self.app_name, "wrote", bytes_as_hex(data), "to endpoint",
                     ep_num)
 
-    # TODO
+    # HACK: but given the limitations of the MAX chips, it seems necessary
     def read_from_endpoint(self, ep_num):
-        pass
+        if ep_num != 1:
+            return b''
+
+        byte_count = self.read_register(self.reg_ep1_out_byte_count)
+        if byte_count == 0:
+            return b''
+
+        data = self.read_bytes(self.reg_ep1_out_fifo, byte_count)
+
+        if self.verbose > 1:
+            print(self.app_name, "read", bytes_as_hex(data), "from endpoint",
+                    ep_num)
+
+        return data
 
     def stall_ep0(self):
         if self.verbose > 0:
@@ -205,8 +225,9 @@ class MAXUSBApp(FacedancerApp):
                 self.connected_device.handle_request(req)
 
             if irq & self.is_out1_data_avail:
-                data = b'' # TODO: read from out1
-                self.connected_device.handle_data_available(1, data)
+                data = self.read_from_endpoint(1)
+                if data:
+                    self.connected_device.handle_data_available(1, data)
                 self.clear_irq_bit(self.reg_endpoint_irq, self.is_out1_data_avail)
 
             if irq & self.is_in2_buffer_avail:

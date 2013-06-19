@@ -49,5 +49,5 @@ class USB:
     }
 
     def interface_class_to_descriptor_type(interface_class):
-        return USB.if_class_to_desc_type[interface_class]
+        return USB.if_class_to_desc_type.get(interface_class, None)
 

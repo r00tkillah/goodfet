@@ -151,7 +151,7 @@ class USBDevice:
         elif req_type == USB.request_type_class:
             handler_entity = recipient.device_class
         elif req_type == USB.request_type_vendor:
-            handler_entity = recipient.get_device_vendor()
+            handler_entity = recipient.device_vendor
 
         if not handler_entity:
             print(self.name, "invalid handler entity, stalling")

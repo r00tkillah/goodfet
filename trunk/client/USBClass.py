@@ -23,13 +23,3 @@ class USBClass:
         """To be overridden for subclasses to modify self.class_request_handlers"""
         pass
 
-    def handle_class_request(self, req):
-        r = req.get_request()
-
-        if r in self.class_request_handlers:
-            self.class_request_handlers[r](req)
-        else:
-            print(self.name, "unhandled class request:", req)
-            print(self.name, "stalling")
-            self.device.stall_ep0()
-

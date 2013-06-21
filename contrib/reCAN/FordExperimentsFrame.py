@@ -1,3 +1,10 @@
+# reCAN library
+# (C) 2013 Chris Hoder    <chrishoder at gmail.com>
+#          Ted Sumers     <ted.sumers at gmail.com>
+#          Grayson Zulauf <grayson.d.zulauf at gmail.com>
+#
+# This code is being rewritten and refactored.  You've been warned!
+
 import Tkinter
 import Queue
 import thread

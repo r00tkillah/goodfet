@@ -1,6 +1,10 @@
+# reCAN library
+# (C) 2013 Chris Hoder    <chrishoder at gmail.com>
+#          Ted Sumers     <ted.sumers at gmail.com>
+#          Grayson Zulauf <grayson.d.zulauf at gmail.com>
+#
+# This code is being rewritten and refactored.  You've been warned!
 
-# Chris Hoder
-# 11/3/2012
 
 import Tkinter
 import csv
@@ -114,7 +118,7 @@ class DisplayApp:
         
         experimentInfo = self.ConfigSectionMap(Config, "experimentInfo")
         self.packetInformationFile = experimentInfo.get("packetinformation")
-        """ This file stores the user's known information about the packets. This is a json file"""
+        """ This file stores the user's known information about the packets. This is a json file"""  
         self.experimentFile = experimentInfo.get("experimentfile")
         """ This is the experiment file that is car specific. this is for adding a car specific module"""
         self.experimentGUIFile = experimentInfo.get("experiment_gui_file")

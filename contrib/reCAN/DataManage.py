@@ -1,5 +1,9 @@
-# 
-# 1/11/2012
+# reCAN library
+# (C) 2013 Chris Hoder    <chrishoder at gmail.com>
+#          Ted Sumers     <ted.sumers at gmail.com>
+#          Grayson Zulauf <grayson.d.zulauf at gmail.com>
+#
+# This code is being rewritten and refactored.  You've been warned!
 
 import MySQLdb
 import sys

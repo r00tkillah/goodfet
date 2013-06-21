@@ -24,6 +24,13 @@ import thread
 import ConfigParser
 from Tkinter import *
 
+try:
+    import MySQLdb
+    MYSQL_INSTALL = True
+except ImportError:
+   
+    MYSQL_INSTALL = False
+
 ###############################
 #### GOODTHOPTER 10 FILES #####
 ###############################
@@ -198,6 +205,16 @@ class DisplayApp:
         ### CONNECT TO GOODTHOPTER 10 BOARD ###
         self.connectBus()
         #self.testConnect()
+        
+        if( MYSQL_INSTALL == False):
+            tkMessageBox.showwarning('MySQLdb not installed. MYSQL disabled','MySQLdb not installed. MYSQL disabled')
+            
+            for bt in self.buttons:
+                print bt[0]
+                if( bt[0] is "SQL"):
+                    print "here"
+                    bt[1].config(state=tk.DISABLED)
+                
         
   
     def writeiniFile(self, filename, section, option, value):
@@ -1960,7 +1977,9 @@ class DisplayApp:
         self.root.bind( '<Control-q>', self.handleQuit )
         self.root.bind( '<Control-s>', self.sniffFrameLift)
         self.root.bind( '<Control-e>', self.experimentFrameLift)
-        self.root.bind( '<Control-u>', self.sqlFrameLift)
+        #only bind if MySQL is installed
+        if( MYSQL_INSTALL == True):
+            self.root.bind( '<Control-u>', self.sqlFrameLift)
         self.root.bind( '<Control-i>', self.infoFrameLift)
         #self.root.bind('<Return>',self.handleStim )
         #self.root.bind('<Key>',self.handleKeys)

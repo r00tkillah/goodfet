@@ -5,7 +5,11 @@
 #
 # This code is being rewritten and refactored.  You've been warned!
 
-import MySQLdb
+try:
+    import MySQLdb
+except ImportError:
+    pass
+
 import sys
 import csv
 import argparse;
@@ -15,6 +19,7 @@ import glob
 import os
 import datetime
 import json
+import sqlite3 as lite
 #data parsing assumes an standard ID!!
 
 sys.path.insert(0,'../../trunk/client/')

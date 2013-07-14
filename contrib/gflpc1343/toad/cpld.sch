@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sun Jul 14 13:57:48 2013
+EESchema Schematic File Version 2  date Sun Jul 14 16:16:23 2013
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -1071,22 +1071,6 @@ F 1 "CPLD_JTAG" V 7700 6600 60  0000 C CNN
 	1    7650 6600
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	9150 4750 7900 4750
-Wire Wire Line
-	7900 4750 7900 6250
-Wire Wire Line
-	9150 4850 7800 4850
-Wire Wire Line
-	7800 4850 7800 6250
-Wire Wire Line
-	9150 5050 7700 5050
-Wire Wire Line
-	7700 5050 7700 6250
-Wire Wire Line
-	9150 4950 7600 4950
-Wire Wire Line
-	7600 4950 7600 6250
 $Comp
 L GND #PWR122
 U 1 1 51E2EA68
@@ -1335,28 +1319,16 @@ Text Label 11150 8650 2    40   ~ 0
 CLK0
 Wire Wire Line
 	10150 8750 9950 8750
-Text Label 9950 8750 0    40   ~ 0
-CLK2
 Wire Wire Line
 	10150 8650 9950 8650
-Text Label 9950 8650 0    40   ~ 0
+Text Label 9950 8750 0    40   ~ 0
 CLK1
 Wire Wire Line
 	10150 8550 9950 8550
-Text Label 9950 8550 0    40   ~ 0
-CLK3
 Wire Wire Line
 	10950 8350 11150 8350
-Text Label 11150 8350 2    40   ~ 0
-PIO2_4
-Wire Wire Line
-	10950 8450 11150 8450
-Text Label 11150 8450 2    40   ~ 0
-PIO2_5
 Wire Wire Line
 	10150 8450 9950 8450
-Text Label 9950 8450 0    40   ~ 0
-PIO2_7
 Wire Wire Line
 	9150 3750 8950 3750
 Wire Wire Line
@@ -1366,13 +1338,9 @@ CLK1
 Text Label 8950 3750 0    40   ~ 0
 CLK0
 Wire Wire Line
-	12950 3750 13150 3750
+	12950 3750 13050 3750
 Wire Wire Line
 	12950 3950 13150 3950
-Text Label 13150 3750 2    40   ~ 0
-CLK3
-Text Label 13150 3950 2    40   ~ 0
-CLK2
 Wire Wire Line
 	11050 5750 11050 5950
 Wire Wire Line
@@ -1411,12 +1379,6 @@ Text Label 11650 5950 1    40   ~ 0
 !RTS
 Text Label 11950 5950 1    40   ~ 0
 !DTR
-Text Label 12050 5950 1    40   ~ 0
-PIO2_7
-Text Label 12150 5950 1    40   ~ 0
-PIO2_5
-Text Label 12250 5950 1    40   ~ 0
-PIO2_4
 Text GLabel 2800 3700 2    40   Input ~ 0
 MISO0
 Text GLabel 2800 3800 2    40   Input ~ 0
@@ -1448,10 +1410,10 @@ Wire Wire Line
 Wire Wire Line
 	2650 5000 2650 4900
 Connection ~ 2650 5000
-Text GLabel 10050 8250 0    40   Input ~ 0
+Text GLabel 9950 8450 0    40   Input ~ 0
 !DAC_CS
 Wire Wire Line
-	10050 8250 10150 8250
+	9950 8250 10150 8250
 Text GLabel 13500 8100 0    40   Input ~ 0
 MISO0
 Text GLabel 13500 8200 0    40   Input ~ 0
@@ -1460,9 +1422,257 @@ Text GLabel 13500 8400 0    40   Input ~ 0
 SCK0
 Text GLabel 13500 8300 0    40   Input ~ 0
 !POT_CS
-Text GLabel 10050 8350 0    40   Input ~ 0
+Text GLabel 9950 8550 0    40   Input ~ 0
 !VEN
 Wire Wire Line
-	10150 8350 10050 8350
-NoConn ~ 12950 4050
+	10150 8350 9950 8350
+Text GLabel 7800 6250 1    40   Input ~ 0
+MOSI0
+Text GLabel 7700 6250 1    40   Input ~ 0
+MISO0
+Text GLabel 7600 6250 1    40   Input ~ 0
+SCK0
+Text GLabel 9050 4850 0    40   Input ~ 0
+MOSI0
+Text GLabel 9050 5050 0    40   Input ~ 0
+MISO0
+Text GLabel 9050 4950 0    40   Input ~ 0
+SCK0
+Wire Wire Line
+	9050 4750 9150 4750
+Wire Wire Line
+	9150 4850 9050 4850
+Wire Wire Line
+	9050 4950 9150 4950
+Wire Wire Line
+	9150 5050 9050 5050
+Text GLabel 9050 4750 0    40   Input ~ 0
+TMS
+Text GLabel 7900 6250 1    40   Input ~ 0
+TMS
+Text GLabel 11150 8350 2    40   Input ~ 0
+TMS
+Text Label 9950 8250 0    40   ~ 0
+SDA
+Text Label 9950 8350 0    40   ~ 0
+SCL
+Text Label 13150 3950 2    40   ~ 0
+SCL
+Wire Wire Line
+	12950 4050 13150 4050
+Text Label 13150 4050 2    40   ~ 0
+SDA
+Wire Notes Line
+	8600 6750 15500 6750
+Wire Notes Line
+	15500 6750 15500 9800
+Wire Notes Line
+	15500 9800 8600 9800
+Wire Notes Line
+	8600 9800 8600 6750
+Text Notes 11200 7400 0    100  ~ 0
+Connect to gflpc1343
+Text GLabel 13050 3750 2    40   Input ~ 0
+SCK0
+Text GLabel 12250 5950 3    40   Input ~ 0
+MISO0
+Text GLabel 12150 5950 3    40   Input ~ 0
+MOSI0
+NoConn ~ 10950 8450
+Text GLabel 9950 8650 0    40   Input ~ 0
+!CPLD_CS
+Text GLabel 12050 5950 3    40   Input ~ 0
+!CPLD_CS
+$Comp
+L 3V3 #PWR?
+U 1 1 51E339B4
+P 13900 1000
+F 0 "#PWR?" H 13900 1100 40  0001 C CNN
+F 1 "3V3" H 13900 1125 40  0000 C CNN
+	1    13900 1000
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 51E339BC
+P 13900 1800
+F 0 "#PWR?" H 13900 1800 30  0001 C CNN
+F 1 "GND" H 13900 1730 30  0001 C CNN
+	1    13900 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 51E339DB
+P 14000 1400
+F 0 "C?" H 14050 1500 50  0000 L CNN
+F 1 "100nF" H 14050 1300 50  0000 L CNN
+F 4 "Samsung" H 14000 1400 60  0001 C CNN "Manufacturer"
+F 5 "CL10B104KB8SFNC" H 14000 1400 60  0001 C CNN "Part Number"
+F 6 "CAP CER 0.1UF 50V 10% X7R 0603" H 14000 1400 60  0001 C CNN "Description"
+	1    14000 1400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	13900 1800 13900 1700
+Wire Wire Line
+	13900 1700 15500 1700
+Wire Wire Line
+	14000 1700 14000 1600
+Wire Wire Line
+	13900 1000 13900 1100
+Wire Wire Line
+	13900 1100 15500 1100
+Wire Wire Line
+	14000 1100 14000 1200
+$Comp
+L C C?
+U 1 1 51E33C1C
+P 14300 1400
+F 0 "C?" H 14350 1500 50  0000 L CNN
+F 1 "100nF" H 14350 1300 50  0000 L CNN
+F 4 "Samsung" H 14300 1400 60  0001 C CNN "Manufacturer"
+F 5 "CL10B104KB8SFNC" H 14300 1400 60  0001 C CNN "Part Number"
+F 6 "CAP CER 0.1UF 50V 10% X7R 0603" H 14300 1400 60  0001 C CNN "Description"
+	1    14300 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 51E33C25
+P 14600 1400
+F 0 "C?" H 14650 1500 50  0000 L CNN
+F 1 "100nF" H 14650 1300 50  0000 L CNN
+F 4 "Samsung" H 14600 1400 60  0001 C CNN "Manufacturer"
+F 5 "CL10B104KB8SFNC" H 14600 1400 60  0001 C CNN "Part Number"
+F 6 "CAP CER 0.1UF 50V 10% X7R 0603" H 14600 1400 60  0001 C CNN "Description"
+	1    14600 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 51E33C2E
+P 14900 1400
+F 0 "C?" H 14950 1500 50  0000 L CNN
+F 1 "100nF" H 14950 1300 50  0000 L CNN
+F 4 "Samsung" H 14900 1400 60  0001 C CNN "Manufacturer"
+F 5 "CL10B104KB8SFNC" H 14900 1400 60  0001 C CNN "Part Number"
+F 6 "CAP CER 0.1UF 50V 10% X7R 0603" H 14900 1400 60  0001 C CNN "Description"
+	1    14900 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 51E33C37
+P 15200 1400
+F 0 "C?" H 15250 1500 50  0000 L CNN
+F 1 "100nF" H 15250 1300 50  0000 L CNN
+F 4 "Samsung" H 15200 1400 60  0001 C CNN "Manufacturer"
+F 5 "CL10B104KB8SFNC" H 15200 1400 60  0001 C CNN "Part Number"
+F 6 "CAP CER 0.1UF 50V 10% X7R 0603" H 15200 1400 60  0001 C CNN "Description"
+	1    15200 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 51E33C40
+P 15500 1400
+F 0 "C?" H 15550 1500 50  0000 L CNN
+F 1 "100nF" H 15550 1300 50  0000 L CNN
+F 4 "Samsung" H 15500 1400 60  0001 C CNN "Manufacturer"
+F 5 "CL10B104KB8SFNC" H 15500 1400 60  0001 C CNN "Part Number"
+F 6 "CAP CER 0.1UF 50V 10% X7R 0603" H 15500 1400 60  0001 C CNN "Description"
+	1    15500 1400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	14300 1100 14300 1200
+Connection ~ 14000 1100
+Wire Wire Line
+	14600 1100 14600 1200
+Connection ~ 14300 1100
+Wire Wire Line
+	14900 1100 14900 1200
+Connection ~ 14600 1100
+Wire Wire Line
+	15200 1100 15200 1200
+Connection ~ 14900 1100
+Wire Wire Line
+	15500 1100 15500 1200
+Connection ~ 15200 1100
+Wire Wire Line
+	14300 1700 14300 1600
+Connection ~ 14000 1700
+Wire Wire Line
+	14600 1700 14600 1600
+Connection ~ 14300 1700
+Wire Wire Line
+	14900 1700 14900 1600
+Connection ~ 14600 1700
+Wire Wire Line
+	15200 1700 15200 1600
+Connection ~ 14900 1700
+Wire Wire Line
+	15500 1700 15500 1600
+Connection ~ 15200 1700
+$Comp
+L 1V8 #PWR?
+U 1 1 51E34740
+P 15000 2500
+F 0 "#PWR?" H 15000 2640 20  0001 C CNN
+F 1 "1V8" H 15000 2610 30  0000 C CNN
+	1    15000 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 51E34749
+P 15100 2900
+F 0 "C?" H 15150 3000 50  0000 L CNN
+F 1 "100nF" H 15150 2800 50  0000 L CNN
+F 4 "Samsung" H 15100 2900 60  0001 C CNN "Manufacturer"
+F 5 "CL10B104KB8SFNC" H 15100 2900 60  0001 C CNN "Part Number"
+F 6 "CAP CER 0.1UF 50V 10% X7R 0603" H 15100 2900 60  0001 C CNN "Description"
+	1    15100 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C?
+U 1 1 51E34752
+P 15400 2900
+F 0 "C?" H 15450 3000 50  0000 L CNN
+F 1 "100nF" H 15450 2800 50  0000 L CNN
+F 4 "Samsung" H 15400 2900 60  0001 C CNN "Manufacturer"
+F 5 "CL10B104KB8SFNC" H 15400 2900 60  0001 C CNN "Part Number"
+F 6 "CAP CER 0.1UF 50V 10% X7R 0603" H 15400 2900 60  0001 C CNN "Description"
+	1    15400 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 51E34758
+P 15000 3300
+F 0 "#PWR?" H 15000 3300 30  0001 C CNN
+F 1 "GND" H 15000 3230 30  0001 C CNN
+	1    15000 3300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	15000 3300 15000 3200
+Wire Wire Line
+	15000 3200 15400 3200
+Wire Wire Line
+	15100 3200 15100 3100
+Wire Wire Line
+	15400 3200 15400 3100
+Connection ~ 15100 3200
+Wire Wire Line
+	15000 2500 15000 2600
+Wire Wire Line
+	15000 2600 15400 2600
+Wire Wire Line
+	15100 2600 15100 2700
+Wire Wire Line
+	15400 2600 15400 2700
+Connection ~ 15100 2600
 $EndSCHEMATC

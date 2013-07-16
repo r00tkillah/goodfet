@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sun Jul 14 16:16:23 2013
+EESchema Schematic File Version 2  date Mon Jul 15 21:49:01 2013
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -37,7 +37,7 @@ $Descr USLedger 17000 11000
 encoding utf-8
 Sheet 1 4
 Title ""
-Date "14 jul 2013"
+Date "16 jul 2013"
 Rev ""
 Comp ""
 Comment1 ""
@@ -58,7 +58,7 @@ F0 "supplies" 50
 F1 "supplies.sch" 50
 $EndSheet
 Text Notes 1700 1250 0    60   ~ 0
-TODO\n\npassive component selection\nindicators?
+TODO\n\npassive component selection
 $Sheet
 S 4150 5850 2750 1000
 U 51E1B100

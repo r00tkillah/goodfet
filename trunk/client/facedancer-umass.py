@@ -15,17 +15,24 @@
 #   # kpartx -d /dev/loopX
 #   # losetup -d /dev/loopX
 
+import sys
+if len(sys.argv)==1:
+    print("Usage: facedancer-umass.py disk.img");
+    sys.exit(1);
+
 from serial import Serial, PARITY_NONE
 
 from Facedancer import *
 from MAXUSBApp import *
 from USBMassStorage import *
 
+
+
 sp = Serial("/dev/ttyUSB0", 115200, parity=PARITY_NONE, timeout=2)
 fd = Facedancer(sp, verbose=1)
 u = MAXUSBApp(fd, verbose=1)
 
-d = USBMassStorageDevice(u, "test.img", verbose=3)
+d = USBMassStorageDevice(u, sys.argv[1], verbose=3)
 
 d.connect()
 

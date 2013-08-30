@@ -2,6 +2,8 @@
 #
 # Contains class definition for MAXUSBApp.
 
+import time
+
 from util import *
 from Facedancer import *
 from USB import *
@@ -76,7 +78,7 @@ class MAXUSBApp(FacedancerApp):
 
         self.read_register_cmd.data = bytearray([ reg_num << 3, 0 ])
         if ack:
-            self.write_register_cmd.data[0] |= 1
+            self.read_register_cmd.data[0] |= 1
 
         self.device.writecmd(self.read_register_cmd)
 
@@ -111,6 +113,10 @@ class MAXUSBApp(FacedancerApp):
         self.device.readcmd()
 
     def connect(self, usb_device):
+        If self.read_register(reg_usb_control) & usb_control_connect:
+            self.write_register(reg_usb_control, usb_control_vbgate)
+            time.sleep(.1)
+
         self.write_register(self.reg_usb_control, self.usb_control_vbgate |
                 self.usb_control_connect)
 

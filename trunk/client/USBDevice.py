@@ -178,7 +178,7 @@ class USBDevice:
             endpoint = self.endpoints[ep_num]
             if callable(endpoint.handler):
                 endpoint.handler()
-    
+
     # standard request handlers
     #####################################################
 
@@ -273,7 +273,7 @@ class USBDevice:
     # USB 2.0 specification, section 9.4.2 (p 281 of pdf)
     def handle_get_configuration_request(self, req):
         print(self.name, "received GET_CONFIGURATION request with data 0x%02x" \
-                % req.data)
+                % req.value)
 
     # USB 2.0 specification, section 9.4.7 (p 285 of pdf)
     def handle_set_configuration_request(self, req):
@@ -331,9 +331,9 @@ class USBDeviceRequest:
     def raw(self):
         """returns request as bytes"""
         b = bytes([ self.request_type, self.request,
-                    (self.value  >> 8) & 0xff, self.value  & 0xff,
-                    (self.index  >> 8) & 0xff, self.index  & 0xff,
-                    (self.length >> 8) & 0xff, self.length & 0xff
+                    self.value  & 0xff, (self.value  >> 8) & 0xff,
+                    self.index  & 0xff, (self.index  >> 8) & 0xff,
+                    self.length & 0xff, (self.length >> 8) & 0xff
                   ])
         return b
 

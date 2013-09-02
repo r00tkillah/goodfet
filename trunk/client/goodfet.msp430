@@ -40,6 +40,9 @@ if(sys.argv[1]=="info"):
         client.MSP430identstr(),
         client.MSP430ident());
 if(sys.argv[1]=="test"):
+    print "This test is dangerous and will erase the target device.\nDo 'goodfet.msp430 dangeroustest' instead."
+if(sys.argv[1]=="dangeroustest"):
+    print "Running an erase/program test."
     client.MSP430test();
 if(sys.argv[1]=="glitch"):
     for foo in range(0,100):

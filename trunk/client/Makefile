@@ -1,11 +1,13 @@
 #This is a py2exe Makefile for the Windows port, which is only
 #maintained when Travis gets stuck doing MSP430 manufacturing.
 
+prefix=/usr/local
+
 link:
-	rm -f /usr/local/bin/goodfet.* /usr/local/bin/goodfet /usr/local/bin/facedancer*
+	rm -f $(prefix)/bin/goodfet.* $(prefix)/bin/goodfet $(prefix)/bin/facedancer*
 	rm -rf *~
-	mkdir -p /usr/local/bin
-	ln -s `pwd`/goodfet `pwd`/goodfet.* `pwd`/facedancer* /usr/local/bin/
+	mkdir -p $(prefix)/bin
+	ln -s `pwd`/goodfet `pwd`/goodfet.* `pwd`/facedancer* $(prefix)/bin/
 install:
 	echo "Try 'make link' instead."
 

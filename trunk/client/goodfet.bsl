@@ -1865,7 +1865,7 @@ def main(itest=1):
         elif filename:
             bsl.data.loadFile(filename)             #autodetect otherwise
 
-    if DEBUG > 3: sys.stderr.write("File: %r" % filename)
+    if DEBUG > 3: print >>sys.stderr, "File: %r" % filename
 
     bsl.comInit(comPort)                            #init port
 

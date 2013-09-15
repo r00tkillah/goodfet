@@ -1793,7 +1793,7 @@ def main(itest=1):
 
     if os.environ.get("board")==None:
         if board==None:
-            print "Board not specified.  Defaulting to goodfet41.";
+            print >>sys.stderr, "Board not specified.  Defaulting to goodfet41."
             raw_input("Press Ctrl+C to cancel, or Enter to continue.");
             board='goodfet41';
         bsl.board=board;
@@ -1804,7 +1804,7 @@ def main(itest=1):
         except:
             pass;
     if bsl.board==None:
-        print "Unknown board specified.  Try goodfet41, facedancer11, or similar.";
+        print >>sys.stderr, "Unknown board specified.  Try goodfet41, facedancer11, or similar."
         sys.exit(2);
       
     if bsl.board=='telosb':

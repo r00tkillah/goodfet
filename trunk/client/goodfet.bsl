@@ -727,19 +727,19 @@ class LowLevel:
                 if DEBUG > 1: sys.stderr.write("  bslSync() OK\n")
                 return                              #Sync. successful
             elif not c:                             #timeout
-                    if loopcnt > 4:
-                        if DEBUG > 1:
-                            sys.stderr.write("  bslSync() timeout, retry ...\n")
-                    elif loopcnt == 4:
-                        #nmi may have caused the first reset to be ignored, try again
-                        self.bslReset(0) 
-                        self.bslReset(1)
-                    elif loopcnt > 0:
-                        if DEBUG > 1:
-                            sys.stderr.write("  bslSync() timeout, retry ...\n")
-                    else :
-                        if DEBUG > 1:
-                            sys.stderr.write("  bslSync() timeout\n")
+                if loopcnt > 4:
+                    if DEBUG > 1:
+                        sys.stderr.write("  bslSync() timeout, retry ...\n")
+                elif loopcnt == 4:
+                    #nmi may have caused the first reset to be ignored, try again
+                    self.bslReset(0)
+                    self.bslReset(1)
+                elif loopcnt > 0:
+                    if DEBUG > 1:
+                        sys.stderr.write("  bslSync() timeout, retry ...\n")
+                else :
+                    if DEBUG > 1:
+                        sys.stderr.write("  bslSync() timeout\n")
             else:                                   #garbage
                 if DEBUG > 1: sys.stderr.write("  bslSync() failed (0x%02x), retry ...\n" % ord(c))
                 
@@ -895,8 +895,8 @@ class Memory:
                 self.segments.append( Segment(section.lma, section.data) )
 
     def loadString(self, startAddr=0, string=None):
-	"""fill memory with the contents of a binary chunk of data."""
-	self.segments.append(Segment(startAddr, string));
+        """fill memory with the contents of a binary chunk of data."""
+        self.segments.append(Segment(startAddr, string));
         
     def loadFile(self, filename):
         """fill memory with the contents of a file. file type is determined from extension"""
@@ -965,39 +965,39 @@ class BootStrapLoader(LowLevel):
         self.data           = None
         self.maxData        = self.MAXDATA
         self.cpu            = None
-	self.info           = None
+        self.info           = None
 
     def fetchinfo(self):
         data=self.uploadData(0x1000,256);
-	return data;
+        return data;
 
     def dumpinfo(self):
-	data = self.fetchinfo();
+        data = self.fetchinfo();
         hex="@1000\n";
         for c in data:
             hex+=("%02x "%ord(c));
         hex+="\nq\n";
         print hex;
-	return data;
+        return data;
 
     def saveinfo(self):
-	sys.stderr.write('Checking for info flash...')
-	sys.stderr.flush()
-	data = self.fetchinfo();
-	good_data = False;
-	for c in data:
-	    if ord(c) is not 255:
-		good_data=True;
-		break;
-	if good_data:
-	    sys.stderr.write('  Saved!\n')
-	    sys.stderr.flush()
-	    self.info = Memory();
-	    self.info.loadString(0x1000,data);
-	else:
-	    sys.stderr.write('  None.\n')
-	    sys.stderr.write('Look at contrib/infos/README.txt for better performance.\n')
-	    sys.stderr.flush()
+        sys.stderr.write('Checking for info flash...')
+        sys.stderr.flush()
+        data = self.fetchinfo();
+        good_data = False;
+        for c in data:
+            if ord(c) is not 255:
+                good_data=True;
+                break;
+        if good_data:
+            sys.stderr.write('  Saved!\n')
+            sys.stderr.flush()
+            self.info = Memory();
+            self.info.loadString(0x1000,data);
+        else:
+            sys.stderr.write('  None.\n')
+            sys.stderr.write('Look at contrib/infos/README.txt for better performance.\n')
+            sys.stderr.flush()
 
     def preparePatch(self):
         """prepare to download patch"""
@@ -1298,15 +1298,15 @@ class BootStrapLoader(LowLevel):
         url="%s%s.hex" % (FIRMWARE_BASEURL, self.board);
         print "Grabbing %s firmware from %s" % (self.board, url);
         fn="/tmp/.%s.hex" % self.board
-	try:
-	    subprocess.call(['curl', '-sS', url, '-o', fn])
-	except OSError:
-	    print "Failed to run curl, trying wget"
-	    try:
-		subprocess.call(['wget', '-nv', url, '-O', fn])
-	    except OSError:
-		print "Failed to fetch firmware.  Maybe you need to install curl or wget?"
-		sys.exit()
+        try:
+            subprocess.call(['curl', '-sS', url, '-o', fn])
+        except OSError:
+            print "Failed to run curl, trying wget"
+            try:
+                subprocess.call(['wget', '-nv', url, '-O', fn])
+            except OSError:
+                print "Failed to fetch firmware.  Maybe you need to install curl or wget?"
+                sys.exit()
 
     def actionFromweb(self):
         """Flash the GoodFET firmware which has been downloaded in an earlier step."""
@@ -1792,20 +1792,20 @@ def main(itest=1):
 
 
     if os.environ.get("board")==None:
-      if board==None:
-	print "Board not specified.  Defaulting to goodfet41.";
-	raw_input("Press Ctrl+C to cancel, or Enter to continue.");
-	board='goodfet41';
-      bsl.board=board;
+        if board==None:
+            print "Board not specified.  Defaulting to goodfet41.";
+            raw_input("Press Ctrl+C to cancel, or Enter to continue.");
+            board='goodfet41';
+        bsl.board=board;
     else:
-      bsl.board=None;
-      try:
-	bsl.board=BOARDS[os.environ.get("board").lower()];
-      except:
-        pass;
+        bsl.board=None;
+        try:
+            bsl.board=BOARDS[os.environ.get("board").lower()];
+        except:
+            pass;
     if bsl.board==None:
-      print "Unknown board specified.  Try goodfet41, facedancer11, or similar.";
-      sys.exit(2);
+        print "Unknown board specified.  Try goodfet41, facedancer11, or similar.";
+        sys.exit(2);
       
     if bsl.board=='telosb':
         bsl.swapRSTTEST = 1
@@ -1830,16 +1830,16 @@ def main(itest=1):
         if len(glob_list) > 0:
             comPort = glob_list[0];
     if os.name=='nt':
-            from scanwin32 import winScan;
-            scan=winScan();
-            for order,comport,desc,hwid in sorted(scan.comports()):
-                try:
-                    if hwid.index('FTDI')==0:
-                        comPort=comport;
-                        #print "Using FTDI port %s" % port
-                except:
-                    #Do nothing.
-                    a=1;
+        from scanwin32 import winScan;
+        scan=winScan();
+        for order,comport,desc,hwid in sorted(scan.comports()):
+            try:
+                if hwid.index('FTDI')==0:
+                    comPort=comport;
+                    #print "Using FTDI port %s" % port
+            except:
+                #Do nothing.
+                a=1;
     sys.stderr.write("MSP430 Bootstrap Loader Version: %s\n" % VERSION)
 
     sys.stderr.flush()
@@ -1871,7 +1871,7 @@ def main(itest=1):
 
     if bsl.actionMassErase in deviceinit:
         bsl.actionStartBSL()
-	bsl.saveinfo()
+        bsl.saveinfo()
 
     #initialization list
     if deviceinit:  #erase and erase check
@@ -1904,9 +1904,9 @@ def main(itest=1):
         for f in todo: f()                          #work through todo list
 
     if bsl.info is not None:
-	sys.stderr.write('Programming info flash...\n')
-	sys.stderr.flush()
-	bsl.programData(bsl.info, bsl.ACTION_PROGRAM)
+        sys.stderr.write('Programming info flash...\n')
+        sys.stderr.flush()
+        bsl.programData(bsl.info, bsl.ACTION_PROGRAM)
 
     if reset:                                       #reset device first if desired
         bsl.actionReset()
@@ -1918,11 +1918,11 @@ def main(itest=1):
             hex+=("%02x "%ord(c));
         print hex;
     if dumpinfo:
-	# I don't know what bslreset is all about, but if it is enabled and
-	# the wrong password is provided, the chip gets erased.
-	reset = True
-	if not bsl.passwd:
-	    reset = False
+        # I don't know what bslreset is all about, but if it is enabled and
+        # the wrong password is provided, the chip gets erased.
+        reset = True
+        if not bsl.passwd:
+            reset = False
         bsl.actionStartBSL(bslreset=reset)
         bsl.dumpinfo()
     

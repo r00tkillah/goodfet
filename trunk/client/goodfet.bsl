@@ -1870,6 +1870,7 @@ def main(itest=1):
     bsl.comInit(comPort)                            #init port
 
     if bsl.actionMassErase in deviceinit:
+        if DEBUG: print >>sys.stderr, "Starting BSL to save info..."
         bsl.actionStartBSL()
         bsl.saveinfo()
 
@@ -1911,6 +1912,7 @@ def main(itest=1):
     if reset:                                       #reset device first if desired
         bsl.actionReset()
     if dumpivt:
+        if DEBUG: print >>sys.stderr, "Dumping IVT..."
         bsl.txPasswd(); #default pass
         data=bsl.uploadData(0xc00,1024);
         hex="";
@@ -1918,6 +1920,7 @@ def main(itest=1):
             hex+=("%02x "%ord(c));
         print hex;
     if dumpinfo:
+        if DEBUG: print >>sys.stderr, "Dumping info..."
         # I don't know what bslreset is all about, but if it is enabled and
         # the wrong password is provided, the chip gets erased.
         reset = True

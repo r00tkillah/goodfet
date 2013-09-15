@@ -624,7 +624,7 @@ class LowLevel:
         By now only BSL mode is accessed
         '''
         
-        if DEBUG > 1: sys.stderr.write("* bslReset(invokeBSL=%s)\n" % invokeBSL)
+        if DEBUG > 1: sys.stderr.write("* bslResetZ1(invokeBSL=%s)\n" % invokeBSL)
         if invokeBSL:
             #sys.stderr.write("in Z1 bsl reset...\n")
             time.sleep(0.1)

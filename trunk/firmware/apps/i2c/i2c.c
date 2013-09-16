@@ -205,7 +205,6 @@ unsigned char I2C_Write( unsigned char c )
   return I2C_ReadBit_Wait();
 }
 
-
 //! read a byte from the I2C slave device
 unsigned char I2C_Read( unsigned char ack )
 {
@@ -225,6 +224,27 @@ unsigned char I2C_Read( unsigned char ack )
   I2CDELAY(1);
   
   return res;
+}
+
+//! scans the bus to see if addr is in use
+// Algorithm is taken from the BusPirate firmware
+unsigned char I2C_Scan(unsigned char addr)
+{
+    unsigned char rv = 0;
+    unsigned char c;
+
+    I2C_Start(); // send start
+    I2C_Write(addr); // send address
+    c = I2C_ReadBit(); // look for ack
+    if (c == 0) {
+        cmddata[0] = addr;
+        if ((addr & 1) == 0) {
+            I2C_Read(0); // Read + NACK
+        }
+        rv = 1;
+    }
+    I2C_Stop();
+    return rv;
 }
 
 //! Handles an i2c command.
@@ -290,5 +310,8 @@ void i2c_handle_fn( uint8_t const app,
 		I2C_Init();
 		txdata(app,verb,0);
 		break;
+	case CMD_SCAN:
+        txdata(app, verb, I2C_Scan(cmddata[0]));
+	    break;
 	}
 }

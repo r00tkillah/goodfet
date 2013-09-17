@@ -223,6 +223,8 @@ deviceids = {
 FIRMWARE_BASEURL = "http://goodfet.sourceforge.net/dist/";
 
 board = None
+# The following table is used for translating a board name into the .hex
+# filename that should be downloaded fromweb.  
 BOARDS = {
     #'apimote': "apimote1",	# .hex not uploaded yet
     #'apimote1': "apimote1",
@@ -230,11 +232,19 @@ BOARDS = {
     'facedancer11': "facedancer11",
     'facedancer20': "facedancer20",
     'facedancer21': "facedancer21",
-    'goodfet11': "goodfet11",
-    'goodfet31': "goodfet31",
-    'goodfet32': "goodfet32",
-    'goodfet41': "goodfet41",
-    'goodfet42': "goodfet42",
+    'goodfet10': "goodfet11", # 1612
+    'goodfet11': "goodfet11", # 1612
+    'goodfet20': "goodfet11", # 1612
+    'goodfet21': "goodfet41", # 2618
+    'goodfet22': "goodfet41", # 2618 w/ADG1634
+    'goodfet30': "goodfet31", # 2274
+    'goodfet31': "goodfet31", # 2274
+    'goodfet31l': "goodfet31", # 2274 (QFN)
+    'goodfet32': "goodfet31", # 2274
+    'goodfet40': "goodfet41", # 2618
+    'goodfet41': "goodfet41", # 2618
+    'goodfet42': "goodfet42", # 2618
+    'badfet20': "goodfet41", # 2618 w/74HC4053
     'goodthopter10': "goodthopter10",
     'goodthopter11': "goodthopter11",
     'telosb': "telosb",
@@ -1804,8 +1814,9 @@ def main(itest=1):
         except:
             pass;
     if bsl.board==None:
-        print >>sys.stderr, "Unknown board specified.  Try goodfet41, facedancer11, or similar."
-        sys.exit(2);
+        print >>sys.stderr, "Unknown board specified.  Try board=goodfet41 if unsure."
+	raw_input("Press Ctrl+C to cancel, or Enter to continue using unknown board.");
+	bsl.board=os.environ.get("board").lower();
       
     if bsl.board=='telosb':
         bsl.swapRSTTEST = 1

@@ -243,6 +243,7 @@ Public Class USBDevice
 
     Sub handle_clear_feature_request(req As USBDeviceRequest)
         Debug.Print(Me.name & " received CLEAR_FEATURE request with type 0x" & req.request_type.ToString("X2") & " and value 0x" & req.value.ToString("X2"))
+        Me.ack_status_stage()
     End Sub
 
     Sub handle_set_feature_request(req As USBDeviceRequest)
@@ -278,7 +279,6 @@ Public Class USBDevice
             Me.maxusb_app.send_on_endpoint(0, tmp, Me.max_packet_size_ep0)
             Me.maxusb_app.verbose = Me.maxusb_app.verbose - 1
             If Me.verbose > 5 Then Debug.Print(Me.name & " sent " & n & " bytes in response")
-
         End If
     End Sub
 
@@ -309,7 +309,7 @@ Public Class USBDevice
         Debug.Print(Me.name & " received GET_CONFIGURATION request with data 0x" & req.value.ToString("X4"))
     End Sub
 
-    Sub handle_set_configuration_request(req As USBDeviceRequest)
+    Overridable Sub handle_set_configuration_request(req As USBDeviceRequest)
         Debug.Print(Me.name & " received SET_CONFIGURATION request")
         Me.config_num = req.value
         Me.configuration = Me.configurations(Me.config_num)
@@ -317,7 +317,8 @@ Public Class USBDevice
         Me.endpoints = New Dictionary(Of Byte, USBEndpoint)
         For Each i As USBInterface In Me.configuration.interfaces.Values
             For Each e As USBEndpoint In i.endpoints.Values
-                If Not endpoints.ContainsKey(e.number) Then endpoints.Add(e.number, e)
+                Dim epAddr As Byte = e.number + +IIf(e.direction, 128, 0)
+                If Not endpoints.ContainsKey(epAddr) Then endpoints.Add(epAddr, e)
             Next
         Next
         Me.ack_status_stage()

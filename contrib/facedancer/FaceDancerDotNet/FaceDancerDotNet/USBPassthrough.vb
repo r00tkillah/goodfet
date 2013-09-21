@@ -74,6 +74,21 @@ Public Class USBPassthroughDevice
     End Function
 
 
+    Overrides Sub handle_set_configuration_request(req As USBDeviceRequest)
+        Debug.Print(Me.name & " received SET_CONFIGURATION request")
+        Me.config_num = req.value
+        Me.configuration = Me.configurations(Me.config_num)
+        Me.state = USB.state._configured
+        Me.endpoints = New Dictionary(Of Byte, USBEndpoint)
+        For Each i As USBInterface In Me.configuration.interfaces.Values
+            For Each e As USBEndpoint In i.endpoints.Values
+                Dim epAddr As Byte = e.number + +IIf(e.direction, 128, 0)
+                If Not endpoints.ContainsKey(epAddr) Then endpoints.Add(epAddr, e)
+            Next
+        Next
+        'Debug.Print("CLRFEAT:" & baseDevice.ControlTransfer(New LibUsbDotNet.Main.UsbSetupPacket(0, 1, 0, 0, 0), Nothing, 0, 0))
+        Me.ack_status_stage()
+    End Sub
 End Class
 
 Public Class USBPassthroughVendor
@@ -94,13 +109,18 @@ Public Class USBPassthroughVendor
         request_handlers.Add(&H84, AddressOf passthrough_request_handler)
         request_handlers.Add(&H86, AddressOf passthrough_request_handler)
         request_handlers.Add(&H87, AddressOf passthrough_request_handler)
-        request_handlers.Add(&HA1, AddressOf passthrough_request_handler)
-        request_handlers.Add(&HA9, AddressOf passthrough_request_handler)
+        request_handlers.Add(&HA1, AddressOf ignore_handler)
+        request_handlers.Add(&HA9, AddressOf ignore_handler)
     End Sub
 
     Public Function convertUSBSetupPacket(req As USBDeviceRequest) As LibUsbDotNet.Main.UsbSetupPacket
 
     End Function
+
+    Public Sub ignore_handler(req As USBDeviceRequest)
+        If Not req.get_direction Then device.maxusb_app.ack_status_stage()
+    End Sub
+
 
     Public Sub passthrough_request_handler(req As USBDeviceRequest)
         Dim value As Int16 = 0
@@ -123,15 +143,16 @@ Public Class USBPassthroughVendor
             device.maxusb_app.verbose -= 1
         Else
             Dim buf() As Byte
+            Dim lt As Integer
             If req.length > 0 Then
                 device.maxusb_app.verbose += 1
                 buf = device.maxusb_app.read_from_endpoint(0)
                 device.maxusb_app.verbose -= 1
+                If Not baseDevice.ControlTransfer(p, buf, buf.Length, lt) Then Debug.Print("LibUSB Control Transfer Error: " & LibUsbDotNet.UsbDevice.LastErrorString)
             Else
                 buf = New Byte() {}
+                If Not baseDevice.ControlTransfer(p, Nothing, 0, lt) Then Debug.Print("LibUSB Control Transfer Error: " & LibUsbDotNet.UsbDevice.LastErrorString)
             End If
-            Dim lt As Integer
-            If Not baseDevice.ControlTransfer(p, buf, buf.Length, lt) Then Debug.Print("LibUSB Control Transfer Error: " & LibUsbDotNet.UsbDevice.LastErrorString)
             device.maxusb_app.ack_status_stage()
         End If
     End Sub
@@ -234,13 +255,24 @@ Public Class USBPassthroughEndpoint
     Inherits USBEndpoint
     Public baseDevice As LibUsbDotNet.UsbDevice
     Public address As Byte
+    Private Shared nextMapOut As Byte = 1
+    Private Shared nextMapIn As Byte = 130
+    Private dvcAddress As Byte
+    Private verbose As Byte = 0
 
     Public Sub New(baseEndpoint As LibUsbDotNet.Info.UsbEndpointInfo, baseDevice As LibUsbDotNet.UsbDevice)
         Me.baseDevice = baseDevice
         Me.max_packet_size = baseEndpoint.Descriptor.MaxPacketSize
         Me.interval = baseEndpoint.Descriptor.Interval
-        Me.address = baseEndpoint.Descriptor.EndpointID
-        Me.direction = Me.address \ 128
+        Me.dvcAddress = baseEndpoint.Descriptor.EndpointID
+        Me.direction = IIf(baseEndpoint.Descriptor.EndpointID And &H80, 1, 0)
+        If Me.direction = enum_direction._out Then '1
+            Me.address = nextMapOut
+            If nextMapOut = 1 Then nextMapOut = 4 Else nextMapOut = nextMapOut + 1
+        Else '2 '3
+            Me.address = nextMapIn
+            nextMapIn = nextMapIn + 1
+        End If
         Me.number = Me.address And &HF
 
         Dim attributes As Byte = baseEndpoint.Descriptor.Attributes
@@ -254,24 +286,38 @@ Public Class USBPassthroughEndpoint
     End Sub
 
     Public Sub handle_data(data() As Byte)
-        If Me.direction = enum_direction._in Then
+        If Me.direction = enum_direction._out Then
             If data Is Nothing Then Exit Sub
             Dim tl As Integer = 0
-            Dim ew As LibUsbDotNet.UsbEndpointWriter = baseDevice.OpenEndpointWriter(Me.number)
+            Dim ew As LibUsbDotNet.UsbEndpointWriter = baseDevice.OpenEndpointWriter(Me.dvcAddress)
             Dim ec As LibUsbDotNet.Main.ErrorCode = ew.Transfer(data, 0, data.Length, 1000, tl)
             If ec <> LibUsbDotNet.Main.ErrorCode.Success Then Stop
         End If
-        If Me.direction = enum_direction._out Then
-            Dim buf(1024) As Byte
+        If Me.direction = enum_direction._in Then
+            Dim buf(63) As Byte
             Dim tl As Integer = 0
-            Dim er As LibUsbDotNet.UsbEndpointReader = baseDevice.OpenEndpointReader(Me.number)
-            Dim ec As LibUsbDotNet.Main.ErrorCode = er.Transfer(buf, 0, buf.Length, 1000, tl)
-            If ec <> LibUsbDotNet.Main.ErrorCode.Success Then Stop
+            If Me.dvcAddress <> 129 Then
+                Dim empty(-1) As Byte
+                Me._interface.configuration.device.maxusb_app.send_on_endpoint(Me.number, empty, Me.max_packet_size)
+                Exit Sub
+            End If
+            Dim er As LibUsbDotNet.UsbEndpointReader = baseDevice.OpenEndpointReader(Me.dvcAddress)
+            'Dim ec As LibUsbDotNet.Main.ErrorCode = er.Transfer(buf, 0, buf.Length, 1000, tl)
+            Dim ec As LibUsbDotNet.Main.ErrorCode = er.Read(buf, 1, tl)
+            If ec <> LibUsbDotNet.Main.ErrorCode.Success Then
+                Debug.Print("T")
+                Dim empty(-1) As Byte
+                Me._interface.configuration.device.maxusb_app.send_on_endpoint(Me.number, empty, Me.max_packet_size)
+                Exit Sub
+            End If
+            Debug.Print("R")
             If tl = 0 Then Exit Sub
             Dim tmp(tl - 1) As Byte
             Array.Copy(buf, 0, tmp, 0, tl)
             Me._interface.configuration.device.maxusb_app.send_on_endpoint(Me.number, tmp, Me.max_packet_size)
-            Debug.Print("Sent EP" & Me.number & " " & BitConverter.ToString(buf))
+            If verbose > 0 Then Debug.Print("Sent EP" & Me.number & " " & BitConverter.ToString(buf))
         End If
     End Sub
+
+
 End Class

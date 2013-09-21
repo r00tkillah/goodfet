@@ -238,8 +238,8 @@
 
             If Not looping Or connected_device Is Nothing Then Exit Sub
 
-            If irq And bm_endpoint_irq.is_in2_buffer_avail Then Me.connected_device.handle_buffer_available(2)
-            If irq And bm_endpoint_irq.is_in3_buffer_avail Then Me.connected_device.handle_buffer_available(3)
+            If irq And bm_endpoint_irq.is_in2_buffer_avail Then Me.connected_device.handle_buffer_available(130)
+            If irq And bm_endpoint_irq.is_in3_buffer_avail Then Me.connected_device.handle_buffer_available(131)
 
         End While
     End Sub

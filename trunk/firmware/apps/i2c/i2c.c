@@ -311,7 +311,7 @@ void i2c_handle_fn( uint8_t const app,
 		txdata(app,verb,0);
 		break;
 	case CMD_SCAN:
-        txdata(app, verb, I2C_Scan(cmddata[0]));
-	    break;
+		txdata(app, verb, I2C_Scan(cmddata[0]));
+		break;
 	}
 }

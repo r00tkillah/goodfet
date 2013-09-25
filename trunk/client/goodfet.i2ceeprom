@@ -57,7 +57,7 @@ if sys.argv[1] == "dump":
         data = client.I2Ctrans(min(128, count - x), [devadr, ((start + x) >> 8) & 0x0ff, (start + x) & 0x0ff])
         sys.stdout.write(".")
         sys.stdout.flush()
-        file.write(data)
+        output.write(data)
         total += len(data)
     print ""
     print "Dumped %i bytes" % total
@@ -88,5 +88,9 @@ if sys.argv[1] == "write":
     client.I2Cwritebytes(data)
 
 if sys.argv[1] == "scan":
-    for result in client.I2Cscan():
-        print "Found 0x%02X (0x%02X %s)" % (result, result >> 1, "R" if (result >> 1) & 1 else "W")
+    print "Scanning I2C bus..."
+    arr = client.I2Cscan()
+    if len(arr) > 100:
+        print "Warning: found more than 100 devices. Wiring may be wrong!"
+    for result in arr:
+        print "    Found 0x%02X (0x%02X %s)" % (result, result >> 1, "R" if (result >> 1) & 1 else "W")

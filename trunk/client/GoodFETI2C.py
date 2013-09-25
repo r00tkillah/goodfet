@@ -52,5 +52,5 @@ class GoodFETI2C(GoodFET):
         for addr in xrange(256):
             self.writecmd(APP_I2C, CMD_SCAN, 1, [addr])
             if len(self.data) > 0:
-                rv.append(self.data[0])
+                rv.append(ord(self.data[0]))
         return rv

@@ -27,8 +27,7 @@ from MAXUSBApp import *
 from USBMassStorage import *
 
 
-
-sp = Serial("/dev/ttyUSB0", 115200, parity=PARITY_NONE, timeout=2)
+sp = GoodFETSerialPort()
 fd = Facedancer(sp, verbose=1)
 u = MAXUSBApp(fd, verbose=1)
 
@@ -40,4 +39,3 @@ try:
     d.run()
 except KeyboardInterrupt:
     d.disconnect()
-

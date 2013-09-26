@@ -8,13 +8,11 @@
 # graphing calculators.  No ioctls are supported, but otherwise the
 # /dev/LCD* device acts like any other character device.
 
-from serial import Serial, PARITY_NONE
-
 from Facedancer import *
 from MAXUSBApp import *
 from USBSerial import *
 
-sp = Serial("/dev/ttyUSB0", 115200, parity=PARITY_NONE, timeout=2)
+sp = GoodFETSerialPort()
 fd = Facedancer(sp, verbose=1)
 u = MAXUSBApp(fd, verbose=1)
 

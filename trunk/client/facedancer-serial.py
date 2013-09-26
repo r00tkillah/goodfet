@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 #
-# facedancer-ftdi.py
-
-from serial import Serial, PARITY_NONE
+# facedancer-serial.py
 
 from Facedancer import *
 from MAXUSBApp import *
 from USBSerial import *
 
-sp = Serial("/dev/ttyUSB0", 115200, parity=PARITY_NONE, timeout=2)
+sp = GoodFETSerialPort()
 fd = Facedancer(sp, verbose=1)
 u = MAXUSBApp(fd, verbose=1)
 
@@ -21,4 +19,3 @@ try:
 # SIGINT raises KeyboardInterrupt
 except KeyboardInterrupt:
     d.disconnect()
-

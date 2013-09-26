@@ -157,7 +157,7 @@ class GoodFETMonitorApp(FacedancerApp):
 
     def read_byte(self, addr):
         d = [ addr & 0xff, addr >> 8 ]
-        cmd = FacedancerCommand(0, 2, d)
+        cmd = FacedancerCommand(self.app_num, 2, d)
 
         self.device.writecmd(cmd)
         resp = self.device.readcmd()

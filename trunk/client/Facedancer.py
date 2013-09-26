@@ -178,7 +178,7 @@ class GoodFETMonitorApp(FacedancerApp):
         print("clocked at", bytes_as_hex(clocking, delim=""))
 
     def list_apps(self):
-        cmd = FacedancerCommand(self.app_num, 0x82, b'0x0')
+        cmd = FacedancerCommand(self.app_num, 0x82, b'\x01')
         self.device.writecmd(cmd)
 
         resp = self.device.readcmd()

@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Thu Jul 18 17:37:42 2013
+EESchema Schematic File Version 2  date Mon Jul 22 09:26:32 2013
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -37,7 +37,7 @@ $Descr USLedger 17000 11000
 encoding utf-8
 Sheet 2 4
 Title ""
-Date "18 jul 2013"
+Date "22 jul 2013"
 Rev ""
 Comp ""
 Comment1 ""
@@ -2317,4 +2317,46 @@ Text GLabel 14150 8800 2    40   Input ~ 0
 SW1A1
 Text GLabel 14150 8900 2    40   Input ~ 0
 SW1A2
+$Comp
+L CONN_4 P3
+U 1 1 51EC4A97
+P 4500 1600
+F 0 "P3" V 4450 1600 50  0000 C CNN
+F 1 "TARGET5-8" V 4550 1600 50  0000 C CNN
+	1    4500 1600
+	0    -1   -1   0   
+$EndComp
+$Comp
+L CONN_4 P5
+U 1 1 51EC4AA4
+P 3900 3200
+F 0 "P5" V 3850 3200 50  0000 C CNN
+F 1 "TARGET1-4" V 3950 3200 50  0000 C CNN
+	1    3900 3200
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4050 2850 4050 2750
+Connection ~ 4050 2750
+Wire Wire Line
+	3950 2850 3950 2650
+Connection ~ 3950 2650
+Wire Wire Line
+	3850 2850 3850 2550
+Connection ~ 3850 2550
+Wire Wire Line
+	3750 2850 3750 2450
+Connection ~ 3750 2450
+Wire Wire Line
+	4350 1950 4350 2050
+Connection ~ 4350 2050
+Wire Wire Line
+	4450 1950 4450 2150
+Connection ~ 4450 2150
+Wire Wire Line
+	4550 1950 4550 2250
+Connection ~ 4550 2250
+Wire Wire Line
+	4650 1950 4650 2350
+Connection ~ 4650 2350
 $EndSCHEMATC

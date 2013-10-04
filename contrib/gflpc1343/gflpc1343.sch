@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Wed Nov  7 13:57:15 2012
+EESchema Schematic File Version 2  date Thu Aug 22 00:59:04 2013
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -31,13 +31,13 @@ LIBS:contrib
 LIBS:valves
 LIBS:gflpc
 LIBS:gflpc1343-cache
-EELAYER 25  0
+EELAYER 27 0
 EELAYER END
-$Descr A4 11700 8267
+$Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "gflpc1343"
-Date "7 nov 2012"
+Date "22 aug 2013"
 Rev "$Rev$"
 Comp "Copyright 2012 Michael Ossmann"
 Comment1 "License: BSD 3-Clause, http://goodfet.sourceforge.net/"
@@ -496,6 +496,9 @@ U 1 1 50569E64
 P 1950 6750
 F 0 "D4" H 1950 6850 50  0000 C CNN
 F 1 "LED2" H 1950 6650 50  0000 C CNN
+F 4 "Everlight" H 1950 6750 60  0001 C CNN "Manufacturer"
+F 5 "QTLP601C4TR" H 1950 6750 60  0001 C CNN "Part Number"
+F 6 "LED GREEN STD BRIGHT 0603 SMD" H 1950 6750 60  0001 C CNN "Description"
 	1    1950 6750
 	0    1    1    0   
 $EndComp
@@ -603,8 +606,8 @@ P 9800 1850
 F 0 "P4" H 9800 2250 60  0000 C CNN
 F 1 "EXPANSION" V 9800 1850 60  0000 C CNN
 F 4 "Sullins" H 9800 1850 60  0001 C CNN "Manufacturer"
-F 5 "PPPC072LFBN-RC" H 9800 1850 60  0001 C CNN "Part Number"
-F 6 "CONN HEADER FMAL 14PS.1\" DL GOLD" H 9800 1850 60  0001 C CNN "Description"
+F 5 "SFH11-PBPC-D07-ST-BK" H 9800 1850 60  0001 C CNN "Part Number"
+F 6 "CONN HEADR FMALE 14POS .1\" DL AU" H 9800 1850 60  0001 C CNN "Description"
 	1    9800 1850
 	1    0    0    -1  
 $EndComp
@@ -814,6 +817,9 @@ U 1 1 50561522
 P 1650 6750
 F 0 "D3" H 1650 6850 50  0000 C CNN
 F 1 "LED1" H 1650 6650 50  0000 C CNN
+F 4 "Everlight" H 1650 6750 60  0001 C CNN "Manufacturer"
+F 5 "QTLP600CYTR" H 1650 6750 60  0001 C CNN "Part Number"
+F 6 "LED YLW SUPER BRIGHT 0606 SMD" H 1650 6750 60  0001 C CNN "Description"
 	1    1650 6750
 	0    1    1    0   
 $EndComp
@@ -823,6 +829,9 @@ U 1 1 50561521
 P 1350 6750
 F 0 "D2" H 1350 6850 50  0000 C CNN
 F 1 "TXLED" H 1350 6650 50  0000 C CNN
+F 4 "Everlight" H 1350 6750 60  0001 C CNN "Manufacturer"
+F 5 "QTLP601CRTR" H 1350 6750 60  0001 C CNN "Part Number"
+F 6 "LED RED STD BRIGHT 0603 SMD" H 1350 6750 60  0001 C CNN "Description"
 	1    1350 6750
 	0    1    1    0   
 $EndComp
@@ -832,6 +841,9 @@ U 1 1 5056151B
 P 1050 6750
 F 0 "D1" H 1050 6850 50  0000 C CNN
 F 1 "RXLED" H 1050 6650 50  0000 C CNN
+F 4 "Everlight" H 1050 6750 60  0001 C CNN "Manufacturer"
+F 5 "QTLP601C4TR" H 1050 6750 60  0001 C CNN "Part Number"
+F 6 "LED GREEN STD BRIGHT 0603 SMD" H 1050 6750 60  0001 C CNN "Description"
 	1    1050 6750
 	0    1    1    0   
 $EndComp

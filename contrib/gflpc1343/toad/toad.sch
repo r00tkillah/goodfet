@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Thu Jul 18 17:37:42 2013
+EESchema Schematic File Version 2  date Mon Jul 22 09:26:32 2013
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -37,7 +37,7 @@ $Descr USLedger 17000 11000
 encoding utf-8
 Sheet 1 4
 Title ""
-Date "18 jul 2013"
+Date "22 jul 2013"
 Rev ""
 Comp ""
 Comment1 ""

@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Thu Jul 18 17:37:42 2013
+EESchema Schematic File Version 2  date Mon Jul 22 09:26:32 2013
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -37,7 +37,7 @@ $Descr USLedger 17000 11000
 encoding utf-8
 Sheet 3 4
 Title ""
-Date "18 jul 2013"
+Date "22 jul 2013"
 Rev ""
 Comp ""
 Comment1 ""
@@ -1415,10 +1415,6 @@ Wire Wire Line
 	8900 1900 8900 2000
 Connection ~ 8900 1900
 Wire Wire Line
-	8900 2500 8900 3100
-Wire Wire Line
-	8900 3100 13700 3100
-Wire Wire Line
 	8700 2600 8700 2500
 Wire Wire Line
 	8500 2000 8500 1800
@@ -1431,10 +1427,6 @@ Wire Wire Line
 	10550 2000 11200 2000
 Wire Wire Line
 	11000 2000 11000 2100
-Wire Wire Line
-	11000 2600 11000 3200
-Wire Wire Line
-	11000 3200 13600 3200
 Wire Wire Line
 	11200 2600 11200 2700
 Wire Wire Line
@@ -1505,8 +1497,6 @@ Wire Wire Line
 	8900 4100 8900 4200
 Connection ~ 8900 4100
 Wire Wire Line
-	8900 4700 8900 5300
-Wire Wire Line
 	8700 4800 8700 4700
 Wire Wire Line
 	8500 4200 8500 4000
@@ -1519,8 +1509,6 @@ Wire Wire Line
 	10550 4200 11200 4200
 Wire Wire Line
 	11000 4200 11000 4300
-Wire Wire Line
-	11000 4800 11000 5400
 Wire Wire Line
 	11200 4800 11200 4900
 Wire Wire Line
@@ -1591,8 +1579,6 @@ Wire Wire Line
 	8900 6300 8900 6400
 Connection ~ 8900 6300
 Wire Wire Line
-	8900 6900 8900 7500
-Wire Wire Line
 	8700 7000 8700 6900
 Wire Wire Line
 	8500 6400 8500 6200
@@ -1605,8 +1591,6 @@ Wire Wire Line
 	10550 6400 11200 6400
 Wire Wire Line
 	11000 6400 11000 6500
-Wire Wire Line
-	11000 7000 11000 7600
 Wire Wire Line
 	11200 7000 11200 7100
 Wire Wire Line
@@ -1638,10 +1622,6 @@ Wire Wire Line
 	12400 6200 12400 6300
 Connection ~ 12400 6200
 Wire Wire Line
-	8900 5300 13800 5300
-Wire Wire Line
-	11000 5400 13800 5400
-Wire Wire Line
 	13800 5100 13700 5100
 Wire Wire Line
 	13700 5100 13700 3100
@@ -1650,8 +1630,6 @@ Wire Wire Line
 Wire Wire Line
 	13600 5200 13600 3200
 Wire Wire Line
-	11000 7600 13700 7600
-Wire Wire Line
 	13700 7600 13700 5600
 Wire Wire Line
 	13700 5600 13800 5600
@@ -1659,8 +1637,6 @@ Wire Wire Line
 	13800 5500 13600 5500
 Wire Wire Line
 	13600 5500 13600 7500
-Wire Wire Line
-	13600 7500 8900 7500
 Wire Wire Line
 	14800 5100 14700 5100
 Wire Wire Line
@@ -2271,4 +2247,28 @@ F 6 "CAP ALUM 100UF 35V 20% SMD" H 2350 4450 60  0001 C CNN "Description"
 	1    2350 4450
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	13700 3100 11000 3100
+Wire Wire Line
+	11000 3100 11000 2600
+Wire Wire Line
+	13600 3200 8900 3200
+Wire Wire Line
+	8900 3200 8900 2500
+Wire Wire Line
+	13800 5300 11000 5300
+Wire Wire Line
+	11000 5300 11000 4800
+Wire Wire Line
+	8900 4700 8900 5400
+Wire Wire Line
+	8900 5400 13800 5400
+Wire Wire Line
+	13600 7500 11000 7500
+Wire Wire Line
+	11000 7500 11000 7000
+Wire Wire Line
+	13700 7600 8900 7600
+Wire Wire Line
+	8900 7600 8900 6900
 $EndSCHEMATC

@@ -20,7 +20,7 @@ class USBKeyboardInterface(USBInterface):
                 USB.desc_type_report : self.report_descriptor
         }
 
-        endpoint = USBEndpoint(
+        self.endpoint = USBEndpoint(
                 3,          # endpoint number
                 USBEndpoint.direction_in,
                 USBEndpoint.transfer_type_interrupt,
@@ -41,7 +41,7 @@ class USBKeyboardInterface(USBInterface):
                 0,          # protocol
                 0,          # string index
                 verbose,
-                [ endpoint ],
+                [ self.endpoint ],
                 descriptors
         )
 
@@ -64,7 +64,7 @@ class USBKeyboardInterface(USBInterface):
         if self.verbose > 2:
             print(self.name, "sending keypress 0x%02x" % ord(letter))
 
-        self.configuration.device.maxusb_app.send_on_endpoint(3, data)
+        self.endpoint.send(data)
 
 
 class USBKeyboardDevice(USBDevice):

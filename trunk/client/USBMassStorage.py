@@ -24,10 +24,10 @@ class USBMassStorageClass(USBClass):
         }
 
     def handle_bulk_only_mass_storage_reset_request(self, req):
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'')
+        self.interface.configuration.device.send_control_message(b'')
 
     def handle_get_max_lun_request(self, req):
-        self.interface.configuration.device.maxusb_app.send_on_endpoint(0, b'\x00')
+        self.interface.configuration.device.send_control_message(b'\x00')
 
 
 class USBMassStorageInterface(USBInterface):
@@ -37,8 +37,7 @@ class USBMassStorageInterface(USBInterface):
         self.disk_image = disk_image
         descriptors = { }
 
-        endpoints = [
-            USBEndpoint(
+        self.ep_from_host = USBEndpoint(
                 1,          # endpoint number
                 USBEndpoint.direction_out,
                 USBEndpoint.transfer_type_bulk,
@@ -47,8 +46,8 @@ class USBMassStorageInterface(USBInterface):
                 16384,      # max packet size
                 0,          # polling interval, see USB 2.0 spec Table 9-13
                 self.handle_data_available    # handler function
-            ),
-            USBEndpoint(
+        )
+        self.ep_to_host = USBEndpoint(
                 3,          # endpoint number
                 USBEndpoint.direction_in,
                 USBEndpoint.transfer_type_bulk,
@@ -57,8 +56,7 @@ class USBMassStorageInterface(USBInterface):
                 16384,      # max packet size
                 0,          # polling interval, see USB 2.0 spec Table 9-13
                 None        # handler function
-            )
-        ]
+        )
 
         # TODO: un-hardcode string index (last arg before "verbose")
         USBInterface.__init__(
@@ -70,7 +68,7 @@ class USBMassStorageInterface(USBInterface):
                 0x50,       # protocol: bulk-only (BBB) transport
                 0,          # string index
                 verbose,
-                endpoints,
+                [ self.ep_from_host, self.ep_to_host ],
                 descriptors
         )
 
@@ -204,7 +202,7 @@ class USBMassStorageInterface(USBInterface):
             # something in 'response' and letting the end of the switch send
             for block_num in range(num_blocks):
                 data = self.disk_image.get_sector_data(base_lba + block_num)
-                self.configuration.device.maxusb_app.send_on_endpoint(3, data)
+                self.ep_to_host.send(data)
 
         elif opcode == 0x2a:    # Write (10)
             if self.verbose > 0:
@@ -248,7 +246,7 @@ class USBMassStorageInterface(USBInterface):
                 print(self.name, "responding with", len(response), "bytes:",
                         bytes_as_hex(response))
 
-            self.configuration.device.maxusb_app.send_on_endpoint(3, response)
+            self.ep_to_host.send(response)
 
         csw = bytes([
             ord('U'), ord('S'), ord('B'), ord('S'),
@@ -260,7 +258,7 @@ class USBMassStorageInterface(USBInterface):
         if self.verbose > 3:
             print(self.name, "responding with status =", status)
 
-        self.configuration.device.maxusb_app.send_on_endpoint(3, csw)
+        self.ep_to_host.send(csw)
 
 
 class DiskImage:

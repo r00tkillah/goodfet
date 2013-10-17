@@ -119,6 +119,9 @@ class USBDevice:
 
         return d
 
+    def send_control_message(self, data):
+        self.maxusb_app.send_on_endpoint(0, data)
+
     # IRQ handlers
     #####################################################
 
@@ -188,7 +191,7 @@ class USBDevice:
 
         # self-powered and remote-wakeup (USB 2.0 Spec section 9.4.5)
         response = b'\x03\x00'
-        self.maxusb_app.send_on_endpoint(0, response)
+        self.send_control_message(response)
 
     # USB 2.0 specification, section 9.4.1 (p 280 of pdf)
     def handle_clear_feature_request(self, req):
@@ -230,7 +233,7 @@ class USBDevice:
         if response:
             n = min(n, len(response))
             self.maxusb_app.verbose += 1
-            self.maxusb_app.send_on_endpoint(0, response[:n])
+            self.send_control_message(response[:n])
             self.maxusb_app.verbose -= 1
 
             if self.verbose > 5:
@@ -299,7 +302,7 @@ class USBDevice:
 
         if req.index == 0:
             # HACK: currently only support one interface
-            self.maxusb_app.send_on_endpoint(0, b'\x00')
+            self.send_control_message(b'\x00')
         else:
             self.maxusb_app.stall_ep0()
 

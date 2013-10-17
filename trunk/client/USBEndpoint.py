@@ -65,3 +65,12 @@ class USBEndpoint:
 
         return d
 
+    def send(self, data):
+        dev = self.interface.configuration.device
+        dev.maxusb_app.send_on_endpoint(self.number, data)
+
+    def recv(self):
+        dev = self.interface.configuration.device
+        data = dev.maxusb_app.read_from_endpoint(self.number)
+        return data
+

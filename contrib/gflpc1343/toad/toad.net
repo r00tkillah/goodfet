@@ -13,7 +13,7 @@
       (value DG408)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG408LDQ-T1-E3)
+        (field (name "Part Number") DG408DQ-T1-E3)
         (field (name Description) "IC MULTIPLEXER 8X1 16TSSOP"))
       (libsource (lib gflpc) (part DG408))
       (sheetpath (names "/switches and comparators/") (tstamps /51DF9B92/))
@@ -58,7 +58,7 @@
       (value DG408)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG408LDQ-T1-E3)
+        (field (name "Part Number") DG408DQ-T1-E3)
         (field (name Description) "IC MULTIPLEXER 8X1 16TSSOP"))
       (libsource (lib gflpc) (part DG408))
       (sheetpath (names "/switches and comparators/") (tstamps /51DF9B92/))
@@ -67,7 +67,7 @@
       (value DG408)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG408LDQ-T1-E3)
+        (field (name "Part Number") DG408DQ-T1-E3)
         (field (name Description) "IC MULTIPLEXER 8X1 16TSSOP"))
       (libsource (lib gflpc) (part DG408))
       (sheetpath (names "/switches and comparators/") (tstamps /51DF9B92/))
@@ -76,7 +76,7 @@
       (value DG408)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG408LDQ-T1-E3)
+        (field (name "Part Number") DG408DQ-T1-E3)
         (field (name Description) "IC MULTIPLEXER 8X1 16TSSOP"))
       (libsource (lib gflpc) (part DG408))
       (sheetpath (names "/switches and comparators/") (tstamps /51DF9B92/))
@@ -85,7 +85,7 @@
       (value DG408)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG408LDQ-T1-E3)
+        (field (name "Part Number") DG408DQ-T1-E3)
         (field (name Description) "IC MULTIPLEXER 8X1 16TSSOP"))
       (libsource (lib gflpc) (part DG408))
       (sheetpath (names "/switches and comparators/") (tstamps /51DF9B92/))
@@ -94,7 +94,7 @@
       (value DG408)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG408LDQ-T1-E3)
+        (field (name "Part Number") DG408DQ-T1-E3)
         (field (name Description) "IC MULTIPLEXER 8X1 16TSSOP"))
       (libsource (lib gflpc) (part DG408))
       (sheetpath (names "/switches and comparators/") (tstamps /51DF9B92/))
@@ -103,7 +103,7 @@
       (value DG408)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG408LDQ-T1-E3)
+        (field (name "Part Number") DG408DQ-T1-E3)
         (field (name Description) "IC MULTIPLEXER 8X1 16TSSOP"))
       (libsource (lib gflpc) (part DG408))
       (sheetpath (names "/switches and comparators/") (tstamps /51DF9B92/))
@@ -112,7 +112,7 @@
       (value DG408)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG408LDQ-T1-E3)
+        (field (name "Part Number") DG408DQ-T1-E3)
         (field (name Description) "IC MULTIPLEXER 8X1 16TSSOP"))
       (libsource (lib gflpc) (part DG408))
       (sheetpath (names "/switches and comparators/") (tstamps /51DF9B92/))
@@ -951,7 +951,7 @@
       (value DG409)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG409LDQ-T1-E3)
+        (field (name "Part Number") DG409DQ-T1-E3)
         (field (name Description) "IC MUX CMOS ANG DUAL 8CH 16TSSOP"))
       (libsource (lib gflpc) (part DG409))
       (sheetpath (names /supplies/) (tstamps /51DF9DC6/))
@@ -1107,7 +1107,7 @@
       (value DG409)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG409LDQ-T1-E3)
+        (field (name "Part Number") DG409DQ-T1-E3)
         (field (name Description) "IC MUX CMOS ANG DUAL 8CH 16TSSOP"))
       (libsource (lib gflpc) (part DG409))
       (sheetpath (names /supplies/) (tstamps /51DF9DC6/))
@@ -1116,7 +1116,7 @@
       (value DG409)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG409LDQ-T1-E3)
+        (field (name "Part Number") DG409DQ-T1-E3)
         (field (name Description) "IC MUX CMOS ANG DUAL 8CH 16TSSOP"))
       (libsource (lib gflpc) (part DG409))
       (sheetpath (names /supplies/) (tstamps /51DF9DC6/))
@@ -1413,7 +1413,7 @@
       (value DG409)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG409LDQ-T1-E3)
+        (field (name "Part Number") DG409DQ-T1-E3)
         (field (name Description) "IC MUX CMOS ANG DUAL 8CH 16TSSOP"))
       (libsource (lib gflpc) (part DG409))
       (sheetpath (names "/CPLD, ADC, potentiometer/") (tstamps /51E1B100/))
@@ -1422,7 +1422,7 @@
       (value DG409)
       (fields
         (field (name Manufacturer) "Vishay Siliconix")
-        (field (name "Part Number") DG409LDQ-T1-E3)
+        (field (name "Part Number") DG409DQ-T1-E3)
         (field (name Description) "IC MUX CMOS ANG DUAL 8CH 16TSSOP"))
       (libsource (lib gflpc) (part DG409))
       (sheetpath (names "/CPLD, ADC, potentiometer/") (tstamps /51E1B100/))

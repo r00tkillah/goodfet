@@ -163,16 +163,14 @@ class GoodFETNRF(GoodFET):
         return None;
     def RF_txpacket(self,payload):
         """Transmit a packet.  Untested."""
-        if self.peek(0x07) & 0x40:
-            #Packet has arrived.
-            self.writecmd(self.NRFAPP,0x81,0,None); #RX Packet
-            data=self.data;
-            self.poke(0x07,0x40);#clear bit.
-            return data;
-        elif self.peek(0x07)==0:
-            self.writecmd(self.NRFAPP,0x83,0,None); #Flush
-            self.poke(0x07,0x40);#clear bit.
-        return None;
+        if self.peek(0x07) & 0x01:
+            #TX FIFO full
+            self.writecmd(self.NRFAPP, 0x83, 0, None)  # Flush
+        self.writecmd(self.NRFAPP,0x81,len(payload),payload)  #TX Packet
+        if self.peek(0x07) & 0x020:
+            self.poke(0x07, 0x20)  #clear bit.
+            return True
+        return False;
 
     def RF_carrier(self):
         """Hold a carrier wave on the present frequency."""

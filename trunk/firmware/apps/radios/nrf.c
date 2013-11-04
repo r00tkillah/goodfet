@@ -162,12 +162,26 @@ void nrf_handle_fn( uint8_t const app,
     CLRSS;
     nrftrans8(NRF_FLUSH_RX);
     SETSS;
-    
+
     //Return the packet.
     txdata(app,verb,32);
     break;
   case NRF_TX:
+    CLRSS;
+    nrftrans8(NRF_W_TX_PAYLOAD);
+    for (i=0; i<len; i++)
+      nrftrans8(cmddata[i]);
+    SETSS;
+    RADIOACTIVE;
+    msdelay(10);
+    RADIOPASSIVE;
+    txdata(app,verb,0);
+    break;
   case NRF_TX_FLUSH:
+    CLRSS;
+    nrftrans8(NRF_FLUSH_TX);
+    SETSS;
+    break;
   default:
     debugstr("Not yet supported.");
     txdata(app,verb,0);

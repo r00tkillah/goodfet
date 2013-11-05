@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Mon Jul 22 09:26:32 2013
+EESchema Schematic File Version 2
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -31,7 +31,7 @@ LIBS:contrib
 LIBS:valves
 LIBS:gflpc
 LIBS:toad-cache
-EELAYER 27 0
+EELAYER 24 0
 EELAYER END
 $Descr USLedger 17000 11000
 encoding utf-8

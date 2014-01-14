@@ -10,11 +10,12 @@
 import sys;
 import binascii;
 import array, time;
+import os
 
 from GoodFETCCSPI import GoodFETCCSPI;
 
 #PORTNAME=None
-PORTNAME="/dev/ttyUSB0"
+PORTNAME = os.environ.get('GOODFET') or "/dev/ttyUSB0"
 print "ON:", PORTNAME
 
 #Some quick functions for yanking values out of a packet.

@@ -56,6 +56,7 @@ void spisetup(){
   SPIDIR|=MOSI+SCK+BIT0; //BIT0 might be SS
   SPIDIR&=~MISO;
   DIRSS;
+  DIRCE;
 
   //Begin a new transaction.
 
@@ -361,6 +362,47 @@ void spi_handle_fn( uint8_t const app,
 			cmddata[i]=spitrans8(cmddata[i]);
 		txdata(app,verb,len);
 		SETSS;  //Raise !SS to end transaction.
+		break;
+
+	case SPI_ZENSYS_ENABLE:
+		CLRTST; // power off
+		msdelay(10);
+		// Switch MISO to OUT
+		SPIDIR |= MISO;
+		CLRSS;
+		CLRCLK;
+		CLRMOSI;
+		SPIOUT &= ~MISO;
+		SETTST; // power on
+		msdelay(20);
+		// Set MISO back to IN
+		SPIDIR &= ~MISO;
+		// Transmit
+		for (i = 0; i < len; i++)
+			cmddata[i] = spitrans8(cmddata[i]);
+		SETSS;
+		txdata(app, verb, 4);
+		break;
+
+	case SPI_ZENSYS_WRITE3_READ1:
+		CLRSS;
+		for (i = 0; i < 3; i++)
+			spitrans8(cmddata[i]);
+		delay(5);  // wait for data to be ready
+		cmddata[0] = spitrans8(cmddata[3]);
+		SETSS;
+		txdata(app, verb, 1);
+		break;
+
+	case SPI_ZENSYS_WRITE2_READ2:
+		CLRSS;
+		for (i = 0; i < 2; i++)
+			spitrans8(cmddata[i]);
+		delay(5); // wait for data to be ready
+		cmddata[0] = spitrans8(cmddata[2]);
+		cmddata[1] = spitrans8(cmddata[3]);
+		SETSS;
+		txdata(app, verb, 2);
 		break;
 
 	case PEEK://Grab 128 bytes from an SPI Flash ROM

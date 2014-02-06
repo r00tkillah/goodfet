@@ -25,6 +25,8 @@ width="420" height="412" alt="GoodFET SPI Flash Pinout" /></a>
 <p>A Python
 client, <a href="/clients/goodfetspiflash/">goodfet.spiflash</a>, is
 quite effective at reading, writing, and erasing SPI flash chips.</p>
+<p>In addition to that, another client, <a href="/clients/goodfetzensys">goodfet.zensys</a>,
+is dedicated to Zensys Z-Wave ASICs and provides read/write/erase capabilities.</p>
 
 <h2>Development</h2>
 
@@ -58,4 +60,8 @@ by those that write flash memory, such as POKE and SPI_ERASE.</p>
 
 <tr><td>0x80</td><td>SPI_JEDEC</td><td>Grab 3-byte JEDEC ID.</td></tr>
 <tr><td>0x81</td><td>SPI_ERASE</td><td>Erase a Flash EEPROM.</td></tr>
+<tr><td>0x82</td><td>SPI_RW_EM260</td><td>SPI exchange with an EM260.</td></tr>
+<tr><td>0x83</td><td>SPI_ZENSYS_ENABLE</td><td>Zensys "Program enable" command.</td></tr>
+<tr><td>0x84</td><td>SPI_ZENSYS_WRITE3_READ1</td><td>Zensys specific command that reads 1 byte of flash.</td></tr>
+<tr><td>0x85</td><td>SPI_ZENSYS_WRITE2_READ2</td><td>Zensys specific command that reads 2 bytes of flash.</td></tr>
 </table>

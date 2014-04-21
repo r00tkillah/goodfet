@@ -11,8 +11,11 @@ from util import *
 
 class USBSkelClass(USBClass):
     name = "USB skel storage class"
+    def setup_request_handlers(self):
+        self.request_handlers = {
+        }
 
-class USBSkellInterface(USBInterface):
+class USBSkelInterface(USBInterface):
     name = "USB skel interface"
 
     def __init__(self, verbose=0):

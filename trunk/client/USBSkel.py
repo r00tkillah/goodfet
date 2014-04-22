@@ -45,7 +45,7 @@ class USBSkelInterface(USBInterface):
                 self,
                 0,          # interface number
                 0,          # alternate setting
-                1337,       # interface class: ???
+                0xff,       # interface class: ???
                 0,          # subclass: ???
                 0x50,       # protocol: bulk-only (BBB) transport
                 0,          # string index
@@ -78,12 +78,12 @@ class USBSkelDevice(USBDevice):
                 0,                      # device subclass
                 0,                      # protocol release number
                 64,                     # max packet size for endpoint 0
-                0xfff0,                 # vendor id: skel
-                0xfff0,                 # product id: skel
+                0xfff1,                 # vendor id: skel
+                0xfff1,                 # product id: skel
                 0x0003,                 # device revision
                 "hacker",               # manufacturer string
                 "facedancer",           # product string
-                "1337",                 # serial number string
+                "S/N1337",                 # serial number string
                 [ config ],
                 verbose=verbose
         )

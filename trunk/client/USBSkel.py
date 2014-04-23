@@ -39,7 +39,7 @@ class USBSkelInterface(USBInterface):
                 USBEndpoint.usage_type_data,
                 16384,      # max packet size
                 0,          # polling interval, see USB 2.0 spec Table 9-13
-                None        # handler function
+                self.handle_buffer_available        # handler function
         )
         USBInterface.__init__(
                 self,
@@ -55,6 +55,11 @@ class USBSkelInterface(USBInterface):
         )
         self.device_class = USBSkelClass()
         self.device_class.set_interface(self)
+
+    def handle_buffer_available(self):
+        print("sending data\n")
+        data = bytes([1, 3, 3, 7])
+        self.ep_to_host.send(data)
         
     def handle_data_available(self, data):
         print(self.name, "handling", len(data), "bytes of data")

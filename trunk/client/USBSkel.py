@@ -8,6 +8,7 @@ from USBEndpoint import *
 from USBClass import *
 
 from util import *
+from itertools import repeat
 
 class USBSkelClass(USBClass):
     name = "USB skel storage class"
@@ -57,8 +58,10 @@ class USBSkelInterface(USBInterface):
         self.device_class.set_interface(self)
 
     def handle_buffer_available(self):
-        print("sending data\n")
-        data = bytes([1, 3, 3, 7])
+        # the buffer is 64. only 16 bytes seem to xfer
+        num_bytes = 1024*32
+        print("splat 0x41 %d times\n" % (num_bytes))
+        data = bytes(list(repeat(0x41, num_bytes)))
         self.ep_to_host.send(data)
         
     def handle_data_available(self, data):

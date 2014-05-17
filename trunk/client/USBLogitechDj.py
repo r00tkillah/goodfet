@@ -8,6 +8,82 @@ from USBConfiguration import *
 from USBInterface import *
 from USBEndpoint import *
 
+
+# I don't really know why we need these, but we sort of do
+class USBLogiInterface1(USBInterface):
+    name = "logitech interface"
+    hid_descriptor = b'\x09\x21\x11\x01\x00\x01\x22\x3B\x00'
+    report_descriptor = b'\x05\x01\x09\x06\xA1\x01\x05\x07\x19\xE0\x29\xE7\x15\x00\x25\x01\x75\x01\x95\x08\x81\x02\x95\x01\x75\x08\x81\x01\x19\x00\x29\x65\x15\x00\x25\x65\x75\x08\x95\x01\x81\x00\xC0'
+
+    def __init__(self, verbose=0):
+        descriptors = {
+            USB.desc_type_hid    : self.hid_descriptor,
+            USB.desc_type_report : self.report_descriptor
+            }
+        self.endpoint = USBEndpoint(
+                3,          # endpoint number
+                USBEndpoint.direction_in,
+                USBEndpoint.transfer_type_interrupt,
+                USBEndpoint.sync_type_none,
+                USBEndpoint.usage_type_data,
+                8,      # max packet size
+                8,         # polling interval, see USB 2.0 spec Table 9-13
+                self.handle_buffer_available
+        )
+        
+        USBInterface.__init__(
+                self,
+                0,          # interface number
+                0,          # alternate setting
+                3,          # interface class
+                1,          # subclass
+                1,          # protocol
+                0,          # string index
+                verbose,
+                [ self.endpoint ],
+                descriptors
+        )
+
+    def handle_buffer_available(self):
+        print("handling buffer in interface1\n")
+
+class USBLogiInterface2(USBInterface):
+    name = "logitech interface"
+    hid_descriptor = b'\x09\x21\x11\x01\x00\x01\x22\x3B\x00'
+    report_descriptor = b'\x05\x01\x09\x06\xA1\x01\x05\x07\x19\xE0\x29\xE7\x15\x00\x25\x01\x75\x01\x95\x08\x81\x02\x95\x01\x75\x08\x81\x01\x19\x00\x29\x65\x15\x00\x25\x65\x75\x08\x95\x01\x81\x00\xC0'
+
+    def __init__(self, verbose=0):
+        descriptors = {
+            USB.desc_type_hid    : self.hid_descriptor,
+            USB.desc_type_report : self.report_descriptor
+            }
+        self.endpoint = USBEndpoint(
+                3,          # endpoint number
+                USBEndpoint.direction_in,
+                USBEndpoint.transfer_type_interrupt,
+                USBEndpoint.sync_type_none,
+                USBEndpoint.usage_type_data,
+                8,      # max packet size
+                8,         # polling interval, see USB 2.0 spec Table 9-13
+                self.handle_buffer_available
+        )
+        
+        USBInterface.__init__(
+                self,
+                1,          # interface number
+                0,          # alternate setting
+                3,          # interface class
+                1,          # subclass
+                1,          # protocol
+                0,          # string index
+                verbose,
+                [ self.endpoint ],
+                descriptors
+        )
+
+    def handle_buffer_available(self):
+        print("handling buffer in interface1\n")
+
 class USBKeyboardInterface(USBInterface):
     name = "USB keyboard interface"
 
@@ -34,11 +110,11 @@ class USBKeyboardInterface(USBInterface):
         # TODO: un-hardcode string index (last arg before "verbose")
         USBInterface.__init__(
                 self,
-                0,          # interface number
+                1,          # interface number
                 0,          # alternate setting
                 3,          # interface class
-                0,          # subclass
-                0,          # protocol
+                1,          # subclass
+                1,          # protocol
                 0,          # string index
                 verbose,
                 [ self.endpoint ],
@@ -74,7 +150,7 @@ class USBKeyboardDevice(USBDevice):
         config = USBConfiguration(
                 1,                                          # index
                 "Emulated Keyboard",    # string desc
-                [ USBKeyboardInterface() ]                  # interfaces
+                [ USBLogiInterface1(), USBLogiInterface2(), USBKeyboardInterface() ]                  # interfaces
         )
 
         USBDevice.__init__(
@@ -88,7 +164,7 @@ class USBKeyboardDevice(USBDevice):
                 0xc52b,                 # product id
                 0x3412,                 # device revision
                 "Logitech",             # manufacturer string
-                "USB Receiver",         # product string
+                "Unifying Receiver",         # product string
                 "0",                    # serial number string
                 [ config ],
                 verbose=verbose

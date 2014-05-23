@@ -74,7 +74,7 @@ class USBLogiInterface2(USBInterface):
                 0,          # alternate setting
                 3,          # interface class
                 1,          # subclass
-                1,          # protocol
+                2,          # protocol
                 0,          # string index
                 verbose,
                 [ self.endpoint ],
@@ -84,10 +84,18 @@ class USBLogiInterface2(USBInterface):
     def handle_buffer_available(self):
         print("handling buffer in interface1\n")
 
+#this is the interface we care about
 class USBKeyboardInterface(USBInterface):
     name = "USB keyboard interface"
 
     hid_descriptor = b'\x09\x21\x10\x01\x00\x01\x22\x2b\x00'
+
+    # using either of these causes it to fail parsing before switch_to_dj_mode
+    # this is desc 7
+#    report_descriptor = b'\x05\x01\x09\x02\xa1\x01\x85\x02\x09\x01\xa1\x00\x05\x09\x19\x01\x29\x10\x15\x00\x25\x01\x95\x10\x75\x01\x81\x02\x05\x01\x16\x01\xf8\x26\xff\x07\x75\x0c\x95\x02\x09\x30\x09\x31\x81\x06\x15\x81\x25\x7f\x75\x08\x95\x01\x09\x38\x81\x06\x05\x0c\x0a\x38\x02\x95\x01\x81\x06\xc0\xc0'
+    # this is desc 6
+    #report_descriptor = b'\x06\x00\xff\x09\x01\xa1\x01\x85\x10\x75\x08\x95\x06\x15\x00\x26\xff\x00\x09\x01\x81\x00\x09\x01\x91\x00\xc0\x06\x00\xff\x09\x02\xa1\x01\x85\x11\x75\x08\x95\x13\x15\x00\x26\xff\x00\x09\x02\x81\x00\x09\x02\x91\x00\xc0\x06\x00\xff\x09\x04\xa1\x01\x85\x20\x75\x08\x95\x0e\x15\x00\x26\xff\x00\x09\x41\x81\x00\x09\x41\x91\x00\x85\x21\x95\x1f\x15\x00\x26\xff\x00\x09\x42\x81\x00\x09\x42\x91\x00\xc0'
+
     report_descriptor = b'\x05\x01\x09\x06\xA1\x01\x05\x07\x19\xE0\x29\xE7\x15\x00\x25\x01\x75\x01\x95\x08\x81\x02\x95\x01\x75\x08\x81\x01\x19\x00\x29\x65\x15\x00\x25\x65\x75\x08\x95\x01\x81\x00\xC0'
 
     def __init__(self, verbose=0):
@@ -110,11 +118,11 @@ class USBKeyboardInterface(USBInterface):
         # TODO: un-hardcode string index (last arg before "verbose")
         USBInterface.__init__(
                 self,
-                1,          # interface number
+                2,          # interface number
                 0,          # alternate setting
                 3,          # interface class
-                1,          # subclass
-                1,          # protocol
+                0,          # subclass
+                0,          # protocol
                 0,          # string index
                 verbose,
                 [ self.endpoint ],
@@ -128,6 +136,7 @@ class USBKeyboardInterface(USBInterface):
         self.keys = [ chr(x) for x in empty_preamble + text ]
 
     def handle_buffer_available(self):
+        print("handle_buffer_availble!\n")
         if not self.keys:
             return
 

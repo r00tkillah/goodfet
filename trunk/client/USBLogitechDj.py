@@ -86,12 +86,19 @@ class USBLogiInterface2(USBInterface):
 
 #this is the interface we care about
 class USBKeyboardInterface(USBInterface):
-    name = "USB keyboard interface"
+    name = "DJ Interface"
 
-    hid_descriptor = b'\x09\x21\x10\x01\x00\x01\x22\x2b\x00'
+    # this one was lifted from USB keyboard
+    hid_descriptor =       b'\x09\x21\x10\x01\x00\x01\x22\x2b\x00'
 
-    # using either of these causes it to fail parsing before switch_to_dj_mode
+    # this was lifted from rela hardware
+    filched_hid_descriptor=b'\x09\x21\x11\x01\x00\x01\x22\x62\x00'
+
+    # unsure where this one came from
     descriptor_7 = b'\x05\x01\x09\x02\xa1\x01\x85\x02\x09\x01\xa1\x00\x05\x09\x19\x01\x29\x10\x15\x00\x25\x01\x95\x10\x75\x01\x81\x02\x05\x01\x16\x01\xf8\x26\xff\x07\x75\x0c\x95\x02\x09\x30\x09\x31\x81\x06\x15\x81\x25\x7f\x75\x08\x95\x01\x09\x38\x81\x06\x05\x0c\x0a\x38\x02\x95\x01\x81\x06\xc0\xc0'
+
+    # descriptor_6 is 98 bytes (0x62)
+    # this was actually seen and is referneced in some dj RE docs
     descriptor_6 = b'\x06\x00\xff\x09\x01\xa1\x01\x85\x10\x75\x08\x95\x06\x15\x00\x26\xff\x00\x09\x01\x81\x00\x09\x01\x91\x00\xc0\x06\x00\xff\x09\x02\xa1\x01\x85\x11\x75\x08\x95\x13\x15\x00\x26\xff\x00\x09\x02\x81\x00\x09\x02\x91\x00\xc0\x06\x00\xff\x09\x04\xa1\x01\x85\x20\x75\x08\x95\x0e\x15\x00\x26\xff\x00\x09\x41\x81\x00\x09\x41\x91\x00\x85\x21\x95\x1f\x15\x00\x26\xff\x00\x09\x42\x81\x00\x09\x42\x91\x00\xc0'
 
     # using this one causes it to fail in switch_to_dj_mode
@@ -100,8 +107,8 @@ class USBKeyboardInterface(USBInterface):
 
     def __init__(self, verbose=0):
         descriptors = { 
-                USB.desc_type_hid    : self.hid_descriptor,
-                USB.desc_type_report : self.descriptor_kb
+                USB.desc_type_hid    : self.filched_hid_descriptor,
+                USB.desc_type_report : self.descriptor_6,
         }
 
         self.endpoint = USBEndpoint(
@@ -136,19 +143,8 @@ class USBKeyboardInterface(USBInterface):
         self.keys = [ chr(x) for x in empty_preamble + text ]
 
     def handle_buffer_available(self):
-        print("handle_buffer_availble!\n")
-        if not self.keys:
-            return
-
-        letter = self.keys.pop(0)
-        self.type_letter(letter)
-
-    def type_letter(self, letter, modifiers=0):
-        data = bytes([ 0, 0, ord(letter) ])
-
-        if self.verbose > 2:
-            print(self.name, "sending keypress 0x%02x" % ord(letter))
-
+        return
+        print("handle_buffer_availble!")
         self.endpoint.send(data)
 
 

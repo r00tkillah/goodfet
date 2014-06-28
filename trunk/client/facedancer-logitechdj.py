@@ -10,7 +10,7 @@ sp = GoodFETSerialPort()
 fd = Facedancer(sp, verbose=1)
 u = MAXUSBApp(fd, verbose=1)
 
-d = USBKeyboardDevice(u, verbose=4)
+d = USBKeyboardDevice(u, verbose=99)
 
 d.connect()
 
